@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Game;
 
 
 /*
@@ -54,6 +55,7 @@ class Discard extends GameState
             type: StateType::ACTIVE_PLAYER,
     		description: clienttranslate('${actplayer} must discard a tile from his Barn.'),
             descriptionMyTurn: clienttranslate('${you} must discard a tile from your Barn.'),
+        );
     }
 
     public function getArgs(int $active_player_id): array

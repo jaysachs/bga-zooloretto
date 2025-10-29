@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Game;
 
 
 /*
@@ -52,7 +53,8 @@ class Buy extends GameState
             id: 9,
             type: StateType::ACTIVE_PLAYER,
     		description: clienttranslate('${actplayer} must buy a tile from an opponent Barn.'),
-    		descriptionMyTurn => clienttranslate('${you} must buy a tile from an opponent Barn.'),
+    		descriptionMyTurn: clienttranslate('${you} must buy a tile from an opponent Barn.')
+        );
     }
 
     public function getArgs(int $active_player_id): array

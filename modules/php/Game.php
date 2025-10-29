@@ -25,9 +25,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\babylonia;
+namespace Bga\Games\zooloretto;
 
-// use Bga\Games\babylonia\States\StartTurn;
+use Bga\Games\babylonia\States\PlayerTurn;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
@@ -444,6 +444,8 @@ class Game extends \Bga\GameFramework\Table
         $this->activeNextPlayer();
 
         /************ End of the game initialization *****/
+
+        return PlayerTurn::class;
     }
 
 
