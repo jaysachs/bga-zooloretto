@@ -1305,7 +1305,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         }
                     }
 
-                    if( this.checkAction( 'ArrangeTiles' ) )    // Check that this action is possible at this moment
+                    if( this.checkAction( 'actArrangeTiles' ) )    // Check that this action is possible at this moment
                     {
                         var elements = document.getElementsByClassName('highlighted2');
                         while(elements.length > 0)
@@ -1317,15 +1317,14 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         {
                             dojo.removeClass(elements[0].id,'pointer');
                         }
-                        this.ajaxcall( "/zooloretto/zooloretto/ArrangeTiles.html", {
-                            lock: true,
+                        this.bgaPerformAction('actArrangeTiles', {
                             tileid: tileid,
                             wagonid: wagonid,
                             posid: posid,
                             x: x,
                             y: y,
                             pid: pid,
-                        }, this, function( result ) {} );
+                        });
                     }
                 }
             }
@@ -1372,7 +1371,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     console.log(x0);
                     console.log(x1);
 
-                    if( this.checkAction( 'Move' ) && (x1!=x0 ||
+                    if( this.checkAction( 'actMove' ) && (x1!=x0 ||
                                                         (this.TotalPlayers==2 && (x1==6 || x0==6))  ||
                                                         (this.TotalPlayers>2 && (x1==5 || x0==5))
                                                         )
@@ -1388,15 +1387,14 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         {
                             dojo.removeClass(elements[0].id,'pointer');
                         }
-                        this.ajaxcall( "/zooloretto/zooloretto/MoveTile.html", {
-                            lock: true,
+                        this.bgaPerformAction( "actMoveTile", {
                             tileid: tileid,
                             pid: pid,
                             x0: x0,
                             y0: y0,
                             x1: x1,
                             y1: y1,
-                        }, this, function( result ) {} );
+                        });
                     }
                     else if (x1==x0)
                     {
@@ -1444,7 +1442,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         }
                     }
 
-                    if( this.checkAction( 'Buy' ) )    // Check that this action is possible at this moment
+                    if( this.checkAction( 'actBuyTile' ) )    // Check that this action is possible at this moment
                     {
                         var elements = document.getElementsByClassName('highlighted2');
                         while(elements.length > 0)
@@ -1456,15 +1454,14 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         {
                             dojo.removeClass(elements[0].id,'pointer');
                         }
-                        this.ajaxcall( "/zooloretto/zooloretto/BuyTile.html", {
-                            lock: true,
+                        this.bgaPerformAction( "actBuyTile", {
                             tileid: tileid,
                             pid: pid,
                             x0: x0,
                             y0: y0,
                             x1: x1,
                             y1: y1,
-                        }, this, function( result ) {} );
+                        });
                     }
                 }
             }
@@ -1529,7 +1526,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 dojo.addClass("placetile","buttonvisible");
             }
             else if (this.isCurrentPlayerActive() &&
-                this.StateNameValue=="playerTurn" &&
+                this.StateNameValue=="PlayerTurn" &&
                 !this.isInterfaceLocked())
             {
                 var wagonid = "";
@@ -1572,7 +1569,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         },
         onDrawTile: function ()
         {
-           if( this.checkAction( 'DrawTile' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actDrawTile' ) )    // Check that this action is possible at this moment
            {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -1602,9 +1599,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/DrawTile.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+                this.bgaPerformAction('actDrawTile');
            }
         },
 
@@ -1612,7 +1607,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         {
            if (document.getElementsByClassName("highlighted").length==1)
            {
-               if( this.checkAction( 'PlaceTile' ) )    // Check that this action is possible at this moment
+               if( this.checkAction( 'actPlaceTile' ) )    // Check that this action is possible at this moment
                {
                     dojo.removeClass("placetile","buttonvisible");
                     dojo.addClass("placetile","buttoninvisible");
@@ -1629,11 +1624,10 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         dojo.removeClass(elements[0].id,'pointer');
                     }
 
-                    this.ajaxcall( "/zooloretto/zooloretto/PlaceTile.html", {
-                        lock: true,
+                    this.bgaPerformAction( "actPlaceTile", {
                         x: x,
                         y: y,
-                    }, this, function( result ) {} );
+                    });
                }
            }
         },
@@ -1656,7 +1650,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
 
         onConfirm: function (evt, nodialog = false)
         {
-           if( this.checkAction( 'ConfirmArrangement' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actConfirmArrangement' ) )    // Check that this action is possible at this moment
            {
                 if (!nodialog && this.countNotMoneyinWagon() != 0)
                 {
@@ -1689,7 +1683,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         dojo.removeClass(elements[0].id,'highlighted2');
                     }
 
-                    this.ajaxcall( "/zooloretto/zooloretto/ConfirmArrangement.html", {
+                    this.bgaPerformAction( "actConfirmArrangement", {
                         lock: true,
                     }, this, function( result ) {} );
                 }
@@ -1697,7 +1691,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         },
         onDiscard: function ()
         {
-            if( this.checkAction( 'Discard' ) )    // Check that this action is possible at this moment
+            if( this.checkAction( 'actDiscard' ) )    // Check that this action is possible at this moment
             {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -1727,14 +1721,12 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/Discard.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+                this.bgaPerformAction( "actDiscard", {} );
            }
         },
         onConfirmDiscard: function ()
         {
-           if( this.checkAction( 'Discard' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actConfirmDiscard' ) )    // Check that this action is possible at this moment
            {
                 dojo.removeClass("back","buttonvisible");
                 dojo.addClass("back","buttoninvisible");
@@ -1754,15 +1746,14 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     dojo.removeClass(elements[0].id,'highlighted2');
                 }
 
-                this.ajaxcall( "/zooloretto/zooloretto/ConfirmDiscard.html", {
-                    lock: true,
+                this.bgaPerformAction( "actConfirmDiscard", {
                     tileid: tileid,
-                }, this, function( result ) {} );
+                } );
            }
         },
         onConfirmSwap: function ()
         {
-            if( this.checkAction( 'Swap' ) )    // Check that this action is possible at this moment
+            if( this.checkAction( 'actSwapTiles' ) )
             {
                 dojo.removeClass("back","buttonvisible");
                 dojo.addClass("back","buttoninvisible");
@@ -1784,12 +1775,11 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'highlighted3');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/SwapTiles.html", {
-                    lock: true,
+                this.bgaPerformAction( "SwapTiles", {
                     enc1: enc1,
                     enc2: enc2,
                     anid: anid,
-                }, this, function( result ) {} );
+                });
             }
         },
         onReset2: function ()
@@ -1809,7 +1799,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         },
         onBuy: function ()
         {
-            if( this.checkAction( 'Buy' ) )    // Check that this action is possible at this moment
+            if( this.checkAction( 'actBuy' ) )
             {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -1839,9 +1829,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/Buy.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+                this.bgaPerformAction( "actBuy", {} );
            }
         },
         onBack2: function ()
@@ -1912,7 +1900,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         },
         onBack: function ()
         {
-           if( this.checkAction( 'Back' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actBack' ) )    // Check that this action is possible at this moment
            {
                 dojo.removeClass("back","buttonvisible");
                 dojo.addClass("back","buttoninvisible");
@@ -1935,14 +1923,12 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     dojo.removeClass(elements[0].id,'highlighted3');
                 }
 
-                this.ajaxcall( "/zooloretto/zooloretto/Back.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+               this.bgaPerformAction( "actBack", { } );
            }
         },
         onMoveTile: function ()
         {
-            if( this.checkAction( 'Move' ) )    // Check that this action is possible at this moment
+            if( this.checkAction( 'actMove' ) )    // Check that this action is possible at this moment
             {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -1972,14 +1958,12 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/Move.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+                this.ajaxcall( "actMove", {} );
            }
         },
         onSwap: function ()
         {
-           if( this.checkAction( 'Swap' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actSwap' ) )    // Check that this action is possible at this moment
            {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -2009,14 +1993,12 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/Swap.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+               this.bgaPerformAction( "Swap", {} );
            }
         },
         onBuyEnclosure: function ()
         {
-           if( this.checkAction( 'BuyEnclosure' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actBuyEnclosure' ) )    // Check that this action is possible at this moment
            {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
@@ -2046,14 +2028,12 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "/zooloretto/zooloretto/BuyEnclosure.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+               this.bgaPerformAction( "actBuyEnclosure", {} );
            }
         },
         onAutoArrange: function ()
         {
-            if( this.checkAction( 'AutoArrangeTiles' ) )    // Check that this action is possible at this moment
+            if( this.checkAction( 'actAutoArrangeTiles' ) )    // Check that this action is possible at this moment
             {
                 if (document.getElementsByClassName("highlighted").length==1)
                 {
@@ -2233,8 +2213,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         val3="";
                     }
 
-                    this.ajaxcall( "/zooloretto/zooloretto/AutoArrangeTiles.html", {
-                        lock: true,
+                    this.bgaPerformAction( "actAutoArrangeTiles", {
                         wagonid: wagonid,
                         tileid1: tileid1,
                         posid1: posid1,
@@ -2248,13 +2227,13 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         y2: y2,
                         x3: x3,
                         y3: y3,
-                    }, this, function( result ) {} );
+                    });
                 }
             }
         },
         onBackTakeWagon: function ()
         {
-           if( this.checkAction( 'GoBack' ) && document.getElementsByClassName("highlighted").length==1)    // Check that this action is possible at this moment
+           if( this.checkAction( 'actGoBack' ) && document.getElementsByClassName("highlighted").length==1)    // Check that this action is possible at this moment
            {
                 let x = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
                 dojo.removeClass("backtakewagon","buttonvisible");
@@ -2266,26 +2245,23 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 dojo.removeClass("reset","buttonvisible");
                 dojo.addClass("reset","buttoninvisible");
 
-                this.ajaxcall( "/zooloretto/zooloretto/GoBack.html", {
+                this.bgaPerformAction( "actGoBack", {
                     x: x,
-                    lock: true,
-                }, this, function( result ) {} );
+                });
            }
         },
         onReset: function ()
         {
-           if( this.checkAction( 'Reset' ) )    // Check that this action is possible at this moment
+           if( this.checkAction( 'actReset' ) )    // Check that this action is possible at this moment
            {
-                this.ajaxcall( "/zooloretto/zooloretto/Reset.html", {
-                    lock: true,
-                }, this, function( result ) {} );
+               this.bgaPerformAction( "Reset", {} );
            }
         },
         onTakeWagon: function ()
         {
            if (document.getElementsByClassName("highlighted").length==1)
            {
-               if( this.checkAction( 'TakeWagon' ) )    // Check that this action is possible at this moment
+               if( this.checkAction( 'actTakeWagon' ) )    // Check that this action is possible at this moment
                {
                     dojo.removeClass("drawtile","buttonvisible");
                     dojo.addClass("drawtile","buttoninvisible");
@@ -2312,10 +2288,9 @@ function (dojo, declare, fx, baseFx, domStyle) {
                         dojo.removeClass(elements[0].id,'pointer');
                     }
 
-                    this.ajaxcall( "/zooloretto/zooloretto/TakeWagon.html", {
-                        lock: true,
+                    this.bgaPerformAction( "actTakeWagon", {
                         x: x,
-                    }, this, function( result ) {} );
+                    });
                }
            }
         },
@@ -2420,7 +2395,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
             {
 
 
-            case 'playerTurn':
+            case 'PlayerTurn':
 
                 this.Money = parseInt(args.args.money);
                 this.UZ = parseInt(args.args.unblockedzoo);
