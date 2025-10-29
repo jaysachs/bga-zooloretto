@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
-use Bga\Games\babylonia\States\PlayerTurn;
+use Bga\Games\zooloretto\States\PlayerTurn;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
@@ -46,8 +46,13 @@ class Game extends \Bga\GameFramework\Table
             }
             return $args;
         });
+        self::initGameStateLabels([]);
     }
 
+    // FIXME used in view
+    function getPlayerNoForLayout($current_player_id) {
+        return self::getUniqueValueFromDB("select player_no from player where player_id = '$current_player_id'");
+    }
 
     /*
         getAllDatas:
