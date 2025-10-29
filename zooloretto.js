@@ -2327,7 +2327,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         //
         onEnteringState: function( stateName, args )
         {
-            console.log( 'Entering state: '+stateName );
+            console.log( 'Entering state: '+stateName, args );
             this.StateNameValue=stateName;
 
             this.addActionButton('drawtile', _('Draw a tile'), 'onDrawTile');
