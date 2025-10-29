@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -236,7 +237,7 @@ class ArrangeZoo extends GameState
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
 						'player_name' => $this->game->getCurrentPlayerName(),
-						'translatedval' => $this->DecodeAnimal($animal."K"),
+						'translatedval' => Decoder::Animal($animal."K"),
 						'newparents'=>$newparents,
 						'i18n' => array( 'translatedval' )
 					) );
@@ -261,7 +262,7 @@ class ArrangeZoo extends GameState
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
 						'player_name' => $this->game->getCurrentPlayerName(),
-						'translatedval' => $this->DecodeAnimal($animal."K"),
+						'translatedval' => Decoder::Animal($animal."K"),
 						'newparents'=>$newparents,
 						'i18n' => array( 'translatedval' )
 					) );
@@ -299,7 +300,7 @@ class ArrangeZoo extends GameState
 						'coinsbefore' => $coinsbefore,
 						'enclosure' => $enclosure['x'],
 						'player_name' => $this->game->getCurrentPlayerName(),
-						'pos' => $this->DecodePos($enclosure['x']),
+						'pos' => Decoder::Pos($enclosure['x']),
 						'i18n' => array( 'pos' )
 					) );
 				}
@@ -418,7 +419,12 @@ class ArrangeZoo extends GameState
     }
 
     #[PossibleAction]
-    public function actArrangeTiles(int $x): mixed {
+    public function actArrangeTiles(string $tileid,
+                                    string $wagonid,
+                                    string $posid,
+                                    int $x,
+                                    int $y,
+                                    int $pid): mixed {
 		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
 		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
 		$id3 = $this->game->getUniqueValueFromDB("select val3 from wagons where id='$x'" );
@@ -438,15 +444,15 @@ class ArrangeZoo extends GameState
 		$messagestring="";
 		if ($val1!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val1) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val1) . ", ";
 		}
 		if ($val2!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val2) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val2) . ", ";
 		}
 		if ($val3!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val3) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val3) . ", ";
 		}
 		$messagestring = substr($messagestring, 0, strlen($messagestring)-2);
 

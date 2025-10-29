@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -135,8 +136,8 @@ class Swap extends GameState
 				'enc2' => $enc2,
 				'tiles1' => $tiles1,
 				'tiles2' => $tiles2,
-				'pos1' => $this->DecodePos($enc1),
-				'pos2' => $this->DecodePos($enc2),
+				'pos1' => Decoder::Pos($enc1),
+				'pos2' => Decoder::Pos($enc2),
 				'anid' => $anid,
 				'player_name' => $this->game->getCurrentPlayerName(),
 				'i18n' => array( 'pos1','pos2' )
@@ -152,8 +153,8 @@ class Swap extends GameState
 				'enc2' => $enc2,
 				'tiles1' => $tiles1,
 				'tiles2' => $tiles2,
-				'pos1' => $this->DecodePos($enc1),
-				'pos2' => $this->DecodePos($enc2),
+				'pos1' => Decoder::Pos($enc1),
+				'pos2' => Decoder::Pos($enc2),
 				'anid' => $anid,
 				'player_name' => $this->game->getCurrentPlayerName(),
 				'i18n' => array( 'pos1','pos2' )
@@ -224,7 +225,7 @@ class Swap extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );
@@ -249,7 +250,7 @@ class Swap extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );

@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -152,7 +153,7 @@ class Move extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );
@@ -177,7 +178,7 @@ class Move extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );
@@ -215,7 +216,7 @@ class Move extends GameState
 							'coinsbefore' => $coinsbefore,
 							'enclosure' => $enclosure['x'],
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'pos' => $this->DecodePos($enclosure['x']),
+							'pos' => Decoder::Pos($enclosure['x']),
 							'i18n' => array( 'pos' )
 						) );
 					}
@@ -241,9 +242,9 @@ class Move extends GameState
 					'x1' => $x1,
 					'y1' => $y1,
 					'val' => $val,
-					'translatedval' => $this->DecodeAnimal($val),
-					'pos1' => $this->DecodePos($x0),
-					'pos2' => $this->DecodePos($x1),
+					'translatedval' => Decoder::Animal($val),
+					'pos1' => Decoder::Pos($x0),
+					'pos2' => Decoder::Pos($x1),
 					'player_name' => $this->game->getCurrentPlayerName(),
 					'i18n' => array( 'translatedval', 'pos1', 'pos2')
 				) );
@@ -261,9 +262,9 @@ class Move extends GameState
 					'x1' => $x1,
 					'y1' => $y1,
 					'val' => $val,
-					'translatedval' => $this->DecodeAnimal($val),
-					'pos1' => $this->DecodePos($x0),
-					'pos2' => $this->DecodePos($x1),
+					'translatedval' => Decoder::Animal($val),
+					'pos1' => Decoder::Pos($x0),
+					'pos2' => Decoder::Pos($x1),
 					'player_name' => $this->game->getCurrentPlayerName(),
 					'i18n' => array( 'translatedval', 'pos1', 'pos2')
 				) );
@@ -284,9 +285,9 @@ class Move extends GameState
 					'x1' => $x1,
 					'y1' => $y1,
 					'val' => $val,
-					'translatedval' => $this->DecodeAnimal($val),
-					'pos1' => $this->DecodePos($x0),
-					'pos2' => $this->DecodePos($x1),
+					'translatedval' => Decoder::Animal($val),
+					'pos1' => Decoder::Pos($x0),
+					'pos2' => Decoder::Pos($x1),
 					'player_name' => $this->game->getCurrentPlayerName(),
 					'i18n' => array( 'translatedval', 'pos1', 'pos2')
 				) );
@@ -304,9 +305,9 @@ class Move extends GameState
 					'x1' => $x1,
 					'y1' => $y1,
 					'val' => $val,
-					'translatedval' => $this->DecodeAnimal($val),
-					'pos1' => $this->DecodePos($x0),
-					'pos2' => $this->DecodePos($x1),
+					'translatedval' => Decoder::Animal($val),
+					'pos1' => Decoder::Pos($x0),
+					'pos2' => Decoder::Pos($x1),
 					'player_name' => $this->game->getCurrentPlayerName(),
 					'i18n' => array( 'translatedval', 'pos1', 'pos2')
 				) );

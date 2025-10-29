@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -111,60 +112,6 @@ class PlayerTurn extends GameState
 		return $cardresult;
 	}
 
-	protected function DecodePos(string $val): string
-	{
-		if ($val=="1") return clienttranslate('first');
-		else if ($val=="2") return clienttranslate('second');
-		else if ($val=="3") return clienttranslate('third');
-		else if ($val=="4") return clienttranslate('fourth');
-		else if ($val=="5") return clienttranslate('fifth');
-		else if ($val=="6") return clienttranslate('sixth');
-		else return "";
-	}
-
-    protected function DecodeAnimal(string $val): string
-	{
-		if ($val=="C") return clienttranslate('Camel');
-		else if ($val=="CF") return clienttranslate('Female Camel');
-		else if ($val=="CM") return clienttranslate('Male Camel');
-		else if ($val=="CK") return clienttranslate('Pup Camel');
-		else if ($val=="E") return clienttranslate('Elephant');
-		else if ($val=="EF") return clienttranslate('Female Elephant');
-		else if ($val=="EM") return clienttranslate('Male Elephant');
-		else if ($val=="EK") return clienttranslate('Pup Elephant');
-		else if ($val=="F") return clienttranslate('Flamingo');
-		else if ($val=="FF") return clienttranslate('Female Flamingo');
-		else if ($val=="FM") return clienttranslate('Male Flamingo');
-		else if ($val=="FK") return clienttranslate('Pup Flamingo');
-		else if ($val=="K") return clienttranslate('Kangaroo');
-		else if ($val=="KF") return clienttranslate('Female Kangaroo');
-		else if ($val=="KM") return clienttranslate('Male Kangaroo');
-		else if ($val=="KK") return clienttranslate('Pup Kangaroo');
-		else if ($val=="L") return clienttranslate('Leopard');
-		else if ($val=="LF") return clienttranslate('Female Leopard');
-		else if ($val=="LM") return clienttranslate('Male Leopard');
-		else if ($val=="LK") return clienttranslate('Pup Leopard');
-		else if ($val=="M") return clienttranslate('Monkey');
-		else if ($val=="MF") return clienttranslate('Female Monkey');
-		else if ($val=="MM") return clienttranslate('Male Monkey');
-		else if ($val=="MK") return clienttranslate('Pup Monkey');
-		else if ($val=="P") return clienttranslate('Panda');
-		else if ($val=="PF") return clienttranslate('Female Panda');
-		else if ($val=="PM") return clienttranslate('Male Panda');
-		else if ($val=="PK") return clienttranslate('Pup Panda');
-		else if ($val=="Z") return clienttranslate('Zebra');
-		else if ($val=="ZF") return clienttranslate('Female Zebra');
-		else if ($val=="ZM") return clienttranslate('Male Zebra');
-		else if ($val=="ZK") return clienttranslate('Pup Zebra');
-		else if ($val=="StallA") return clienttranslate('Kiosk Stall');
-		else if ($val=="StallB") return clienttranslate('Barrow Stall');
-		else if ($val=="StallC") return clienttranslate('Snacks Stall');
-		else if ($val=="StallD") return clienttranslate('Popcorn Stall');
-		else if ($val=="Coin") return clienttranslate('Coin');
-		else return "";
-	}
-
-
     #[PossibleAction]
     public function actTakeWagon(int $x): mixed {
 		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
@@ -186,15 +133,15 @@ class PlayerTurn extends GameState
 		$messagestring="";
 		if ($val1!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val1) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val1) . ", ";
 		}
 		if ($val2!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val2) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val2) . ", ";
 		}
 		if ($val3!="")
 		{
-			$messagestring = $messagestring . $this->DecodeAnimal($val3) . ", ";
+			$messagestring = $messagestring . Decoder::Animal($val3) . ", ";
 		}
 		$messagestring = substr($messagestring, 0, strlen($messagestring)-2);
 
@@ -238,7 +185,7 @@ class PlayerTurn extends GameState
 			'val' => $val,
 			'tilesleft' => $tilesleft,
 			'tilesleft2' => $tilesleft2,
-			'translatedval' => $this->DecodeAnimal($val),
+			'translatedval' => Decoder::Animal($val),
 			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval' )
 		) );
@@ -263,7 +210,7 @@ class PlayerTurn extends GameState
 			'player_id' => $player_id,
 			'player_no' => $player_no,
 			'unblockedzoo' => $unblockedzoo,
-			'pos' => $this->DecodePos($unblockedzoo),
+			'pos' => Decoder::Pos($unblockedzoo),
 			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'pos' )
 		) );

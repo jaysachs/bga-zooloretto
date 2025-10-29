@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -85,7 +86,7 @@ class Discard extends GameState
 			'player_no' => $player_no,
 			'tileid' => $tileid,
 			'val' => $val,
-			'translatedval' => $this->DecodeAnimal($val),
+			'translatedval' => Decoder::Animal($val),
 			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval' )
 		) );

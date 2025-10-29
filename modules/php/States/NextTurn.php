@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -117,7 +118,7 @@ class NextTurn extends GameState
                                         'player_id' => $fullenclosure['player_id'],
                                         'player_no' => $player_no,
                                         'points' => $fullenclosure['score'],
-                                        'pos' => $this->DecodePos($fullenclosure['x']),
+                                        'pos' => Decoder::Pos($fullenclosure['x']),
                                         'type' => 1,
                                         'enc' => $fullenclosure['x'],
                                         'player_name' => $pname,
@@ -153,7 +154,7 @@ class NextTurn extends GameState
                                         'player_id' => $partfullenclosure['player_id'],
                                         'player_no' => $player_no,
                                         'points' => $partfullenclosure['score'],
-                                        'pos' => $this->DecodePos($partfullenclosure['x']),
+                                        'pos' => Decoder::Pos($partfullenclosure['x']),
                                         'type' => 1,
                                         'enc' => $partfullenclosure['x'],
                                         'player_name' => $pname,
@@ -192,7 +193,7 @@ l.'),
                                         'player_id' => $stallenclosure['player_id'],
                                         'player_no' => $player_no,
                                         'points' => $stallenclosure['score'],
-                                        'pos' => $this->DecodePos($stallenclosure['x']),
+                                        'pos' => Decoder::Pos($stallenclosure['x']),
                                         'type' => 1,
                                         'enc' => $stallenclosure['x'],
                                         'player_name' => $pname,
@@ -266,7 +267,7 @@ val like 'Stall_' then val else left(val,1) end
                                         'key' => $leftstall['val'],
                                         'player_name' => $pname,
                                         'player_score' => $player_score,
-                                        'translatedval' => $this->DecodeAnimal($leftstall['val']),
+                                        'translatedval' => Decoder::Animal($leftstall['val']),
                                         'i18n' => array( 'translatedval' )
                                     ) );
         }

@@ -68,7 +68,7 @@ class NextPlayer extends GameState
 			$found = false;
 			while (!$found)
 			{
-				$this->activeNextPlayer();
+				$this->game->activeNextPlayer();
 				$player_id = $this->game->getActivePlayerId();
 				$count = $this->game->getUniqueValueFromDB("select count(*) from player where skipped='N' and player_id='$player_id'" );
 				if (intval($count)>0)

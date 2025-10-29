@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -104,8 +105,8 @@ class Buy extends GameState
 				'x1' => $x1,
 				'y1' => $y1,
 				'val' => $val,
-				'translatedval' => $this->DecodeAnimal($val),
-				'pos2' => $this->DecodePos($x1),
+				'translatedval' => Decoder::Animal($val),
+				'pos2' => Decoder::Pos($x1),
 				'player_name' => $this->game->getCurrentPlayerName(),
 				'donor_name' => $donor_name,
 				'donor_player_id' => $donor_player_id,
@@ -127,8 +128,8 @@ class Buy extends GameState
 				'x1' => $x1,
 				'y1' => $y1,
 				'val' => $val,
-				'translatedval' => $this->DecodeAnimal($val),
-				'pos2' => $this->DecodePos($x1),
+				'translatedval' => Decoder::Animal($val),
+				'pos2' => Decoder::Pos($x1),
 				'player_name' => $this->game->getCurrentPlayerName(),
 				'donor_name' => $donor_name,
 				'donor_player_id' => $donor_player_id,
@@ -201,7 +202,7 @@ class Buy extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );
@@ -226,7 +227,7 @@ class Buy extends GameState
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'translatedval' => $this->DecodeAnimal($animal."K"),
+							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
 						) );
@@ -264,7 +265,7 @@ class Buy extends GameState
 							'coinsbefore' => $coinsbefore,
 							'enclosure' => $enclosure['x'],
 							'player_name' => $this->game->getCurrentPlayerName(),
-							'pos' => $this->DecodePos($enclosure['x']),
+							'pos' => Decoder::Pos($enclosure['x']),
 							'i18n' => array( 'pos' )
 						) );
 					}

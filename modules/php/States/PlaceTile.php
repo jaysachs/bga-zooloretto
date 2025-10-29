@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
 
@@ -84,9 +85,9 @@ class PlaceTile extends GameState
 			'val' => $val,
 			'x' => $x,
 			'y' => $y,
-			'translatedval' => $this->DecodeAnimal($val),
-			'pos' => $this->DecodePos($y),
-			'wag' => $this->DecodePos($x),
+			'translatedval' => Decoder::Animal($val),
+			'pos' => Decoder::Pos($y),
+			'wag' => Decoder::Pos($x),
 			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval', 'pos', 'wag' )
 		) );
