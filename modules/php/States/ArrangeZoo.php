@@ -124,6 +124,7 @@ class ArrangeZoo extends GameState
 			'y3' => $y3,
 			'player_name' => $this->game->getCurrentPlayerName(),
 		) );
+        return null;
     }
 
     #[PossibleAction]
