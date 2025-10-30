@@ -36,4 +36,36 @@ class Model {
 
 
     public function __construct(private Db $db = new DefaultDb()) {}
+
+    public function createNewGame(int $player_count): void {
+        // Deck (tiles)
+		$deck = Deck::create($player_count);
+		$make = function (Tile $tile, string $status): string {
+			$tv = $tile->type->value;
+			$id = $tile->id;
+			return "($id,'','','','$tv','$status')";
+		};
+		$values = array_merge(
+			array_map(function (Tile $tile) use (&$make): string { return $make($tile, 'AVAILABLE'); }, $deck->tiles),
+			array_map(function (Tile $tile)use (&$make): string { return $make($tile, 'LASTSET'); }, $deck->lastset)
+		);
+		$this->db->execute("INSERT INTO animals (id, idsel, idorder, player_id, val, status) VALUES "
+                           . implode(',', $values));
+
+        // Wagons
+		$values = [];
+		if ($player_count != 2) {
+			for ($x = 1; $x <= $player_count; $x++) {
+				$values[] = "($x, 3, '', '', '', 'AVAILABLE')";
+			}
+		} else {
+			$values[] = "(1, 3, '', '', '', 'AVAILABLE')";
+			$values[] = "(2, 2, '', '', '', 'AVAILABLE')";
+			$values[] = "(3, 1, '', '', '', 'AVAILABLE')";
+		}
+		$this->db->execute("INSERT INTO wagons (id, size, val1, val2, val3, status) VALUES " . implode(',', $values));
+
+        // Extra player info
+        $this->db->execute("UPDATE player SET money = 2, unblockedzoo = 0, skipped = 'N', lastround = 'N'");
+    }
 }

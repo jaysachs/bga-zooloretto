@@ -27,8 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
-use Bga\Games\zooloretto\Model\Deck;
-use Bga\Games\zooloretto\Model\Tile;
+use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\States\PlayerTurn;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
@@ -49,12 +48,6 @@ class Game extends \Bga\GameFramework\Table
 			return $args;
 		});
 		self::initGameStateLabels([]);
-	}
-
-	// FIXME used in view
-	function getPlayerNoForLayout($current_player_id)
-	{
-		return self::getUniqueValueFromDB("select player_no from player where player_id = '$current_player_id'");
 	}
 
 	/*
@@ -170,47 +163,6 @@ class Game extends \Bga\GameFramework\Table
 
 	}
 
-
-	function DealAnimalsStatus($status): int
-	{
-		$cardnum = self::getUniqueValueFromDB("SELECT count(*) from animals where status='AVAILABLE'");
-		if ($cardnum == 0) {
-			$sql = "update player set lastround = 'Y'";
-			self::DbQuery($sql);
-			$sql = "update animals set status = 'AVAILABLE' where status = 'LASTSET'";
-			self::DbQuery($sql);
-			$cardnum = self::getUniqueValueFromDB("SELECT count(*) from animals where status='AVAILABLE'");
-
-			$this->notify->all(
-				"LastRound",
-				clienttranslate('This is the last round...'),
-				array()
-			);
-		}
-
-		if ($cardnum != 0) {
-			$cards = self::getObjectListFromDB("SELECT id from animals where status='AVAILABLE'");
-			$i = 0;
-			foreach ($cards as $index => $card) {
-				$i = $i + 1;
-				$sql = "update animals set idsel = $i where id = '" . $card['id'] . "'";
-				self::DbQuery($sql);
-			}
-			$result = bga_rand(1, intval($cardnum));
-
-			$sql = "update animals set status = '$status' where idsel = '$result'";
-			self::DbQuery($sql);
-
-			$cardresult = self::getUniqueValueFromDB("SELECT id from animals where idsel='$result'");
-
-			$sql = "update animals set idsel = null";
-			self::DbQuery($sql);
-		} else {
-			$cardresult = 0;
-		}
-		return $cardresult;
-	}
-
 	protected function setupNewGame($players, $options = array())
 	{
 		// Set the colors of the players with HTML color code
@@ -221,45 +173,20 @@ class Game extends \Bga\GameFramework\Table
 
 		// Create players
 		// Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-		$sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, money, unblockedzoo, skipped, lastround) VALUES ";
+		$sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
 		$values = array();
 		$count = 0;
 		foreach ($players as $player_id => $player) {
 			$color = array_shift($default_colors);
-			$values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "', 2, 0, 'N', 'N')";
+			$values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "')";
 			$count = $count + 1;
 		}
 		$sql .= implode(',', $values);
 		self::DbQuery($sql);
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
-
-		$deck = Deck::create($count);
-		$make = function (Tile $tile, string $status): string {
-			$tv = $tile->type->value;
-			$id = $tile->id;
-			return "($id,'','','','$tv','$status')";
-		};
-		$values = array_merge(
-			array_map(function (Tile $tile) use (&$make): string { return $make($tile, 'AVAILABLE'); }, $deck->tiles),
-			array_map(function (Tile $tile)use (&$make): string { return $make($tile, 'LASTSET'); }, $deck->lastset)
-		);
-
-		self::DbQuery("INSERT INTO animals (id, idsel, idorder, player_id, val, status) VALUES "
-                       . implode(',', $values));
-
-		$values = [];
-		if ($count != 2) {
-			for ($x = 1; $x <= $count; $x++) {
-				$values[] = "($x, 3, '', '', '', 'AVAILABLE')";
-			}
-		} else {
-			$values[] = "(1, 3, '', '', '', 'AVAILABLE')";
-			$values[] = "(2, 2, '', '', '', 'AVAILABLE')";
-			$values[] = "(3, 1, '', '', '', 'AVAILABLE')";
-		}
-
-		self::DbQuery("INSERT INTO wagons (id, size, val1, val2, val3, status) VALUES " . implode(',', $values));
+		$model = new Model();
+		$model->createNewGame($count);
 
 		self::initStat('player', 'full1', 0);
 		self::initStat('player', 'full2', 0);
