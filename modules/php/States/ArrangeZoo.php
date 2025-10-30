@@ -425,54 +425,34 @@ class ArrangeZoo extends GameState
                                     string $x,
                                     string $y,
                                     string $pid): mixed {
-		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
-		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
-		$id3 = $this->game->getUniqueValueFromDB("select val3 from wagons where id='$x'" );
 		$player_id = $this->game->getCurrentPlayerId();
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
-		$val1 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id1'" );
-		$val2 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id2'" );
-		$val3 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id3'" );
-		$sql = "update player set skipped='Y' where player_id = '$player_id'";
+		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
+
+		$sql = "update animals set x = $x, y = $y, status = 'THINKING', player_id = '$player_id' where id = '$tileid'";
 		$this->game->DbQuery( $sql );
-
-		$wagontiles = $this->game->getObjectListFromDB( "SELECT concat('tile_0_',id,'_',val,'_',x,'_',y) wagontile, id FROM `animals` WHERE status = 'WAGON' and x=$x");
-
-		$sql = "update wagons set status = 'TAKEN' where id = '$x'";
-		$this->game->DbQuery( $sql );
-
-		$messagestring="";
-		if ($val1!="")
+		if ($pid=="0")
 		{
-			$messagestring = $messagestring . Decoder::Animal($val1) . ", ";
+			$sql = "update wagons set val$posid = '' where id = '$wagonid'";
+			$this->game->DbQuery( $sql );
 		}
-		if ($val2!="")
-		{
-			$messagestring = $messagestring . Decoder::Animal($val2) . ", ";
-		}
-		if ($val3!="")
-		{
-			$messagestring = $messagestring . Decoder::Animal($val3) . ", ";
-		}
-		$messagestring = substr($messagestring, 0, strlen($messagestring)-2);
 
-		$this->game->notifyAllPlayers( "TakeWagon", clienttranslate( '${player_name} took a wagon with ${wag}.'),
+		$this->game->notifyAllPlayers( "ArrangeTiles", clienttranslate( '${player_name} placed the ${translatedval} in his ${pos} enclosure.'),
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
-			'id1' => $id1,
-			'id2' => $id2,
-			'id3' => $id3,
-			'val1' => $val1,
-			'val2' => $val2,
-			'val3' => $val3,
+			'tileid' => $tileid,
+			'wagonid' => $wagonid,
+			'posid' => $posid,
+			'val' => $val,
 			'x' => $x,
-			'wag' => $messagestring,
-			'wagontiles' => $wagontiles,
+			'y' => $y,
+			'pid' => $pid,
+			'translatedval' => Decoder::Animal($val),
+			'pos' => Decoder::Pos($x),
 			'player_name' => $this->game->getCurrentPlayerName(),
-			'i18n' => array( 'wag' )
+			'i18n' => array( 'translatedval', 'pos' )
 		) );
-
 		return ArrangeZoo::class;
     }
 
