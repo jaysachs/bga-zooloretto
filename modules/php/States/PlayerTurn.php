@@ -32,19 +32,8 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Model;
 
-
-/*
-      2 => array(
-    		"name" => "playerTurn",
-    		"description" => clienttranslate('${actplayer} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
-    		"descriptionmyturn" => clienttranslate('${you} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
-    		"type" => "activeplayer",
-			"args" => "argplayerTurn",
-    		"possibleactions" => array( "DrawTile", "TakeWagon", "BuyEnclosure", "Move", "Swap", "Buy", "Discard" ),
-    		"transitions" => array( "PlaceTile" => 3, "ArrangeZoo" => 5, "NextPlayer" => 4, "Move" => 7, "Swap" => 8, "Buy" => 9, "Discard" => 10)
-    ),
-*/
 
 class PlayerTurn extends GameState
 {
@@ -166,8 +155,7 @@ class PlayerTurn extends GameState
     }
 
     #[PossibleAction]
-    public function actDrawTile(): mixed {
-        //		$this->game->checkAction( 'DrawTile' );
+    public function actDrawTile($active_player_id): mixed {
 		$id = $this->dealAnimalsStatus("DRAWN");
 		$player_id = $this->game->getCurrentPlayerId();
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
@@ -176,8 +164,7 @@ class PlayerTurn extends GameState
 		$tilesleft =  $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='AVAILABLE'" );
 		$tilesleft2 =  $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='LASTSET'" );
 
-
-		$this->game->notifyAllPlayers( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
+		$this->game->notify->all( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
@@ -194,24 +181,22 @@ class PlayerTurn extends GameState
     }
 
     #[PossibleAction]
-    public function actBuyEnclosure(): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
-		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
+    public function actBuyEnclosure(int $active_player_id): mixed {
 
-		$sql = "update player set unblockedzoo = unblockedzoo + 1, money = money - 3 where player_id = '$player_id'";
-		$this->game->DbQuery( $sql );
+		$model = new Model();
+		$player = $model->getPlayer($active_player_id);
+		$player->buyEnclosure();
+		$model->updatePlayer($player);
 
-		$this->game->incStat( 3, "coinsspent", $player_id);
+		// FIXME: figure out where to capture this and how not to hardcode the 3.
+		$this->game->incStat( 3, "coinsspent", $active_player_id);
 
-		$unblockedzoo = $this->game->getUniqueValueFromDB("select unblockedzoo from player where player_id ='$player_id'" );
-
-		$this->game->notifyAllPlayers( "BuyEnclosure", clienttranslate( '${player_name} bought his ${pos} extra enclosure.'),
+		$this->notify->all( "BuyEnclosure", clienttranslate( '${player_name} bought his ${pos} extra enclosure.'),
 		array(
-			'player_id' => $player_id,
-			'player_no' => $player_no,
-			'unblockedzoo' => $unblockedzoo,
-			'pos' => Decoder::Pos($unblockedzoo),
-			'player_name' => $this->game->getCurrentPlayerName(),
+			'player_id' => $active_player_id,
+			'player_no' => $player->no,
+			'unblockedzoo' => $player->available_enclosures,
+			'pos' => Decoder::Pos($player->available_enclosures),
 			'i18n' => array( 'pos' )
 		) );
 

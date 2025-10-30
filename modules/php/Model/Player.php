@@ -28,4 +28,16 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Player {
+    public function __construct(public int $id, public int $no, public int $money, public int $available_enclosures) {}
+
+    public function buyEnclosure(): void {
+		if ($this->money < 3) {
+			throw new \BgaUserException("Insufficient funds to buy enclosure");
+		}
+		if ($this->available_enclosures <= 0) {
+			throw new \BgaUserException("No space for new enclosures");
+		}
+        $this->money -= 3;
+        $this->available_enclosures -= 1;
+    }
 }

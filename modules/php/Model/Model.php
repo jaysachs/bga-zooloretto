@@ -68,4 +68,16 @@ class Model {
         // Extra player info
         $this->db->execute("UPDATE player SET money = 2, unblockedzoo = 0, skipped = 'N', lastround = 'N'");
     }
+
+    public function getPlayer(int $id): Player {
+        $data = $this->db->getSingleFieldList("SELECT player_no, money, unblockedzoo FROM player WHERE player_id=$id");
+        return new Player($id, intval($data["player_no"]), intval($data["money"]), intval($data["unblockedzoo"]));
+    }
+
+    public function updatePlayer(Player $player): void {
+        $ubz = $player->available_enclosures;
+        $money = $player->money;
+        $id = $player->id;
+		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money WHERE player_id = $id" );
+    }
 }
