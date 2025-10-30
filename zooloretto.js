@@ -15,6 +15,18 @@
  *
  */
 
+	var jstpl_player_number='<div class="plnomoney"><div class="player_number" id="player_number_${player_number}">${player_number_text}</div><div id="money_${player_number}" class="plnomoney2"></div></div>';
+	var jstpl_wagon3='<div class="wagon wagon${wagon_size}" id="wagon_${id}"><div class="cellwagon3" id="wagon_${id}_1" style="left:5%; top:14%"></div><div class="cellwagon3" id="wagon_${id}_2" style="left:36%; top:14%"></div><div class="cellwagon3" id="wagon_${id}_3" style="left:67%; top:14%"></div></div>';
+	var jstpl_wagon2='<div class="wagon wagon${wagon_size}" id="wagon_${id}"><div class="cellwagon2" id="wagon_${id}_1" style="left:5%; top:14%"></div><div class="cellwagon2" id="wagon_${id}_2" style="left:54%; top:14%"></div></div>';
+	var jstpl_wagon1='<div class="wagon wagon${wagon_size}" id="wagon_${id}"><div class="cellwagon1" id="wagon_${id}_1" style="left:5%; top:14%"></div></div>';
+	var jstpl_money='<div class="money money${player_no}" id="money_instance_${player_no}_${id}"></div>';
+	var jstpl_tile='<div class="tile tile${val}" id="tile_${player_no}_${id}_${val}_${x}_${y}"></div>';
+	var jstpl_disk='<div class="disk" id="disk"></div>';
+	var jstpl_back='<div class="back" id="backtile_${id}"></div>';
+	var jstpl_back2='<div class="back" id="backtile2_${id}"></div>';
+	var jstpl_lastround='<div class="head_info" id="zooloretto_last_round_1" style="height: auto; overflow: hidden"><div class="head_infomsg_close" id="zooloretto_last_round_2"><i class="fa fa-close" aria-hidden="true"></i></div><div class="head_infomsg_item">${message}</div></div>';
+	var jstpl_tilesleft='<div class="tilesleft" id="tilesleft">${val}</div>';
+
 define([
     "dojo","dojo/_base/declare",
     "dojo/fx",
@@ -41,7 +53,6 @@ function (dojo, declare, fx, baseFx, domStyle) {
             this.Money = 0;
             this.UZ = 0;
         },
-
         /*
             setup:
 
@@ -319,7 +330,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
           this.inherited(arguments);
           if (!this.isLoadingComplete && value >= 100) {
             this.isLoadingComplete = true;
-            this.onLoadingComplete();
+//            this.onLoadingComplete();
           }
         },
 
@@ -685,9 +696,144 @@ function (dojo, declare, fx, baseFx, domStyle) {
             this.slideToObjectPos3( 'backtile2_' + id, 'tilesdeck', id * 5 * w/100, 55 * w/100 + id * 5 * w/100, 0).play();
         },
 
+
+        cellHtml: function(pno, x, y, left, top) {
+            return `<div id="cell_${pno}_${x}_${y}" class="cell" style="left: ${left}%; top: ${top}%;"></div>
+`;
+        },
+
+        playerHtml: function(pno) {
+            var html = '';
+            let player_count = Object.keys(this.gamedatas.players).length;
+            var ratio = 1.0;
+            var delta = 0.0;
+            if (player_count == 2) {
+		ratio = 0.82020423;
+		delta = 17.979577;
+            }
+            var x = 1;
+            var y = 1;
+
+            html += this.cellHtml(pno, x, y++, delta + ratio*41.7, 10.3);
+            html += this.cellHtml(pno, x, y++, delta + ratio*28.5, 23.5);
+            html += this.cellHtml(pno, x, y++, delta + ratio*41.7, 21.2);
+            html += this.cellHtml(pno, x, y++, delta + ratio*26, 34);
+            html += this.cellHtml(pno, x, y++, delta + ratio*39, 32);
+
+            x++;
+            y = 1;
+            html += this.cellHtml(pno, x, y++, delta + ratio*64.2, 7.3);
+            html += this.cellHtml(pno, x, y++, delta + ratio*66.5, 18);
+            html += this.cellHtml(pno, x, y++, delta + ratio*62, 28.5);
+            html += this.cellHtml(pno, x, y++, delta + ratio*73, 34.5);
+
+            x++;
+            y = 1;
+            html += this.cellHtml(pno, x, y++, delta + ratio*66, 51.6);
+            html += this.cellHtml(pno, x, y++, delta + ratio*81.3, 54.8);
+            html += this.cellHtml(pno, x, y++, delta + ratio*68.8, 62);
+            html += this.cellHtml(pno, x, y++, delta + ratio*79.4, 65.6);
+            html += this.cellHtml(pno, x, y++, delta + ratio*66, 72.6);
+            html += this.cellHtml(pno, x, y++, delta + ratio*67.2, 83.6);
+
+            x++;
+            y = 1;
+            html += this.cellHtml(pno, x, y++, delta + ratio*7.3, 23.5);
+            html += this.cellHtml(pno, x, y++, delta + ratio*9, 34.2);
+            html += this.cellHtml(pno, x, y++, delta + ratio*7.3, 44.5);
+            html += this.cellHtml(pno, x, y++, delta + ratio*9, 55.5);
+            html += this.cellHtml(pno, x, y++, delta + ratio*7.3, 66.2);
+
+            if (player_count == 2) {
+                x++;
+                y = 1;
+                html += this.cellHtml(pno, x, y++, 0 + ratio*7.3, 23.5);
+                html += this.cellHtml(pno, x, y++, 0 + ratio*9, 34.2);
+                html += this.cellHtml(pno, x, y++, 0 + ratio*7.3, 44.5);
+                html += this.cellHtml(pno, x, y++, 0 + ratio*9, 55.5);
+                html += this.cellHtml(pno, x, y++, 0 + ratio*7.3, 66.2);
+
+                x++;
+                y = 1;
+                html += this.cellHtml(pno, x, y++, delta + ratio*24.5, 7.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 7.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 18);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 83.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*7.3, 83.5);
+                html += this.cellHtml(pno, x, y++, 0 + ratio*7.3, 83.5);
+            } else {
+                x++;
+                y = 1;
+                html += this.cellHtml(pno, x, y++, delta + ratio*24.5, 7.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 7.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 18);
+                html += this.cellHtml(pno, x, y++, delta + ratio*83.6, 83.5);
+                html += this.cellHtml(pno, x, y++, delta + ratio*7.3, 83.5);
+            }
+            return html;
+        },
+
+        baseHtml: function() {
+            let player_count = this.gamedatas.players.length;
+            let currentPno = this.gamedatas.current_player_no;
+            var othersHtml = '';
+            var j = 0;
+            var ratio = 1.0;
+            var delta = 0.0;
+            if (player_count == 2) {
+		ratio = 0.82020423;
+		delta = 17.979577;
+            }
+            for (let i in this.gamedatas.players) {
+                let x = this.gamedatas.players[i].no;
+                if (x != currentPno) {
+                    j++;
+                    let left = 0;
+                    let top = 13 + j * 35;
+                    let a = delta + ratio*20;
+                    let b = 82;
+                    othersHtml += `
+                <div id="playercards_${x}" class="playercards whiteblock" style="left: ${left}%; top: ${top}%;">
+       <div id ="playername_${x}" class="playernameclass"></div>
+          <div id="board_${x}" class="board">
+` + this.playerHtml(x) + `
+          <div id="stall_${x}" class="stall" style="left: ${a}%; top: ${b}%;"></div>
+          </div>
+        </div>`;
+                }
+            }
+            return `<div class="container1" id = "container1">
+  <div class="container2" id = "container2">
+    <div class="wagons" id = "wagons"></div>
+    <div class="tiles" id = "tiles"></div>
+    <div class="tilesdeck" id = "tilesdeck"></div>
+  </div>
+
+  <div class="container3" id = "container3">
+    <div id="board" class="board">
+` + this.playerHtml(currentPno) + `
+      <div id="stall" class="stall" style="left: 20%; top: 82%;"></div>
+    </div>
+
+    <div id="leftpanel" class="leftpanel">
+      <div id="playercards" class="playercards">
+` + othersHtml + `
+      </div>
+    </div>
+  </div>
+
+  <div class="playeraid" id = "playeraid"></div>
+</div>
+`;
+        },
+
         setup: function( gamedatas )
         {
             console.log( "Starting game setup" );
+
+            // this.gamedatas = gamedatas;
+            this.getGameAreaElement().insertAdjacentHTML('beforeend',
+                                                         this.baseHtml());
             this.TotalPlayers = 0;
             // Setting up player boards
             for( var player_id in gamedatas.players )
