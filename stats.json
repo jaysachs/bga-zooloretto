@@ -4,113 +4,113 @@
             "id": 10,
             "name": "Number of turns",
             "type": "int"
+        }
+    },
+    "player": {
+        "full1": {
+            "id": 10,
+            "name": "Points for completed Enclosure 1",
+            "type": "int"
         },
-        "player": {
-            "full1": {
-                "id": 10,
-                "name": "Points for completed Enclosure 1",
-                "type": "int"
-            },
-            "full2": {
-                "id": 11,
-                "name": "Points for completed Enclosure 2",
-                "type": "int"
-            },
-            "full3": {
-                "id": 12,
-                "name": "Points for completed Enclosure 3",
-                "type": "int"
-            },
-            "full4": {
-                "id": 13,
-                "name": "Points for completed Enclosure 4",
-                "type": "int"
-            },
-            "full5":  {
-                "id": 14,
-                "name": "Points for completed Enclosure 5",
-                "type": "int"
-            },
-            "part1": {
-                "id": 15,
-                "name": "Points for almost completed Enclosure 1",
-                "type": "int"
-            },
-            "part2": {
-                "id": 16,
-                "name": "Points for almost completed Enclosure 2",
-                "type": "int"
-            },
-            "part3": {
-                "id": 17,
-                "name": "Points for almost completed Enclosure 3",
-                "type": "int"
-            },
-            "part4": {
-                "id": 18,
-                "name": "Points for almost completed Enclosure 4",
-                "type": "int"
-            },
-            "part5": {
-                "id": 19,
-                "name": "Points for almost completed Enclosure 5",
-                "type": "int"
-            },
-            "encstall1": {
-                "id": 20,
-                "name": "Points for Enclosure 1 with Stalls",
-                "type": "int"
-            },
-            "encstall2": {
-                "id": 21,
-                "name": "Points for Enclosure 2 with Stalls",
-                "type": "int"
-            },
-            "encstall3": {
-                "id": 22,
-                "name": "Points for Enclosure 3 with Stalls",
-                "type": "int"
-            },
-            "encstall4": {
-                "id": 23,
-                "name": "Points for Enclosure 4 with Stalls",
-                "type": "int"
-            },
-            "encstall5": {
-                "id": 24,
-                "name": "Points for Enclosure 5 with Stalls",
-                "type": "int"
-            },
-            "stalls": {
-                "id": 25,
-                "name": "Points for different Stalls",
-                "type": "int"
-            },
-            "leftinbarn": {
-                "id": 26,
-                "name": "Negative Points for Animals/Stalls left in Barn",
-                "type": "int"
-            },
-            "totalpoints": {
-                "id": 27,
-                "name": "Total Points",
-                "type": "int"
-            },
-            "totalcoins": {
-                "id": 28,
-                "name": "Total Coins",
-                "type": "int"
-            },
-            "coinsspent": {
-                "id": 29,
-                "name": "Coins Spent",
-                "type": "int"
-            },
-            "coinsreceived": {
-                "id": 30,
-                "name": "Coins Received",
-                "type": "int"
-            }
+        "full2": {
+            "id": 11,
+            "name": "Points for completed Enclosure 2",
+            "type": "int"
+        },
+        "full3": {
+            "id": 12,
+            "name": "Points for completed Enclosure 3",
+            "type": "int"
+        },
+        "full4": {
+            "id": 13,
+            "name": "Points for completed Enclosure 4",
+            "type": "int"
+        },
+        "full5":  {
+            "id": 14,
+            "name": "Points for completed Enclosure 5",
+            "type": "int"
+        },
+        "part1": {
+            "id": 15,
+            "name": "Points for almost completed Enclosure 1",
+            "type": "int"
+        },
+        "part2": {
+            "id": 16,
+            "name": "Points for almost completed Enclosure 2",
+            "type": "int"
+        },
+        "part3": {
+            "id": 17,
+            "name": "Points for almost completed Enclosure 3",
+            "type": "int"
+        },
+        "part4": {
+            "id": 18,
+            "name": "Points for almost completed Enclosure 4",
+            "type": "int"
+        },
+        "part5": {
+            "id": 19,
+            "name": "Points for almost completed Enclosure 5",
+            "type": "int"
+        },
+        "encstall1": {
+            "id": 20,
+            "name": "Points for Enclosure 1 with Stalls",
+            "type": "int"
+        },
+        "encstall2": {
+            "id": 21,
+            "name": "Points for Enclosure 2 with Stalls",
+            "type": "int"
+        },
+        "encstall3": {
+            "id": 22,
+            "name": "Points for Enclosure 3 with Stalls",
+            "type": "int"
+        },
+        "encstall4": {
+            "id": 23,
+            "name": "Points for Enclosure 4 with Stalls",
+            "type": "int"
+        },
+        "encstall5": {
+            "id": 24,
+            "name": "Points for Enclosure 5 with Stalls",
+            "type": "int"
+        },
+        "stalls": {
+            "id": 25,
+            "name": "Points for different Stalls",
+            "type": "int"
+        },
+        "leftinbarn": {
+            "id": 26,
+            "name": "Negative Points for Animals/Stalls left in Barn",
+            "type": "int"
+        },
+        "totalpoints": {
+            "id": 27,
+            "name": "Total Points",
+            "type": "int"
+        },
+        "totalcoins": {
+            "id": 28,
+            "name": "Total Coins",
+            "type": "int"
+        },
+        "coinsspent": {
+            "id": 29,
+            "name": "Coins Spent",
+            "type": "int"
+        },
+        "coinsreceived": {
+            "id": 30,
+            "name": "Coins Received",
+            "type": "int"
         }
     }
 }
