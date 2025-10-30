@@ -391,7 +391,7 @@ class ArrangeZoo extends GameState
     }
 
     #[PossibleAction]
-    public function actGoBack(int $x): mixed {
+    public function actGoBack(string $x): mixed {
         // FIXME: probably shouldn't directly call other action.
         $this->actReset();
 
@@ -422,9 +422,9 @@ class ArrangeZoo extends GameState
     public function actArrangeTiles(string $tileid,
                                     string $wagonid,
                                     string $posid,
-                                    int $x,
-                                    int $y,
-                                    int $pid): mixed {
+                                    string $x,
+                                    string $y,
+                                    string $pid): mixed {
 		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
 		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
 		$id3 = $this->game->getUniqueValueFromDB("select val3 from wagons where id='$x'" );

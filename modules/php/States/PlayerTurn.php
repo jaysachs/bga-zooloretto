@@ -113,7 +113,7 @@ class PlayerTurn extends GameState
 	}
 
     #[PossibleAction]
-    public function actTakeWagon(int $x): mixed {
+    public function actTakeWagon(string $x): mixed {
 		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
 		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
 		$id3 = $this->game->getUniqueValueFromDB("select val3 from wagons where id='$x'" );

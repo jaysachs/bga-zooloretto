@@ -408,7 +408,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 // dojo.query( '#tile_'+animalstall.player_no+'_'+animalstall.id+'_'+animalstall.val+'_'+animalstall.x+'_'+animalstall.y).connect( 'onclick', this, 'onClickTile' );
             // }
 
-            // if (this.StateNameValue=="playerTurn" && this.isCurrentPlayerActive())
+            // if (this.StateNameValue=="PlayerTurn" && this.isCurrentPlayerActive())
             // {
                 // if (this.Money>=2)
                 // {
@@ -1775,7 +1775,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'highlighted3');
                 }
-                this.bgaPerformAction( "SwapTiles", {
+                this.bgaPerformAction( "actSwapTiles", {
                     enc1: enc1,
                     enc2: enc2,
                     anid: anid,
@@ -2254,7 +2254,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         {
            if( this.checkAction( 'actReset' ) )    // Check that this action is possible at this moment
            {
-               this.bgaPerformAction( "Reset", {} );
+               this.bgaPerformAction( "actReset", {} );
            }
         },
         onTakeWagon: function ()
