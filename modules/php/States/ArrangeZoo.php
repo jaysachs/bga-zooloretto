@@ -387,7 +387,7 @@ class ArrangeZoo extends GameState
 			'pos3'=>$pos3,
 			'player_name' => $this->game->getCurrentPlayerName()
 		) );
-        return ArrangeZoo::class;
+        return null;
     }
 
     #[PossibleAction]
@@ -453,7 +453,7 @@ class ArrangeZoo extends GameState
 			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval', 'pos' )
 		) );
-		return ArrangeZoo::class;
+		return null;
     }
 
     function zombie(int $playerId): mixed {
