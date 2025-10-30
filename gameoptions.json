@@ -1,0 +1,18 @@
+{
+    "100": {
+        "name": "Tiles Left - Visible/Hidden",
+        "values": {
+            "1": {
+                "name": "Hidden",
+		"tmdisplay": "Hidden",
+                "description": "Number of tiles left in the draw deck won\"t be visible during the game."
+	    },
+            "2" {
+                "name": "Visible"",
+		"tmdisplay": "Visible",
+		"description": "Number of tiles left in the draw deck will be visible during the game."
+            }
+        }
+        "default": 2
+    }
+}
