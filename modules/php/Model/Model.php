@@ -65,9 +65,54 @@ class Model {
         $this->db->execute("UPDATE player SET money = 2, unblockedzoo = 0, skipped = 'N', lastround = 'N'");
     }
 
+    /** @var Wagon[] */
+    private ?array $_wagons = [];
+
+    /** @returns Wagon[] */
+    public function getWagons(): array
+    {
+        if ($this->_wagons == null) {
+            $this->_wagons = [];
+            $data = $this->db->getObjectList("SELECT id, size, val1, val2, val3, status FROM wagons");
+            // FIXME: would prefer to join in the Tiles table but then need a wagon_contents table.
+            foreach ($data as $row) {
+                $id = intval($row["id"]);
+                $contents = [];
+                $in_clause = implode(',', array_filter(
+                    [$row["val1"], $row["val2"], $row["val3"]],
+                    function (string $v): bool {
+                        return intval($v) > 0;
+                    }
+                ));
+                if ($in_clause > "") {
+                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause)");
+                    foreach ($wdata as $wrow) {
+                        $contents[] = $this->tileFromDataRow($wrow);
+                    }
+                }
+                $this->_wagons[$id] = new Wagon($id, intval($row["size"]), $contents, WagonStatus::from($row["status"]));
+            }
+        }
+        return $this->_wagons;
+    }
+
+    private function tileFromDataRow(array $row): Tile {
+        return new Tile(intval($row["id"]), TileType::from($row["val"]), intval($row["x"]), intval($row["y"]));
+    }
+
+    public function getWagon(int $id): Wagon
+    {
+        $wagons = $this->getWagons();
+        if (isset($wagons[$id])) {
+            return $wagons[$id];
+        }
+        throw new \Exception("attempt to retrieve unknown wagon $id");
+    }
+
     /** @var Player[] */
     private ?array $_players = [];
 
+    /** @returns Player[] */
     public function getPlayers(): array {
         if ($this->_players == null) {
             $this->_players = [];
@@ -100,23 +145,28 @@ class Model {
             throw new \Exception("attempt to update player $id that was not found");
         }
         $player = $this->_players[$id];
+        $this->doUpdatePlayer($player);
+    }
+
+    private function doUpdatePlayer(Player $player): void {
         $ubz = $player->purchased_extensions;
         $money = $player->money;
         $id = $player->id;
-		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money WHERE player_id = $id" );
+        $wagon_taken = $player->wagon_taken ? 'Y' : 'N';
+		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money, skipped = '$wagon_taken' WHERE player_id = $id" );
     }
 
     private ?Deck $_deck = null;
 
     public function getDeck(): Deck {
         if ($this->_deck == null) {
-            $rows = $this->db->getObjectList("SELECT id, val, status FROM animals");
+            $rows = $this->db->getObjectList("SELECT id, val, x, y, status FROM animals");
             $ts = [];
             $ls = [];
             $drawn = null;
             foreach ($rows as $row) {
                 $status = $row["status"];
-                $tile = new Tile(intval($row["id"]), TileType::from($row["val"]));
+                $tile = $this->tileFromDataRow($row);
                 if ($status == 'AVAILABLE') {
                     $ts[] = $tile;
                 } else if ($status == "LASTSET") {
@@ -160,10 +210,32 @@ class Model {
 
     public function prepareNextTurn() {
 		$this->db->execute( "UPDATE animals SET status = 'DISCARDED' WHERE status = 'WAGON'" );
-		$this->db->execute( "UPDATE wagons SET status = 'AVAILABLE', val1='', val2='', val3=''" );
+        $available = WagonStatus::AVAILABLE->value;
+		$this->db->execute( "UPDATE wagons SET status = '$available', val1='', val2='', val3=''" );
 		$this->db->execute( "UPDATE player SET skipped='N'" );
 
         $this->_players = null;
         $this->_deck = null;
+    }
+
+    private function doUpdateWagon(Wagon $wagon) {
+        $id = $wagon->id;
+        $status = $wagon->status->value;
+        $val1 = $wagon->valAt(0);
+        $val2 = $wagon->valAt(1);
+        $val3 = $wagon->valAt(2);
+		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
+    }
+
+    public function takeWagon(int $player_id, int $wagon_id): Wagon {
+        /** @var Player */
+        $player = $this->getPlayer($player_id);
+        $wagon = $this->getWagon($wagon_id);
+
+        $player->takeWagon();
+        $this->doUpdatePlayer($player);
+        $wagon->setTaken();
+        $this->doUpdateWagon($wagon);
+        return $wagon;
     }
 }

@@ -33,6 +33,9 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Tile;
+use Bga\Games\zooloretto\Model\Wagon;
+use Bga\Games\zooloretto\Model\WagonStatus;
 
 
 class PlayerTurn extends GameState
@@ -52,56 +55,45 @@ class PlayerTurn extends GameState
     {
 		$model = new Model();
 		$player = $model->getPlayer($active_player_id);
-        return [
+		$wagondata = array_map(function (Wagon $wagon): array {
+			return [
+				"id" => $wagon->id,
+				"size" => $wagon->capacity,
+				"val1" => $wagon->valAt(0),
+				"val2" => $wagon->valAt(1),
+				"val3" => $wagon->ValAt(2),
+			];
+		}, array_filter($model->getWagons(), function (Wagon $wagon): bool {
+			return $wagon->status == WagonStatus::AVAILABLE
+				|| $wagon->status == WagonStatus::TAKEN;
+		}));
+		return [
             'active_player_id'=> $active_player_id,
             'money' => $player->money,
             'unblockedzoo' => $player->purchased_extensions,
-            'wagons' =>  $this->game->getObjectListFromDB( "SELECT id, size, val1, val2, val3 from wagons where status in ('AVAILABLE','TAKEN') order by id" ),
+            'wagons' =>  $wagondata,
         ];
     }
 
    #[PossibleAction]
-    public function actTakeWagon(string $x): mixed {
-		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
-		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
-		$id3 = $this->game->getUniqueValueFromDB("select val3 from wagons where id='$x'" );
-		$player_id = $this->game->getCurrentPlayerId();
-		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
-		$val1 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id1'" );
-		$val2 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id2'" );
-		$val3 = $this->game->getUniqueValueFromDB("select val from animals where id ='$id3'" );
-		$sql = "update player set skipped='Y' where player_id = '$player_id'";
-		$this->game->DbQuery( $sql );
+    public function actTakeWagon(int $x): mixed {
+		$model = new Model();
 
-		$wagontiles = $this->game->getObjectListFromDB( "SELECT concat('tile_0_',id,'_',val,'_',x,'_',y) wagontile, id FROM `animals` WHERE status = 'WAGON' and x=$x");
-
-		$sql = "update wagons set status = 'TAKEN' where id = '$x'";
-		$this->game->DbQuery( $sql );
-
-		$messagestring="";
-		if ($val1!="")
-		{
-			$messagestring = $messagestring . Decoder::Animal($val1) . ", ";
-		}
-		if ($val2!="")
-		{
-			$messagestring = $messagestring . Decoder::Animal($val2) . ", ";
-		}
-		if ($val3!="")
-		{
-			$messagestring = $messagestring . Decoder::Animal($val3) . ", ";
-		}
-		$messagestring = substr($messagestring, 0, strlen($messagestring)-2);
-
-		$this->notify->all( "TakeWagon", clienttranslate( '${player_name} took a wagon with ${wag}.'),
-		array(
-			'player_id' => $player_id,
-			'player_no' => $player_no,
-			'x' => $x,
-			'wag' => $messagestring,
-			'wagontiles' => $wagontiles,
-			'i18n' => array( 'wag' )
-		) );
+		$player_id = intval($this->game->getActivePlayerId());
+		$wagon = $model->takeWagon($player_id, $x);
+		$player_no = $model->getPlayer($player_id)->no;
+		$wagontiles = array_map(function (Tile $tile): array {
+			return [
+				"id" => $tile->id,
+				"wagontile" => implode("_", [$tile->id, $tile->type->value, $tile->x, $tile->y]),
+			];
+		}, $wagon->tiles);
+		$messagestring = implode(', ', array_filter(
+			[$wagon->valAt(0), $wagon->valAt(1), $wagon->valAt(2)],
+			function (string $s): bool {
+				return $s > "";
+			}
+		));
 
 		return ArrangeZoo::class;
     }

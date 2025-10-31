@@ -28,5 +28,6 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Tile {
-    public function __construct(public int $id, public TileType $type) {}
+    // FIXME: can we rename "x" and "y"?
+    public function __construct(public int $id, public TileType $type, public int $x = 0, public int $y = 0) {}
 }

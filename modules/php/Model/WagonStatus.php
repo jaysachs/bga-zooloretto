@@ -27,29 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class Wagon {
-    /**
-     * @param Tile[] $tiles
-     */
-    public function __construct(public int $id, public int $capacity, public array $tiles, public WagonStatus $status) {}
-
-    public function setTaken(): void {
-        if ($this->status == WagonStatus::AVAILABLE) {
-            $this->status = WagonStatus::TAKEN;
-        } else {
-            throw new \BgaUserException("Attempt to take a wagon in status $this->status");
-        }
-    }
-
-    // FIXME: this breaks encapsulation boundaries a bit, but this is probably the best place for this until
-    //   the frontend isn't so tightly coupled to this.
-    public function valAt(int $pos): string {
-        if ($pos >= 0 && $pos < count($this->tiles)) {
-            $tile = $this->tiles[$pos];
-            return ($tile == null) ? "" : strval($tile->id);
-        } else {
-            return "";
-        }
-
-    }
+enum WagonStatus: string {
+    case AVAILABLE = 'AVAILABLE';
+    case TAKEN = 'TAKEN';
+    case PLAYED = 'PLAYED';
 }
