@@ -795,7 +795,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     othersHtml += `
                 <div id="playercards_${x}" class="playercards whiteblock" style="left: ${left}%; top: ${top}%;">
        <div id ="playername_${x}" class="playernameclass"></div>
-          <div id="board_${x}" class="board">
+          <div id="board_${x}" class="board zoom">
 ` + this.playerHtml(x) + `
           <div id="stall_${x}" class="stall" style="left: ${a}%; top: ${b}%;"></div>
           </div>
