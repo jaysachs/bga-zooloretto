@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `animals` (
   --   WAGON: in a wagon
   --   DISCARDED: discards out of the game
   --   PLAYED: if in an enclsoure field
-  --   STALL: in an enclosure stall
+  --   STALL: confusingly, in a barn
   --   LASTSET: not in "deck" but part of last 15
   -- I think these two are kind of "pending" births?
   --   THIKINGKID: ???!??
@@ -97,5 +97,5 @@ ALTER TABLE `player` ADD COLUMN `money` int(10) ;
 ALTER TABLE `player` ADD COLUMN `unblockedzoo` int(10) ;
 -- 'Y' means they've taken a wagon this roundm 'N' otherwise.
 ALTER TABLE `player` ADD COLUMN `skipped` varchar(32);
--- why per player? Stopped using this.
+-- No longer used.
 ALTER TABLE `player` ADD COLUMN `lastround` varchar(32);
