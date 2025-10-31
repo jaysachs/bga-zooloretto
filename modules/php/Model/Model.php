@@ -29,6 +29,11 @@ namespace Bga\Games\zooloretto\Model;
 
 use \Bga\GameFramework\Table;
 
+/*
+  Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
+  mutations should not be made directly on those objects.
+*/
+
 class Model {
 
     public function __construct(private Db $db = new DefaultDb()) {}
@@ -136,19 +141,7 @@ class Model {
         throw new \Exception("attempt to retrieve unknown player $id");
     }
 
-    public function updatePlayer(int $id): void {
-        if ($this->_players == null) {
-            throw new \Exception("attempt to update player when none fetched");
-        }
-
-        if (! isset($this->_players[$id])) {
-            throw new \Exception("attempt to update player $id that was not found");
-        }
-        $player = $this->_players[$id];
-        $this->doUpdatePlayer($player);
-    }
-
-    private function doUpdatePlayer(Player $player): void {
+    private function updatePlayer(Player $player): void {
         $ubz = $player->purchased_extensions;
         $money = $player->money;
         $id = $player->id;
@@ -158,7 +151,7 @@ class Model {
 
     private ?Deck $_deck = null;
 
-    public function getDeck(): Deck {
+    private function getDeck(): Deck {
         if ($this->_deck == null) {
             $rows = $this->db->getObjectList("SELECT id, val, x, y, status FROM animals");
             $ts = [];
@@ -185,7 +178,14 @@ class Model {
         return $this->_deck;
     }
 
-    public function updateDeck(): void {
+    public function drawTile(): Deck {
+        $deck = $this->getDeck();
+        $deck->drawTile();
+        $this->updateDeck();
+        return $deck;
+    }
+
+    private function updateDeck(): void {
         $deck = $this->_deck;
         if ($deck == null) {
             return;
@@ -233,7 +233,7 @@ class Model {
         $wagon = $this->getWagon($wagon_id);
 
         $player->takeWagon();
-        $this->doUpdatePlayer($player);
+        $this->updatePlayer($player);
         $wagon->setTaken();
         $this->doUpdateWagon($wagon);
         return $wagon;
@@ -254,14 +254,24 @@ class Model {
         $this->db->execute("UPDATE animals SET x = 0, y = 0. player_id = 0, status = 'DISCARD' WHERE id IN ($in_clause)");
     }
 
-    public function discardBarnTile(Player $player, int $tileid): Tile {
+    private function validatePlayer(Player $player): void {
         if ($player !== $this->getPlayer($player->id)) {
             throw new \Exception("Got unknown player");
         }
+    }
+
+    public function discardBarnTile(Player $player, int $tileid): Tile {
+        $this->validatePlayer($player);
         $barn = $this->getBarnFor($player);
         $tile = $barn->discard($tileid);
         $this->doUpdateBarn($barn);
 
         return $tile;
+    }
+
+    public function buyEnclosure(Player $player): void {
+        $this->validatePlayer($player);
+		$player->buyEnclosure();
+		$this->updatePlayer($player);
     }
 }

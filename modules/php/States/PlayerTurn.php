@@ -101,9 +101,8 @@ class PlayerTurn extends GameState
     #[PossibleAction]
     public function actDrawTile(int $active_player_id): mixed {
 		$model = new Model();
-		$deck = $model->getDeck();
-		$tile = $deck->drawTile();
-		$model->updateDeck();
+		$deck = $model->drawTile();
+		$tile = $deck->drawn;
 
 		if ($model->waslastRoundTriggered()) {
 			$this->notify->all( "LastRound", clienttranslate( 'This is the last round...'), []);
@@ -128,8 +127,7 @@ class PlayerTurn extends GameState
     public function actBuyEnclosure(int $active_player_id): mixed {
 		$model = new Model();
 		$player = $model->getPlayer($active_player_id);
-		$player->buyEnclosure();
-		$model->updatePlayer($active_player_id);
+		$model->buyEnclosure($player);
 		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $active_player_id);
 
 		$this->notify->all( "BuyEnclosure", clienttranslate( '${player_name} bought his ${pos} extra enclosure.'),

@@ -28,7 +28,13 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Player {
-    public function __construct(public readonly int $id, public readonly int $no, public int $money, public int $available_extensions, public int $purchased_extensions, public bool $wagon_taken) {}
+    public function __construct(
+        public readonly int $id,
+        public readonly int $no,
+        public private(set) int $money,
+        public private(set) int $available_extensions,
+        public private(set) int $purchased_extensions,
+        public private(set) bool $wagon_taken) {}
 
     private int $spent = 0;
     private const ENCLOSURE_COST = 3;
@@ -45,7 +51,6 @@ class Player {
     }
 
     public function buyEnclosure(): void {
-
 		if ($this->money < self::ENCLOSURE_COST) {
 			throw new \BgaUserException("Insufficient funds to buy enclosure");
 		}

@@ -34,7 +34,7 @@ class Deck {
      * @param $tiles Tile[]
      * @param $lastset Tile[]
      */
-    public function __construct(public array $tiles, public array $lastset, public ?Tile $drawn) {
+    public function __construct(public readonly array $tiles, public readonly array $lastset, public private(set) ?Tile $drawn) {
         shuffle($this->tiles);
         shuffle($this->lastset);
     }
