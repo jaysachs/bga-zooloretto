@@ -64,14 +64,15 @@ class Buy extends GameState
     }
 
     #[PossibleAction]
-    public function actBuy(
+    public function actBuyTile(
+		string $tileid,
         string $pid,
         string $x0,
         string $y0,
         string $x1,
         string $y1
     ): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
+		$player_id = intval($this->game->getCurrentPlayerId());
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
 		$donor_player_id = $this->game->getUniqueValueFromDB("select player_id from animals where id ='$tileid'" );
