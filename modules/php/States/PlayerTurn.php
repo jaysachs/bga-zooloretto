@@ -97,16 +97,9 @@ class PlayerTurn extends GameState
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
-			'id1' => $id1,
-			'id2' => $id2,
-			'id3' => $id3,
-			'val1' => $val1,
-			'val2' => $val2,
-			'val3' => $val3,
 			'x' => $x,
 			'wag' => $messagestring,
 			'wagontiles' => $wagontiles,
-			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'wag' )
 		) );
 
