@@ -64,7 +64,7 @@ class Swap extends GameState
     }
 
     #[PossibleAction]
-    public function actSwap(
+    public function actSwapTiles(
         string $enc1,
         string $enc2,
         string $anid

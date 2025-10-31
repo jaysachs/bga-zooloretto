@@ -1161,7 +1161,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 this.addTilesLeft(count+2,gamedatas.tilesleft);
             }
 
-            if (gamedatas.lastround=="Y")
+            if (gamedatas.lastround)
             {
                 this.addLastRound(_('This is the last round...'));
             }
@@ -2104,7 +2104,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-                this.ajaxcall( "actMove", {} );
+                this.bgaPerformAction('actMove', {});
            }
         },
         onSwap: function ()
@@ -2139,7 +2139,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-               this.bgaPerformAction( "Swap", {} );
+                this.bgaPerformAction( "actSwap", {} );
            }
         },
         onBuyEnclosure: function ()
@@ -2174,7 +2174,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 {
                     dojo.removeClass(elements[0].id,'pointer');
                 }
-               this.bgaPerformAction( "actBuyEnclosure", {} );
+                this.bgaPerformAction( "actBuyEnclosure", {} );
            }
         },
         onAutoArrange: function ()
