@@ -68,7 +68,7 @@ enum TileType: string {
     case ZEBRA_FEMALE = 'ZF';
     case ZEBRA_KID = 'ZK';
 
-    case COIN = 'COIN';
+    case COIN = 'Coin';
 
     case KIOSK = 'StallA';
     case BARROW = 'StallB';
