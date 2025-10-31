@@ -73,13 +73,13 @@ class Move extends GameState
         string $y1
     ): mixed {
 
-		$player_id = $this->game->getCurrentPlayerId();
+		$player_id = intval($this->game->getCurrentPlayerId());
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
 
 		if ($val=="")
 		{
-			throw new BgaVisibleSystemException($this->game->_("You need to select a valid animal."));
+			throw new \BgaVisibleSystemException(clienttranslate("You need to select a valid animal."));
 		}
 
 		$sql = "update animals set x = $x1, y = $y1, status='PLAYED' where id = '$tileid'";
