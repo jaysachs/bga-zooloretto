@@ -34,7 +34,31 @@ class Deck {
      * @param $tiles Tile[]
      * @param $lastset Tile[]
      */
-    public function __construct(public array $tiles, public array $lastset) {}
+    public function __construct(public array $tiles, public array $lastset, public ?Tile $drawn) {
+        shuffle($this->tiles);
+        shuffle($this->lastset);
+    }
+
+    public function drawTile(): Tile {
+        if ($this->drawn != null) {
+            throw new \BgaUserException("Attmpt to draw a 2nd tile");
+        }
+        $tile = array_shift($this->tiles);
+        if ($tile == null) {
+            $tile = array_shift($this->lastset);
+            if ($tile == null) {
+                throw new \BgaUserException("No tiles left!");
+            }
+        }
+        $this->drawn = $tile;
+        return $tile;
+    }
+
+    private const LASTSET_SIZE = 15;
+
+    public function lastRoundTriggered(): bool {
+        return count($this->lastset) < self::LASTSET_SIZE;
+    }
 
     /**
      * @return Tile[]
@@ -146,9 +170,9 @@ class Deck {
 		}
 
         shuffle($values);
-        $lastset = array_splice($values, 0, 15);
+        $lastset = array_splice($values, 0, self::LASTSET_SIZE);
 
-        return new Deck($values, $lastset);
+        return new Deck($values, $lastset, null);
     }
 
     public static function shuffle(array &$arr): void {

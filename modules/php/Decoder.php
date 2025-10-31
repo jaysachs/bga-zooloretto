@@ -30,7 +30,10 @@ namespace Bga\Games\zooloretto;
 class Decoder
 {
     // FIXME: change to enum
-	public static function Pos(int $val): string
+	/**
+	 * @param $val int | string
+	 */
+	public static function Pos(mixed $val): string
 	{
 		if ($val=="1") return clienttranslate('first');
 		else if ($val=="2") return clienttranslate('second');

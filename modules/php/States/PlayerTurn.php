@@ -50,58 +50,17 @@ class PlayerTurn extends GameState
 
     public function getArgs(int $active_player_id): array
     {
-		$active_player_id = $this->game->getActivePlayerId();
+		$model = new Model();
+		$player = $model->getPlayer($active_player_id);
         return [
-            'active_player_id'=> $this->game->getActivePlayerId(),
-            'money' => $this->game->getUniqueValueFromDB("select money from player where player_id ='$active_player_id'" ),
-            'unblockedzoo' => $this->game->getUniqueValueFromDB("select unblockedzoo from player where player_id ='$active_player_id'" ),
+            'active_player_id'=> $active_player_id,
+            'money' => $player->money,
+            'unblockedzoo' => $player->available_enclosures,
             'wagons' =>  $this->game->getObjectListFromDB( "SELECT id, size, val1, val2, val3 from wagons where status in ('AVAILABLE','TAKEN') order by id" ),
         ];
     }
 
-	protected function dealAnimalsStatus(string $status)
-	{
-		$cardnum = $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='AVAILABLE'" );
-		if ($cardnum==0)
-		{
-			$sql = "update player set lastround = 'Y'";
-			$this->game->DbQuery( $sql );
-			$sql = "update animals set status = 'AVAILABLE' where status = 'LASTSET'";
-			$this->game->DbQuery( $sql );
-			$cardnum = $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='AVAILABLE'" );
-
-			$this->game->notifyAllPlayers( "LastRound", clienttranslate( 'This is the last round...'),
-			array() );
-		}
-
-		if ($cardnum!=0)
-		{
-			$cards = $this->game->getObjectListFromDB( "SELECT id from animals where status='AVAILABLE'" );
-			$i = 0;
-			foreach( $cards as $index => $card)
-			{
-				$i = $i + 1;
-				$sql = "update animals set idsel = $i where id = '" . $card['id']. "'";
-				$this->game->DbQuery( $sql );
-			}
-			$result = bga_rand(1, intval ($cardnum) );
-
-			$sql = "update animals set status = '$status' where idsel = '$result'";
-			$this->game->DbQuery( $sql );
-
-			$cardresult = $this->game->getUniqueValueFromDB( "SELECT id from animals where idsel='$result'" );
-
-			$sql = "update animals set idsel = null";
-			$this->game->DbQuery( $sql );
-		}
-		else
-		{
-			$cardresult = 0;
-		}
-		return $cardresult;
-	}
-
-    #[PossibleAction]
+   #[PossibleAction]
     public function actTakeWagon(string $x): mixed {
 		$id1 = $this->game->getUniqueValueFromDB("select val1 from wagons where id='$x'" );
 		$id2 = $this->game->getUniqueValueFromDB("select val2 from wagons where id='$x'" );
@@ -134,7 +93,7 @@ class PlayerTurn extends GameState
 		}
 		$messagestring = substr($messagestring, 0, strlen($messagestring)-2);
 
-		$this->game->notifyAllPlayers( "TakeWagon", clienttranslate( '${player_name} took a wagon with ${wag}.'),
+		$this->notify->all( "TakeWagon", clienttranslate( '${player_name} took a wagon with ${wag}.'),
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
@@ -155,25 +114,21 @@ class PlayerTurn extends GameState
     }
 
     #[PossibleAction]
-    public function actDrawTile($active_player_id): mixed {
-		$id = $this->dealAnimalsStatus("DRAWN");
-		$player_id = $this->game->getCurrentPlayerId();
-		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
-		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$id'" );
+    public function actDrawTile(int $active_player_id): mixed {
+		$model = new Model();
+		$deck = $model->getDeck();
+		$tile = $deck->drawTile();
+		$model->updateDeck();
 
-		$tilesleft =  $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='AVAILABLE'" );
-		$tilesleft2 =  $this->game->getUniqueValueFromDB( "SELECT count(*) from animals where status='LASTSET'" );
-
-		$this->game->notify->all( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
+		$this->notify->all( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
 		array(
-			'player_id' => $player_id,
-			'player_no' => $player_no,
-			'id' => $id,
-			'val' => $val,
-			'tilesleft' => $tilesleft,
-			'tilesleft2' => $tilesleft2,
-			'translatedval' => Decoder::Animal($val),
-			'player_name' => $this->game->getCurrentPlayerName(),
+			'player_id' => $active_player_id,
+			'player_no' => $model->getPlayer($active_player_id)->no,
+			'id' => $tile->id,
+			'val' => $tile->type->value,
+			'tilesleft' => count($deck->tiles),
+			'tilesleft2' => count($deck->lastset),
+			'translatedval' => Decoder::Animal($tile->type->value),
 			'i18n' => array( 'translatedval' )
 		) );
 
@@ -182,14 +137,11 @@ class PlayerTurn extends GameState
 
     #[PossibleAction]
     public function actBuyEnclosure(int $active_player_id): mixed {
-
 		$model = new Model();
 		$player = $model->getPlayer($active_player_id);
 		$player->buyEnclosure();
-		$model->updatePlayer($player);
-
-		// FIXME: figure out where to capture this and how not to hardcode the 3.
-		$this->game->incStat( 3, "coinsspent", $active_player_id);
+		$model->updatePlayer($active_player_id);
+		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $active_player_id);
 
 		$this->notify->all( "BuyEnclosure", clienttranslate( '${player_name} bought his ${pos} extra enclosure.'),
 		array(

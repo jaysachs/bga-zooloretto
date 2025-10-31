@@ -31,10 +31,6 @@ use \Bga\GameFramework\Table;
 
 class Model {
 
-    /** @var Tile[] */
-    private array $drawPile;
-
-
     public function __construct(private Db $db = new DefaultDb()) {}
 
     public function createNewGame(int $player_count): void {
@@ -69,15 +65,80 @@ class Model {
         $this->db->execute("UPDATE player SET money = 2, unblockedzoo = 0, skipped = 'N', lastround = 'N'");
     }
 
+    /** @var Player[] */
+    private ?array $_players = [];
+
     public function getPlayer(int $id): Player {
-        $data = $this->db->getSingleFieldList("SELECT player_no, money, unblockedzoo FROM player WHERE player_id=$id");
-        return new Player($id, intval($data["player_no"]), intval($data["money"]), intval($data["unblockedzoo"]));
+        if ($this->_players == null) {
+            $this->_players = [];
+            $data = $this->db->getObjectList("SELECT player_id, player_no, money, unblockedzoo FROM player");
+            foreach ($data as $row) {
+                $id = intval($row["player_id"]);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), intval($row["unblockedzoo"]));
+            }
+        }
+        if (isset($this->_players[$id])) {
+            return $this->_players[$id];
+        }
+        throw new \Exception("attempt to retrieve unknown player $id");
     }
 
-    public function updatePlayer(Player $player): void {
+    public function updatePlayer(int $id): void {
+        if ($this->_players == null) {
+            throw new \Exception("attempt to update player when none fetched");
+        }
+
+        if (! isset($this->_players[$id])) {
+            throw new \Exception("attempt to update player $id that was not found");
+        }
+        $player = $this->_players[$id];
         $ubz = $player->available_enclosures;
         $money = $player->money;
         $id = $player->id;
 		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money WHERE player_id = $id" );
+    }
+
+    private ?Deck $_deck = null;
+
+    public function getDeck(): Deck {
+        if ($this->_deck == null) {
+            $rows = $this->db->getObjectList("SELECT id, val, status FROM animals");
+            $ts = [];
+            $ls = [];
+            $drawn = null;
+            foreach ($rows as $row) {
+                $status = $row["status"];
+                $tile = new Tile(intval($row["id"]), TileType::from($row["val"]));
+                if ($status == 'AVAILABLE') {
+                    $ts[] = $tile;
+                } else if ($status == "LASTSET") {
+                    $ls[] = $tile;
+                } else if ($status == "DRAWN") {
+                    if ($drawn != null) {
+                        throw new \BgaUserException("Found multiple drawn tiles!");
+                    }
+                    $drawn = $tile;
+                } else {
+                    // it's in a wagon, or on a playerboard somewhere.
+                }
+            }
+            $this->_deck = new Deck($ts, $ls, $drawn);
+        }
+        return $this->_deck;
+    }
+
+    public function updateDeck(): void {
+        $deck = $this->_deck;
+        if ($deck == null) {
+            return;
+        }
+        // FIXME: Come back and re-evaulate this approach.
+        // As long as all mutations go through model-owned objects, we can handle this.
+        // For now, we only handle newly-drawn tile updates.
+        if ($deck->drawn == null) {
+            return;
+        }
+        $id = $deck->drawn->id;
+        $this->db->execute("UPDATE animals SET status = 'DRAWN' WHERE id = $id");
     }
 }

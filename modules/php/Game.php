@@ -89,12 +89,8 @@ class Game extends \Bga\GameFramework\Table
 
 		$result['unblockedzoo'] =  self::getObjectListFromDB("SELECT player_no, unblockedzoo from player");
 
-		$param100 = self::getUniqueValueFromDB("select count(*) from global where global_id=100");
-		if ($param100 == "1") {
-			$paramvalue = $this->gamestate->table_globals[100];
-		} else {
-			$paramvalue = "1";
-		}
+		// FIXME: is the "|| 1" needed?
+		$paramvalue = $this->tableOptions->get(100) || 1;
 		$result['paramvalue'] = $paramvalue;
 		$result['tilesleft'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='AVAILABLE'");
 		$result['tilesleft2'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='LASTSET'");
