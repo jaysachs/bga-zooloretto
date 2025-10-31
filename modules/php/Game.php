@@ -65,6 +65,8 @@ class Game extends \Bga\GameFramework\Table
 
 		$current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
+		$model = new Model();
+
 		// Get information about players
 		// Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
 		$sql = "SELECT player_id id, player_score score, player_no no, player_name name, skipped FROM player ";
@@ -89,13 +91,11 @@ class Game extends \Bga\GameFramework\Table
 
 		$result['unblockedzoo'] =  self::getObjectListFromDB("SELECT player_no, unblockedzoo from player");
 
-		// FIXME: is the "|| 1" needed?
-		$paramvalue = $this->tableOptions->get(100) || 1;
-		$result['paramvalue'] = $paramvalue;
+		$result['paramvalue'] = $this->tableOptions->get(100) ?? 1;
 		$result['tilesleft'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='AVAILABLE'");
 		$result['tilesleft2'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='LASTSET'");
 
-		$result['lastround'] =  self::getUniqueValueFromDB("SELECT distinct lastround from player");
+		$result['lastround'] =  $model->inLastRound();
 
 		// TODO: Gather all information about current game situation (visible by player $current_player_id).
 
