@@ -61,9 +61,10 @@ CREATE TABLE IF NOT EXISTS `animals` (
   --   DRAWN: turned over but not fully placed yet
   --   WAGON: in a wagon
   --   DISCARDED: discards out of the game
-  --   PLAYED: if in an enclsoure field
-  --   STALL: confusingly, in a barn
-  --   LASTSET: not in "deck" but part of last 15
+  --   THINKING: if placement indicated but not confirmed
+  --   PLAYED: if confirmed in an enclsoure field
+  --   STALL: confirmed in a barn (confusingly named)
+  --   LASTSET: not in "real" deck but part of last 15
   -- I think these two are kind of "pending" births?
   --   THIKINGKID: ???!??
   --   THIKINGKIDSTALL: ??????
