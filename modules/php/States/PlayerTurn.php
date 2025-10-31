@@ -77,11 +77,12 @@ class PlayerTurn extends GameState
 
    #[PossibleAction]
     public function actTakeWagon(int $x): mixed {
-		$model = new Model();
-
 		$player_id = intval($this->game->getActivePlayerId());
-		$wagon = $model->takeWagon($player_id, $x);
-		$player_no = $model->getPlayer($player_id)->no;
+
+		$model = new Model();
+		$player = $model->getPlayer($player_id);
+		$wagon = $model->takeWagon($player, $x);
+		$player_no = $player->no;
 		$wagontiles = array_map(function (Tile $tile): array {
 			return [
 				"id" => $tile->id,

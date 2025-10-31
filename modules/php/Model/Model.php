@@ -227,9 +227,8 @@ class Model {
 		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
     }
 
-    public function takeWagon(int $player_id, int $wagon_id): Wagon {
-        /** @var Player */
-        $player = $this->getPlayer($player_id);
+    public function takeWagon(Player $player, int $wagon_id): Wagon {
+        $this->validatePlayer($player);
         $wagon = $this->getWagon($wagon_id);
 
         $player->takeWagon();
