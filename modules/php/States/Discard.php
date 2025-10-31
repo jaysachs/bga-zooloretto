@@ -65,10 +65,8 @@ class Discard extends GameState
     }
 
     #[PossibleAction]
-    public function actConfirmDiscard(
-        string $titleid
-    ): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
+    public function actConfirmDiscard(string $tileid): mixed {
+		$player_id = intval($this->game->getCurrentPlayerId());
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
 
@@ -77,10 +75,10 @@ class Discard extends GameState
 		$sql = "update player set money = money - 2 where player_id = '$player_id'";
 		$this->game->DbQuery( $sql );
 
-		$this->game->incStat( 2, "coinsspent", $player_id);
+		$this->playerStats->inc( "coinsspent", 2, $player_id);
 
 
-		$this->game->notifyAllPlayers( "ConfirmDiscard", clienttranslate( '${player_name} discarded the ${translatedval} from his Barn.'),
+		$this->notify->all( "ConfirmDiscard", clienttranslate( '${player_name} discarded the ${translatedval} from his Barn.'),
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
