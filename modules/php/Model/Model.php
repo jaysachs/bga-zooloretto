@@ -72,9 +72,12 @@ class Model {
         if ($this->_players == null) {
             $this->_players = [];
             $data = $this->db->getObjectList("SELECT player_id, player_no, money, unblockedzoo, skipped FROM player");
+            $numPlayers = count($data);
+            $potentialExtensions = $numPlayers == 2 ? 2 : 1;
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), intval($row["unblockedzoo"]), ($row["skipped"] == "Y"));
+                $purchased_extensions = intval($row["unblockedzoo"]);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $potentialExtensions - $purchased_extensions, $purchased_extensions, ($row["skipped"] == "Y"));
             }
         }
         return $this->_players;
@@ -97,7 +100,7 @@ class Model {
             throw new \Exception("attempt to update player $id that was not found");
         }
         $player = $this->_players[$id];
-        $ubz = $player->available_enclosures;
+        $ubz = $player->purchased_extensions;
         $money = $player->money;
         $id = $player->id;
 		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money WHERE player_id = $id" );

@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS `wagons` (
 -- how many coins
 ALTER TABLE `player` ADD COLUMN `money` int(10) ;
 -- how many expansion boards have been bought & flipped
+-- This is awkward. It would be better as "available expansions".
 ALTER TABLE `player` ADD COLUMN `unblockedzoo` int(10) ;
 -- 'Y' means they've taken a wagon this roundm 'N' otherwise.
 ALTER TABLE `player` ADD COLUMN `skipped` varchar(32);

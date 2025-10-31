@@ -55,7 +55,7 @@ class PlayerTurn extends GameState
         return [
             'active_player_id'=> $active_player_id,
             'money' => $player->money,
-            'unblockedzoo' => $player->available_enclosures,
+            'unblockedzoo' => $player->purchased_extensions,
             'wagons' =>  $this->game->getObjectListFromDB( "SELECT id, size, val1, val2, val3 from wagons where status in ('AVAILABLE','TAKEN') order by id" ),
         ];
     }
@@ -144,8 +144,8 @@ class PlayerTurn extends GameState
 		array(
 			'player_id' => $active_player_id,
 			'player_no' => $player->no,
-			'unblockedzoo' => $player->available_enclosures,
-			'pos' => Decoder::Pos($player->available_enclosures),
+			'unblockedzoo' => $player->purchased_extensions,
+			'pos' => Decoder::Pos($player->purchased_extensions),
 			'i18n' => array( 'pos' )
 		) );
 
