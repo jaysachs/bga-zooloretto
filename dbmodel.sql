@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `wagons` (
 ALTER TABLE `player` ADD COLUMN `money` int(10) ;
 -- how many expansion boards have been bought & flipped
 ALTER TABLE `player` ADD COLUMN `unblockedzoo` int(10) ;
--- ??
+-- 'Y' means they've taken a wagon this round.
 ALTER TABLE `player` ADD COLUMN `skipped` varchar(32);
 -- why per player?
 ALTER TABLE `player` ADD COLUMN `lastround` varchar(32);

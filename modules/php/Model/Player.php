@@ -28,13 +28,20 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Player {
-    public function __construct(public readonly int $id, public readonly int $no, public int $money, public int $available_enclosures) {}
+    public function __construct(public readonly int $id, public readonly int $no, public int $money, public int $available_enclosures, public bool $wagon_taken) {}
 
     private int $spent = 0;
     private const ENCLOSURE_COST = 3;
 
     public function moneySpent(): int {
         return $this->spent;
+    }
+
+    public function takeWagon(): void {
+        if ($this->wagon_taken) {
+            throw new \BgaUserException("Wagon already taken by player $this->id");
+        }
+        $this->wagon_taken = true;
     }
 
     public function buyEnclosure(): void {

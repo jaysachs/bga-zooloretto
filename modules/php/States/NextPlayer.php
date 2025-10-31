@@ -29,20 +29,9 @@ namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
-use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Model;
 
-
-/*
-    4 => array(
-    		"name" => "NextPlayer",
-    		"description" => clienttranslate('Changing player...'),
-    		"type" => "game",
-			"action" => "stNextPlayer",
-			"updateGameProgression" => true,
-    		"transitions" => array( "NextPlayer" => 2, "NextTurn" => 6, "GameEnd" => 99)
-    ),
-*/
 
 class NextPlayer extends GameState
 {
@@ -59,28 +48,20 @@ class NextPlayer extends GameState
 
     public function onEnteringState(): mixed
     {
-		$count = $this->game->getUniqueValueFromDB("select count(*) from player where skipped='N'" );
+		$model = new Model();
+		$players = $model->getPlayers();
 
-		if (intval($count)>0)
-		{
-			$player_id = $this->game->getActivePlayerId();
-			$this->game->giveExtraTime( $player_id );
-			$found = false;
-			while (!$found)
-			{
-				$this->game->activeNextPlayer();
-				$player_id = $this->game->getActivePlayerId();
-				$count = $this->game->getUniqueValueFromDB("select count(*) from player where skipped='N' and player_id='$player_id'" );
-				if (intval($count)>0)
-				{
-					$found = true;
-				}
+		$initial_player_id = intval($this->game->getActivePlayerId());
+		$this->game->giveExtraTime($initial_player_id);
+		$player_id = 0;
+		do {
+			$this->game->activeNextPlayer();
+			$player_id = intval($this->game->getActivePlayerId());
+			if (! $players[$player_id]->wagon_taken) {
+				return PlayerTurn::class;
 			}
-            return PlayerTurn::class;
-		}
-		else
-		{
-            return NextTurn::class;
-		}
+		} while ($player_id != $initial_player_id);
+
+		return NextTurn::class;
     }
 }

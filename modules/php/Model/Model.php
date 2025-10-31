@@ -68,17 +68,22 @@ class Model {
     /** @var Player[] */
     private ?array $_players = [];
 
-    public function getPlayer(int $id): Player {
+    public function getPlayers(): array {
         if ($this->_players == null) {
             $this->_players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money, unblockedzoo FROM player");
+            $data = $this->db->getObjectList("SELECT player_id, player_no, money, unblockedzoo, skipped FROM player");
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), intval($row["unblockedzoo"]));
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), intval($row["unblockedzoo"]), ($row["skipped"] == "Y"));
             }
         }
-        if (isset($this->_players[$id])) {
-            return $this->_players[$id];
+        return $this->_players;
+    }
+
+    public function getPlayer(int $id): Player {
+        $players = $this->getPlayers();
+        if (isset($players[$id])) {
+            return $players[$id];
         }
         throw new \Exception("attempt to retrieve unknown player $id");
     }

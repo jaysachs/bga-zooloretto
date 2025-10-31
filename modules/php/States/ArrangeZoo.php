@@ -129,7 +129,7 @@ class ArrangeZoo extends GameState
 
     #[PossibleAction]
     public function actConfirmArrangement(): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
+		$player_id = intval($this->game->getCurrentPlayerId());
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$wagonid = $this->game->getUniqueValueFromDB("select id from wagons where status = 'TAKEN'" );
 
