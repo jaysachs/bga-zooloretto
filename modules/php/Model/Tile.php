@@ -29,5 +29,6 @@ namespace Bga\Games\zooloretto\Model;
 
 class Tile {
     // FIXME: can we rename "x" and "y"?
+    // presumably they are (enclosurenumber, positioninenclosure) and/or (wagonid, positioninwagon)
     public function __construct(public int $id, public TileType $type, public int $x = 0, public int $y = 0) {}
 }

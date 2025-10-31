@@ -28,5 +28,35 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Enclosure {
-    public function __construct(private int $capacity) { }
+    /**
+     * @param int $id
+     * @param int $capacity
+     * @param Tile[] $animals
+     */
+    public function __construct(public readonly int $id, public readonly int $capacity, public array $animals, public Tile $stall) {
+        while (count($animals) < $capacity) {
+            $animals[] = null;
+        }
+        foreach ($animals as $spot) {
+            if ($spot != null) {
+                $t = $spot->type->value;
+                if (!$spot->type->isAnimal()) {
+                    throw new \BgaUserException("Enclosure $id should not contain non-animal tile id $spot->id of type $t");
+                }
+                if ($spot->x != $id) {
+                    throw new \BgaUserException("Enclosure $id has animal tile $spot->id but that is in $spot->x");
+                }
+            }
+        }
+    }
+
+    public function placeTile(Tile $tile) {
+        for ($i = 0; $i < $this->capacity; $i++) {
+            if ($this->animals[$i] == null) {
+                $this->animals[$i] = $tile;
+                return;
+            }
+        }
+        throw new \BgaUserException("No open space in enclosure $this->id");
+    }
 }

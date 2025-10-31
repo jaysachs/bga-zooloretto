@@ -27,6 +27,24 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class PlayerBoard {
-    public function __construct(public Barn $barn) { }
+class Barn {
+    /** @param Tile[] $tiles */
+    public function __construct(public readonly int $player_id, public array $tiles) { }
+
+    public array $discarded = [];
+
+    public function discard(int $tileid): Tile {
+        for ($i = 0; $i < count($this->tiles); $i++) {
+            $tile = $this->tiles[$i];
+            if ($tile == null) {
+                continue;
+            }
+            if ($tile->id == $tileid) {
+                $this->discarded[] = $tile;
+                array_splice($this->tiles, $i, 1);
+                return $tile;
+            }
+        }
+        throw new \BgaUserException("Attempt to discard tile $tileid from player $this->player_id barn but it's not there");
+    }
 }

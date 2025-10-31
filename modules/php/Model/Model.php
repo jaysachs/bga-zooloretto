@@ -238,4 +238,30 @@ class Model {
         $this->doUpdateWagon($wagon);
         return $wagon;
     }
+
+    private function getBarnFor(Player $player): Barn {
+        $rows = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE status = 'STALL' and player_id = $player->id");
+        /** @var Tile[] */
+        $tiles = [];
+        foreach ($rows as $row) {
+            $tiles[] = $this->tileFromDataRow($row);
+        }
+        return new Barn($player->id, $tiles);
+    }
+
+    private function doUpdateBarn(Barn $barn): void {
+        $in_clause = implode(',', array_map(function (Tile $tile): string { return strval($tile->id); }, $barn->discarded));
+        $this->db->execute("UPDATE animals SET x = 0, y = 0. player_id = 0, status = 'DISCARD' WHERE id IN ($in_clause)");
+    }
+
+    public function discardBarnTile(Player $player, int $tileid): Tile {
+        if ($player !== $this->getPlayer($player->id)) {
+            throw new \Exception("Got unknown player");
+        }
+        $barn = $this->getBarnFor($player);
+        $tile = $barn->discard($tileid);
+        $this->doUpdateBarn($barn);
+
+        return $tile;
+    }
 }

@@ -32,19 +32,7 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
-
-
-/*
-
-    10 => array(
-    		"name" => "Discard",
-    		"description" => clienttranslate('${actplayer} must discard a tile from his Barn.'),
-    		"descriptionmyturn" => clienttranslate('${you} must discard a tile from your Barn.'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "Discard", "Back" ),
-    		"transitions" => array( "Back" => 2, "NextPlayer" => 4 )
-    ),
-*/
+use Bga\Games\zooloretto\Model\Model;
 
 class Discard extends GameState
 {
@@ -65,27 +53,23 @@ class Discard extends GameState
     }
 
     #[PossibleAction]
-    public function actConfirmDiscard(string $tileid): mixed {
-		$player_id = intval($this->game->getCurrentPlayerId());
-		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
-		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
+    public function actConfirmDiscard(int $tileid): mixed {
+		$player_id = intval($this->game->getActivePlayerId());
+        $model = new Model();
 
-		$sql = "update animals set x = 0, y = 0, player_id = 0, status='DISCARD' where id = '$tileid'";
-		$this->game->DbQuery( $sql );
-		$sql = "update player set money = money - 2 where player_id = '$player_id'";
-		$this->game->DbQuery( $sql );
+        $player = $model->getPlayer($player_id);
+        $tile = $model->discardBarnTile($player, $tileid);
+		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $player_id);
 
-		$this->playerStats->inc( "coinsspent", 2, $player_id);
-
+		$val = $tile->type->value;
 
 		$this->notify->all( "ConfirmDiscard", clienttranslate( '${player_name} discarded the ${translatedval} from his Barn.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
+			'player_no' => $player->no,
 			'tileid' => $tileid,
 			'val' => $val,
 			'translatedval' => Decoder::Animal($val),
-			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval' )
 		) );
 
