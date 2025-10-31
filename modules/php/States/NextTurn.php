@@ -29,21 +29,9 @@ namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
-use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
-
-
-/*
-    6 => array(
-    		"name" => "NextTurn",
-    		"description" => clienttranslate('Changing player...'),
-    		"type" => "game",
-			"action" => "stNextTurn",
-			"updateGameProgression" => true,
-    		"transitions" => array( "NextPlayer" => 2, "GameEnd" => 99)
-    ),
-*/
+use Bga\Games\zooloretto\Model\Model;
 
 class NextTurn extends GameState
 {
@@ -60,32 +48,23 @@ class NextTurn extends GameState
 
     public function onEnteringState(): mixed
     {
-		$sql = "update animals set status = 'DISCARDED' where status = 'WAGON'";
-		$this->game->DbQuery( $sql );
-		$sql = "update wagons set status = 'AVAILABLE', val1='', val2='', val3=''";
-		$this->game->DbQuery( $sql );
-		$sql = "update player set skipped='N'";
-		$this->game->DbQuery( $sql );
-
-		$wagons = $this->game->getObjectListFromDB( "SELECT id, val1, val2, val3, status, size from wagons" );
-
-		$lastround = $this->game->getUniqueValueFromDB("select distinct lastround from player" );
-
-		if ($lastround=="N")
-		{
-			$this->game->notifyAllPlayers( "EndTurn", clienttranslate( 'Turn is over... starting another turn.'),
-			array(
-				'wagons' => $wagons,
-			) );
-
-            return NextPlayer::class;
-		}
-		else
-		{
-			$this->CalculateScore();
-            // TODO: better end game indication?
+        $model = new Model();
+        if ($model->inLastRound()) {
+            $this->CalculateScore()();
             return 99;
-		}
+        }
+
+        $model->prepareNextTurn();
+		$wagons = $this->game->getObjectListFromDB( "SELECT id, size from wagons" );
+        $this->notify->all(
+            "EndTurn",
+            clienttranslate('Turn is over... starting another turn.'),
+            [
+                'wagons' => $wagons,
+            ]
+        );
+
+        return PlayerTurn::class;
     }
 
     function CalculateScore()

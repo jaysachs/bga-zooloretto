@@ -56,7 +56,11 @@ class Deck {
 
     private const LASTSET_SIZE = 15;
 
-    public function lastRoundTriggered(): bool {
+    public function waslastRoundTriggered(): bool {
+        return $this->drawn != null && count($this->lastset) == self::LASTSET_SIZE - 1;
+    }
+
+    public function inLastRound(): bool {
         return count($this->lastset) < self::LASTSET_SIZE;
     }
 

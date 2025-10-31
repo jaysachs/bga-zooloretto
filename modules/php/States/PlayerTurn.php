@@ -120,6 +120,10 @@ class PlayerTurn extends GameState
 		$tile = $deck->drawTile();
 		$model->updateDeck();
 
+		if ($model->waslastRoundTriggered()) {
+			$this->notify->all( "LastRound", clienttranslate( 'This is the last round...'), []);
+		}
+
 		$this->notify->all( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
 		array(
 			'player_id' => $active_player_id,

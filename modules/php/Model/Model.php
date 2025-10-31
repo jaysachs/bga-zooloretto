@@ -146,4 +146,21 @@ class Model {
         $id = $deck->drawn->id;
         $this->db->execute("UPDATE animals SET status = 'DRAWN' WHERE id = $id");
     }
+
+    public function wasLastRoundTriggered(): bool {
+        return $this->getDeck()->wasLastRoundTriggered();
+    }
+
+    public function inLastRound(): bool {
+        return $this->getDeck()->inLastRound();
+    }
+
+    public function prepareNextTurn() {
+		$this->db->execute( "UPDATE animals SET status = 'DISCARDED' WHERE status = 'WAGON'" );
+		$this->db->execute( "UPDATE wagons SET status = 'AVAILABLE', val1='', val2='', val3=''" );
+		$this->db->execute( "UPDATE player SET skipped='N'" );
+
+        $this->_players = null;
+        $this->_deck = null;
+    }
 }
