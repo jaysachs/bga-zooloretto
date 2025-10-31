@@ -40,19 +40,19 @@ use Bga\Games\zooloretto\Model\WagonStatus;
 
 class PlayerTurn extends GameState
 {
-    function __construct(private Game $game)
-    {
-        parent::__construct(
-            game: $game,
-            id: 2,
-            type: StateType::ACTIVE_PLAYER,
-            description: clienttranslate('${actplayer} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
-            descriptionMyTurn: clienttranslate('${you} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
-        );
-    }
+	function __construct(private Game $game)
+	{
+		parent::__construct(
+			game: $game,
+			id: 2,
+			type: StateType::ACTIVE_PLAYER,
+			description: clienttranslate('${actplayer} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
+			descriptionMyTurn: clienttranslate('${you} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
+		);
+	}
 
-    public function getArgs(int $active_player_id): array
-    {
+	public function getArgs(int $active_player_id): array
+	{
 		$model = new Model();
 		$player = $model->getPlayer($active_player_id);
 		$wagondata = array_map(function (Wagon $wagon): array {
@@ -68,15 +68,16 @@ class PlayerTurn extends GameState
 				|| $wagon->status == WagonStatus::TAKEN;
 		}));
 		return [
-            'active_player_id'=> $active_player_id,
-            'money' => $player->money,
-            'unblockedzoo' => $player->purchased_extensions,
-            'wagons' =>  $wagondata,
-        ];
-    }
+			'active_player_id' => $active_player_id,
+			'money' => $player->money,
+			'unblockedzoo' => $player->purchased_extensions,
+			'wagons' =>  $wagondata,
+		];
+	}
 
-   #[PossibleAction]
-    public function actTakeWagon(int $x): mixed {
+	#[PossibleAction]
+	public function actTakeWagon(int $x): mixed
+	{
 		$player_id = intval($this->game->getActivePlayerId());
 
 		$model = new Model();
@@ -96,75 +97,101 @@ class PlayerTurn extends GameState
 			}
 		));
 
-		return ArrangeZoo::class;
-    }
+		$this->notify->all(
+			"TakeWagon",
+			clienttranslate('${player_name} took a wagon with ${wag}.'),
+			[
+				'player_id' => $player_id,
+				'player_no' => $player_no,
+				'x' => $x,
+				'wag' => $messagestring,
+				'wagontiles' => $wagontiles,
+				'i18n' => ['wag']
+			]
+		);
 
-    #[PossibleAction]
-    public function actDrawTile(int $active_player_id): mixed {
+		return ArrangeZoo::class;
+	}
+
+	#[PossibleAction]
+	public function actDrawTile(int $active_player_id): mixed
+	{
 		$model = new Model();
 		$deck = $model->drawTile();
 		$tile = $deck->drawn;
 
 		if ($model->waslastRoundTriggered()) {
-			$this->notify->all( "LastRound", clienttranslate( 'This is the last round...'), []);
+			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
 		}
 
-		$this->notify->all( "DrawTile", clienttranslate( '${player_name} drew a ${translatedval} tile.'),
-		array(
-			'player_id' => $active_player_id,
-			'player_no' => $model->getPlayer($active_player_id)->no,
-			'id' => $tile->id,
-			'val' => $tile->type->value,
-			'tilesleft' => count($deck->tiles),
-			'tilesleft2' => count($deck->lastset),
-			'translatedval' => Decoder::Animal($tile->type->value),
-			'i18n' => array( 'translatedval' )
-		) );
+		$this->notify->all(
+			"DrawTile",
+			clienttranslate('${player_name} drew a ${translatedval} tile.'),
+			[
+				'player_id' => $active_player_id,
+				'player_no' => $model->getPlayer($active_player_id)->no,
+				'id' => $tile->id,
+				'val' => $tile->type->value,
+				'tilesleft' => count($deck->tiles),
+				'tilesleft2' => count($deck->lastset),
+				'translatedval' => Decoder::Animal($tile->type->value),
+				'i18n' => ['translatedval']
+			]
+		);
 
-        return PlaceTile::class;
-    }
+		return PlaceTile::class;
+	}
 
-    #[PossibleAction]
-    public function actBuyEnclosure(int $active_player_id): mixed {
+	#[PossibleAction]
+	public function actBuyEnclosure(int $active_player_id): mixed
+	{
 		$model = new Model();
 		$player = $model->getPlayer($active_player_id);
 		$model->buyEnclosure($player);
-		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $active_player_id);
+		$this->playerStats->inc("coinsspent", $player->moneySpent(), $active_player_id);
 
-		$this->notify->all( "BuyEnclosure", clienttranslate( '${player_name} bought his ${pos} extra enclosure.'),
-		array(
-			'player_id' => $active_player_id,
-			'player_no' => $player->no,
-			'unblockedzoo' => $player->purchased_extensions,
-			'pos' => Decoder::Pos($player->purchased_extensions),
-			'i18n' => array( 'pos' )
-		) );
+		$this->notify->all(
+			"BuyEnclosure",
+			clienttranslate('${player_name} bought his ${pos} extra enclosure.'),
+			[
+				'player_id' => $active_player_id,
+				'player_no' => $player->no,
+				'unblockedzoo' => $player->purchased_extensions,
+				'pos' => Decoder::Pos($player->purchased_extensions),
+				'i18n' => ['pos']
+			]
+		);
 
 		return NextPlayer::class;
-    }
+	}
 
-    #[PossibleAction]
-    public function actMove(): mixed {
-        return Move::class;
-    }
+	#[PossibleAction]
+	public function actMove(): mixed
+	{
+		return Move::class;
+	}
 
-    #[PossibleAction]
-    public function actSwap(): mixed {
-        return Swap::class;
-    }
+	#[PossibleAction]
+	public function actSwap(): mixed
+	{
+		return Swap::class;
+	}
 
-    #[PossibleAction]
-    public function actBuy(): mixed {
-        return Buy::class;
-    }
+	#[PossibleAction]
+	public function actBuy(): mixed
+	{
+		return Buy::class;
+	}
 
-    #[PossibleAction]
-    public function actDiscard(): mixed {
-        return Discard::class;
-    }
+	#[PossibleAction]
+	public function actDiscard(): mixed
+	{
+		return Discard::class;
+	}
 
-    function zombie(int $playerId): mixed {
-        // FIXME
-        return "";
-    }
+	function zombie(int $playerId): mixed
+	{
+		// FIXME
+		return "";
+	}
 }
