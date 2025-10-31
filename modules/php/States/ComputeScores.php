@@ -127,24 +127,20 @@ class ComputeScores extends GameState
                                                                                                                       and exists (select 1 from animals b where b.status = 'PLAYED' and b.val like 'Stall_' and a.player_id = b.player_id
                                                                                                                       and case when b.y=1 then 1 when b.y=2 then 2 when b.y=3 then 2 when b.y=4 then 3 when b.y=5 then 4 when b.y=6 then 5 end = a.x)
                                                                                                                       group by player_id, x
-                                                                                                                      having (x,count(*)) not in ((1
-,5),(2,4),(3,6),(4,5),(5,5),(1,4),(2,3),(3,5),(4,4),(5,4))
+                                                                                                                      having (x,count(*)) not in ((1,5),(2,4),(3,6),(4,5),(5,5),(1,4),(2,3),(3,5),(4,4),(5,4))
                                                                                                                       order by player_id" );
         foreach( $stallenclosures as $index => $stallenclosure)
         {
-            $sql = "update player set player_score =  player_score + ".$stallenclosure['score']." where player_id = '" . $stallenclosure['
-player_id']. "'";
+            $sql = "update player set player_score =  player_score + ".$stallenclosure['score']." where player_id = '" . $stallenclosure['player_id']. "'";
             $this->game->DbQuery( $sql );
 
             $pname = $this->game->getUniqueValueFromDB("select player_name from player where player_id='".$stallenclosure['player_id']."'" );
-            $player_score = $this->game->getUniqueValueFromDB("select player_score from player where player_id='".$stallenclosure['player_id']."'
-" );
+            $player_score = $this->game->getUniqueValueFromDB("select player_score from player where player_id='".$stallenclosure['player_id']."'" );
             $player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id='".$stallenclosure['player_id']."'" );
 
             $this->game->incStat( $stallenclosure['score'], "encstall" . $stallenclosure['x'], $stallenclosure['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with a Stal
-l.'),
+            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with a Stall.'),
                                     array(
                                         'player_id' => $stallenclosure['player_id'],
                                         'player_no' => $player_no,
@@ -161,27 +157,23 @@ l.'),
         //////////////////////////////
         /// DIFFERENT STALLS
         //////////////////////////////
-        $differentstalls = $this->game->getObjectListFromDB( "select player_id, count(distinct val) diffstalls, count(distinct val)*2 score from anim
-als
+        $differentstalls = $this->game->getObjectListFromDB( "select player_id, count(distinct val) diffstalls, count(distinct val)*2 score from animals
                                                                                                                       where status = 'PLAYED'
                                                                                                                       and val like 'Stall_'
                                                                                                                       group by player_id
                                                                                                                       order by player_id" );
         foreach( $differentstalls as $index => $differentstall)
         {
-            $sql = "update player set player_score =  player_score + ".$differentstall['score']." where player_id = '" . $differentstall['
-player_id']. "'";
+            $sql = "update player set player_score =  player_score + ".$differentstall['score']." where player_id = '" . $differentstall['player_id']. "'";
             $this->game->DbQuery( $sql );
 
             $pname = $this->game->getUniqueValueFromDB("select player_name from player where player_id='".$differentstall['player_id']."'" );
-            $player_score = $this->game->getUniqueValueFromDB("select player_score from player where player_id='".$differentstall['player_id']."'
-" );
+            $player_score = $this->game->getUniqueValueFromDB("select player_score from player where player_id='".$differentstall['player_id']."'");
             $player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id='".$differentstall['player_id']."'" );
 
             $this->game->incStat( $differentstall['score'], "stalls", $differentstall['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points his ${diffstalls} different Stalls.'
-            ),
+            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points his ${diffstalls} different Stalls.'),
                                     array(
                                         'player_id' => $differentstall['player_id'],
                                         'player_no' => $player_no,
@@ -196,11 +188,9 @@ player_id']. "'";
         //////////////////////////////
         /// LEFT IN STALLS
         //////////////////////////////
-        $leftstalls = $this->game->getObjectListFromDB( "select player_id, case when val like 'Stall_' then val else left(val,1) end val, 2 score fro
-m animals
+        $leftstalls = $this->game->getObjectListFromDB( "select player_id, case when val like 'Stall_' then val else left(val,1) end val, 2 score from animals
                                                                                                                       where status = 'STALL'
-                                                                                                                      group by player_id, case when
-val like 'Stall_' then val else left(val,1) end
+                                                                                                                      group by player_id, case when val like 'Stall_' then val else left(val,1) end
                                                                                                                       order by player_id" );
         foreach( $leftstalls as $index => $leftstall)
         {
