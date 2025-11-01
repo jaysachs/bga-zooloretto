@@ -281,4 +281,20 @@ class Model {
         $this->updateDeck();
         return $deck;
     }
+
+    public function placeDrawnTileOnWagon(int $wagon_id, int $pos): Tile {
+        $deck = $this->getDeck();
+        $drawn = $deck->drawn;
+        if ($drawn == null) {
+            throw new \BgaUserException("No tile drawn, cannot place tile on wagon ");
+        }
+        $wagon = $this->getWagon($wagon_id);
+        $wagon->placeTileAt($drawn, $pos);
+
+        $this->updateDeck();
+        $this->doUpdateWagon($wagon);
+        // need to also update animals, since we're so denormalized
+        $this->db->execute("UPDATE animals set x = $wagon_id, y = $pos, status = 'WAGON' WHERE id = $drawn->id");
+        return $drawn;
+    }
 }

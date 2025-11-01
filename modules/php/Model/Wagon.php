@@ -41,8 +41,19 @@ class Wagon {
         }
     }
 
+    /** @return Tile[] */
     public function getTiles(): array {
         return array_filter($this->tiles, function ($t) : bool { return $t != null; });
+    }
+
+    public function placeTileAt(Tile $tile, int $pos): void {
+        if ($pos < 0 || $pos >= $this->capacity) {
+            throw new \BgaUserException("Cannot place tile in position $pos of wagon with capacity $this->capacity");
+        }
+        if ($this->tiles[$pos] != null) {
+            throw new \BgaUserException("Cannot place tile in already occupied wagon position $pos");
+        }
+        $this->tiles[$pos] = $tile;
     }
 
     // FIXME: this breaks encapsulation boundaries a bit, but this is probably the best place for this until

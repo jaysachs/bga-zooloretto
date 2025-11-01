@@ -51,31 +51,29 @@ class PlaceTile extends AbstractState
     }
 
     #[PossibleAction]
-    public function actPlaceTile(int $active_player_id, string $x, string $y): mixed {
+    public function actPlaceTile(int $active_player_id, int $x, int $y): mixed {
 
-		$player_id = $active_player_id;
-		$id = $this->game->getUniqueValueFromDB("select id from animals where status='DRAWN'" );
-		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
-		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$id'" );
+		$model = $this->createModel();
+		// $x is wagon number
+		// $y is positioin on wagon
+		/** @var Tile */
+		$tile = $model->placeDrawnTileOnWagon($x, $y);
 
-		$sql = "update animals set x = $x, y = $y, status = 'WAGON' where id = '$id'";
-		$this->game->DbQuery( $sql );
-		$sql = "update wagons set val$y = $id where id = '$x'";
-		$this->game->DbQuery( $sql );
-
-
-		$this->notify->all( "PlaceTile", clienttranslate( '${player_name} placed the ${translatedval} tile on the ${pos} space of the ${wag} wagon.'),
-		array(
-			'player_id' => $player_id,
-			'id' => $id,
-			'val' => $val,
-			'x' => $x,
-			'y' => $y,
-			'translatedval' => Decoder::Animal($val),
-			'pos' => Decoder::Pos($y),
-			'wag' => Decoder::Pos($x),
-			'i18n' => array( 'translatedval', 'pos', 'wag' )
-		) );
+		$this->notify->all(
+			"PlaceTile",
+			clienttranslate( '${player_name} placed the ${translatedval} tile on the ${pos} space of the ${wag} wagon.'),
+			[
+				'player_id' => $active_player_id,
+				'id' => $tile->id,
+				'val' => $tile->type->value,
+				'x' => $x,
+				'y' => $y,
+				'translatedval' => $tile->type->translated(),
+				'pos' => Decoder::Pos($y),
+				'wag' => Decoder::Pos($x),
+				'i18n' => array( 'translatedval', 'pos', 'wag' )
+			]
+		);
         return NextPlayer::class;
     }
 
