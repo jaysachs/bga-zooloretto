@@ -27,10 +27,12 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\Games\zooloretto\Model\TileType;
+
 class Decoder
 {
-    // FIXME: change to enum
 	/**
+	 * @deprecated
 	 * @param $val int | string
 	 */
 	public static function Pos(mixed $val): string
@@ -44,46 +46,12 @@ class Decoder
 		else return "";
 	}
 
-    // FIXME: change to enum
+	/**
+	 * @deprecated
+	 */
     public static function Animal(string $val): string
 	{
-		if ($val=="C") return clienttranslate('Camel');
-		else if ($val=="CF") return clienttranslate('Female Camel');
-		else if ($val=="CM") return clienttranslate('Male Camel');
-		else if ($val=="CK") return clienttranslate('Pup Camel');
-		else if ($val=="E") return clienttranslate('Elephant');
-		else if ($val=="EF") return clienttranslate('Female Elephant');
-		else if ($val=="EM") return clienttranslate('Male Elephant');
-		else if ($val=="EK") return clienttranslate('Pup Elephant');
-		else if ($val=="F") return clienttranslate('Flamingo');
-		else if ($val=="FF") return clienttranslate('Female Flamingo');
-		else if ($val=="FM") return clienttranslate('Male Flamingo');
-		else if ($val=="FK") return clienttranslate('Pup Flamingo');
-		else if ($val=="K") return clienttranslate('Kangaroo');
-		else if ($val=="KF") return clienttranslate('Female Kangaroo');
-		else if ($val=="KM") return clienttranslate('Male Kangaroo');
-		else if ($val=="KK") return clienttranslate('Pup Kangaroo');
-		else if ($val=="L") return clienttranslate('Leopard');
-		else if ($val=="LF") return clienttranslate('Female Leopard');
-		else if ($val=="LM") return clienttranslate('Male Leopard');
-		else if ($val=="LK") return clienttranslate('Pup Leopard');
-		else if ($val=="M") return clienttranslate('Monkey');
-		else if ($val=="MF") return clienttranslate('Female Monkey');
-		else if ($val=="MM") return clienttranslate('Male Monkey');
-		else if ($val=="MK") return clienttranslate('Pup Monkey');
-		else if ($val=="P") return clienttranslate('Panda');
-		else if ($val=="PF") return clienttranslate('Female Panda');
-		else if ($val=="PM") return clienttranslate('Male Panda');
-		else if ($val=="PK") return clienttranslate('Pup Panda');
-		else if ($val=="Z") return clienttranslate('Zebra');
-		else if ($val=="ZF") return clienttranslate('Female Zebra');
-		else if ($val=="ZM") return clienttranslate('Male Zebra');
-		else if ($val=="ZK") return clienttranslate('Pup Zebra');
-		else if ($val=="StallA") return clienttranslate('Kiosk Stall');
-		else if ($val=="StallB") return clienttranslate('Barrow Stall');
-		else if ($val=="StallC") return clienttranslate('Snacks Stall');
-		else if ($val=="StallD") return clienttranslate('Popcorn Stall');
-		else if ($val=="Coin") return clienttranslate('Coin');
-		else return "";
+		$tt = TileType::from($val);
+		return $tt == null ? "" : $tt->translated();
 	}
 }

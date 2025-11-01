@@ -146,12 +146,10 @@ class PlayerTurn extends AbstractState
 
 		$this->notify->all(
 			"BuyEnclosure",
-			clienttranslate('${player_name} bought his ${pos} extra enclosure.'),
+			clienttranslate('${player_name} bought an extra enclosure.'),
 			[
 				'player_id' => $active_player_id,
 				'unblockedzoo' => $player->purchased_extensions,
-				'pos' => Decoder::Pos($player->purchased_extensions),
-				'i18n' => ['pos']
 			]
 		);
 
