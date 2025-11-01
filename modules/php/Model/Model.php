@@ -83,6 +83,9 @@ class Model {
             foreach ($data as $row) {
                 $id = intval($row["id"]);
                 $contents = [];
+                for ($i = 0; $i < $row['size']; $i++) {
+                    $contents[] = null;
+                }
                 $in_clause = implode(',', array_filter(
                     [$row["val1"], $row["val2"], $row["val3"]],
                     function (string $v): bool {
@@ -90,9 +93,9 @@ class Model {
                     }
                 ));
                 if ($in_clause > "") {
-                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause) ORDER BY id");
+                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause)");
                     foreach ($wdata as $wrow) {
-                        $contents[] = $this->tileFromDataRow($wrow);
+                        $contents[intval($wrow['y'])-1] = $this->tileFromDataRow($wrow);
                     }
                 }
                 $this->_wagons[$id] = new Wagon($id, intval($row["size"]), $contents, WagonStatus::from($row["status"]));

@@ -81,12 +81,14 @@ class PlayerTurn extends AbstractState
         $model = $this->createModel();
 		$player = $model->getPlayer($player_id);
 		$wagon = $model->takeWagon($player, $x);
+		$tiles = array_filter($wagon->tiles, function ($t) { return $t != null; });
 		$wagontiles = array_map(function (Tile $tile): array {
 			return [
 				"id" => $tile->id,
 				"wagontile" => "tile_0_" . implode("_", [$tile->id, $tile->type->value, $tile->x, $tile->y]),
 			];
-		}, $wagon->tiles);
+		}, $tiles);
+
 		$messagestring = implode(', ', array_map(function (string $val): string {
 			return Decoder::Animal($val);
 		}, array_filter(
