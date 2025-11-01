@@ -330,7 +330,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
           this.inherited(arguments);
           if (!this.isLoadingComplete && value >= 100) {
             this.isLoadingComplete = true;
-//            this.onLoadingComplete();
+            this.onLoadingComplete();
           }
         },
 
@@ -368,86 +368,6 @@ function (dojo, declare, fx, baseFx, domStyle) {
             {
                 dojo.addClass('playeraid','playeraidEN');
             }
-            // var count=0;
-            // for( var i in this.gamedatas.money )
-            // {
-                // var mon = this.gamedatas.money[i];
-                // for (let i = 1; i <= mon.money; i++)
-                // {
-                    // count = count + 1;
-                    // this.addMoneyPlayer(count, mon.player_no);
-                // }
-            // }
-            // for( var i in this.gamedatas.drawntiles )
-            // {
-                // var drawntile = this.gamedatas.drawntiles[i];
-                // this.addTile( 'tiles',0, drawntile.id, drawntile.val, 0, 0 );
-            // }
-
-            // for( var i in this.gamedatas.animalsthinking )
-            // {
-                // var animalthinking = this.gamedatas.animalsthinking[i];
-                // this.addTile( 'cell_'+animalthinking.player_no+'_'+animalthinking.x+'_'+animalthinking.y,animalthinking.player_no, animalthinking.id, animalthinking.val, animalthinking.x, animalthinking.y );
-                // dojo.addClass('tile_'+animalthinking.player_no+'_'+animalthinking.id+'_'+animalthinking.val+'_'+animalthinking.x+'_'+animalthinking.y,'boardsize');
-                // dojo.addClass('tile_'+animalthinking.player_no+'_'+animalthinking.id+'_'+animalthinking.val+'_'+animalthinking.x+'_'+animalthinking.y,'thinking');
-                // dojo.query( '#tile_'+animalthinking.player_no+'_'+animalthinking.id+'_'+animalthinking.val+'_'+animalthinking.x+'_'+animalthinking.y).connect( 'onclick', this, 'onClickTile' );
-
-                // this.Zoo[animalthinking.player_no-1][animalthinking.x-1][animalthinking.y-1]=animalthinking.val+'_'+animalthinking.id+'_TH';
-            // }
-
-            // for( var i in this.gamedatas.animalsthinkingwagon )
-            // {
-                // var animalthinking = this.gamedatas.animalsthinkingwagon[i];
-                // dojo.addClass('tile_0_'+animalthinking.id+'_'+animalthinking.val+'_'+animalthinking.x+'_'+animalthinking.y,'thinking');
-            // }
-
-            // for( var i in this.gamedatas.animalsplayed )
-            // {
-                // var animalplayed = this.gamedatas.animalsplayed[i];
-                // this.addTile( 'cell_'+animalplayed.player_no+'_'+animalplayed.x+'_'+animalplayed.y,animalplayed.player_no, animalplayed.id, animalplayed.val, animalplayed.x, animalplayed.y );
-                // dojo.addClass('tile_'+animalplayed.player_no+'_'+animalplayed.id+'_'+animalplayed.val+'_'+animalplayed.x+'_'+animalplayed.y,'boardsize');
-                // dojo.query( '#tile_'+animalplayed.player_no+'_'+animalplayed.id+'_'+animalplayed.val+'_'+animalplayed.x+'_'+animalplayed.y).connect( 'onclick', this, 'onClickTile' );
-
-                // this.Zoo[animalplayed.player_no-1][animalplayed.x-1][animalplayed.y-1]=animalplayed.val+'_'+animalplayed.id+'_PL';
-            // }
-
-            // for( var i in this.gamedatas.animalsstall )
-            // {
-                // var animalstall = this.gamedatas.animalsstall[i];
-                // this.addTile( 'stall_' + animalstall.player_no,animalstall.player_no, animalstall.id, animalstall.val, animalstall.x, animalstall.y );
-                // dojo.addClass('tile_'+animalstall.player_no+'_'+animalstall.id+'_'+animalstall.val+'_'+animalstall.x+'_'+animalstall.y,'stallsize');
-                // dojo.query( '#tile_'+animalstall.player_no+'_'+animalstall.id+'_'+animalstall.val+'_'+animalstall.x+'_'+animalstall.y).connect( 'onclick', this, 'onClickTile' );
-            // }
-
-            // if (this.StateNameValue=="PlayerTurn" && this.isCurrentPlayerActive())
-            // {
-                // if (this.Money>=2)
-                // {
-                    // if (this.countTotalOtherBarn(this.PlayerNo)>0)
-                    // {
-                        // dojo.removeClass("buy","buttoninvisible");
-                        // dojo.addClass("buy","buttonvisible");
-                    // }
-                    // if (this.countTotalOwnBarn(this.PlayerNo)>0)
-                    // {
-                        // dojo.removeClass("discard","buttoninvisible");
-                        // dojo.addClass("discard","buttonvisible");
-                    // }
-                // }
-                // if (this.Money>=1)
-                // {
-                    // if (this.countTotalTilesEnclosuresStall(this.PlayerNo)>0)
-                    // {
-                        // dojo.removeClass("move","buttoninvisible");
-                        // dojo.addClass("move","buttonvisible");
-                    // }
-                    // if (this.countTotalZones(this.PlayerNo)>=2)
-                    // {
-                        // dojo.removeClass("swap","buttoninvisible");
-                        // dojo.addClass("swap","buttonvisible");
-                    // }
-                // }
-            // }
         },
 
         countWagonsSitFree: function()
