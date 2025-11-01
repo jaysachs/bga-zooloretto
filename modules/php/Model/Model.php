@@ -136,7 +136,7 @@ class Model {
         return $this->_players;
     }
 
-    public function getPlayer(int $id): Player {
+    private function getPlayer(int $id): Player {
         $players = $this->getPlayers();
         if (isset($players[$id])) {
             return $players[$id];
@@ -181,13 +181,6 @@ class Model {
         return $this->_deck;
     }
 
-    public function drawTile(): Deck {
-        $deck = $this->getDeck();
-        $deck->drawTile();
-        $this->updateDeck();
-        return $deck;
-    }
-
     private function updateDeck(): void {
         $deck = $this->_deck;
         if ($deck == null) {
@@ -203,24 +196,6 @@ class Model {
         $this->db->execute("UPDATE animals SET status = 'DRAWN' WHERE id = $id");
     }
 
-    public function wasLastRoundTriggered(): bool {
-        return $this->getDeck()->wasLastRoundTriggered();
-    }
-
-    public function inLastRound(): bool {
-        return $this->getDeck()->inLastRound();
-    }
-
-    public function prepareNextTurn() {
-		$this->db->execute( "UPDATE animals SET status = 'DISCARDED' WHERE status = 'WAGON'" );
-        $available = WagonStatus::AVAILABLE->value;
-		$this->db->execute( "UPDATE wagons SET status = '$available', val1='', val2='', val3=''" );
-		$this->db->execute( "UPDATE player SET skipped='N'" );
-
-        $this->_players = null;
-        $this->_deck = null;
-    }
-
     private function doUpdateWagon(Wagon $wagon) {
         $id = $wagon->id;
         $status = $wagon->status->value;
@@ -228,17 +203,6 @@ class Model {
         $val2 = $wagon->tileIdAt(1);
         $val3 = $wagon->tileIdAt(2);
 		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
-    }
-
-    public function takeWagon(Player $player, int $wagon_id): Wagon {
-        $this->validatePlayer($player);
-        $wagon = $this->getWagon($wagon_id);
-
-        $player->takeWagon();
-        $this->updatePlayer($player);
-        $wagon->setTaken();
-        $this->doUpdateWagon($wagon);
-        return $wagon;
     }
 
     private function getBarnFor(Player $player): Barn {
@@ -262,8 +226,12 @@ class Model {
         }
     }
 
-    public function discardBarnTile(Player $player, int $tileid): Tile {
-        $this->validatePlayer($player);
+    public function getActivePlayer(): Player {
+        return $this->getPlayer(intval($this->game->getActivePlayerId()));
+    }
+
+    public function discardBarnTile(int $tileid): Tile {
+        $player = $this->getActivePlayer();
         $barn = $this->getBarnFor($player);
         $tile = $barn->discard($tileid);
         $this->doUpdateBarn($barn);
@@ -271,9 +239,45 @@ class Model {
         return $tile;
     }
 
-    public function buyEnclosure(Player $player): void {
-        $this->validatePlayer($player);
+    public function buyEnclosure(): void {
+        $player = $this->getActivePlayer();
 		$player->buyEnclosure();
 		$this->updatePlayer($player);
+    }
+
+    public function takeWagon(int $wagon_id): Wagon {
+        $player = $this->getActivePlayer();
+        $wagon = $this->getWagon($wagon_id);
+
+        $player->takeWagon();
+        $this->updatePlayer($player);
+        $wagon->setTaken();
+        $this->doUpdateWagon($wagon);
+        return $wagon;
+    }
+
+    public function wasLastRoundTriggered(): bool {
+        return $this->getDeck()->wasLastRoundTriggered();
+    }
+
+    public function inLastRound(): bool {
+        return $this->getDeck()->inLastRound();
+    }
+
+    public function prepareNextTurn() {
+		$this->db->execute( "UPDATE animals SET status = 'DISCARDED' WHERE status = 'WAGON'" );
+        $available = WagonStatus::AVAILABLE->value;
+		$this->db->execute( "UPDATE wagons SET status = '$available', val1='', val2='', val3=''" );
+		$this->db->execute( "UPDATE player SET skipped='N'" );
+
+        $this->_players = null;
+        $this->_deck = null;
+    }
+
+    public function drawTile(): Deck {
+        $deck = $this->getDeck();
+        $deck->drawTile();
+        $this->updateDeck();
+        return $deck;
     }
 }

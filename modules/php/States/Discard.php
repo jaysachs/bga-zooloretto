@@ -55,8 +55,8 @@ class Discard extends AbstractState
 		$player_id = $active_player_id;
         $model = $this->createModel();
 
-        $player = $model->getPlayer($player_id);
-        $tile = $model->discardBarnTile($player, $tileid);
+        $player = $model->getActivePlayer();
+        $tile = $model->discardBarnTile($tileid);
 		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $player_id);
 
 		$val = $tile->type->value;

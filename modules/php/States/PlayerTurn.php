@@ -52,7 +52,7 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel();
-		$player = $model->getPlayer($active_player_id);
+		$player = $model->getActivePlayer();
 		$wagondata = array_map(function (Wagon $wagon): array {
 			return [
 				"id" => $wagon->id,
@@ -79,8 +79,7 @@ class PlayerTurn extends AbstractState
 		$player_id = $active_player_id;
 
         $model = $this->createModel();
-		$player = $model->getPlayer($player_id);
-		$wagon = $model->takeWagon($player, $x);
+		$wagon = $model->takeWagon($x);
 		$tiles = array_filter($wagon->tiles, function ($t) { return $t != null; });
 		$wagontiles = array_map(function (Tile $tile): array {
 			return [
@@ -145,9 +144,9 @@ class PlayerTurn extends AbstractState
 	public function actBuyEnclosure(int $active_player_id): mixed
 	{
         $model = $this->createModel();
-		$player = $model->getPlayer($active_player_id);
+		$player = $model->getActivePlayer();
 		$model->buyEnclosure($player);
-		$this->playerStats->inc("coinsspent", $player->moneySpent(), $active_player_id);
+		$this->playerStats->inc("coinsspent", $player->moneySpent(), $player->id);
 
 		$this->notify->all(
 			"BuyEnclosure",
