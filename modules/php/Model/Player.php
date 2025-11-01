@@ -38,9 +38,15 @@ class Player {
 
     private int $spent = 0;
     private const ENCLOSURE_COST = 3;
+    private const DISCARD_COST = 2;
 
     public function moneySpent(): int {
         return $this->spent;
+    }
+
+    public function discardBarnTile(): void {
+        $this->money -= self::DISCARD_COST;
+        $this->spent += self::DISCARD_COST;
     }
 
     public function takeWagon(): void {

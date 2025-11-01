@@ -232,6 +232,7 @@ class Model {
 
     public function discardBarnTile(int $tileid): Tile {
         $player = $this->getActivePlayer();
+        $player->discardBarnTile();
         $barn = $this->getBarnFor($player);
         $tile = $barn->discard($tileid);
         $this->doUpdateBarn($barn);
