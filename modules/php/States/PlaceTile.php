@@ -54,8 +54,8 @@ class PlaceTile extends AbstractState
     public function actPlaceTile(int $active_player_id, int $x, int $y): mixed {
 
 		$model = $this->createModel();
-		// $x is wagon number
-		// $y is positioin on wagon
+		// $x is wagon ID
+		// $y is position on wagon (1-based)
 		/** @var Tile */
 		$tile = $model->placeDrawnTileOnWagon($x, $y);
 

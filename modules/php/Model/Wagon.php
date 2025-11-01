@@ -41,38 +41,40 @@ class Wagon {
         }
     }
 
-    /** @return Tile[] */
-    public function getTiles(): array {
-        return array_filter($this->tiles, function ($t) : bool { return $t != null; });
-    }
-
+    /**
+     * @param $pos 1-based position on the wagon
+     */
     public function placeTileAt(Tile $tile, int $pos): void {
-        if ($pos < 0 || $pos >= $this->capacity) {
+        if ($pos < 1 || $pos > $this->capacity) {
             throw new \BgaUserException("Cannot place tile in position $pos of wagon with capacity $this->capacity");
         }
-        if ($this->tiles[$pos] != null) {
+        if (isset($this->tiles[$pos])) {
             throw new \BgaUserException("Cannot place tile in already occupied wagon position $pos");
         }
         $this->tiles[$pos] = $tile;
+        $tile->x = $this->id;
+        $tile->y = $pos;
     }
 
     // FIXME: this breaks encapsulation boundaries a bit, but this is probably the best place for this until
     //   the frontend isn't so tightly coupled to this.
     public function valAt(int $pos): string {
-        if ($pos >= 0 && $pos < count($this->tiles)) {
-            $tile = $this->tiles[$pos];
-            return ($tile == null) ? "" : $tile->type->value;
-        } else {
+        if ($pos < 1 || $pos > $this->capacity) {
+            throw new \Exception("Illegal position $pos for wagon $this->id with capacity $this->capacity");
+        }
+        if (!isset($this->tiles[$pos])) {
             return "";
         }
+        return $this->tiles[$pos]->type->value;
     }
 
     public function tileIdAt(int $pos): string {
-        if ($pos >= 0 && $pos < count($this->tiles)) {
-            $tile = $this->tiles[$pos];
-            return ($tile == null) ? "" : "$tile->id";
-        } else {
+        if ($pos < 1 || $pos > $this->capacity) {
+            throw new \Exception("Illegal position $pos for wagon $this->id with capacity $this->capacity");
+        }
+        if (!isset($this->tiles[$pos])) {
             return "";
         }
+        return strval($this->tiles[$pos]->id);
     }
 }

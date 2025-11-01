@@ -57,9 +57,9 @@ class PlayerTurn extends AbstractState
 			return [
 				"id" => $wagon->id,
 				"size" => $wagon->capacity,
-				"val1" => $wagon->valAt(0),
-				"val2" => $wagon->valAt(1),
-				"val3" => $wagon->ValAt(2),
+				"val1" => $wagon->valAt(1),
+				"val2" => $wagon->capacity >= 2 ? $wagon->valAt(2) : "",
+				"val3" => $wagon->capacity >= 3 ? $wagon->valAt(3) : "",
 			];
 		}, array_filter($model->getWagons(), function (Wagon $wagon): bool {
 			return $wagon->status == WagonStatus::AVAILABLE
@@ -91,7 +91,7 @@ class PlayerTurn extends AbstractState
 		$messagestring = implode(
 			', ',
 			array_map(function (Tile $tile): string { return $tile->type->translated(); },
-					  $wagon->getTiles()));
+					  $wagon->tiles));
 
 		$this->notify->all(
 			"TakeWagon",

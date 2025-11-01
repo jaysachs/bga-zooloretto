@@ -83,9 +83,6 @@ class Model {
             foreach ($data as $row) {
                 $id = intval($row["id"]);
                 $contents = [];
-                for ($i = 0; $i < $row['size']; $i++) {
-                    $contents[] = null;
-                }
                 $in_clause = implode(',', array_filter(
                     [$row["val1"], $row["val2"], $row["val3"]],
                     function (string $v): bool {
@@ -95,7 +92,7 @@ class Model {
                 if ($in_clause > "") {
                     $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause)");
                     foreach ($wdata as $wrow) {
-                        $contents[intval($wrow['y'])-1] = $this->tileFromDataRow($wrow);
+                        $contents[intval($wrow['y'])] = $this->tileFromDataRow($wrow);
                     }
                 }
                 $this->_wagons[$id] = new Wagon($id, intval($row["size"]), $contents, WagonStatus::from($row["status"]));
@@ -196,12 +193,12 @@ class Model {
         $this->db->execute("UPDATE animals SET status = 'DRAWN' WHERE id = $id");
     }
 
-    private function doUpdateWagon(Wagon $wagon) {
+    private function updateWagon(Wagon $wagon) {
         $id = $wagon->id;
         $status = $wagon->status->value;
-        $val1 = $wagon->tileIdAt(0);
-        $val2 = $wagon->tileIdAt(1);
-        $val3 = $wagon->tileIdAt(2);
+        $val1 = $wagon->tileIdAt(1);
+        $val2 = $wagon->capacity >= 2 ? $wagon->tileIdAt(2) : "";
+        $val3 = $wagon->capacity >= 3 ? $wagon->tileIdAt(3) : "";
 		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
     }
 
@@ -253,7 +250,7 @@ class Model {
         $player->takeWagon();
         $this->updatePlayer($player);
         $wagon->setTaken();
-        $this->doUpdateWagon($wagon);
+        $this->updateWagon($wagon);
         return $wagon;
     }
 
@@ -282,6 +279,9 @@ class Model {
         return $deck;
     }
 
+    /**
+     * @param $pos 1-based position on wagon
+     */
     public function placeDrawnTileOnWagon(int $wagon_id, int $pos): Tile {
         $deck = $this->getDeck();
         $drawn = $deck->drawn;
@@ -292,7 +292,7 @@ class Model {
         $wagon->placeTileAt($drawn, $pos);
 
         $this->updateDeck();
-        $this->doUpdateWagon($wagon);
+        $this->updateWagon($wagon);
         // need to also update animals, since we're so denormalized
         $this->db->execute("UPDATE animals set x = $wagon_id, y = $pos, status = 'WAGON' WHERE id = $drawn->id");
         return $drawn;
