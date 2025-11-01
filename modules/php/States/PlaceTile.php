@@ -51,13 +51,13 @@ class PlaceTile extends AbstractState
     }
 
     #[PossibleAction]
-    public function actPlaceTile(int $active_player_id, int $x, int $y): mixed {
+    public function actPlaceTile(int $active_player_id, int $wagon_id, int $pos): mixed {
 
 		$model = $this->createModel();
 		// $x is wagon ID
 		// $y is position on wagon (1-based)
 		/** @var Tile */
-		$tile = $model->placeDrawnTileOnWagon($x, $y);
+		$tile = $model->placeDrawnTileOnWagon($wagon_id, $pos);
 
 		$this->notify->all(
 			"PlaceTile",
@@ -66,8 +66,8 @@ class PlaceTile extends AbstractState
 				'player_id' => $active_player_id,
 				'id' => $tile->id,
 				'val' => $tile->type->value,
-				'x' => $x,
-				'y' => $y,
+				'x' => $wagon_id,
+				'y' => $pos,
 				'translatedval' => $tile->type->translated(),
 				'i18n' => [ 'translatedval' ],
 			]

@@ -74,12 +74,12 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actTakeWagon(int $active_player_id, int $x): mixed
+	public function actTakeWagon(int $active_player_id, int $wagon_id): mixed
 	{
 		$player_id = $active_player_id;
 
         $model = $this->createModel();
-		$wagon = $model->takeWagon($x);
+		$wagon = $model->takeWagon($wagon_id);
 		$tiles = array_filter($wagon->tiles, function ($t) { return $t != null; });
 		$wagontiles = array_map(function (Tile $tile): array {
 			return [
@@ -98,7 +98,7 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} took a wagon with ${wag}.'),
 			[
 				'player_id' => $player_id,
-				'x' => $x,
+				'wagon_id' => $wagon_id,
 				'wag' => $messagestring,
 				'wagontiles' => $wagontiles,
 				'i18n' => ['wag']

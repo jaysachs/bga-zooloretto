@@ -1757,8 +1757,8 @@ function (dojo, declare, fx, baseFx, domStyle) {
                {
                     dojo.removeClass("placetile","buttonvisible");
                     dojo.addClass("placetile","buttoninvisible");
-                    let x = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
-                    let y = document.getElementsByClassName("highlighted")[0].id.split('_')[2];
+                    let wagon_id = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
+                    let pos = document.getElementsByClassName("highlighted")[0].id.split('_')[2];
                     var elements = document.getElementsByClassName('highlighted');
                     while(elements.length > 0)
                     {
@@ -1771,8 +1771,8 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     }
 
                     this.bgaPerformAction( "actPlaceTile", {
-                        x: x,
-                        y: y,
+                        wagon_id: wagon_id,
+                        pos: pos,
                     });
                }
            }
@@ -2427,7 +2427,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     dojo.removeClass("discard","buttonvisible");
                     dojo.addClass("discard","buttoninvisible");
 
-                    let x = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
+                    let wagon_id = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
                     var elements = document.getElementsByClassName('pointer');
                     while(elements.length > 0)
                     {
@@ -2435,7 +2435,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     }
 
                     this.bgaPerformAction( "actTakeWagon", {
-                        x: x,
+                        wagon_id: wagon_id,
                     });
                }
            }
@@ -3581,7 +3581,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
         },
         notif_TakeWagon: function( notif )
         {
-            dojo.addClass('wagon_' + notif.args.x, 'highlighted');
+            dojo.addClass('wagon_' + notif.args.wagon_id, 'highlighted');
 
             for( var i in notif.args.wagontiles )
             {
