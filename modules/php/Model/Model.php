@@ -36,7 +36,7 @@ use \Bga\GameFramework\Table;
 
 class Model {
 
-    public function __construct(private Db $db = new DefaultDb()) {}
+    public function __construct(private Table $game, private Db $db = new DefaultDb()) {}
 
     public function createNewGame(int $player_count): void {
         // Deck (tiles)

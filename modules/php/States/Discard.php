@@ -28,13 +28,11 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Model;
 
-class Discard extends GameState
+class Discard extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -53,9 +51,9 @@ class Discard extends GameState
     }
 
     #[PossibleAction]
-    public function actConfirmDiscard(int $tileid): mixed {
-		$player_id = intval($this->game->getActivePlayerId());
-        $model = new Model();
+    public function actConfirmDiscard(int $active_player_id, int $tileid): mixed {
+		$player_id = $active_player_id;
+        $model = $this->createModel();
 
         $player = $model->getPlayer($player_id);
         $tile = $model->discardBarnTile($player, $tileid);

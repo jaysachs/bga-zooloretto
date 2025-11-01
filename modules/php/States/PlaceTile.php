@@ -28,25 +28,11 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
-
-/*
-
-    3 => array(
-    		"name" => "PlaceTile",
-    		"description" => clienttranslate('${actplayer} must place a tile on a Wagon.'),
-    		"descriptionmyturn" => clienttranslate('${you} must place a tile on a Wagon.'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "PlaceTile" ),
-    		"transitions" => array( "NextPlayer" => 4 )
-    ),
-*/
-
-class PlaceTile extends GameState
+class PlaceTile extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -65,9 +51,10 @@ class PlaceTile extends GameState
     }
 
     #[PossibleAction]
-    public function actPlaceTile(string $x, string $y): mixed {
+    public function actPlaceTile(int $active_player_id, string $x, string $y): mixed {
+
+		$player_id = $active_player_id;
 		$id = $this->game->getUniqueValueFromDB("select id from animals where status='DRAWN'" );
-		$player_id = $this->game->getCurrentPlayerId();
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$id'" );
 
@@ -77,7 +64,7 @@ class PlaceTile extends GameState
 		$this->game->DbQuery( $sql );
 
 
-		$this->game->notifyAllPlayers( "PlaceTile", clienttranslate( '${player_name} placed the ${translatedval} tile on the ${pos} space of the ${wag} wagon.'),
+		$this->notify->all( "PlaceTile", clienttranslate( '${player_name} placed the ${translatedval} tile on the ${pos} space of the ${wag} wagon.'),
 		array(
 			'player_id' => $player_id,
 			'player_no' => $player_no,
@@ -88,7 +75,6 @@ class PlaceTile extends GameState
 			'translatedval' => Decoder::Animal($val),
 			'pos' => Decoder::Pos($y),
 			'wag' => Decoder::Pos($x),
-			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval', 'pos', 'wag' )
 		) );
         return NextPlayer::class;

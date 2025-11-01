@@ -42,8 +42,24 @@ class Game extends \Bga\GameFramework\Table
 		parent::__construct();
 
 		$this->notify->addDecorator(function (string $message, array $args): array {
-			if (isset($args['player_id']) && !isset($args['player_name']) && str_contains($message, '${player_name}')) {
-				$args['player_name'] = $this->getPlayerNameById($args['player_id']);
+			if (isset($args['player_id'])) {
+				/** @var string[] | null */
+				$i18n = null;
+				if (isset($args['i18n'])) {
+					$i18n = $args['i18n'];
+				}
+				if (!isset($args['player_name']) && str_contains($message, '${player_name}')) {
+					$args['player_name'] = $this->getPlayerNameById($args['player_id']);
+					if ($i18n != null) {
+						$i18n[] = 'player_name';
+					}
+				}
+				if (!isset($args['player_no']) && str_contains($message, '${player_no}')) {
+					$args['player_no'] = $this->getPlayerNoById($args['player_id']);
+					if ($i18n != null) {
+						$i18n[] = 'player_no';
+					}
+				}
 			}
 			return $args;
 		});
@@ -65,7 +81,7 @@ class Game extends \Bga\GameFramework\Table
 
 		$current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
-		$model = new Model();
+		$model = new Model($this);
 
 		// Get information about players
 		// Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
@@ -181,7 +197,7 @@ class Game extends \Bga\GameFramework\Table
 		self::DbQuery($sql);
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
-		$model = new Model();
+		$model = new Model($this);
 		$model->createNewGame($count);
 
 		self::initStat('player', 'full1', 0);

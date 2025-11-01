@@ -3,7 +3,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * babylonia implementation : © Jay Sachs <vagabond@covariant.org>
+ * zooloretto implementation : © Jay Sachs <vagabond@covariant.org>
  *
  * Copyright 2025 Jay Sachs <vagabond@covariant.org>
  *
@@ -28,38 +28,39 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
+use Bga\GameFramework\States\GameState;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Model;
 
-class NextTurn extends AbstractState
+abstract class AbstractState extends GameState
 {
-    function __construct(private Game $game)
-    {
+    function __construct(
+        private Game $game,
+        int $id,
+        StateType $type,
+        ?string $description = '',
+        ?string $descriptionMyTurn = '',
+        bool $updateGameProgression = false
+    ) {
         parent::__construct(
             game: $game,
-            id: 6,
-            type: StateType::GAME,
-            description: clienttranslate('Changing player...'),
-            updateGameProgression: true,
-        );
+            id: $id,
+            type: $type,
+            name: null,
+            description: $description,
+            descriptionMyTurn: $descriptionMyTurn,
+            updateGameProgression: $updateGameProgression);
     }
 
-    public function onEnteringState(): mixed
-    {
-        $model = $this->createModel();
-        if ($model->inLastRound()) {
-            return ComputeScores::class;
-        }
+    protected function createModel(): Model {
+        return new Model($this->game);
+    }
 
-        $model->prepareNextTurn();
-		$wagons = $this->game->getObjectListFromDB( "SELECT id, size from wagons" );
-        $this->notify->all(
-            "EndTurn",
-            clienttranslate('Turn is over... starting another turn.'),
-            [
-                'wagons' => $wagons,
-            ]
-        );
+    protected function giveExtraTime(int $player_id, ?int $specificTime = null): void {
+        $this->game->giveExtraTime($player_id, $specificTime);
+    }
 
-        return PlayerTurn::class;
+    protected function activeNextPlayer(): void {
+        $this->game->activeNextPlayer();
     }
 }

@@ -28,24 +28,11 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
-
-/*
-    9 => array(
-    		"name" => "Buy",
-    		"description" => clienttranslate('${actplayer} must buy a tile from an opponent Barn.'),
-    		"descriptionmyturn" => clienttranslate('${you} must buy a tile from an opponent Barn.'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "Buy", "Back" ),
-    		"transitions" => array( "Back" => 2, "NextPlayer" => 4 )
-    ),
-*/
-
-class Buy extends GameState
+class Buy extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -65,6 +52,7 @@ class Buy extends GameState
 
     #[PossibleAction]
     public function actBuyTile(
+		int $active_player_id,
 		string $tileid,
         string $pid,
         string $x0,
@@ -72,7 +60,7 @@ class Buy extends GameState
         string $x1,
         string $y1
     ): mixed {
-		$player_id = intval($this->game->getCurrentPlayerId());
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
 		$donor_player_id = $this->game->getUniqueValueFromDB("select player_id from animals where id ='$tileid'" );
@@ -108,7 +96,6 @@ class Buy extends GameState
 				'val' => $val,
 				'translatedval' => Decoder::Animal($val),
 				'pos2' => Decoder::Pos($x1),
-				'player_name' => $this->game->getCurrentPlayerName(),
 				'donor_name' => $donor_name,
 				'donor_player_id' => $donor_player_id,
 				'donor_player_no' => $donor_player_no,
@@ -131,7 +118,6 @@ class Buy extends GameState
 				'val' => $val,
 				'translatedval' => Decoder::Animal($val),
 				'pos2' => Decoder::Pos($x1),
-				'player_name' => $this->game->getCurrentPlayerName(),
 				'donor_name' => $donor_name,
 				'donor_player_id' => $donor_player_id,
 				'donor_player_no' => $donor_player_no,
@@ -202,7 +188,6 @@ class Buy extends GameState
 							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
-							'player_name' => $this->game->getCurrentPlayerName(),
 							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
@@ -227,7 +212,6 @@ class Buy extends GameState
 							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
-							'player_name' => $this->game->getCurrentPlayerName(),
 							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
@@ -265,7 +249,6 @@ class Buy extends GameState
 							'coinsgained' => $coinsgained,
 							'coinsbefore' => $coinsbefore,
 							'enclosure' => $enclosure['x'],
-							'player_name' => $this->game->getCurrentPlayerName(),
 							'pos' => Decoder::Pos($enclosure['x']),
 							'i18n' => array( 'pos' )
 						) );

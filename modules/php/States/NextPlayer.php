@@ -28,12 +28,10 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Model;
 
 
-class NextPlayer extends GameState
+class NextPlayer extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -48,7 +46,7 @@ class NextPlayer extends GameState
 
     public function onEnteringState(): mixed
     {
-		$model = new Model();
+        $model = $this->createModel();
 		$players = $model->getPlayers();
 
 		$initial_player_id = intval($this->game->getActivePlayerId());

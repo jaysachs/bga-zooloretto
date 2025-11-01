@@ -28,24 +28,11 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
-
-/*
-    5 => array(
-    		"name" => "ArrangeZoo",
-    		"description" => clienttranslate('${actplayer} must arrange tiles in his Zoo.'),
-    		"descriptionmyturn" => clienttranslate('${you} must arrange tiles in your Zoo.'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "ArrangeTiles", "AutoArrangeTiles", "ConfirmArrangement", "Reset", "GoBack" ),
-    		"transitions" => array( "NextPlayer" => 4, "playerTurn" => 2 )
-    ),
-*/
-
-class ArrangeZoo extends GameState
+class ArrangeZoo extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -64,9 +51,9 @@ class ArrangeZoo extends GameState
     }
 
     #[PossibleAction]
-    public function actAutoArrangeTiles(string $wagonid, string $tileid1, string $posid1, string $tileid2, string $posid2, string $tileid3, string $posid3, string $x1, string $y1, string $x2, string $y2, string $x3, string $y3): mixed {
+    public function actAutoArrangeTiles(int $active_player_id, string $wagonid, string $tileid1, string $posid1, string $tileid2, string $posid2, string $tileid3, string $posid3, string $x1, string $y1, string $x2, string $y2, string $x3, string $y3): mixed {
 
-		$player_id = $this->game->getCurrentPlayerId();
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val1 = "";
 		$val2 = "";
@@ -122,14 +109,13 @@ class ArrangeZoo extends GameState
 			'y2' => $y2,
 			'x3' => $x3,
 			'y3' => $y3,
-			'player_name' => $this->game->getCurrentPlayerName(),
 		) );
         return null;
     }
 
     #[PossibleAction]
-    public function actConfirmArrangement(): mixed {
-		$player_id = intval($this->game->getCurrentPlayerId());
+    public function actConfirmArrangement(int $active_player_id): mixed {
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$wagonid = $this->game->getUniqueValueFromDB("select id from wagons where status = 'TAKEN'" );
 
@@ -153,7 +139,6 @@ class ArrangeZoo extends GameState
 				'player_no' => $player_no,
 				'coins' => $coins,
 				'cointiles' => $cointiles,
-				'player_name' => $this->game->getCurrentPlayerName()
 			) );
 		}
 
@@ -173,7 +158,6 @@ class ArrangeZoo extends GameState
 				'player_no' => $player_no,
 				'stall' => $stall,
 				'stalltiles' => $stalltiles,
-				'player_name' => $this->game->getCurrentPlayerName()
 			) );
 		}
 
@@ -237,7 +221,6 @@ class ArrangeZoo extends GameState
 						'player_no' => $player_no,
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
-						'player_name' => $this->game->getCurrentPlayerName(),
 						'translatedval' => Decoder::Animal($animal."K"),
 						'newparents'=>$newparents,
 						'i18n' => array( 'translatedval' )
@@ -262,7 +245,6 @@ class ArrangeZoo extends GameState
 						'player_no' => $player_no,
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
-						'player_name' => $this->game->getCurrentPlayerName(),
 						'translatedval' => Decoder::Animal($animal."K"),
 						'newparents'=>$newparents,
 						'i18n' => array( 'translatedval' )
@@ -300,7 +282,6 @@ class ArrangeZoo extends GameState
 						'coinsgained' => $coinsgained,
 						'coinsbefore' => $coinsbefore,
 						'enclosure' => $enclosure['x'],
-						'player_name' => $this->game->getCurrentPlayerName(),
 						'pos' => Decoder::Pos($enclosure['x']),
 						'i18n' => array( 'pos' )
 					) );
@@ -320,14 +301,13 @@ class ArrangeZoo extends GameState
 			'player_id' => $player_id,
 			'player_no' => $player_no,
 			'wagonid' => $wagonid,
-			'player_name' => $this->game->getCurrentPlayerName(),
 		) );
         return NextPlayer::class;
     }
 
     #[PossibleAction]
-    public function actReset(): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
+    public function actReset(int $active_player_id): mixed {
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$wagonid = $this->game->getUniqueValueFromDB("select id from wagons where status = 'TAKEN'" );
 		$wagonsize = $this->game->getUniqueValueFromDB("select size from wagons where status = 'TAKEN'" );
@@ -386,17 +366,16 @@ class ArrangeZoo extends GameState
 			'pos1'=>$pos1,
 			'pos2'=>$pos2,
 			'pos3'=>$pos3,
-			'player_name' => $this->game->getCurrentPlayerName()
 		) );
         return null;
     }
 
     #[PossibleAction]
-    public function actGoBack(string $x): mixed {
+    public function actGoBack(int $active_player_id, string $x): mixed {
         // FIXME: probably shouldn't directly call other action.
-        $this->actReset();
+        $this->actReset($active_player_id);
 
-        $player_id = $this->game->getCurrentPlayerId();
+        $player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 
 		$sql = "update player set skipped='N' where player_id = '$player_id'";
@@ -413,20 +392,20 @@ class ArrangeZoo extends GameState
 			'player_no' => $player_no,
 			'x' => $x,
 			'wagontiles' => $wagontiles,
-			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'wag' )
 		) );
         return PlayerTurn::class;
     }
 
     #[PossibleAction]
-    public function actArrangeTiles(string $tileid,
+    public function actArrangeTiles(int $active_player_id,
+									string $tileid,
                                     string $wagonid,
                                     string $posid,
                                     string $x,
                                     string $y,
                                     string $pid): mixed {
-		$player_id = $this->game->getCurrentPlayerId();
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$val = $this->game->getUniqueValueFromDB("select val from animals where id ='$tileid'" );
 
@@ -451,7 +430,6 @@ class ArrangeZoo extends GameState
 			'pid' => $pid,
 			'translatedval' => Decoder::Animal($val),
 			'pos' => Decoder::Pos($x),
-			'player_name' => $this->game->getCurrentPlayerName(),
 			'i18n' => array( 'translatedval', 'pos' )
 		) );
 		return null;

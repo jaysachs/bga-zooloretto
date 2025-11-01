@@ -28,17 +28,15 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Wagon;
 use Bga\Games\zooloretto\Model\WagonStatus;
 
 
-class PlayerTurn extends GameState
+class PlayerTurn extends AbstractState
 {
 	function __construct(private Game $game)
 	{
@@ -53,7 +51,7 @@ class PlayerTurn extends GameState
 
 	public function getArgs(int $active_player_id): array
 	{
-		$model = new Model();
+        $model = $this->createModel();
 		$player = $model->getPlayer($active_player_id);
 		$wagondata = array_map(function (Wagon $wagon): array {
 			return [
@@ -76,11 +74,11 @@ class PlayerTurn extends GameState
 	}
 
 	#[PossibleAction]
-	public function actTakeWagon(int $x): mixed
+	public function actTakeWagon(int $active_player_id, int $x): mixed
 	{
-		$player_id = intval($this->game->getActivePlayerId());
+		$player_id = $active_player_id;
 
-		$model = new Model();
+        $model = $this->createModel();
 		$player = $model->getPlayer($player_id);
 		$wagon = $model->takeWagon($player, $x);
 		$player_no = $player->no;
@@ -116,7 +114,7 @@ class PlayerTurn extends GameState
 	#[PossibleAction]
 	public function actDrawTile(int $active_player_id): mixed
 	{
-		$model = new Model();
+        $model = $this->createModel();
 		$deck = $model->drawTile();
 		$tile = $deck->drawn;
 
@@ -145,7 +143,7 @@ class PlayerTurn extends GameState
 	#[PossibleAction]
 	public function actBuyEnclosure(int $active_player_id): mixed
 	{
-		$model = new Model();
+        $model = $this->createModel();
 		$player = $model->getPlayer($active_player_id);
 		$model->buyEnclosure($player);
 		$this->playerStats->inc("coinsspent", $player->moneySpent(), $active_player_id);

@@ -28,24 +28,11 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
 
-
-/*
-    8 => array(
-    		"name" => "Swap",
-    		"description" => clienttranslate('${actplayer} must swap two sets on animals.'),
-    		"descriptionmyturn" => clienttranslate('${you} must swap two sets on animals.'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "Swap", "Back" ),
-    		"transitions" => array( "Back" => 2, "NextPlayer" => 4 )
-    ),
-*/
-
-class Swap extends GameState
+class Swap extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -65,11 +52,12 @@ class Swap extends GameState
 
     #[PossibleAction]
     public function actSwapTiles(
+		int $active_player_id,
         string $enc1,
         string $enc2,
         string $anid
     ): mixed {
-		$player_id = intval($this->game->getCurrentPlayerId());
+		$player_id = $active_player_id;
 		$player_no = $this->game->getUniqueValueFromDB("select player_no from player where player_id ='$player_id'" );
 		$tiles1 = "";
 		$tiles2 = "";
@@ -139,7 +127,6 @@ class Swap extends GameState
 				'pos1' => Decoder::Pos($enc1),
 				'pos2' => Decoder::Pos($enc2),
 				'anid' => $anid,
-				'player_name' => $this->game->getCurrentPlayerName(),
 				'i18n' => array( 'pos1','pos2' )
 			) );
 		}
@@ -156,7 +143,6 @@ class Swap extends GameState
 				'pos1' => Decoder::Pos($enc1),
 				'pos2' => Decoder::Pos($enc2),
 				'anid' => $anid,
-				'player_name' => $this->game->getCurrentPlayerName(),
 				'i18n' => array( 'pos1','pos2' )
 			) );
 		}
@@ -224,7 +210,6 @@ class Swap extends GameState
 							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
-							'player_name' => $this->game->getCurrentPlayerName(),
 							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
@@ -249,7 +234,6 @@ class Swap extends GameState
 							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
-							'player_name' => $this->game->getCurrentPlayerName(),
 							'translatedval' => Decoder::Animal($animal."K"),
 							'newparents'=>$newparents,
 							'i18n' => array( 'translatedval' )
