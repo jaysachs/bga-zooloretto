@@ -54,7 +54,7 @@ class Game extends \Bga\GameFramework\Table
 						$i18n[] = 'player_name';
 					}
 				}
-				if (!isset($args['player_no']) && str_contains($message, '${player_no}')) {
+				if (!isset($args['player_no'])) {
 					$args['player_no'] = $this->getPlayerNoById($args['player_id']);
 					if ($i18n != null) {
 						$i18n[] = 'player_no';
