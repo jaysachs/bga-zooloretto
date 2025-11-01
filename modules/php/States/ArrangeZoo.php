@@ -89,7 +89,7 @@ class ArrangeZoo extends AbstractState
 			$this->game->DbQuery( $sql );
 		}
 
-		$this->game->notifyAllPlayers( "AutoArrangeTiles", clienttranslate( '${player_name} decided to auto arrange his tiles from the wagon.'),
+		$this->notify->all( "AutoArrangeTiles", clienttranslate( '${player_name} decided to auto arrange his tiles from the wagon.'),
 		array(
 			'player_id' => $player_id,
 			'wagonid' => $wagonid,
@@ -132,7 +132,7 @@ class ArrangeZoo extends AbstractState
 			$sql = "update animals set status = 'DISCARDED' where val = 'Coin' and status = 'WAGON' and x=$wagonid";
 			$this->game->DbQuery( $sql );
 
-			$this->game->notifyAllPlayers( "GetMoney", clienttranslate( '${player_name} collected ${coins} money.'),
+			$this->game->notify->all( "GetMoney", clienttranslate( '${player_name} collected ${coins} money.'),
 			array(
 				'player_id' => $player_id,
 				'coins' => $coins,
@@ -150,7 +150,7 @@ class ArrangeZoo extends AbstractState
 			$sql = "update animals set player_id= '$player_id', status = 'STALL', x=0, y=0 where status = 'WAGON' and x=$wagonid";
 			$this->game->DbQuery( $sql );
 
-			$this->game->notifyAllPlayers( "GotoStall", clienttranslate( '${player_name} put ${stall} tiles in his Barn.'),
+			$this->game->notify->all( "GotoStall", clienttranslate( '${player_name} put ${stall} tiles in his Barn.'),
 			array(
 				'player_id' => $player_id,
 				'stall' => $stall,
@@ -212,7 +212,7 @@ class ArrangeZoo extends AbstractState
 					$kids = $this->game->getObjectListFromDB( "SELECT concat('tile_',$player_no,'_',id,'_',val,'_',x,'_',y) kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKID'");
 					$kidsstall = "";
 
-					$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
+					$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 					array(
 						'player_id' => $player_id,
 						'kids' => $kids,
@@ -235,7 +235,7 @@ class ArrangeZoo extends AbstractState
 					$kids = "";
 					$kidsstall = $this->game->getObjectListFromDB( "SELECT concat('tile_',".$player_no.",'_',id,'_',val,'_',x,'_',y) as kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKIDSTALL'");
 
-					$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
+					$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 					array(
 						'player_id' => $player_id,
 						'kids' => $kids,
@@ -270,7 +270,7 @@ class ArrangeZoo extends AbstractState
 
 					$this->game->incStat( intval($coinsgained), "coinsreceived", $player_id);
 
-					$this->game->notifyAllPlayers( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
+					$this->game->notify->all( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
 					array(
 						'player_id' => $player_id,
 						'coinsgained' => $coinsgained,
@@ -290,7 +290,7 @@ class ArrangeZoo extends AbstractState
 		$sql = "update player set skipped='Y' where player_id = '$player_id'";
 		$this->game->DbQuery( $sql );
 
-		$this->game->notifyAllPlayers( "ConfirmArrangement", clienttranslate( '${player_name} confirmed the arrangement of his zoo.'),
+		$this->game->notify->all( "ConfirmArrangement", clienttranslate( '${player_name} confirmed the arrangement of his zoo.'),
 		array(
 			'player_id' => $player_id,
 			'wagonid' => $wagonid,
@@ -378,7 +378,7 @@ class ArrangeZoo extends AbstractState
 
 		$wagontiles = $this->game->getObjectListFromDB( "SELECT concat('tile_0_',id,'_',val,'_',x,'_',y) wagontile, id FROM `animals` WHERE status = 'WAGON' and x=$x");
 
-		$this->game->notifyAllPlayers( "GoBackWagon", clienttranslate( '${player_name} decided to lay down the wagon taken.'),
+		$this->game->notify->all( "GoBackWagon", clienttranslate( '${player_name} decided to lay down the wagon taken.'),
 		array(
 			'player_id' => $player_id,
 			'x' => $x,
@@ -408,7 +408,7 @@ class ArrangeZoo extends AbstractState
 			$this->game->DbQuery( $sql );
 		}
 
-		$this->game->notifyAllPlayers( "ArrangeTiles", clienttranslate( '${player_name} placed the ${translatedval} in his ${pos} enclosure.'),
+		$this->game->notify->all( "ArrangeTiles", clienttranslate( '${player_name} placed the ${translatedval} in his ${pos} enclosure.'),
 		array(
 			'player_id' => $player_id,
 			'tileid' => $tileid,

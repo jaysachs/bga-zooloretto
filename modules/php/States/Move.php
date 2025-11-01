@@ -136,7 +136,7 @@ class Move extends AbstractState
 						$kids = $this->game->getObjectListFromDB( "SELECT concat('tile_',$player_no,'_',id,'_',val,'_',x,'_',y) kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKID'");
 						$kidsstall = "";
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 						array(
 							'player_id' => $player_id,
 							'kids' => $kids,
@@ -159,7 +159,7 @@ class Move extends AbstractState
 						$kids = "";
 						$kidsstall = $this->game->getObjectListFromDB( "SELECT concat('tile_',".$player_no.",'_',id,'_',val,'_',x,'_',y) as kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKIDSTALL'");
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 						array(
 							'player_id' => $player_id,
 							'kids' => $kids,
@@ -194,7 +194,7 @@ class Move extends AbstractState
 
 						$this->game->incStat( intval($coinsgained) , "coinsreceived", $player_id);
 
-						$this->game->notifyAllPlayers( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
+						$this->game->notify->all( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
 						array(
 							'player_id' => $player_id,
 							'coinsgained' => $coinsgained,
@@ -215,7 +215,7 @@ class Move extends AbstractState
 		{
 			if (substr($val, 0, 5) != "Stall")
 			{
-				$this->game->notifyAllPlayers( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his Barn to his ${pos2} enclosure.'),
+				$this->game->notify->all( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his Barn to his ${pos2} enclosure.'),
 				array(
 					'player_id' => $player_id,
 					'tileid' => $tileid,
@@ -233,7 +233,7 @@ class Move extends AbstractState
 			}
 			else
 			{
-				$this->game->notifyAllPlayers( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his Barn.'),
+				$this->game->notify->all( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his Barn.'),
 				array(
 					'player_id' => $player_id,
 					'tileid' => $tileid,
@@ -254,7 +254,7 @@ class Move extends AbstractState
 		{
 			if (substr($val, 0, 5) != "Stall")
 			{
-				$this->game->notifyAllPlayers( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his ${pos1} enclosure to his ${pos2} enclosure.'),
+				$this->game->notify->all( "Move", clienttranslate( '${player_name} moved the ${translatedval} from his ${pos1} enclosure to his ${pos2} enclosure.'),
 				array(
 					'player_id' => $player_id,
 					'tileid' => $tileid,
@@ -272,7 +272,7 @@ class Move extends AbstractState
 			}
 			else
 			{
-				$this->game->notifyAllPlayers( "Move", clienttranslate( '${player_name} moved the position of his ${translatedval}.'),
+				$this->game->notify->all( "Move", clienttranslate( '${player_name} moved the position of his ${translatedval}.'),
 				array(
 					'player_id' => $player_id,
 					'tileid' => $tileid,

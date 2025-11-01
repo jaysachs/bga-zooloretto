@@ -69,7 +69,7 @@ class ComputeScores extends GameState
 
             $this->game->incStat( $fullenclosure['score'], "full" . $fullenclosure['x'], $fullenclosure['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his fully completed ${pos} enclosure.'),
+            $this->game->notify->all( "Score", clienttranslate( '${player_name} scored ${points} points for his fully completed ${pos} enclosure.'),
                                     array(
                                         'player_id' => $fullenclosure['player_id'],
                                         'points' => $fullenclosure['score'],
@@ -104,7 +104,7 @@ class ComputeScores extends GameState
 
             $this->game->incStat( $partfullenclosure['score'], "part" . $partfullenclosure['x'], $partfullenclosure['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with one single space empty.'),
+            $this->game->notify->all( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with one single space empty.'),
                                     array(
                                         'player_id' => $partfullenclosure['player_id'],
                                         'points' => $partfullenclosure['score'],
@@ -138,7 +138,7 @@ class ComputeScores extends GameState
 
             $this->game->incStat( $stallenclosure['score'], "encstall" . $stallenclosure['x'], $stallenclosure['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with a Stall.'),
+            $this->game->notify->all( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with a Stall.'),
                                     array(
                                         'player_id' => $stallenclosure['player_id'],
                                         'points' => $stallenclosure['score'],
@@ -170,7 +170,7 @@ class ComputeScores extends GameState
 
             $this->game->incStat( $differentstall['score'], "stalls", $differentstall['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points his ${diffstalls} different Stalls.'),
+            $this->game->notify->all( "Score", clienttranslate( '${player_name} scored ${points} points his ${diffstalls} different Stalls.'),
                                     array(
                                         'player_id' => $differentstall['player_id'],
                                         'points' => $differentstall['score'],
@@ -200,7 +200,7 @@ class ComputeScores extends GameState
 
             $this->game->incStat( $leftstall['score'], "leftinbarn", $leftstall['player_id']);
 
-            $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} lost -${points} points his ${translatedval} in his Barn.'),
+            $this->game->notify->all( "Score", clienttranslate( '${player_name} lost -${points} points his ${translatedval} in his Barn.'),
                                     array(
                                         'player_id' => $leftstall['player_id'],
                                         'points' => $leftstall['score'],

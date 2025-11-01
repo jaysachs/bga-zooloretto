@@ -83,7 +83,7 @@ class Buy extends AbstractState
 
 		if (substr($val, 0, 5) != "Stall")
 		{
-			$this->game->notifyAllPlayers( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name} and put it in his ${pos2} enclosure.'),
+			$this->game->notify->all( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name} and put it in his ${pos2} enclosure.'),
 			array(
 				'player_id' => $player_id,
 				'tileid' => $tileid,
@@ -104,7 +104,7 @@ class Buy extends AbstractState
 		}
 		else
 		{
-			$this->game->notifyAllPlayers( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name}.'),
+			$this->game->notify->all( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name}.'),
 			array(
 				'player_id' => $player_id,
 				'tileid' => $tileid,
@@ -180,7 +180,7 @@ class Buy extends AbstractState
 						$kids = $this->game->getObjectListFromDB( "SELECT concat('tile_',$player_no,'_',id,'_',val,'_',x,'_',y) kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKID'");
 						$kidsstall = "";
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 						array(
 							'player_id' => $player_id,
 							'kids' => $kids,
@@ -203,7 +203,7 @@ class Buy extends AbstractState
 						$kids = "";
 						$kidsstall = $this->game->getObjectListFromDB( "SELECT concat('tile_',".$player_no.",'_',id,'_',val,'_',x,'_',y) as kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKIDSTALL'");
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 						array(
 							'player_id' => $player_id,
 							'kids' => $kids,
@@ -238,7 +238,7 @@ class Buy extends AbstractState
 
 						$this->game->incStat( intval($coinsgained) , "coinsreceived", $player_id);
 
-						$this->game->notifyAllPlayers( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
+						$this->game->notify->all( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
 						array(
 							'player_id' => $player_id,
 							'coinsgained' => $coinsgained,

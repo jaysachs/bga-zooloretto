@@ -116,10 +116,9 @@ class Swap extends AbstractState
 
 		if ($enc1!="0")
 		{
-			$this->game->notifyAllPlayers( "SwapTiles", clienttranslate( '${player_name} swapped the tiles of his ${pos1} and ${pos2} enclosures.'),
+			$this->game->notify->all( "SwapTiles", clienttranslate( '${player_name} swapped the tiles of his ${pos1} and ${pos2} enclosures.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'enc1' => $enc1,
 				'enc2' => $enc2,
 				'tiles1' => $tiles1,
@@ -132,10 +131,9 @@ class Swap extends AbstractState
 		}
 		else
 		{
-			$this->game->notifyAllPlayers( "SwapTiles", clienttranslate( '${player_name} swapped the tiles of his Barn and ${pos2} enclosures.'),
+			$this->game->notify->all( "SwapTiles", clienttranslate( '${player_name} swapped the tiles of his Barn and ${pos2} enclosures.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'enc1' => $enc1,
 				'enc2' => $enc2,
 				'tiles1' => $tiles1,
@@ -204,10 +202,9 @@ class Swap extends AbstractState
 						$kids = $this->game->getObjectListFromDB( "SELECT concat('tile_',$player_no,'_',id,'_',val,'_',x,'_',y) kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKID'");
 						$kidsstall = "";
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 						array(
 							'player_id' => $player_id,
-							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'translatedval' => Decoder::Animal($animal."K"),
@@ -228,10 +225,9 @@ class Swap extends AbstractState
 						$kids = "";
 						$kidsstall = $this->game->getObjectListFromDB( "SELECT concat('tile_',".$player_no.",'_',id,'_',val,'_',x,'_',y) as kidtile, id, val,x,y FROM `animals` WHERE status = 'THIKINGKIDSTALL'");
 
-						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
+						$this->game->notify->all( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 						array(
 							'player_id' => $player_id,
-							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'translatedval' => Decoder::Animal($animal."K"),
