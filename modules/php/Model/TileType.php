@@ -143,4 +143,47 @@ enum TileType: string {
             default => false,
         };
     }
+
+    public function translated(): string {
+        return match ($this) {
+            self::CAMEL => clienttranslate('Camel'),
+            self::CAMEL_FEMALE => clienttranslate('Female Camel'),
+            self::CAMEL_MALE => clienttranslate('Male Camel'),
+		    self::CAMEL_KID => clienttranslate('Pup Camel'),
+            self::ELEPHANT => clienttranslate('Elephant'),
+		    self::ELEPHANT_FEMALE => clienttranslate('Female Elephant'),
+            self::ELEPHANT_MALE => clienttranslate('Male Elephant'),
+            self::ELEPHANT_KID => clienttranslate('Pup Elephant'),
+            self::FLAMINGO => clienttranslate('Flamingo'),
+            self::FLAMINGO_FEMALE => clienttranslate('Female Flamingo'),
+            self::FLAMINGO_MALE => clienttranslate('Male Flamingo'),
+            self::FLAMINGO_KID => clienttranslate('Pup Flamingo'),
+            self::KANGAROO => clienttranslate('Kangaroo'),
+            self::KANGAROO_FEMALE => clienttranslate('Female Kangaroo'),
+            self::KANGAROO_MALE => clienttranslate('Male Kangaroo'),
+            self::KANGAROO_KID => clienttranslate('Pup Kangaroo'),
+            self::LEOPARD => clienttranslate('Leopard'),
+            self::LEOPARD_FEMALE => clienttranslate('Female Leopard'),
+            self::LEOPARD_MALE => clienttranslate('Male Leopard'),
+            self::LEOPARD_KID => clienttranslate('Pup Leopard'),
+            self::MONKEY => clienttranslate('Monkey'),
+            self::MONKEY_FEMALE  => clienttranslate('Female Monkey'),
+            self::MONKEY_MALE => clienttranslate('Male Monkey'),
+            self::MONKEY_KID => clienttranslate('Pup Monkey'),
+            self::PANDA => clienttranslate('Panda'),
+            self::PANDA_FEMALE => clienttranslate('Female Panda'),
+            self::PANDA_MALE => clienttranslate('Male Panda'),
+            self::PANDA_KID => clienttranslate('Pup Panda'),
+            self::ZEBRA => clienttranslate('Zebra'),
+            self::ZEBRA_FEMALE => clienttranslate('Female Zebra'),
+            self::ZEBRA_MALE => clienttranslate('Male Zebra'),
+            self::ZEBRA_KID => clienttranslate('Pup Zebra'),
+            self::KIOSK => clienttranslate('Kiosk Stall'),
+            self::BARROW => clienttranslate('Barrow Stall'),
+            self::SNACKS => clienttranslate('Snacks Stall'),
+            self::POPCORN => clienttranslate('Popcorn Stall'),
+            self::COIN => clienttranslate('Coin'),
+            default => ""
+        };
+    }
 }

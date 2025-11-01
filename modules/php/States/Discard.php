@@ -59,14 +59,12 @@ class Discard extends AbstractState
         $tile = $model->discardBarnTile($tileid);
 		$this->playerStats->inc( "coinsspent", $player->moneySpent(), $player->id);
 
-		$val = $tile->type->value;
-
 		$this->notify->all( "ConfirmDiscard", clienttranslate( '${player_name} discarded the ${translatedval} from his Barn.'),
 		array(
 			'player_id' => $player_id,
 			'tileid' => $tileid,
-			'val' => $val,
-			'translatedval' => Decoder::Animal($val),
+			'val' => $tile->type->value,
+			'translatedval' => $tile->type->translated(),
 			'i18n' => array( 'translatedval' )
 		) );
 

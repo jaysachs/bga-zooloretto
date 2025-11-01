@@ -88,14 +88,10 @@ class PlayerTurn extends AbstractState
 			];
 		}, $tiles);
 
-		$messagestring = implode(', ', array_map(function (string $val): string {
-			return Decoder::Animal($val);
-		}, array_filter(
-			[$wagon->valAt(0), $wagon->valAt(1), $wagon->valAt(2)],
-			function (string $s): bool {
-				return $s > "";
-			}
-		)));
+		$messagestring = implode(
+			', ',
+			array_map(function (Tile $tile): string { return $tile->type->translated(); },
+					  $wagon->getTiles()));
 
 		$this->notify->all(
 			"TakeWagon",
@@ -132,7 +128,7 @@ class PlayerTurn extends AbstractState
 				'val' => $tile->type->value,
 				'tilesleft' => count($deck->tiles),
 				'tilesleft2' => count($deck->lastset),
-				'translatedval' => Decoder::Animal($tile->type->value),
+				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]
 		);

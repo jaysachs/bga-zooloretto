@@ -41,6 +41,10 @@ class Wagon {
         }
     }
 
+    public function getTiles(): array {
+        return array_filter($this->tiles, function ($t) : bool { return $t != null; });
+    }
+
     // FIXME: this breaks encapsulation boundaries a bit, but this is probably the best place for this until
     //   the frontend isn't so tightly coupled to this.
     public function valAt(int $pos): string {
