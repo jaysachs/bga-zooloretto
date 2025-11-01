@@ -90,7 +90,7 @@ class Model {
                     }
                 ));
                 if ($in_clause > "") {
-                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause)");
+                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause) ORDER BY id");
                     foreach ($wdata as $wrow) {
                         $contents[] = $this->tileFromDataRow($wrow);
                     }
@@ -221,9 +221,9 @@ class Model {
     private function doUpdateWagon(Wagon $wagon) {
         $id = $wagon->id;
         $status = $wagon->status->value;
-        $val1 = $wagon->valAt(0);
-        $val2 = $wagon->valAt(1);
-        $val3 = $wagon->valAt(2);
+        $val1 = $wagon->tileIdAt(0);
+        $val2 = $wagon->tileIdAt(1);
+        $val3 = $wagon->tileIdAt(2);
 		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
     }
 

@@ -86,7 +86,6 @@ class Buy extends AbstractState
 			$this->game->notifyAllPlayers( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name} and put it in his ${pos2} enclosure.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'tileid' => $tileid,
 				'pid' => $pid,
 				'x0' => $x0,
@@ -108,7 +107,6 @@ class Buy extends AbstractState
 			$this->game->notifyAllPlayers( "Buy", clienttranslate( '${player_name} bought the ${translatedval} from the Barn of ${donor_name}.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'tileid' => $tileid,
 				'pid' => $pid,
 				'x0' => $x0,
@@ -185,7 +183,6 @@ class Buy extends AbstractState
 						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 						array(
 							'player_id' => $player_id,
-							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'translatedval' => Decoder::Animal($animal."K"),
@@ -209,7 +206,6 @@ class Buy extends AbstractState
 						$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 						array(
 							'player_id' => $player_id,
-							'player_no' => $player_no,
 							'kids' => $kids,
 							'kidsstall' => $kidsstall,
 							'translatedval' => Decoder::Animal($animal."K"),
@@ -245,7 +241,6 @@ class Buy extends AbstractState
 						$this->game->notifyAllPlayers( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
 						array(
 							'player_id' => $player_id,
-							'player_no' => $player_no,
 							'coinsgained' => $coinsgained,
 							'coinsbefore' => $coinsbefore,
 							'enclosure' => $enclosure['x'],

@@ -249,4 +249,8 @@ class Game extends \Bga\GameFramework\Table
         );
     }
     */
+
+	public function debug_setState(int $state): void {
+		$this->gamestate->jumpToState($state);
+	}
 }

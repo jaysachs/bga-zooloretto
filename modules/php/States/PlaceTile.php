@@ -67,7 +67,6 @@ class PlaceTile extends AbstractState
 		$this->notify->all( "PlaceTile", clienttranslate( '${player_name} placed the ${translatedval} tile on the ${pos} space of the ${wag} wagon.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'id' => $id,
 			'val' => $val,
 			'x' => $x,

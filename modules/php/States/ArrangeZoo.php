@@ -92,7 +92,6 @@ class ArrangeZoo extends AbstractState
 		$this->game->notifyAllPlayers( "AutoArrangeTiles", clienttranslate( '${player_name} decided to auto arrange his tiles from the wagon.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'wagonid' => $wagonid,
 			'tileid1' => $tileid1,
 			'posid1' => $posid1,
@@ -136,7 +135,6 @@ class ArrangeZoo extends AbstractState
 			$this->game->notifyAllPlayers( "GetMoney", clienttranslate( '${player_name} collected ${coins} money.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'coins' => $coins,
 				'cointiles' => $cointiles,
 			) );
@@ -155,7 +153,6 @@ class ArrangeZoo extends AbstractState
 			$this->game->notifyAllPlayers( "GotoStall", clienttranslate( '${player_name} put ${stall} tiles in his Barn.'),
 			array(
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'stall' => $stall,
 				'stalltiles' => $stalltiles,
 			) );
@@ -218,7 +215,6 @@ class ArrangeZoo extends AbstractState
 					$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his enclosure.'),
 					array(
 						'player_id' => $player_id,
-						'player_no' => $player_no,
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
 						'translatedval' => Decoder::Animal($animal."K"),
@@ -242,7 +238,6 @@ class ArrangeZoo extends AbstractState
 					$this->game->notifyAllPlayers( "Babies", clienttranslate( '${player_name} received a newborn ${translatedval} that goes into his Barn.'),
 					array(
 						'player_id' => $player_id,
-						'player_no' => $player_no,
 						'kids' => $kids,
 						'kidsstall' => $kidsstall,
 						'translatedval' => Decoder::Animal($animal."K"),
@@ -278,7 +273,6 @@ class ArrangeZoo extends AbstractState
 					$this->game->notifyAllPlayers( "CoinsGained", clienttranslate( '${player_name} gained ${coinsgained} money for completing his ${pos} enclosure.'),
 					array(
 						'player_id' => $player_id,
-						'player_no' => $player_no,
 						'coinsgained' => $coinsgained,
 						'coinsbefore' => $coinsbefore,
 						'enclosure' => $enclosure['x'],
@@ -299,7 +293,6 @@ class ArrangeZoo extends AbstractState
 		$this->game->notifyAllPlayers( "ConfirmArrangement", clienttranslate( '${player_name} confirmed the arrangement of his zoo.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'wagonid' => $wagonid,
 		) );
         return NextPlayer::class;
@@ -357,10 +350,9 @@ class ArrangeZoo extends AbstractState
 			}
 		}
 
-		$this->game->notifyAllPlayers( "Reset", clienttranslate( '${player_name} reset his wagon during the zoo arrangement.'),
+		$this->notify->all( "Reset", clienttranslate( '${player_name} reset his wagon during the zoo arrangement.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'thinkings' => $thinkings,
 			'wagonid' => $wagonid,
 			'pos1'=>$pos1,
@@ -389,7 +381,6 @@ class ArrangeZoo extends AbstractState
 		$this->game->notifyAllPlayers( "GoBackWagon", clienttranslate( '${player_name} decided to lay down the wagon taken.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'x' => $x,
 			'wagontiles' => $wagontiles,
 			'i18n' => array( 'wag' )
@@ -420,7 +411,6 @@ class ArrangeZoo extends AbstractState
 		$this->game->notifyAllPlayers( "ArrangeTiles", clienttranslate( '${player_name} placed the ${translatedval} in his ${pos} enclosure.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player_no,
 			'tileid' => $tileid,
 			'wagonid' => $wagonid,
 			'posid' => $posid,

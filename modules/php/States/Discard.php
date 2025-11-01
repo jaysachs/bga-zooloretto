@@ -64,7 +64,6 @@ class Discard extends AbstractState
 		$this->notify->all( "ConfirmDiscard", clienttranslate( '${player_name} discarded the ${translatedval} from his Barn.'),
 		array(
 			'player_id' => $player_id,
-			'player_no' => $player->no,
 			'tileid' => $tileid,
 			'val' => $val,
 			'translatedval' => Decoder::Animal($val),

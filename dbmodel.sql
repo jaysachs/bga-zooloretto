@@ -69,11 +69,11 @@ CREATE TABLE IF NOT EXISTS `animals` (
   --   THIKINGKID: ???!??
   --   THIKINGKIDSTALL: ??????
   `status` varchar(32) NULL,
-  -- x can be
-  --    enclosure number/id, 0 if in STALL
+  -- x,y can be
+  --    enclosure number (0 if in STALL), spot in enclosure
+  --    OR
+  --    wagon id, spot in wagon
   `x` int(10) NOT NULL,
-  -- y can be
-  --    spot in enclosure
   `y` int(10) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;

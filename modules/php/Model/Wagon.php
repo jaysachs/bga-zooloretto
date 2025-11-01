@@ -46,10 +46,18 @@ class Wagon {
     public function valAt(int $pos): string {
         if ($pos >= 0 && $pos < count($this->tiles)) {
             $tile = $this->tiles[$pos];
-            return ($tile == null) ? "" : strval($tile->id);
+            return ($tile == null) ? "" : $tile->type->value;
         } else {
             return "";
         }
+    }
 
+    public function tileIdAt(int $pos): string {
+        if ($pos >= 0 && $pos < count($this->tiles)) {
+            $tile = $this->tiles[$pos];
+            return ($tile == null) ? "" : "$tile->id";
+        } else {
+            return "";
+        }
     }
 }

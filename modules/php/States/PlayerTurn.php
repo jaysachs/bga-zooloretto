@@ -81,26 +81,26 @@ class PlayerTurn extends AbstractState
         $model = $this->createModel();
 		$player = $model->getPlayer($player_id);
 		$wagon = $model->takeWagon($player, $x);
-		$player_no = $player->no;
 		$wagontiles = array_map(function (Tile $tile): array {
 			return [
 				"id" => $tile->id,
-				"wagontile" => implode("_", [$tile->id, $tile->type->value, $tile->x, $tile->y]),
+				"wagontile" => "tile_0_" . implode("_", [$tile->id, $tile->type->value, $tile->x, $tile->y]),
 			];
 		}, $wagon->tiles);
-		$messagestring = implode(', ', array_filter(
+		$messagestring = implode(', ', array_map(function (string $val): string {
+			return Decoder::Animal($val);
+		}, array_filter(
 			[$wagon->valAt(0), $wagon->valAt(1), $wagon->valAt(2)],
 			function (string $s): bool {
 				return $s > "";
 			}
-		));
+		)));
 
 		$this->notify->all(
 			"TakeWagon",
 			clienttranslate('${player_name} took a wagon with ${wag}.'),
 			[
 				'player_id' => $player_id,
-				'player_no' => $player_no,
 				'x' => $x,
 				'wag' => $messagestring,
 				'wagontiles' => $wagontiles,
@@ -127,7 +127,6 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} drew a ${translatedval} tile.'),
 			[
 				'player_id' => $active_player_id,
-				'player_no' => $model->getPlayer($active_player_id)->no,
 				'id' => $tile->id,
 				'val' => $tile->type->value,
 				'tilesleft' => count($deck->tiles),
@@ -153,7 +152,6 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} bought his ${pos} extra enclosure.'),
 			[
 				'player_id' => $active_player_id,
-				'player_no' => $player->no,
 				'unblockedzoo' => $player->purchased_extensions,
 				'pos' => Decoder::Pos($player->purchased_extensions),
 				'i18n' => ['pos']

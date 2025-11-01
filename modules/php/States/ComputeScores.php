@@ -72,7 +72,6 @@ class ComputeScores extends GameState
             $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his fully completed ${pos} enclosure.'),
                                     array(
                                         'player_id' => $fullenclosure['player_id'],
-                                        'player_no' => $player_no,
                                         'points' => $fullenclosure['score'],
                                         'pos' => Decoder::Pos($fullenclosure['x']),
                                         'type' => 1,
@@ -108,7 +107,6 @@ class ComputeScores extends GameState
             $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with one single space empty.'),
                                     array(
                                         'player_id' => $partfullenclosure['player_id'],
-                                        'player_no' => $player_no,
                                         'points' => $partfullenclosure['score'],
                                         'pos' => Decoder::Pos($partfullenclosure['x']),
                                         'type' => 1,
@@ -143,7 +141,6 @@ class ComputeScores extends GameState
             $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points for his ${pos} enclosure with a Stall.'),
                                     array(
                                         'player_id' => $stallenclosure['player_id'],
-                                        'player_no' => $player_no,
                                         'points' => $stallenclosure['score'],
                                         'pos' => Decoder::Pos($stallenclosure['x']),
                                         'type' => 1,
@@ -176,7 +173,6 @@ class ComputeScores extends GameState
             $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} scored ${points} points his ${diffstalls} different Stalls.'),
                                     array(
                                         'player_id' => $differentstall['player_id'],
-                                        'player_no' => $player_no,
                                         'points' => $differentstall['score'],
                                         'diffstalls' => $differentstall['diffstalls'],
                                         'type' => 2,
@@ -207,7 +203,6 @@ class ComputeScores extends GameState
             $this->game->notifyAllPlayers( "Score", clienttranslate( '${player_name} lost -${points} points his ${translatedval} in his Barn.'),
                                     array(
                                         'player_id' => $leftstall['player_id'],
-                                        'player_no' => $player_no,
                                         'points' => $leftstall['score'],
                                         'type' => 3,
                                         'key' => $leftstall['val'],
