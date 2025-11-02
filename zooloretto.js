@@ -1583,7 +1583,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED);
                 dojo.addClass(evt.target.id,ZOO_CSS_HIGHLIGHTED);
 
-                this.addActionButton(_('Place tile'), this.onPlaceTile);
+                this.statusBar.addActionButton(_('Place tile'), this.onPlaceTile.bind(this));
             }
             else if (this.StateNameValue=="PlayerTurn" &&
                 !this.isInterfaceLocked())
@@ -1603,6 +1603,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                     this.statusBar.addActionButton(_('Take Wagon'), this.onTakeWagon.bind(this));
                     this.statusBar.addActionButton(_('Back'), () => {
                         this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED);
+                        // FIXME: use real client states.
                         this.onEnteringState_PlayerTurn(this.stateArgs);
                     });
                 }
@@ -1632,7 +1633,6 @@ function (dojo, declare, fx, baseFx, domStyle) {
             let elems = document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED);
             if (elems.length == 1) {
                 if(this.checkAction('actPlaceTile')) {
-                    this.hideButtons('placetile');
                     let elem = elems[0];
                     elem.classList.remove(ZOO_CSS_HIGHLIGHTED, ZOO_CSS_POINTER);
                     let eargs = elem.id.split('_');
@@ -1844,72 +1844,7 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 this.bgaPerformAction( "actBuy", {} );
            }
         },
-        onBack2: function ()
-        {
-            dojo.removeClass("takewagon","buttonvisible");
-            dojo.addClass("takewagon","buttoninvisible");
-            dojo.removeClass("back2","buttonvisible");
-            dojo.addClass("back2","buttoninvisible");
-            if (this.isCurrentPlayerActive() && this.countWagonsSitFree()>0)
-            {
-                dojo.removeClass("drawtile","buttoninvisible");
-                dojo.addClass("drawtile","buttonvisible");
-            }
-            var elements = document.getElementsByClassName('highlighted');
-            while(elements.length > 0)
-            {
-                dojo.removeClass(elements[0].id,'highlighted');
-            }
 
-            if (this.isCurrentPlayerActive())
-            {
-                if (this.Money>=3)
-                {
-                    if (this.TotalPlayers==2)
-                    {
-                        if (this.UZ<=1)
-                        {
-                            dojo.removeClass("buyenclosure","buttoninvisible");
-                            dojo.addClass("buyenclosure","buttonvisible");
-                        }
-                    }
-                    else
-                    {
-                        if (this.UZ==0)
-                        {
-                            dojo.removeClass("buyenclosure","buttoninvisible");
-                            dojo.addClass("buyenclosure","buttonvisible");
-                        }
-                    }
-                }
-                if (this.Money>=2)
-                {
-                    if (this.countTotalOtherBarn(this.PlayerNo)>0)
-                    {
-                        dojo.removeClass("buy","buttoninvisible");
-                        dojo.addClass("buy","buttonvisible");
-                    }
-                    if (this.countTotalOwnBarn(this.PlayerNo)>0)
-                    {
-                        dojo.removeClass("discard","buttoninvisible");
-                        dojo.addClass("discard","buttonvisible");
-                    }
-                }
-                if (this.Money>=1)
-                {
-                    if (this.countTotalTilesEnclosuresStall(this.PlayerNo)>0)
-                    {
-                        dojo.removeClass("move","buttoninvisible");
-                        dojo.addClass("move","buttonvisible");
-                    }
-                    if (this.countTotalZones(this.PlayerNo)>=2)
-                    {
-                        dojo.removeClass("swap","buttoninvisible");
-                        dojo.addClass("swap","buttonvisible");
-                    }
-                }
-            }
-        },
         onBack: function ()
         {
            if( this.checkAction( 'actBack' ) )    // Check that this action is possible at this moment
@@ -2333,10 +2268,6 @@ function (dojo, declare, fx, baseFx, domStyle) {
             dojo.removeClass("back","buttonvisible");
             dojo.addClass("back","buttoninvisible");
 
-            this.addActionButton('back2', _('Back'), 'onBack2');
-            dojo.removeClass("back2","buttonvisible");
-            dojo.addClass("back2","buttoninvisible");
-
             this.addActionButton('confirmdiscard', _('Confirm'), 'onConfirmDiscard');
             dojo.removeClass("confirmdiscard","buttonvisible");
             dojo.addClass("confirmdiscard","buttoninvisible");
@@ -2419,6 +2350,19 @@ function (dojo, declare, fx, baseFx, domStyle) {
             }
         },
 
+        onEnteringState_PlaceTile: function( args ) {
+            this.removeClassesFromAll(ZOO_CSS_POINTER);
+            if (this.isCurrentPlayerActive()) {
+                for (let i=0; i<this.Wagons.length; i++) {
+                    for (let j=0; j<3; j++) {
+                        if (this.Wagons[i][j]=="") {
+                            dojo.addClass("wagon_" + (i+1) + "_" + (j+1), "pointer");
+                        }
+                    }
+                }
+            }
+        },
+
         onEnteringState: function( stateName, args )
         {
             console.log( 'Entering state: '+stateName, args );
@@ -2431,30 +2375,8 @@ function (dojo, declare, fx, baseFx, domStyle) {
             }
 
             this.addAllActionButtons();
-            switch( stateName )
-            {
-            case 'PlaceTile':
 
-                var elements = document.getElementsByClassName('pointer');
-                while(elements.length > 0)
-                {
-                    dojo.removeClass(elements[0].id,'pointer');
-                }
-                if (this.isCurrentPlayerActive())
-                {
-                    for (let i=0; i<this.Wagons.length; i++)
-                    {
-                        for (let j=0; j<3; j++)
-                        {
-                            if (this.Wagons[i][j]=="")
-                            {
-                                dojo.addClass("wagon_" + (i+1) + "_" + (j+1), "pointer");
-                            }
-                        }
-                    }
-                }
-                break;
-
+            switch( stateName ) {
             case 'ArrangeZoo':
 
                 var elements = document.getElementsByClassName('pointer');
