@@ -1572,81 +1572,59 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 dojo.addClass("confirmswap","buttonvisible");
             }
         },
+
         onClickCellWagon: function( evt )
         {
-            if (this.isCurrentPlayerActive() &&
-                this.StateNameValue=="PlaceTile" &&
+            if (!this.isCurrentPlayerActive()) { return; }
+            if (this.StateNameValue=="PlaceTile" &&
                 evt.target.id.split('_')[0] == "wagon" &&
                 this.Wagons[parseInt(evt.target.id.split('_')[1])-1][parseInt(evt.target.id.split('_')[2])-1]=="")
             {
-                var elements = document.getElementsByClassName('highlighted');
-                while(elements.length > 0)
-                {
-                    dojo.removeClass(elements[0].id,'highlighted');
-                }
-                dojo.addClass(evt.target.id,'highlighted');
+                this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED);
+                dojo.addClass(evt.target.id,ZOO_CSS_HIGHLIGHTED);
 
-                dojo.removeClass("placetile","buttoninvisible");
-                dojo.addClass("placetile","buttonvisible");
+                this.addActionButton(_('Place tile'), this.onPlaceTile);
             }
-            else if (this.isCurrentPlayerActive() &&
-                this.StateNameValue=="PlayerTurn" &&
+            else if (this.StateNameValue=="PlayerTurn" &&
                 !this.isInterfaceLocked())
             {
                 var wagonid = "";
-                if (evt.target.id.split('_')[0] == "wagon")
-                {
+                if (evt.target.id.split('_')[0] == "wagon") {
                     wagonid = evt.target.id.split('_')[1];
                 }
-                else if (evt.target.id.split('_')[0] == "tile")
-                {
+                else if (evt.target.id.split('_')[0] == "tile") {
                     wagonid = evt.target.id.split('_')[4];
                 }
-                if (this.countWagonsSitOccupied(wagonid)>0)
-                {
-                    var elements = document.getElementsByClassName('highlighted');
-                    while(elements.length > 0)
-                    {
-                        dojo.removeClass(elements[0].id,'highlighted');
-                    }
-                    dojo.addClass('wagon_'+wagonid,'highlighted');
+                if (this.countWagonsSitOccupied(wagonid)>0) {
+                    this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED);
+                    dojo.addClass('wagon_'+wagonid, ZOO_CSS_HIGHLIGHTED);
 
-                    dojo.removeClass("takewagon","buttoninvisible");
-                    dojo.addClass("takewagon","buttonvisible");
-                    dojo.removeClass("back2","buttoninvisible");
-                    dojo.addClass("back2","buttonvisible");
-                    dojo.removeClass("drawtile","buttonvisible");
-                    dojo.addClass("drawtile","buttoninvisible");
-
-                    dojo.removeClass("buy","buttonvisible");
-                    dojo.addClass("buy","buttoninvisible");
-                    dojo.removeClass("move","buttonvisible");
-                    dojo.addClass("move","buttoninvisible");
-                    dojo.removeClass("swap","buttonvisible");
-                    dojo.addClass("swap","buttoninvisible");
-                    dojo.removeClass("discard","buttonvisible");
-                    dojo.addClass("discard","buttoninvisible");
-                    dojo.removeClass("buyenclosure","buttonvisible");
-                    dojo.addClass("buyenclosure","buttoninvisible");
+                    this.statusBar.removeActionButtons();
+                    this.statusBar.addActionButton(_('Take Wagon'), this.onTakeWagon.bind(this));
+                    this.statusBar.addActionButton(_('Back'), () => {
+                        this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED);
+                        this.onEnteringState_PlayerTurn(this.stateArgs);
+                    });
                 }
             }
         },
 
-        onDrawTile: function ()
-        {
+        onDrawTile: function () {
             if (this.checkAction('actDrawTile')) {
-                this.hideButtons("drawtile","takewagon","back2","buyenclosure","move","swap", "buy","discard");
-                Array.from(document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED)).forEach((e) => { e.classList.remove(ZOO_CSS_HIGHLIGHTED)});
-                Array.from(document.getElementsByClassName(ZOO_CSS_POINTER)).forEach((e) => { e.classList.remove(ZOO_CSS_POINTER)});
+                this.removeClassesFromAll(ZOO_CSS_HIGHLIGHTED, ZOO_CSS_POINTER);
                 this.bgaPerformAction('actDrawTile');
            }
+        },
+
+        removeClassesFromAll: function (...classNames) {
+            classNames.forEach((className) => Array.from(document.getElementsByClassName(className)).forEach((e) => e.classList.remove(className)));
         },
 
         hideButtons: function(...buttonIds) {
             buttonIds.forEach((buttonId) => {
                 let cl = $(buttonId).classList;
                 cl.remove(ZOO_CSS_BUTTONVISIBLE);
-                cl.add(ZOO_CSS_BUTTONVISIBLE);
+                cl.add(ZOO_CSS_BUTTONINVISIBLE);
             });
         },
 
@@ -2030,10 +2008,10 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 this.bgaPerformAction( "actSwap", {} );
            }
         },
+
         onBuyEnclosure: function ()
         {
-           if( this.checkAction( 'actBuyEnclosure' ) )    // Check that this action is possible at this moment
-           {
+            if (this.checkAction('actBuyEnclosure')) {
                 dojo.removeClass("drawtile","buttonvisible");
                 dojo.addClass("drawtile","buttoninvisible");
                 dojo.removeClass("takewagon","buttonvisible");
@@ -2291,241 +2269,170 @@ function (dojo, declare, fx, baseFx, domStyle) {
                this.bgaPerformAction( "actReset", {} );
            }
         },
-        onTakeWagon: function ()
-        {
-           if (document.getElementsByClassName("highlighted").length==1)
-           {
-               if( this.checkAction( 'actTakeWagon' ) )    // Check that this action is possible at this moment
-               {
-                    dojo.removeClass("drawtile","buttonvisible");
-                    dojo.addClass("drawtile","buttoninvisible");
-                    dojo.removeClass("takewagon","buttonvisible");
-                    dojo.addClass("takewagon","buttoninvisible");
-                    dojo.removeClass("back2","buttonvisible");
-                    dojo.addClass("back2","buttoninvisible");
-                    dojo.removeClass("buyenclosure","buttonvisible");
-                    dojo.addClass("buyenclosure","buttoninvisible");
 
-                    dojo.removeClass("move","buttonvisible");
-                    dojo.addClass("move","buttoninvisible");
-                    dojo.removeClass("swap","buttonvisible");
-                    dojo.addClass("swap","buttoninvisible");
-                    dojo.removeClass("buy","buttonvisible");
-                    dojo.addClass("buy","buttoninvisible");
-                    dojo.removeClass("discard","buttonvisible");
-                    dojo.addClass("discard","buttoninvisible");
-
-                    let wagon_id = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
-                    var elements = document.getElementsByClassName('pointer');
-                    while(elements.length > 0)
-                    {
-                        dojo.removeClass(elements[0].id,'pointer');
-                    }
-
+        onTakeWagon: function () {
+            let elems = document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED);
+            if (elems.length==1) {
+                if (this.checkAction('actTakeWagon')) {
+                    // this.statusBar.removeActionButtons();
+                    let wagon_id = elems[0].id.split('_')[1];
+                    this.removeClassesFromAll(ZOO_CSS_POINTER);
                     this.bgaPerformAction( "actTakeWagon", {
                         wagon_id: wagon_id,
                     });
                }
            }
         },
-        ///////////////////////////////////////////////////
-        //// Game & client states
 
-        // onEnteringState: this method is called each time we are entering into a new game state.
-        //                  You can use this method to perform some user interface changes at this moment.
-        //
-        onEnteringState: function( stateName, args )
-        {
-            console.log( 'Entering state: '+stateName, args );
-            this.StateNameValue=stateName;
-
+        addAllActionButtons: function() {
             this.addActionButton('drawtile', _('Draw a tile'), 'onDrawTile');
-            document.getElementById("drawtile").innerHTML=_("Draw a tile");
             dojo.removeClass("drawtile","buttonvisible");
             dojo.addClass("drawtile","buttoninvisible");
 
             this.addActionButton('placetile', _('Place tile'), 'onPlaceTile');
-            document.getElementById("placetile").innerHTML=_("Place tile");
             dojo.removeClass("placetile","buttonvisible");
             dojo.addClass("placetile","buttoninvisible");
 
             this.addActionButton('takewagon', _('Take Wagon'), 'onTakeWagon');
-            document.getElementById("takewagon").innerHTML=_("Take Wagon");
             dojo.removeClass("takewagon","buttonvisible");
             dojo.addClass("takewagon","buttoninvisible");
 
 
             this.addActionButton('confirm', _('Confirm Arrangement'), 'onConfirm');
-            document.getElementById("confirm").innerHTML=_("Confirm Arrangement");
             dojo.removeClass("confirm","buttonvisible");
             dojo.addClass("confirm","buttoninvisible");
 
             this.addActionButton('autoarrange', _('Auto Arrange'), 'onAutoArrange');
-            document.getElementById("autoarrange").innerHTML=_("Auto Arrange");
             dojo.removeClass("autoarrange","buttonvisible");
             dojo.addClass("autoarrange","buttoninvisible");
 
             this.addActionButton('reset', _('Reset'), 'onReset');
-            document.getElementById("reset").innerHTML=_("Reset");
             dojo.removeClass("reset","buttonvisible");
             dojo.addClass("reset","buttoninvisible");
 
             this.addActionButton('buyenclosure', _('Expand the Zoo'), 'onBuyEnclosure');
-            document.getElementById("buyenclosure").innerHTML=_("Expand the Zoo");
-            dojo.removeClass("buyenclosure","buttonvisible");
-            dojo.addClass("buyenclosure","buttoninvisible");
+            this.hideButtons('buyenclosure');
 
             this.addActionButton('move', _('Move'), 'onMoveTile');
-            document.getElementById("move").innerHTML=_("Move");
             dojo.removeClass("move","buttonvisible");
             dojo.addClass("move","buttoninvisible");
 
             this.addActionButton('swap', _('Exchange'), 'onSwap');
-            document.getElementById("swap").innerHTML=_("Exchange");
             dojo.removeClass("swap","buttonvisible");
             dojo.addClass("swap","buttoninvisible");
 
             this.addActionButton('buy', _('Purchase'), 'onBuy');
-            document.getElementById("buy").innerHTML=_("Purchase");
             dojo.removeClass("buy","buttonvisible");
             dojo.addClass("buy","buttoninvisible");
 
             this.addActionButton('discard', _('Discard'), 'onDiscard');
-            document.getElementById("discard").innerHTML=_("Discard");
             dojo.removeClass("discard","buttonvisible");
             dojo.addClass("discard","buttoninvisible");
 
             this.addActionButton('back', _('Back'), 'onBack');
-            document.getElementById("back").innerHTML=_("Back");
             dojo.removeClass("back","buttonvisible");
             dojo.addClass("back","buttoninvisible");
 
             this.addActionButton('back2', _('Back'), 'onBack2');
-            document.getElementById("back2").innerHTML=_("Back");
             dojo.removeClass("back2","buttonvisible");
             dojo.addClass("back2","buttoninvisible");
 
             this.addActionButton('confirmdiscard', _('Confirm'), 'onConfirmDiscard');
-            document.getElementById("confirmdiscard").innerHTML=_("Confirm");
             dojo.removeClass("confirmdiscard","buttonvisible");
             dojo.addClass("confirmdiscard","buttoninvisible");
 
             this.addActionButton('reset2', _('Reset'), 'onReset2');
-            document.getElementById("reset2").innerHTML=_("Reset");
             dojo.removeClass("reset2","buttonvisible");
             dojo.addClass("reset2","buttoninvisible");
 
             this.addActionButton('confirmswap', _('Confirm'), 'onConfirmSwap');
-            document.getElementById("confirmswap").innerHTML=_("Confirm");
             dojo.removeClass("confirmswap","buttonvisible");
             dojo.addClass("confirmswap","buttoninvisible");
 
             this.addActionButton('backtakewagon', _('Go Back'), 'onBackTakeWagon');
-            document.getElementById("backtakewagon").innerHTML=_("Go Back");
             dojo.removeClass("backtakewagon","buttonvisible");
             dojo.addClass("backtakewagon","buttoninvisible");
+        },
 
+        onEnteringState_PlayerTurn: function(args) {
+            this.stateArgs = args;
+            this.Money = parseInt(args.money);
+            this.UZ = parseInt(args.unblockedzoo);
+            for( let i in args.wagons ) {
+                let wagon = args.wagons[i];
+                this.Wagons[wagon.id-1][0] = wagon.val1 == null ? '' : wagon.val1;
+                if (wagon.size=="1") {
+                    this.Wagons[wagon.id-1][1] = "X";
+                }
+                else {
+                    this.Wagons[wagon.id-1][1] = wagon.val2 == null ? '' : wagon.val2;
+                }
+                if (wagon.size=="3") {
+                    this.Wagons[wagon.id-1][2] = wagon.val3 == null ? '' : wagon.val3;
+                }
+                else {
+                    this.Wagons[wagon.id-1][2] = "X";
+                }
+            }
+
+            if (!this.isCurrentPlayerActive()) {
+                return;
+            }
+            this.statusBar.removeActionButtons();
+            if (this.countWagonsSitFree()>0) {
+                this.statusBar.addActionButton(_('Draw a tile'), this.onDrawTile.bind(this));
+            }
+            for (let i=0; i<this.Wagons.length; i++) {
+                if (this.countWagonsSitOccupied(i+1)>0 &&
+                    document.getElementById('wagon_' + (i+1))!=null) {
+                    dojo.addClass('wagon_' + (i+1),ZOO_CSS_POINTER);
+                }
+            }
+
+            if (this.Money>=3) {
+                if (this.TotalPlayers==2) {
+                    if (this.UZ<=1) {
+                        this.statusBar.addActionButton(_('Expand the Zoo'), this.onBuyEnclosure.bind(this));
+                    }
+                }
+                else {
+                    if (this.UZ==0) {
+                        this.statusBar.addActionButton(_('Expand the Zoo'), this.onBuyEnclosure.bind(this));
+                    }
+                }
+            }
+            if (this.Money>=2) {
+                if (this.countTotalOtherBarn(this.PlayerNo)>0) {
+                    this.statusBar.addActionButton(_('Purchase'), this.onBuy.bind(this));
+                }
+                if (this.countTotalOwnBarn(this.PlayerNo)>0) {
+                    this.statusBar.addActionButton(_('Discard'), this.onDiscard.bind(this));
+                }
+            }
+            if (this.Money>=1) {
+                if (this.countTotalTilesEnclosuresStall(this.PlayerNo)>0) {
+                    this.statusBar.addActionButton(_('Move'), this.onMoveTile.bind(this));
+                }
+                if (this.countTotalZones(this.PlayerNo)>=2) {
+                    this.statusBar.addActionButton(_('Exchange'), this.onSwap.bind(this));
+                }
+            }
+        },
+
+        onEnteringState: function( stateName, args )
+        {
+            console.log( 'Entering state: '+stateName, args );
+            this.StateNameValue=stateName;
+
+            let methodName = 'onEnteringState_' + stateName;
+            if (this[methodName] !== undefined) {
+                args = args ? args.args : null;
+                return this[methodName](args);
+            }
+
+            this.addAllActionButtons();
             switch( stateName )
             {
-
-
-            case 'PlayerTurn':
-
-                this.Money = parseInt(args.args.money);
-                this.UZ = parseInt(args.args.unblockedzoo);
-                for( var i in args.args.wagons )
-                {
-                    var wagon = args.args.wagons[i];
-                    this.Wagons[wagon.id-1][0] = wagon.val1 == null ? '' : wagon.val1;
-                    if (wagon.size=="1")
-                    {
-                        this.Wagons[wagon.id-1][1] = "X";
-                    }
-                    else
-                    {
-                        this.Wagons[wagon.id-1][1] = wagon.val2 == null ? '' : wagon.val2;
-                    }
-                    if (wagon.size=="3")
-                    {
-                        this.Wagons[wagon.id-1][2] = wagon.val3 == null ? '' : wagon.val3;
-                    }
-                    else
-                    {
-                        this.Wagons[wagon.id-1][2] = "X";
-                    }
-                }
-
-                if (this.isCurrentPlayerActive() && this.countWagonsSitFree()>0)
-                {
-                    dojo.removeClass("drawtile","buttoninvisible");
-                    dojo.addClass("drawtile","buttonvisible");
-                }
-                else
-                {
-                    dojo.removeClass("drawtile","buttonvisible");
-                    dojo.addClass("drawtile","buttoninvisible");
-                }
-                for (let i=0; i<this.Wagons.length; i++)
-                {
-                    if (this.isCurrentPlayerActive() &&
-                        this.countWagonsSitOccupied(i+1)>0 &&
-                        document.getElementById('wagon_' + (i+1))!=null
-                        )
-                    {
-                        dojo.addClass('wagon_' + (i+1),'pointer');
-                    }
-                }
-
-                if (this.isCurrentPlayerActive())
-                {
-                    if (this.Money>=3)
-                    {
-                        if (this.TotalPlayers==2)
-                        {
-                            if (this.UZ<=1)
-                            {
-                                dojo.removeClass("buyenclosure","buttoninvisible");
-                                dojo.addClass("buyenclosure","buttonvisible");
-                            }
-                        }
-                        else
-                        {
-                            if (this.UZ==0)
-                            {
-                                dojo.removeClass("buyenclosure","buttoninvisible");
-                                dojo.addClass("buyenclosure","buttonvisible");
-                            }
-                        }
-                    }
-                    if (this.Money>=2)
-                    {
-                        if (this.countTotalOtherBarn(this.PlayerNo)>0)
-                        {
-                            dojo.removeClass("buy","buttoninvisible");
-                            dojo.addClass("buy","buttonvisible");
-                        }
-                        if (this.countTotalOwnBarn(this.PlayerNo)>0)
-                        {
-                            dojo.removeClass("discard","buttoninvisible");
-                            dojo.addClass("discard","buttonvisible");
-                        }
-                    }
-                    if (this.Money>=1)
-                    {
-                        if (this.countTotalTilesEnclosuresStall(this.PlayerNo)>0)
-                        {
-                            dojo.removeClass("move","buttoninvisible");
-                            dojo.addClass("move","buttonvisible");
-                        }
-                        if (this.countTotalZones(this.PlayerNo)>=2)
-                        {
-                            dojo.removeClass("swap","buttoninvisible");
-                            dojo.addClass("swap","buttonvisible");
-                        }
-                    }
-                }
-                break;
-
             case 'PlaceTile':
 
                 var elements = document.getElementsByClassName('pointer');
