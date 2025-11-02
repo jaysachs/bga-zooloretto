@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\States\PlayerTurn;
 
@@ -252,5 +253,9 @@ class Game extends \Bga\GameFramework\Table
 
 	public function debug_setState(int $state): void {
 		$this->gamestate->jumpToState($state);
+	}
+
+	public function debug_setMoney(int $player_id, int $amount): void {
+		new DefaultDb()->execute("UPDATE player SET money = $amount WHERE player_id=$player_id");
 	}
 }
