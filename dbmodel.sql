@@ -81,6 +81,12 @@ CREATE TABLE IF NOT EXISTS `animals` (
 CREATE TABLE IF NOT EXISTS `wagons` (
   `id` int(10) NOT NULL,
   `size` int(10) NOT NULL,
+  -- The tile IDs (numeric, but stored as string) of the tiles in the wagon.
+  --   Empty string means location is empty.
+  --   It's terrible these are named "val", as that' used elsewhere for "tile type".
+  -- These are *mostly* denormalized, as the location of a tile is described in the animals table.
+  -- However, to support undo during placement of tiles from wagon into enclosures, these are used
+  --   to identify what "was" in the wagon, pending confirmation of the placements. Bleah.
   `val1` varchar(32) NULL,
   `val2` varchar(32) NULL,
   `val3` varchar(32) NULL,
@@ -101,3 +107,37 @@ ALTER TABLE `player` ADD COLUMN `unblockedzoo` int(10) ;
 ALTER TABLE `player` ADD COLUMN `skipped` varchar(32);
 -- No longer used.
 ALTER TABLE `player` ADD COLUMN `lastround` varchar(32);
+
+
+-- A proper, normalized, schema. Man do I really wanna rewrite this thing. Can I do a DB migration?
+--
+-- (maybe should consider a DB migration, with tables)
+--
+-- Note that here we'll use the built into undoSavepoint support for undo.
+--
+--   tiles --- not even clear this needs to be a DB table!
+--     tile_id
+--     tile_type (string, matches enum values)
+--   primary_deck
+--     seq_id (position in deck)
+--     tile_id
+--   endgame_deck
+--      seq_id
+--      tile_id
+--   wagons
+--     wagon_id (1-3)
+--     capacity (?), or just assume 3 and handle 2p by having "dummy" tiles
+--     taken_by (player_no or 0)
+--   enclosures
+--     player_no
+--     enclosure_id (0 for barn)
+--     capacity
+--   enclosure_contents
+--     player_no
+--     enclosure_id
+--     position ("field")
+--     tile_id (0 for empty)
+--   wagon_contents
+--     wagon_id
+--     position_in_wagon
+--     tile_id
