@@ -1631,53 +1631,30 @@ function (dojo, declare, fx, baseFx, domStyle) {
                 }
             }
         },
+
         onDrawTile: function ()
         {
-           if( this.checkAction( 'actDrawTile' ) )    // Check that this action is possible at this moment
-           {
-                dojo.removeClass("drawtile","buttonvisible");
-                dojo.addClass("drawtile","buttoninvisible");
-                dojo.removeClass("takewagon","buttonvisible");
-                dojo.addClass("takewagon","buttoninvisible");
-                dojo.removeClass("back2","buttonvisible");
-                dojo.addClass("back2","buttoninvisible");
-                dojo.removeClass("buyenclosure","buttonvisible");
-                dojo.addClass("buyenclosure","buttoninvisible");
-
-                dojo.removeClass("move","buttonvisible");
-                dojo.addClass("move","buttoninvisible");
-                dojo.removeClass("swap","buttonvisible");
-                dojo.addClass("swap","buttoninvisible");
-                dojo.removeClass("buy","buttonvisible");
-                dojo.addClass("buy","buttoninvisible");
-                dojo.removeClass("discard","buttonvisible");
-                dojo.addClass("discard","buttoninvisible");
-
-                var elements = document.getElementsByClassName('highlighted');
-                while(elements.length > 0)
-                {
-                    dojo.removeClass(elements[0].id,'highlighted');
-                }
-                var elements = document.getElementsByClassName('pointer');
-                while(elements.length > 0)
-                {
-                    dojo.removeClass(elements[0].id,'pointer');
-                }
+            if (this.checkAction('actDrawTile')) {
+                this.hideButtons("drawtile","takewagon","back2","buyenclosure","move","swap", "buy","discard");
+                Array.from(document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED)).forEach((e) => { e.classList.remove(ZOO_CSS_HIGHLIGHTED)});
+                Array.from(document.getElementsByClassName(ZOO_CSS_POINTER)).forEach((e) => { e.classList.remove(ZOO_CSS_POINTER)});
                 this.bgaPerformAction('actDrawTile');
            }
         },
 
-        hideButton: function(buttonId) {
-            let cl = $(buttonId).classList;
-            cl.remove(ZOO_CSS_BUTTONVISIBLE);
-            cl.add(ZOO_CSS_BUTTONVISIBLE);
+        hideButtons: function(...buttonIds) {
+            buttonIds.forEach((buttonId) => {
+                let cl = $(buttonId).classList;
+                cl.remove(ZOO_CSS_BUTTONVISIBLE);
+                cl.add(ZOO_CSS_BUTTONVISIBLE);
+            });
         },
 
         onPlaceTile: function () {
             let elems = document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED);
             if (elems.length == 1) {
                 if(this.checkAction('actPlaceTile')) {
-                    this.hideButton('placetile');
+                    this.hideButtons('placetile');
                     let elem = elems[0];
                     elem.classList.remove(ZOO_CSS_HIGHLIGHTED, ZOO_CSS_POINTER);
                     let eargs = elem.id.split('_');
