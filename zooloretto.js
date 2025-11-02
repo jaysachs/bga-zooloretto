@@ -325,51 +325,6 @@ function (dojo, declare, fx, baseFx, domStyle) {
             return f
           },
 
-        setLoader(value, max)
-        {
-          this.inherited(arguments);
-          if (!this.isLoadingComplete && value >= 100) {
-            this.isLoadingComplete = true;
-            this.onLoadingComplete();
-          }
-        },
-
-        onLoadingComplete()
-        {
-            console.log("Loading completed..."+this.player_id );
-
-            var found = false;
-            for( var player_id in this.gamedatas.players )
-            {
-                var player = this.gamedatas.players[player_id];
-                if (player.no==this.PlayerNo)
-                {
-                    found = true;
-                    if (gameui.players_metadata!=null &&
-                        gameui.players_metadata[player_id]!=null && (
-                        gameui.players_metadata[player_id].country_infos.code == "IT" ||
-                        gameui.players_metadata[player_id].country_infos.code == "EN" ||
-                        gameui.players_metadata[player_id].country_infos.code == "DE" ||
-                        gameui.players_metadata[player_id].country_infos.code == "FR"))
-                        {
-                            dojo.addClass('playeraid','playeraid' + gameui.players_metadata[player_id].country_infos.code);
-                        }
-                    else
-                    {
-                        dojo.addClass('playeraid','playeraidEN');
-                    }
-                }
-                else
-                {
-                    dojo.addClass('board_' + player.no,'zoom');
-                }
-            }
-            if (!found)
-            {
-                dojo.addClass('playeraid','playeraidEN');
-            }
-        },
-
         countWagonsSitFree: function()
         {
             var count = 0;
@@ -747,6 +702,42 @@ function (dojo, declare, fx, baseFx, domStyle) {
 `;
         },
 
+        displayPlayerAid: function()
+        {
+            console.log("Loading completed..."+this.player_id );
+
+            var found = false;
+            for( var player_id in this.gamedatas.players )
+            {
+                var player = this.gamedatas.players[player_id];
+                if (player.no==this.PlayerNo)
+                {
+                    found = true;
+                    if (gameui.players_metadata!=null &&
+                        gameui.players_metadata[player_id]!=null && (
+                        gameui.players_metadata[player_id].country_infos.code == "IT" ||
+                        gameui.players_metadata[player_id].country_infos.code == "EN" ||
+                        gameui.players_metadata[player_id].country_infos.code == "DE" ||
+                        gameui.players_metadata[player_id].country_infos.code == "FR"))
+                        {
+                            dojo.addClass('playeraid','playeraid' + gameui.players_metadata[player_id].country_infos.code);
+                        }
+                    else
+                    {
+                        dojo.addClass('playeraid','playeraidEN');
+                    }
+                }
+                else
+                {
+                    dojo.addClass('board_' + player.no,'zoom');
+                }
+            }
+            if (!found)
+            {
+                dojo.addClass('playeraid','playeraidEN');
+            }
+        },
+
         setup: function( gamedatas )
         {
             console.log( "Starting game setup" );
@@ -1087,6 +1078,8 @@ function (dojo, declare, fx, baseFx, domStyle) {
             }
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
+
+            this.displayPlayerAid();
 
             console.log( "Ending game setup" );
         },
