@@ -27,6 +27,11 @@
 	var jstpl_lastround='<div class="head_info" id="zooloretto_last_round_1" style="height: auto; overflow: hidden"><div class="head_infomsg_close" id="zooloretto_last_round_2"><i class="fa fa-close" aria-hidden="true"></i></div><div class="head_infomsg_item">${message}</div></div>';
 	var jstpl_tilesleft='<div class="tilesleft" id="tilesleft">${val}</div>';
 
+const ZOO_CSS_HIGHLIGHTED = 'highlighted';
+const ZOO_CSS_POINTER = 'pointer';
+const ZOO_CSS_BUTTONVISIBLE = 'buttonvisible';
+const ZOO_CSS_BUTTONINVISIBLE = 'buttoninvisible';
+
 define([
     "dojo","dojo/_base/declare",
     "dojo/fx",
@@ -1662,33 +1667,26 @@ function (dojo, declare, fx, baseFx, domStyle) {
            }
         },
 
-        onPlaceTile: function ()
-        {
-           if (document.getElementsByClassName("highlighted").length==1)
-           {
-               if( this.checkAction( 'actPlaceTile' ) )    // Check that this action is possible at this moment
-               {
-                    dojo.removeClass("placetile","buttonvisible");
-                    dojo.addClass("placetile","buttoninvisible");
-                    let wagon_id = document.getElementsByClassName("highlighted")[0].id.split('_')[1];
-                    let pos = document.getElementsByClassName("highlighted")[0].id.split('_')[2];
-                    var elements = document.getElementsByClassName('highlighted');
-                    while(elements.length > 0)
-                    {
-                        dojo.removeClass(elements[0].id,'highlighted');
-                    }
-                    var elements = document.getElementsByClassName('pointer');
-                    while(elements.length > 0)
-                    {
-                        dojo.removeClass(elements[0].id,'pointer');
-                    }
+        hideButton: function(buttonId) {
+            let cl = $(buttonId).classList;
+            cl.remove(ZOO_CSS_BUTTONVISIBLE);
+            cl.add(ZOO_CSS_BUTTONVISIBLE);
+        },
 
-                    this.bgaPerformAction( "actPlaceTile", {
-                        wagon_id: wagon_id,
-                        pos: pos,
+        onPlaceTile: function () {
+            let elems = document.getElementsByClassName(ZOO_CSS_HIGHLIGHTED);
+            if (elems.length == 1) {
+                if(this.checkAction('actPlaceTile')) {
+                    this.hideButton('placetile');
+                    let elem = elems[0];
+                    elem.classList.remove(ZOO_CSS_HIGHLIGHTED, ZOO_CSS_POINTER);
+                    let eargs = elem.id.split('_');
+                    this.bgaPerformAction('actPlaceTile', {
+                        wagon_id: eargs[1],
+                        pos: eargs[2],
                     });
-               }
-           }
+                }
+            }
         },
 
         countNotMoneyinWagon: function()
