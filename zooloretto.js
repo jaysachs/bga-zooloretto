@@ -15,6 +15,30 @@
  *
  */
 
+
+/*
+Notes:
+
+Tiles end up with HTML ids like
+  `tile_${playerno}_${tileid}_${tiletype}_${x}_${y}`
+where x is enclosure (0 for barn) and y is pos. Or x is wagon id and y is pos in wagon.
+
+Seems crazy. Just use e.g. `tile_${tileid}` as the HTML ID and then have data (fields) to look up the rest.
+
+Cells (locations in enclosures) get an ID like
+
+  `cell_${playerno}_${x}_${y}` where x is enclosure (0 for barn) and y is pos
+
+Wagon cell HTML ids are
+
+ `wagon_${wagon_id}_${cellpos}`
+*/
+
+/*
+ Things to do:
+   * make all wagons capacity 3, but in 2p, fill the 2nd and 3rd with 1 or 2 (respectively) "back" tiles that can't be chosen (id = 0? or some distinguished value)
+*/
+
 	var jstpl_player_number='<div class="plnomoney"><div class="player_number" id="player_number_${player_number}">${player_number_text}</div><div id="money_${player_number}" class="plnomoney2"></div></div>';
 	var jstpl_wagon3='<div class="wagon wagon${wagon_size}" id="wagon_${id}"><div class="cellwagon3" id="wagon_${id}_1" style="left:5%; top:14%"></div><div class="cellwagon3" id="wagon_${id}_2" style="left:36%; top:14%"></div><div class="cellwagon3" id="wagon_${id}_3" style="left:67%; top:14%"></div></div>';
 	var jstpl_wagon2='<div class="wagon wagon${wagon_size}" id="wagon_${id}"><div class="cellwagon2" id="wagon_${id}_1" style="left:5%; top:14%"></div><div class="cellwagon2" id="wagon_${id}_2" style="left:54%; top:14%"></div></div>';
@@ -22,8 +46,11 @@
 	var jstpl_money='<div class="money money${player_no}" id="money_instance_${player_no}_${id}"></div>';
 	var jstpl_tile='<div class="tile tile${val}" id="tile_${player_no}_${id}_${val}_${x}_${y}"></div>';
 	var jstpl_disk='<div class="disk" id="disk"></div>';
+    // why do we need IDs for the "backs" of tiles? If we really want the display to show small numbers, just grab "the first child".
+    //   and maybe just use 'display: none' to "remove them".
 	var jstpl_back='<div class="back" id="backtile_${id}"></div>';
 	var jstpl_back2='<div class="back" id="backtile2_${id}"></div>';
+    // styles should come from CSS
 	var jstpl_lastround='<div class="head_info" id="zooloretto_last_round_1" style="height: auto; overflow: hidden"><div class="head_infomsg_close" id="zooloretto_last_round_2"><i class="fa fa-close" aria-hidden="true"></i></div><div class="head_infomsg_item">${message}</div></div>';
 	var jstpl_tilesleft='<div class="tilesleft" id="tilesleft">${val}</div>';
 
@@ -48,16 +75,32 @@ function (dojo, declare, fx, baseFx, domStyle) {
         constructor: function(){
             console.log('zooloretto constructor');
 
-            // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
+            // obvious
             this.TotalPlayers=0;
+
+
+            // the current player no, presumably 0 if spectator
             this.PlayerNo=0;
+
+            // array (index is wagonid-1) where the values themselves are
+            //    array of wagon contents
+            //        either tile type ("val"), empty (""), or "X" (prohibited)
+            // Note in particular that in 2p, this still has 3 spots per wagon. Bleah.
             this.Wagons = null;
+
+
             this.Zoo = null;
+
+            // array (index is playerno-1) that is number of purchased enclosures
             this.UnblockedZoo = null;
+
+            // Current state name
             this.StateNameValue = "";
+
+            // Current player's number of coins
             this.Money = 0;
+
+            // Current player's number of purchased enclosures
             this.UZ = 0;
         },
         /*
@@ -283,6 +326,8 @@ function (dojo, declare, fx, baseFx, domStyle) {
                             }
                         };
                     })(node);
+                    // init the result of the invocation of an anon function, itself a function, which we immediately call.
+                    // Makes no sense.
                     init();
 
                     var anim = dojo.animateProperty(dojo.mixin({
