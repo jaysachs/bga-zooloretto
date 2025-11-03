@@ -43,14 +43,14 @@ CREATE TABLE IF NOT EXISTS `trucks` (
 
 CREATE TABLE IF NOT EXISTS `primary_deck` (
   `tile_id` int(10) unsigned NOT NULL,
-  `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT
-  -- primary key?
+  `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`seq_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `endgame_deck` (
   `tile_id` int(10) unsigned NOT NULL,
-  `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT
-  -- primary key?
+  `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`seq_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `enclosures` (
