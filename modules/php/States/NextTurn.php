@@ -46,6 +46,7 @@ class NextTurn extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel();
+        /*
         if ($model->inLastRound()) {
             return ComputeScores::class;
         }
@@ -59,7 +60,7 @@ class NextTurn extends AbstractState
                 'wagons' => $wagons,
             ]
         );
-
+*/
         return PlayerTurn::class;
     }
 }

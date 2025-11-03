@@ -44,8 +44,8 @@ class PlayerTurn extends AbstractState
 			game: $game,
 			id: 2,
 			type: StateType::ACTIVE_PLAYER,
-			description: clienttranslate('${actplayer} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
-			descriptionMyTurn: clienttranslate('${you} must draw a tile to add to a wagon, take a wagon and pass or perform a money action.'),
+			description: clienttranslate('${actplayer} must take an action.'),
+			descriptionMyTurn: clienttranslate('${you} must take an action.'),
 		);
 	}
 
@@ -53,6 +53,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel();
 		$player = $model->getActivePlayer();
+		/*
 		$wagondata = array_map(function (Wagon $wagon): array {
 			return [
 				"id" => $wagon->id,
@@ -65,11 +66,17 @@ class PlayerTurn extends AbstractState
 			return $wagon->status == WagonStatus::AVAILABLE
 				|| $wagon->status == WagonStatus::TAKEN;
 		}));
+		*/
 		return [
-			'active_player_id' => $active_player_id,
+			'can_draw' => $model->getDeck()->drawn != null,
+			'can_purchase' => $player->available_extensions > 0,
+			'can_buy' => false,
+			'can_swap' => false,
+			'can_move' => false,
+			'can_take_truck' => true, // FIXME: verify always true if we're in this state
 			'money' => $player->money,
 			'unblockedzoo' => $player->purchased_extensions,
-			'wagons' =>  $wagondata,
+			// 'wagons' =>  $wagondata,
 		];
 	}
 
@@ -79,6 +86,7 @@ class PlayerTurn extends AbstractState
 		$player_id = $active_player_id;
 
         $model = $this->createModel();
+		/*
 		$wagon = $model->takeWagon($wagon_id);
 		$tiles = array_filter($wagon->tiles, function ($t) { return $t != null; });
 		$wagontiles = array_map(function (Tile $tile): array {
@@ -104,7 +112,7 @@ class PlayerTurn extends AbstractState
 				'i18n' => ['wag']
 			]
 		);
-
+*/
 		return ArrangeZoo::class;
 	}
 
@@ -112,10 +120,11 @@ class PlayerTurn extends AbstractState
 	public function actDrawTile(int $active_player_id): mixed
 	{
         $model = $this->createModel();
+
 		$deck = $model->drawTile();
 		$tile = $deck->drawn;
 
-		if ($model->waslastRoundTriggered()) {
+		if ($deck->waslastRoundTriggered()) {
 			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
 		}
 
@@ -124,15 +133,14 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} drew a ${translatedval} tile.'),
 			[
 				'player_id' => $active_player_id,
-				'id' => $tile->id,
-				'val' => $tile->type->value,
-				'tilesleft' => count($deck->tiles),
-				'tilesleft2' => count($deck->lastset),
+				'tile_id' => $tile->id,
+				'tile_type' => $tile->type->value,
+				'primary_left' => count($deck->primary),
+				'endgame_left' => count($deck->endgame),
 				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]
 		);
-
 		return PlaceTile::class;
 	}
 
@@ -141,6 +149,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel();
 		$player = $model->getActivePlayer();
+		/*
 		$model->buyEnclosure($player);
 		$this->playerStats->inc("coinsspent", $player->moneySpent(), $player->id);
 
@@ -152,7 +161,7 @@ class PlayerTurn extends AbstractState
 				'unblockedzoo' => $player->purchased_extensions,
 			]
 		);
-
+*/
 		return NextPlayer::class;
 	}
 

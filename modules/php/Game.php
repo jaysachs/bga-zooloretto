@@ -64,7 +64,8 @@ class Game extends \Bga\GameFramework\Table
 			}
 			return $args;
 		});
-		self::initGameStateLabels([]);
+		// FIXME: structure globals better.
+		self::initGameStateLabels(['drawn' => 10]);
 	}
 
 	/*
@@ -78,45 +79,24 @@ class Game extends \Bga\GameFramework\Table
     */
 	protected function getAllDatas(): array
 	{
-		$result = array();
-
-		$current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
-
 		$model = new Model($this);
-
-		// Get information about players
-		// Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-		$sql = "SELECT player_id id, player_score score, player_no no, player_name name, skipped FROM player ";
-		$result['players'] = self::getCollectionFromDb($sql);
-		$result['current_player_no'] = self::getUniqueValueFromDB("SELECT player_no from player where player_id ='$current_player_id'");
-		$result['wagons'] =  self::getObjectListFromDB("SELECT id, size, val1, val2, val3 from wagons where status in ('AVAILABLE','TAKEN') order by id");
-		$result['wagonstiles1'] =  self::getObjectListFromDB("SELECT a.id, a.size, b.id idd, b.val from wagons a, animals b where a.val1=b.id and b.status='WAGON' and a.status in ('AVAILABLE','TAKEN') order by a.id");
-		$result['wagonstiles2'] =  self::getObjectListFromDB("SELECT a.id, a.size, b.id idd, b.val from wagons a, animals b where a.val2=b.id and b.status='WAGON' and a.status in ('AVAILABLE','TAKEN') order by a.id");
-		$result['wagonstiles3'] =  self::getObjectListFromDB("SELECT a.id, a.size, b.id idd, b.val from wagons a, animals b where a.val3=b.id and b.status='WAGON' and a.status in ('AVAILABLE','TAKEN') order by a.id");
-		$result['wagonstaken'] =  self::getObjectListFromDB("SELECT id, size, val1, val2, val3 from wagons where status = 'TAKEN' order by id");
-
-
-		$result['animalsthinking'] =  self::getObjectListFromDB("SELECT a.id,a.val,a.x,a.y,a.player_id,b.player_no from animals a, player b where a.player_id=b.player_id and a.status='THINKING'");
-
-		$result['animalsthinkingwagon'] =  self::getObjectListFromDB("SELECT a.id,a.val,a.x,a.y,a.player_id from animals a where a.status='WAGON' and x = (select id from wagons where status='TAKEN')");
-
-		$result['animalsplayed'] =  self::getObjectListFromDB("SELECT a.id,a.val,a.x,a.y,a.player_id,b.player_no from animals a, player b where a.player_id=b.player_id and a.status='PLAYED'");
-		$result['animalsstall'] =  self::getObjectListFromDB("SELECT a.id,a.val,a.x,a.y,a.player_id,b.player_no from animals a, player b where a.player_id=b.player_id and a.status='STALL'");
-
-		$result['money'] =  self::getObjectListFromDB("SELECT player_no, money, unblockedzoo from player");
-		$result['drawntiles'] =  self::getObjectListFromDB("SELECT id, val from animals where status = 'DRAWN'");
-
-		$result['unblockedzoo'] =  self::getObjectListFromDB("SELECT player_no, unblockedzoo from player");
-
-		$result['paramvalue'] = $this->tableOptions->get(100) ?? 1;
-		$result['tilesleft'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='AVAILABLE'");
-		$result['tilesleft2'] =  self::getUniqueValueFromDB("SELECT count(*) from animals where status='LASTSET'");
-
-		$result['lastround'] =  $model->inLastRound();
-
-		// TODO: Gather all information about current game situation (visible by player $current_player_id).
-
-		return $result;
+		$deck = $model->getDeck();
+		$datas = [
+            'trucks' => [
+            ],
+            'enclosures' => [
+            ],
+            'primary_decksize' => count($deck->primary),
+            'endgame_decksize' => count($deck->endgame),
+            'drawntile' => ($deck->drawn == null) ? null : $deck->drawn->type->value,
+            'lastround' => $deck->inLastRound(),
+		];
+		foreach ($model->getPlayers() as $player) {
+			$datas['players'][$player->id]['player_no'] = $player->no;
+			$datas['players'][$player->id]['player_id'] = $player->id;
+			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
+		}
+        return $datas;
 	}
 
 	/*
@@ -129,12 +109,10 @@ class Game extends \Bga\GameFramework\Table
         This method is called each time we are in a game state with the "updateGameProgression" property set to true
         (see states.inc.php)
     */
-	function getGameProgression()
+	function getGameProgression(): int
 	{
 		// TODO: compute and return the game progression
-		$c1 = self::getUniqueValueFromDB("select count(*) from animals where status in ('AVAILABLE','LASTSET')");
-		$c2 = self::getUniqueValueFromDB("select count(*) from animals");
-		return floor((1 - $c1 / $c2) * 100);
+        return 0;
 	}
 
 	/*
@@ -178,28 +156,33 @@ class Game extends \Bga\GameFramework\Table
 
 	protected function setupNewGame($players, $options = array())
 	{
-		// Set the colors of the players with HTML color code
-		// The default below is red/green/blue/orange/brown
-		// The number of colors defined here must correspond to the maximum number of players allowed for the gams
-		$gameinfos = self::getGameinfos();
-		$default_colors = $gameinfos['player_colors'];
+        $gameinfos = $this->getGameinfos();
+        $default_colors = $gameinfos['player_colors'];
+        Utils::shuffle($default_colors);
+        foreach ($players as $player_id => $player) {
+            // Now you can access both $player_id and $player array
+            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
+                $player_id,
+                array_shift($default_colors),
+                $player["player_canal"],
+                addslashes($player["player_name"]),
+                addslashes($player["player_avatar"]),
+            ]);
+        }
 
-		// Create players
-		// Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-		$sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
-		$values = array();
-		$count = 0;
-		foreach ($players as $player_id => $player) {
-			$color = array_shift($default_colors);
-			$values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "')";
-			$count = $count + 1;
-		}
-		$sql .= implode(',', $values);
-		self::DbQuery($sql);
+        // Create players based on generic information.
+        static::DbQuery(
+            sprintf(
+                "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES %s",
+                implode(",", $query_values)
+            )
+        );
+
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
+
 		$model = new Model($this);
-		$model->createNewGame($count);
+		$model->createNewGame(count($players));
 
 		self::initStat('player', 'full1', 0);
 		self::initStat('player', 'full2', 0);
@@ -220,10 +203,7 @@ class Game extends \Bga\GameFramework\Table
 		self::initStat('player', 'coinsspent', 0);
 		self::initStat('player', 'coinsreceived', 2);
 
-		// Activate first player (which is in general a good idea :) )
 		$this->activeNextPlayer();
-
-		/************ End of the game initialization *****/
 
 		return PlayerTurn::class;
 	}
@@ -257,5 +237,9 @@ class Game extends \Bga\GameFramework\Table
 
 	public function debug_setMoney(int $player_id, int $amount): void {
 		new DefaultDb()->execute("UPDATE player SET money = $amount WHERE player_id=$player_id");
+	}
+
+	public function debug_setGlobal(string $global, int $value): void {
+		$this->globals->set($global, $value);
 	}
 }

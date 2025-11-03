@@ -57,7 +57,7 @@ class PlaceTile extends AbstractState
 		// $x is wagon ID
 		// $y is position on wagon (1-based)
 		/** @var Tile */
-		$tile = $model->placeDrawnTileOnWagon($wagon_id, $pos);
+		$tile = null; // $model->placeDrawnTileOnWagon($wagon_id, $pos);
 
 		$this->notify->all(
 			"PlaceTile",

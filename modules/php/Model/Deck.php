@@ -78,7 +78,7 @@ class Deck {
 
     /** @param Tile[] $pool */
     public static function create(array $pool): Deck {
-        $values = $pool;
+        $values = array_values($pool);
 
         Utils::shuffle($values);
         $lastset = array_splice($values, 0, self::LASTSET_SIZE);

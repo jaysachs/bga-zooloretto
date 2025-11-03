@@ -184,3 +184,9 @@ class Model {
     }
 
 }
+
+/*
+echo "hi\n";
+$model = new Model( null, new TestDb() );
+$model->createNewGame(2);
+*/
