@@ -66,6 +66,9 @@ class CSS {
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
+  primary_decksize: number;
+  endgame_decksize: number;
+  lastround: boolean;
 }
 
 interface PlayState {
@@ -190,6 +193,31 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 ` ;
   }
 
+  private setupStock() : void {
+    let deckdiv = $('tilesdeck');
+    let w = deckdiv.getBoundingClientRect().width;
+
+    let addTile = (i: number, offset: number, cls: string = 'back') => {
+        let div = document.createElement('div');
+        div.classList.add(cls);
+        deckdiv.appendChild(div);
+        div.style = `left: ${i * 5 * w/100}px; top: ${(i * 5 + offset) * w/100}px`;
+    };
+
+    let addStock = (size: number, offset: number) => {
+      var n = size > 5 ? 5 : size;
+      for (let i = 0; i < n; i++) {
+        addTile(i, offset);
+      }
+    };
+
+    addStock(this.gamedatas.endgame_decksize, 60);
+    if (!this.gamedatas.lastround) {
+      addTile(5, 60, 'disk');
+    }
+    addStock(this.gamedatas.primary_decksize, 5);
+  }
+
   private currentPlayerNo: number;
 
   override setup(gamedatas: ZGamedatas) {
@@ -210,6 +238,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     for (const playerId in gamedatas.players) {
       this.setupPlayerBoard(gamedatas.players[playerId]!);
     }
+
+    this.setupStock();
 
     /*
         console.log('setting the the game board');
@@ -269,9 +299,18 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     if (playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'), () => this.bgaPerformAction('actDrawTile'));
+      this.statusBar.addActionButton(_('Draw tile'), () => {
+        this.statusBar.removeActionButtons();
+        this.statusBar.addActionButton(_('Confirm draw'),
+          () => this.bgaPerformAction('actDrawTile'),
+          { autoclick: true });
+        this.statusBar.addActionButton(_('Cancel'),
+          () => {
+            this.statusBar.removeActionButtons();
+            this.onUpdateActionButtons_PlayerTurn(playState);
+          });
+      });
     }
-    console.log("changing some buttons");
   }
 
 
