@@ -68,7 +68,7 @@ class PlayerTurn extends AbstractState
 		}));
 		*/
 		return [
-			'can_draw' => $model->getDeck()->drawn != null,
+			'can_draw' => $model->getDeck()->drawn == null,
 			'can_purchase' => $player->available_extensions > 0,
 			'can_buy' => false,
 			'can_swap' => false,
