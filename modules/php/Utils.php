@@ -3,9 +3,9 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * zooloretto implementation : © Jay Sachs <vagabond@covariant.org>
+ * babylonia implementation : © Jay Sachs <vagabond@covariant.org>
  *
- * Copyright 2025 Jay Sachs <vagabond@covariant.org>
+ * Copyright 2024 Jay Sachs <vagabond@covariant.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,21 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto\Model;
+namespace Bga\Games\zooloretto;
 
-enum WagonStatus: string {
-    case AVAILABLE = 'AVAILABLE';
-    case TAKEN = 'TAKEN';
-    case PLAYED = 'PLAYED';
+class Utils
+{
+    public static function shuffle(array &$arr): void
+    {
+        $e = sizeof($arr) - 1;
+        for ($i = 0; $i < $e; ++$i) {
+            $j = random_int($i, $e);
+            if ($j <> $i) {
+                $tmp = $arr[$j];
+                $arr[$j] = $arr[$i];
+                $arr[$i] = $tmp;
+            }
+        }
+    }
+
 }

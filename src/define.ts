@@ -1,0 +1,10 @@
+
+define([
+  'dojo/_base/declare',
+  'ebg/core/gamegui',
+  'ebg/counter',
+  getLibUrl('bga-animations', '1.x'),
+], function (declare, gamegui, counter, BgaAnimations) {
+  (window as any).BgaAnimations = BgaAnimations;
+  declare('bgagame.zooloretto', ebg.core.gamegui, new ZoolorettoGame());
+});

@@ -1,0 +1,18 @@
+{
+  "name": "bga.zooloretto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "zooloretto.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "watch:ts": "tsc --watch",
+    "watch": "npm run watch:ts",
+    "build": "npm run build:ts"
+  },
+  "author": "Jay Sachs",
+  "license": "EPL2.0",
+  "devDependencies": {
+    "sass": "^1.32.6",
+    "typescript": "^5.0.4"
+  }
+}

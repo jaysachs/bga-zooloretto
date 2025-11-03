@@ -39,99 +39,78 @@ class Model {
     public function __construct(private Table $game, private Db $db = new DefaultDb()) {}
 
     public function createNewGame(int $player_count): void {
-        // Deck (tiles)
-		$deck = Deck::create($player_count);
-		$make = function (Tile $tile, string $status): string {
-			$tv = $tile->type->value;
+        $tilepool = Tile::createInitialPool($player_count);
+		$make = function (Tile $tile): string {
 			$id = $tile->id;
-			return "($id,'','','','$tv','$status')";
+			$ty = $tile->type->value;
+			return "($id,'$ty')";
 		};
-		$values = array_merge(
-			array_map(function (Tile $tile) use (&$make): string { return $make($tile, 'AVAILABLE'); }, $deck->tiles),
-			array_map(function (Tile $tile)use (&$make): string { return $make($tile, 'LASTSET'); }, $deck->lastset)
-		);
-		$this->db->execute("INSERT INTO animals (id, idsel, idorder, player_id, val, status) VALUES "
+
+        // Overall tile -> type map.
+        $this->db->execute("INSERT INTO tiles (id, type) VALUES "
+                           . implode(',', array_map($make, $tilepool)));
+
+        // Deck
+        $notBlock = function (Tile $t) : bool {
+            return $t->type != TileType::BLOCK;
+        };
+        $negate = function (\Closure $c): \Closure {
+            return function($t)  use(&$c) : bool { return !$c($t); };
+        };
+
+		$deck = Deck::create(array_filter($tilepool, $notBlock));
+
+        $make2 = function (Tile $tile) : string { return "($tile->id)"; };
+        $values = array_map($make2, $deck->primary);
+		$this->db->execute("INSERT INTO primary_deck (tile_id) VALUES "
+                           . implode(',', $values));
+        $values = array_map($make2, $deck->endgame);
+		$this->db->execute("INSERT INTO endgame_deck (tile_id) VALUES "
                            . implode(',', $values));
 
-        // Wagons
-		$values = [];
-		if ($player_count != 2) {
+        // Trucks
+        $trucks = [];
+        if ($player_count == 2) {
+            $blocks = array_filter($tilepool, $negate($notBlock));
+            if (count($blocks) != 3) {
+                throw new ModelException("Expected exactly 3 block tiles");
+            }
+            $trucks[] = new Truck(1);
+            $trucks[] = new Truck(2, null, null, array_shift($blocks));
+            $trucks[] = new Truck(3, null, array_shift($blocks), array_shift($blocks));
+        }
+        else {
 			for ($x = 1; $x <= $player_count; $x++) {
-				$values[] = "($x, 3, '', '', '', 'AVAILABLE')";
-			}
-		} else {
-			$values[] = "(1, 3, '', '', '', 'AVAILABLE')";
-			$values[] = "(2, 2, '', '', '', 'AVAILABLE')";
-			$values[] = "(3, 1, '', '', '', 'AVAILABLE')";
-		}
-		$this->db->execute("INSERT INTO wagons (id, size, val1, val2, val3, status) VALUES " . implode(',', $values));
+                $trucks[] = new Truck($x);
+            }
+        }
+        $values = [];
+        foreach ($trucks as $truck) {
+            $nv = function(?Tile $t): string { return $t == null ? "NULL" : "$t->id"; };
+            $values[] = sprintf("(%d, %s, %s, %s)",
+                               $truck->id,
+                               $nv($truck->tile1),
+                               $nv($truck->tile2),
+                               $nv($truck->tile3));
+        }
+        $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
+                           . implode(',', $values));
 
         // Extra player info
-        $this->db->execute("UPDATE player SET money = 2, unblockedzoo = 0, skipped = 'N', lastround = 'N'");
+        $this->db->execute("UPDATE player SET money = 2");
     }
 
-    /** @var Wagon[] */
-    private ?array $_wagons = [];
 
-    /** @returns Wagon[] */
-    public function getWagons(): array
-    {
-        if ($this->_wagons == null) {
-            $this->_wagons = [];
-            $data = $this->db->getObjectList("SELECT id, size, val1, val2, val3, status FROM wagons");
-            // FIXME: would prefer to join in the Tiles table but then need a wagon_contents table.
-            foreach ($data as $row) {
-                $id = intval($row["id"]);
-                $contents = [];
-                $in_clause = implode(',', array_filter(
-                    [$row["val1"], $row["val2"], $row["val3"]],
-                    function (string $v): bool {
-                        return intval($v) > 0;
-                    }
-                ));
-                if ($in_clause > "") {
-                    $wdata = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE id IN ($in_clause)");
-                    foreach ($wdata as $wrow) {
-                        $contents[intval($wrow['y'])] = $this->tileFromDataRow($wrow);
-                    }
-                }
-                $this->_wagons[$id] = new Wagon($id, intval($row["size"]), $contents, WagonStatus::from($row["status"]));
-            }
+    private function validatePlayer(Player $player): void {
+        if ($player !== $this->getPlayer($player->id)) {
+            throw new \Exception("Got unknown player");
         }
-        return $this->_wagons;
     }
 
-    private function tileFromDataRow(array $row): Tile {
-        return new Tile(intval($row["id"]), TileType::from($row["val"]), intval($row["x"]), intval($row["y"]));
+    public function getActivePlayer(): Player {
+        return $this->getPlayer(intval($this->game->getActivePlayerId()));
     }
 
-    public function getWagon(int $id): Wagon
-    {
-        $wagons = $this->getWagons();
-        if (isset($wagons[$id])) {
-            return $wagons[$id];
-        }
-        throw new \Exception("attempt to retrieve unknown wagon $id");
-    }
-
-    /** @var Player[] */
-    private ?array $_players = [];
-
-    /** @returns Player[] */
-    public function getPlayers(): array {
-        if ($this->_players == null) {
-            $this->_players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money, unblockedzoo, skipped FROM player");
-            $numPlayers = count($data);
-            $potentialExtensions = $numPlayers == 2 ? 2 : 1;
-            foreach ($data as $row) {
-                $id = intval($row["player_id"]);
-                $purchased_extensions = intval($row["unblockedzoo"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $potentialExtensions - $purchased_extensions, $purchased_extensions, ($row["skipped"] == "Y"));
-            }
-        }
-        return $this->_players;
-    }
 
     private function getPlayer(int $id): Player {
         $players = $this->getPlayers();
@@ -141,39 +120,42 @@ class Model {
         throw new \Exception("attempt to retrieve unknown player $id");
     }
 
-    private function updatePlayer(Player $player): void {
-        $ubz = $player->purchased_extensions;
-        $money = $player->money;
-        $id = $player->id;
-        $wagon_taken = $player->wagon_taken ? 'Y' : 'N';
-		$this->db->execute( "UPDATE player SET unblockedzoo = $ubz, money = $money, skipped = '$wagon_taken' WHERE player_id = $id" );
+    /** @var Player[] */
+    private ?array $_players = [];
+
+    /** @returns Player[] */
+    public function getPlayers(): array {
+        if ($this->_players == null) {
+            $this->_players = [];
+            $data = $this->db->getObjectList("SELECT player_id, player_no, money FROM player");
+            $numPlayers = count($data);
+            $potentialExtensions = $numPlayers == 2 ? 2 : 1;
+            foreach ($data as $row) {
+                $id = intval($row["player_id"]);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), 0, 0, false);
+            }
+        }
+        return $this->_players;
     }
 
     private ?Deck $_deck = null;
 
-    private function getDeck(): Deck {
+    public function getDeck(): Deck {
         if ($this->_deck == null) {
-            $rows = $this->db->getObjectList("SELECT id, val, x, y, status FROM animals");
-            $ts = [];
-            $ls = [];
+            $tileFromRow = function(array $row): Tile { return new Tile(intval($row["tile_id"]), TileType::from($row["type"])); };
+            $d = $this->game->globals->get('drawn', 0);
             $drawn = null;
-            foreach ($rows as $row) {
-                $status = $row["status"];
-                $tile = $this->tileFromDataRow($row);
-                if ($status == 'AVAILABLE') {
-                    $ts[] = $tile;
-                } else if ($status == "LASTSET") {
-                    $ls[] = $tile;
-                } else if ($status == "DRAWN") {
-                    if ($drawn != null) {
-                        throw new \BgaUserException("Found multiple drawn tiles!");
-                    }
-                    $drawn = $tile;
-                } else {
-                    // it's in a wagon, or on a playerboard somewhere.
-                }
+            if ($d != 0) {
+                $row = $this->db->getObjectList("SELECT id AS tile_id, type FROM tiles WHERE id = $d");
+                // $this->game->notify->all("fetchedRow", "Fetched row for drawn tile $d", $row);
+                $drawn = $tileFromRow($row[0]);
             }
-            $this->_deck = new Deck($ts, $ls, $drawn);
+            $select = function (string $tblname) use (&$tileFromRow): array {
+                return array_map(
+                    $tileFromRow,
+                    $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type FROM $tblname p INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
+            };
+            $this->_deck = new Deck($select('primary_deck'), $select('endgame_deck'), $drawn);
         }
         return $this->_deck;
     }
@@ -190,86 +172,8 @@ class Model {
             return;
         }
         $id = $deck->drawn->id;
-        $this->db->execute("UPDATE animals SET status = 'DRAWN' WHERE id = $id");
-    }
-
-    private function updateWagon(Wagon $wagon) {
-        $id = $wagon->id;
-        $status = $wagon->status->value;
-        $val1 = $wagon->tileIdAt(1);
-        $val2 = $wagon->capacity >= 2 ? $wagon->tileIdAt(2) : "";
-        $val3 = $wagon->capacity >= 3 ? $wagon->tileIdAt(3) : "";
-		$this->db->execute( "UPDATE wagons SET status = '$status', val1='$val1', val2='$val2', val3='$val3'  WHERE id = $id" );
-    }
-
-    private function getBarnFor(Player $player): Barn {
-        $rows = $this->db->getObjectList("SELECT id, val, x, y FROM animals WHERE status = 'STALL' and player_id = $player->id");
-        /** @var Tile[] */
-        $tiles = [];
-        foreach ($rows as $row) {
-            $tiles[] = $this->tileFromDataRow($row);
-        }
-        return new Barn($player->id, $tiles);
-    }
-
-    private function doUpdateBarn(Barn $barn): void {
-        $in_clause = implode(',', array_map(function (Tile $tile): string { return strval($tile->id); }, $barn->discarded));
-        $this->db->execute("UPDATE animals SET x = 0, y = 0. player_id = 0, status = 'DISCARD' WHERE id IN ($in_clause)");
-    }
-
-    private function validatePlayer(Player $player): void {
-        if ($player !== $this->getPlayer($player->id)) {
-            throw new \Exception("Got unknown player");
-        }
-    }
-
-    public function getActivePlayer(): Player {
-        return $this->getPlayer(intval($this->game->getActivePlayerId()));
-    }
-
-    public function discardBarnTile(int $tileid): Tile {
-        $player = $this->getActivePlayer();
-        $player->discardBarnTile();
-        $barn = $this->getBarnFor($player);
-        $tile = $barn->discard($tileid);
-        $this->doUpdateBarn($barn);
-
-        return $tile;
-    }
-
-    public function buyEnclosure(): void {
-        $player = $this->getActivePlayer();
-		$player->buyEnclosure();
-		$this->updatePlayer($player);
-    }
-
-    public function takeWagon(int $wagon_id): Wagon {
-        $player = $this->getActivePlayer();
-        $wagon = $this->getWagon($wagon_id);
-
-        $player->takeWagon();
-        $this->updatePlayer($player);
-        $wagon->setTaken();
-        $this->updateWagon($wagon);
-        return $wagon;
-    }
-
-    public function wasLastRoundTriggered(): bool {
-        return $this->getDeck()->wasLastRoundTriggered();
-    }
-
-    public function inLastRound(): bool {
-        return $this->getDeck()->inLastRound();
-    }
-
-    public function prepareNextTurn() {
-		$this->db->execute( "UPDATE animals SET status = 'DISCARDED' WHERE status = 'WAGON'" );
-        $available = WagonStatus::AVAILABLE->value;
-		$this->db->execute( "UPDATE wagons SET status = '$available', val1='', val2='', val3=''" );
-		$this->db->execute( "UPDATE player SET skipped='N'" );
-
-        $this->_players = null;
-        $this->_deck = null;
+        $this->game->globals->set('drawn', $id);
+        $this->db->execute("DELETE FROM primary_deck WHERE tile_id = $id");
     }
 
     public function drawTile(): Deck {
@@ -279,22 +183,4 @@ class Model {
         return $deck;
     }
 
-    /**
-     * @param $pos 1-based position on wagon
-     */
-    public function placeDrawnTileOnWagon(int $wagon_id, int $pos): Tile {
-        $deck = $this->getDeck();
-        $drawn = $deck->drawn;
-        if ($drawn == null) {
-            throw new \BgaUserException("No tile drawn, cannot place tile on wagon ");
-        }
-        $wagon = $this->getWagon($wagon_id);
-        $wagon->placeTileAt($drawn, $pos);
-
-        $this->updateDeck();
-        $this->updateWagon($wagon);
-        // need to also update animals, since we're so denormalized
-        $this->db->execute("UPDATE animals set x = $wagon_id, y = $pos, status = 'WAGON' WHERE id = $drawn->id");
-        return $drawn;
-    }
 }

@@ -75,10 +75,17 @@ enum TileType: string {
     case SNACKS = 'StallC';
     case POPCORN = 'StallD';
 
+    // 2p unused flipped tile to block spaces
+    case BLOCK = 'block';
+
     public function isSameSpecies(TileType $other): bool {
         return $this->isAnimal()
             && $other->isAnimal()
             && $this->value[0] == $other->value[0];
+    }
+
+    public function isBlock(): bool {
+        return $this == TileType::BLOCK;
     }
 
     public function isKid(): bool {

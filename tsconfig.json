@@ -1,0 +1,35 @@
+{
+    "rootDir": ".",
+    "compilerOptions": {
+        "pretty": false,
+        // For some reason, setting true compiles but causing loading issues
+        "strict": false,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
+        "exactOptionalPropertyTypes": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "downlevelIteration": true,
+        "target": "es5",
+        "module": "none",
+        "lib": ["dom", "esnext"],
+        "sourceMap": false,
+        "outFile": "zooloretto.js",
+        "noImplicitOverride": true,
+        "typeRoots": [
+            "src/types",
+            "./types",
+            "./node_modules/@types"
+        ]
+    },
+
+    "files": [
+        "bga-framework.d.ts",
+        "src/bga-animations.d.ts",
+        "src/colormap.ts",
+        "src/basegame.ts",
+        "src/zooloretto.ts",
+        "src/define.ts"
+    ]
+}
