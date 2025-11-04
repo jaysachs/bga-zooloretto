@@ -181,9 +181,7 @@ class Game extends \Bga\GameFramework\Table
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
 
-		$model = new Model($this);
-		$model->createNewGame(count($players));
-
+		$this->doCreateGame(count($players));
 		$this->playerStats->init([
 			'full1',
 			'full2',
@@ -206,9 +204,14 @@ class Game extends \Bga\GameFramework\Table
 		], 0);
 
 		$this->playerStats->incAll('coinsreceived', 2);
-		$this->activeNextPlayer();
 
+		$this->activeNextPlayer();
 		return PlayerTurn::class;
+	}
+
+	private function doCreateGame(int $player_count) {
+		$model = new Model($this);
+		$model->createNewGame($player_count);
 	}
 
 	/*
@@ -244,5 +247,18 @@ class Game extends \Bga\GameFramework\Table
 
 	public function debug_setGlobal(string $global, int $value): void {
 		$this->globals->set($global, $value);
+	}
+
+	public function debug_resetGame(): void {
+		// FIXME: do more tables including resetting money.
+		$db = new DefaultDb();
+		$player_count = intval($db->getObjectList('SELECT COUNT(player_id) as pc FROM player')[0]['pc']);
+		$db->execute('DELETE FROM tiles');
+		$db->execute('DELETE FROM trucks');
+		$db->execute('DELETE FROM primary_stock');
+		$db->execute('DELETE FROM endgame_stock');
+		$this->doCreateGame($player_count);
+		$this->gamestate->jumpToState(2);
+		$this->notify->all('debugReset', '', []);
 	}
 }

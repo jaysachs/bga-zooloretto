@@ -98,6 +98,8 @@ class Model {
 
         // Extra player info
         $this->db->execute("UPDATE player SET money = 2");
+
+        $this->game->globals->set('drawn', 0);
     }
 
 
