@@ -325,6 +325,25 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 				endgame_left: number,
     }
   ): Promise<void> {
+    // (1) figure out whether it's primary or endgame
+    // (2) "flip" top tile of pile
+    // (3) slide that tile to to "drawn_tile" area
+    // (4) replenish up to 5, if there are some.
+    // (5) if "known", update counts for stock piles
+    //
+    // We may have to "fix sizes" for the slide to work right? Unclear.
+    //
+    // Need to handle empty piles -- leave outline?
+    //
+    // Seems like we want more specific info here in the notif
+    //  * which pile
+    //  * are there at least 5 in that pile
+    //  * if option enabled, the exact number in each pile
+  }
+
+  private async notif_LastRound(): Promise<void> {
+    // (1) if first tile of endgame pile taken, remove disk (slide off board)
+    // (2) add banner
   }
 
   ///////

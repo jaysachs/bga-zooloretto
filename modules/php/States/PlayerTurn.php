@@ -135,6 +135,7 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'tile_id' => $tile->id,
 				'tile_type' => $tile->type->value,
+				// TODO: if "invisible", return 100? 0? -1 or 0 ... something else.
 				'primary_left' => count($stock->primary),
 				'endgame_left' => count($stock->endgame),
 				'translatedval' => $tile->type->translated(),

@@ -184,25 +184,28 @@ class Game extends \Bga\GameFramework\Table
 		$model = new Model($this);
 		$model->createNewGame(count($players));
 
-		self::initStat('player', 'full1', 0);
-		self::initStat('player', 'full2', 0);
-		self::initStat('player', 'full3', 0);
-		self::initStat('player', 'full4', 0);
-		self::initStat('player', 'part1', 0);
-		self::initStat('player', 'part2', 0);
-		self::initStat('player', 'part3', 0);
-		self::initStat('player', 'part4', 0);
-		self::initStat('player', 'encstall1', 0);
-		self::initStat('player', 'encstall2', 0);
-		self::initStat('player', 'encstall3', 0);
-		self::initStat('player', 'encstall4', 0);
-		self::initStat('player', 'stalls', 0);
-		self::initStat('player', 'leftinbarn', 0);
-		self::initStat('player', 'totalpoints', 0);
-		self::initStat('player', 'totalcoins', 0);
-		self::initStat('player', 'coinsspent', 0);
-		self::initStat('player', 'coinsreceived', 2);
+		$this->playerStats->init([
+			'full1',
+			'full2',
+			'full3',
+			'full4',
+			'part1',
+			'part2',
+			'part3',
+			'part4',
+			'encstall1',
+			'encstall2',
+			'encstall3',
+			'encstall4',
+			'stalls',
+			'leftinbarn',
+			'totalpoints',
+			'totalcoins',
+			'coinsspent',
+			'coinsreceived'
+		], 0);
 
+		$this->playerStats->incAll('coinsreceived', 2);
 		$this->activeNextPlayer();
 
 		return PlayerTurn::class;
