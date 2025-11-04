@@ -1,0 +1,115 @@
+<style>
+
+/*
+article > .section:nth-child(1) { grid-column: 1 / 16; grid-row: 1 / 16; }
+article > .section:nth-child(2) { grid-column: 2 / 17; grid-row: 2 / 17; }
+article > .section:nth-child(3) { grid-column: 3 / 18; grid-row: 3 / 18; }
+article > .section:nth-child(4) { grid-column: 4 / 19; grid-row: 4 / 19; }
+article > .section:nth-child(5) { grid-column: 5 / 20; grid-row: 5 / 20; }
+*/
+
+article > .section:nth-child(1) { left: 4px; top: 4px; }
+article > .section:nth-child(2) { left: 8px; top: 8px; }
+article > .section:nth-child(3) { left: 12px; top: 12px; }
+article > .section:nth-child(4) { left: 16px; top: 16px; }
+article > .section:nth-child(5) { left: 20px; top: 20px; }
+
+/* non-essential demo styles */
+article > .section:nth-child(1) { background-color: lightgreen; }
+article > .section:nth-child(2) { background-color: orange; }
+article > .section:nth-child(3) { background-color: aqua; }
+article > .section:nth-child(4) { background-color: darkgreen; }
+article > .section:nth-child(5) { background-color: yellow; }
+
+.c1 {
+    display: flex;
+    background-color: #eeeeee;
+    height: 150px;
+}
+
+.c2 {
+    width: 50%;
+    display: flex;
+    background-color: #eeee88;
+}
+
+.c3 {
+    width: 40%;
+    display: flex;
+    background-color: #88eeee;
+}
+
+.c4 {
+    position: relative;
+    width: 10%;
+    display: flex;
+    grid-gap: 4px;
+    flex-direction: column;
+    background-color: #ee88ee;
+}
+
+article > .section { position: absolute; display: inline-block; }
+
+article:nth-child(1) {
+    background-color: #abcdef;
+}
+
+article:nth-child(2) {
+    background-color: #fedcba;
+    top: 50%;
+}
+
+article {
+    position: relative;
+      /*
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-auto-rows: 0px;
+  grid-gap: 4px;
+     */
+    display: block;
+/*  max-width: 50px; */
+}
+
+span.section {
+    display: flex;
+    position: absolute;
+    width: 35%;
+    padding-bottom: 35%;
+    /*
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+*/
+  font-size: 1.2em;
+}
+
+</style>
+
+<html>
+  <body>
+    <div class="c1">
+      <div class="c2">
+      </div>
+      <div class="c3">
+      </div>
+      <div class="c4">
+        <article>
+          <span class="section"></span>
+          <span class="section"></span>
+          <span class="section"></span>
+          <span class="section"></span>
+          <span class="section"></span>
+
+        </article>
+        <article>
+          <span class="section"></span>
+          <span class="section"></span>
+          <span class="section"></span>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>
