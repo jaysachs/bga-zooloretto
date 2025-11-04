@@ -128,16 +128,28 @@ class PlayerTurn extends AbstractState
 			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
 		}
 
+		// FIXME: pull from options
+		$show_counts = false;
+		// FIXME: make a method?
+		$amt = function (int $count) use (&$show_counts) : int {
+			if ($count <= 5 || $show_counts) { return $count; }
+			else return 200;
+		};
+
+		// FIXME: move onto Stock?
+		$drawn_from_endgame_pile = $stock->waslastRoundTriggered() || count($stock->primary) == 0;
+
 		$this->notify->all(
 			"DrawTile",
+			// FIXME: render the tile image in the log (in addition? instead?)
 			clienttranslate('${player_name} drew a ${translatedval} tile.'),
 			[
 				'player_id' => $active_player_id,
 				'tile_id' => $tile->id,
 				'tile_type' => $tile->type->value,
-				// TODO: if "invisible", return 100? 0? -1 or 0 ... something else.
-				'primary_left' => count($stock->primary),
-				'endgame_left' => count($stock->endgame),
+				'drawn_from_endgame_pile' => $drawn_from_endgame_pile,
+				'primary_left' => $amt(count($stock->primary)),
+				'endgame_left' => $amt(count($stock->endgame)),
 				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]

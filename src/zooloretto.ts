@@ -56,6 +56,11 @@ class IDS {
 }
 
 class CSS {
+  static readonly BACK = 'back';
+  static readonly TILE = 'tile';
+  static tile(tile_type: string) : string {
+    return `tile${tile_type}`;
+  }
   /*
     static readonly IN_NETWORK = 'bbl_in_network';
     static readonly SELECTED = 'bbl_selected';
@@ -69,6 +74,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   primary_stocksize: number;
   endgame_stocksize: number;
   lastround: boolean;
+  drawntile: string;
 }
 
 interface PlayState {
@@ -196,29 +202,31 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 ` ;
   }
 
-  private addStockTile(id: string, cls: string = 'back') {
-    let stockdiv = $(id);
-    let w = stockdiv.getBoundingClientRect().width;
+  private addStockTile(pileElem: HTMLElement, cls: string = 'back') {
     let div = document.createElement('span');
-    stockdiv.appendChild(div);
+    pileElem.appendChild(div);
     div.classList.add(cls);
+    // let w = pileElem.getBoundingClientRect().width;
     // let i = stockdiv.childNodes.length;
     // div.style = `left: ${i * 5}px; top: ${(i * 5)}px`;
   }
 
+  private endgamePile : HTMLElement;
+  private primaryPile : HTMLElement;
+  private drawnTiles : HTMLElement;
+
   private setupStock() : void {
-    let addStock = (id: string, size: number) => {
+    let addStock = (pileElem : HTMLElement, size: number) => {
       var n = size > 5 ? 5 : size;
       for (let i = 0; i < n; i++) {
-        this.addStockTile(id);
+        this.addStockTile(pileElem);
       }
     };
-
-    addStock('endgame_pile', this.gamedatas.endgame_stocksize);
+    addStock(this.endgamePile, this.gamedatas.endgame_stocksize);
     if (!this.gamedatas.lastround) {
-      this.addStockTile('endgame_pile', 'disk');
+      this.addStockTile(this.endgamePile, 'disk');
     }
-    addStock('primary_pile', this.gamedatas.primary_stocksize);
+    addStock(this.primaryPile, this.gamedatas.primary_stocksize);
   }
 
   private currentPlayerNo: number;
@@ -243,6 +251,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
 
     this.setupStock();
+    this.setupDrawn(gamedatas.drawntile);
 
     /*
         console.log('setting the the game board');
@@ -275,8 +284,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     console.log('Game setup done');
   }
 
+  private setupDrawn(tile_type? : string) {
+    if (tile_type) {
+      let elem = document.createElement('span');
+      elem.classList.add(CSS.TILE, CSS.tile(tile_type));
+      this.drawnTiles.appendChild(elem);
+    }
+  }
+
   private setupGameHtml(): void {
     this.getGameAreaElement().insertAdjacentHTML('beforeend', this.baseHtml());
+    this.primaryPile = $('primary_pile');
+    this.endgamePile = $('endgame_pile');
+    this.drawnTiles = $('tiles');
   }
 
   private setupPlayerBoard(player: ZPlayer): void {
@@ -321,24 +341,30 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     args: {
 				tile_id: number,
 				tile_type: string,
+        drawn_from_endgame_pile: boolean,
 				primary_left: number,
 				endgame_left: number,
     }
   ): Promise<void> {
-    // (1) figure out whether it's primary or endgame
-    // (2) "flip" top tile of pile
-    // (3) slide that tile to to "drawn_tile" area
-    // (4) replenish up to 5, if there are some.
-    // (5) if "known", update counts for stock piles
-    //
-    // We may have to "fix sizes" for the slide to work right? Unclear.
-    //
-    // Need to handle empty piles -- leave outline?
-    //
-    // Seems like we want more specific info here in the notif
-    //  * which pile
-    //  * are there at least 5 in that pile
-    //  * if option enabled, the exact number in each pile
+    // get the tile on the right pile
+    // FIXME: factor out common IDs and elemes
+    let pileElem = args.drawn_from_endgame_pile ? this.primaryPile : this.endgamePile;
+    let tile = pileElem.lastElementChild as HTMLElement;
+    // "flip" the top tile
+    tile.classList.remove(CSS.BACK);
+    tile.classList.add(CSS.TILE, 'backtransition', CSS.tile(args.tile_type));
+    // FIXME: need to handle disk removal
+    return this.animationManager.slideAndAttach(tile, $('tiles'), {})
+        .then(() => {
+          let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
+          if (count >= 5) {
+            this.addStockTile(pileElem);
+          }
+        });
+  }
+
+  private async notif_debugReset(): Promise<void> {
+    window.location.reload();
   }
 
   private async notif_LastRound(): Promise<void> {
