@@ -3,6 +3,10 @@
 #overall-container {
     display: flex;
     background-color: #eeeeee;
+
+
+    /* seems irrelevant: */
+    position: relative;
 }
 
 #left-section {
@@ -29,26 +33,17 @@
 
 #primary-pile {
     margin-top: 5%;
-}
-
-#endgame-pile {
-    top: 45%;
-}
-
-.pile {
     position: relative;
     display: block;
 }
 
-.pile > .tile { position: absolute; display: inline-block; }
+#endgame-pile {
+    top: 45%;
+    position: relative;
+    display: block;
+}
 
-.pile > .tile:nth-child(1) { left: 2%; margin-top: 2%; }
-.pile > .tile:nth-child(2) { left: 4%; margin-top: 4%; }
-.pile > .tile:nth-child(3) { left: 6%; margin-top: 6%; }
-.pile > .tile:nth-child(4) { left: 8%; margin-top: 8%; }
-.pile > .tile:nth-child(5) { left: 10%; margin-top: 10%; }
-
-span.tile {
+#primary-pile > span {
     display: flex;
     position: absolute;
     width: 40%;
@@ -56,12 +51,32 @@ span.tile {
     margin-left: 25%;
 }
 
+#endgame-pile > span {
+    display: flex;
+    position: absolute;
+    width: 40%;
+    padding-bottom: 40%;
+    margin-left: 25%;
+}
+
+#primary-pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
+#primary-pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
+#primary-pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
+#primary-pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
+#primary-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
+
+#endgame-pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
+#endgame-pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
+#endgame-pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
+#endgame-pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
+#endgame-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
+
 /* non-essential demo styles */
-.pile > .tile:nth-child(1) { background-color: lightgreen; }
-.pile > .tile:nth-child(2) { background-color: orange; }
-.pile > .tile:nth-child(3) { background-color: aqua; }
-.pile > .tile:nth-child(4) { background-color: darkgreen; }
-.pile > .tile:nth-child(5) { background-color: yellow; }
+span:nth-child(1) { background-color: lightgreen; }
+span:nth-child(2) { background-color: orange; }
+span:nth-child(3) { background-color: aqua; }
+span:nth-child(4) { background-color: darkgreen; }
+span:nth-child(5) { background-color: yellow; }
 
 </style>
 
@@ -71,14 +86,14 @@ span.tile {
       <div id="left-section"></div>
       <div id="middle-section"></div>
       <div id="right-section">
-        <div id="primary-pile" class="pile">
+        <div id="primary-pile">
           <span class="tile"></span>
           <span class="tile"></span>
           <span class="tile"></span>
           <span class="tile"></span>
           <span class="tile"></span>
         </div>
-        <div id="endgame-pile" class="pile">
+        <div id="endgame-pile">
           <span class="tile"></span>
           <span class="tile"></span>
           <span class="tile"></span>

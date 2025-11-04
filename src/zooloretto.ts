@@ -170,11 +170,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     let boardClass = "board" + (player_count == 2 ? '2' : '') + currentPlayer!.purchased_extensions;
     return `
-      <div class="container1" id = "container1">
-        <div class="container2" id = "container2">
-          <div class="wagons" id = "wagons"></div>
-          <div class="tiles" id = "tiles"></div>
-          <div class="tilesdeck" id = "tilesdeck"></div>
+      <div id = "container1">
+        <div id = "container2">
+          <div id = "wagons"></div>
+          <div id = "tiles"></div>
+          <div id = "stock">
+            <div id="primary_pile"></div>
+            <div id="endgame_pile"></div>
+          </div>
         </div>
 
         <div class="container3" id = "container3">
@@ -193,29 +196,29 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 ` ;
   }
 
+  private addStockTile(id: string, cls: string = 'back') {
+    let stockdiv = $(id);
+    let w = stockdiv.getBoundingClientRect().width;
+    let div = document.createElement('span');
+    stockdiv.appendChild(div);
+    div.classList.add(cls);
+    // let i = stockdiv.childNodes.length;
+    // div.style = `left: ${i * 5}px; top: ${(i * 5)}px`;
+  }
+
   private setupStock() : void {
-    let deckdiv = $('tilesdeck');
-    let w = deckdiv.getBoundingClientRect().width;
-
-    let addTile = (i: number, offset: number, cls: string = 'back') => {
-        let div = document.createElement('div');
-        div.classList.add(cls);
-        deckdiv.appendChild(div);
-        div.style = `left: ${i * 5 * w/100}px; top: ${(i * 5 + offset) * w/100}px`;
-    };
-
-    let addStock = (size: number, offset: number) => {
+    let addStock = (id: string, size: number) => {
       var n = size > 5 ? 5 : size;
       for (let i = 0; i < n; i++) {
-        addTile(i, offset);
+        this.addStockTile(id);
       }
     };
 
-    addStock(this.gamedatas.endgame_decksize, 60);
+    addStock('endgame_pile', this.gamedatas.endgame_decksize);
     if (!this.gamedatas.lastround) {
-      addTile(5, 60, 'disk');
+      this.addStockTile('endgame_pile', 'disk');
     }
-    addStock(this.gamedatas.primary_decksize, 5);
+    addStock('primary_pile', this.gamedatas.primary_decksize);
   }
 
   private currentPlayerNo: number;

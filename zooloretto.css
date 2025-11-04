@@ -15,29 +15,29 @@
 
 /*
     This is the CSS stylesheet of your game User Interface.
-    
+
     Styles defined on this file will be applied to the HTML elements you define in your
     HTML template (zooloretto_zooloretto.tpl), and to HTML elements you create dynamically
     (in zooloretto.js).
-    
+
     Usually, you are using CSS to:
-    
+
     1°) define the overall layout of your game
         (ex: place the board on the top left, place player's hand beside, place the deck on the right, ...).
 
     2°) create your CSS-sprites:
         All images of your games should be gathered into a small number of image files. Then, using
-        background-image and background-position CSS properties, you create HTML blocks that can 
+        background-image and background-position CSS properties, you create HTML blocks that can
         display these images correctly (see example below).
-    
+
     3°) ... anything else:
         It is really easy to add and remove CSS classes dynamically from your Javascript with
         dojo.addClass and dojo.removeClass. It is also easy to check if an element has a class
         (dojo.hasClass) or to get all elements with a specific class (dojo.query). This is why,
         very often, using CSS classes for the logic of your user interface allow you to do complex
         thing easily.
-        
-        
+
+
      Note: on the production platform, this file will be compressed and comments will be removed.
            Consequently, don't hesitate to put as many comments as necessary.
 */
@@ -67,111 +67,223 @@
     }
 */
 
-.container1 {
+#container1 {
 
     width: 100%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    display : flex;
+    padding-bottom: 0%;
     align-items: flex-start;
-    justify-content: center;	
-	flex-direction: column;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
 }
 
-.container2 {
+#container2 {
 
     width: 100%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
-    align-items: flex-start;
-    justify-content: center;	
-	flex-direction: row;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
+    display : flex;
+
+    /*
+    background-repeat: no-repeat;
+    background-size: contain;
+    padding-bottom: 0%;
+    justify-content: center;
+    flex-direction: row;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
+    */
 }
 
 .buttonvisible
 {
-	display: inline-block !important;
+    display: inline-block !important;
 }
- 
+
 
 .buttoninvisible
 {
-	display: none !important;
+    display: none !important;
 }
 
 
-.tiles {
+#tiles {
     width: 10%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    /*
+    display : flex;
+    background-repeat: no-repeat;
+    background-size: contain;
+    padding-bottom: 0%;
     align-items: flex-start;
-    justify-content: center;	
-	flex-direction: row;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
-	flex-wrap: wrap;
+    justify-content: center;
+    flex-direction: row;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
+    flex-wrap: wrap;
+    */
 }
-.tilesdeck {
-    width: 10%;
-    height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+
+#stock {
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    width: 10%;
+    display: flex;
+    grid-gap: 4px;
+    flex-direction: column;
+
+    min-height: 100px;
+    /*
+    flex-wrap: nowrap;
+    justify-content: space-between;
     align-items: flex-start;
-    justify-content: center;	
-	flex-direction: row;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
-	flex-wrap: wrap;
+*/
+    /*
+    padding-bottom: 0%;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
+*/
+}
+
+#primary_pile {
+    position: relative;
+    display: block;
+    margin-top: 5%;
+}
+
+#endgame_pile {
+    position: relative;
+    display: block;
+    top: 45%;
+    /* margin-top: 45%; */
+}
+/*
+#primary_pile,#endgame_pile {
+    position: relative;
+    display: block;
+}
+*/
+#primary_pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
+#primary_pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
+#primary_pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
+#primary_pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
+#primary_pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
+
+#endgame_pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
+#endgame_pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
+#endgame_pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
+#endgame_pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
+#endgame_pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
+#endgame_pile > span:nth-child(6) { left: 12%; margin-top: 12%; }
+
+#primary_pile > span,#endgame_pile > span {
+    position: absolute;
+    display: flex;
+    width: 30%;
+    padding-bottom: 30%;
+    margin-left: 30%;
+
+    /*
+    background-repeat: no-repeat;
+    background-size: contain;
+    */
+    /*
+    border-radius: 5% 5%;
+    border: 0 solid;
+    margin-right: 1%;
+    margin-bottom: 1%;
+    */
+    /*
+    margin-top: 1%;
+    margin-left: 1%;
+   */
+   /*
+    z-index:5;
+    transform-origin: center center;
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    */
+}
+
+.back
+{
+    /*
+    width: 40%;
+    display : block;
+    position: absolute;
+    padding-bottom: 40%;
+    margin-right: 1%;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    margin-left: 1%;
+    z-index:5;
+    transform-origin: center center;
+*/
+    background-size: contain;
+    background-repeat: no-repeat;
+    border-radius: 5% 5%;
+    border: 0 solid;
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    background-image: url('img/Back.png');
+}
+
+.disk
+{
+    /*
+    width: 40%;
+    display : flex;
+    position: absolute;
+    padding-bottom: 40%;
+    margin-right: 1%;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    margin-left: 1%;
+    z-index:5;
+    transform-origin: center center;
+*/
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    border-radius: 5% 5%;
+    border: 0 solid;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Disk.png');
 }
 
 .container3 {
 
     width: 100%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    display : flex;
+    padding-bottom: 0%;
     align-items: flex-start;
-    justify-content: center;	
-	flex-direction: row;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
+    justify-content: center;
+    flex-direction: row;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
 }
 
 .leftpanel {
 
     width: 50%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    display : flex;
+    padding-bottom: 0%;
     align-items: center;
-    justify-content: center;	
-	flex-direction: column;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
 }
 
 
@@ -189,7 +301,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     background-image: url('img/Board0.png');
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -207,7 +319,7 @@
     padding-bottom: 25%;
     align-items: flex-start;
     justify-content: flex-start;
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -242,7 +354,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     background-image: url('img/Board1.png');
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -260,7 +372,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     background-image: url('img/Board20.png');
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -278,7 +390,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     background-image: url('img/Board21.png');
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -296,7 +408,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     background-image: url('img/Board22.png');
-	transition: background-image 2s;
+    transition: background-image 2s;
     margin-right: 1%;
     margin-left: 1%;
 }
@@ -305,42 +417,42 @@
     width: 9%;
     height: 9%;
     position: absolute;
-	display : flex;
+    display : flex;
     /* background-color: red;  */
-    z-index:5;  
-	transform-origin: center center;
+    z-index:5;
+    transform-origin: center center;
 }
 
 .cell2 {
     width: 7.38%;
     height: 9%;
     position: absolute;
-	display : flex;
+    display : flex;
     /* background-color: red;  */
-    z-index:5;  
-	transform-origin: center center;
+    z-index:5;
+    transform-origin: center center;
 }
 
 .stall {
     width: 40%;
     height: 15%;
     position: absolute;
-	display : flex;
+    display : flex;
      /* background-color: red;   */
-	flex-wrap: wrap;	
-    z-index:5;  
-	transform-origin: center center;
+    flex-wrap: wrap;
+    z-index:5;
+    transform-origin: center center;
 }
 
 .stall2 {
     width: 32.80816922%;
     height: 15%;
     position: absolute;
-	display : flex;
+    display : flex;
      /* background-color: red;   */
-	flex-wrap: wrap;	
-    z-index:5;  
-	transform-origin: center center;
+    flex-wrap: wrap;
+    z-index:5;
+    transform-origin: center center;
 }
 
 
@@ -348,148 +460,148 @@
 
 .highlighted
 {
-	border:#22A520 0.4vw solid !important;
-	transform: scale(0.84) !important;
+    border:#22A520 0.4vw solid !important;
+    transform: scale(0.84) !important;
 }
 
 .highlighted2
 {
-	border:#A52220 0.4vw solid !important;
-	transform: scale(1) !important;
-    cursor: pointer;  
+    border:#A52220 0.4vw solid !important;
+    transform: scale(1) !important;
+    cursor: pointer;
 }
 
 .highlighted3
 {
-	border:#2220A5 0.4vw solid !important;
-	transform: scale(1) !important;
-    cursor: pointer;  
+    border:#2220A5 0.4vw solid !important;
+    transform: scale(1) !important;
+    cursor: pointer;
 }
 
 
 .cellwagon3 {
-	width: 26.835%;
+    width: 26.835%;
     height: 70%;
     position: absolute;
-	display : flex;
+    display : flex;
     /* background-color: red;  */
-    z-index: 5;  
-	transform-origin: top;
+    z-index: 5;
+    transform-origin: top;
 }
 
 .cellwagon2 {
-	width: 40.25%;
+    width: 40.25%;
     height: 70%;
     position: absolute;
-	display : flex;
+    display : flex;
     /* background-color: red;  */
-    z-index: 5;  
-	transform-origin: top;
+    z-index: 5;
+    transform-origin: top;
 }
 
 .cellwagon1 {
-	width: 80.5%;
+    width: 80.5%;
     height: 70%;
     position: absolute;
-	display : flex;
+    display : flex;
     /* background-color: red;  */
-    z-index: 5;  
-	transform-origin: top;
+    z-index: 5;
+    transform-origin: top;
 }
 
 .thinking
 {
-	opacity: 0.7;
+    opacity: 0.7;
 }
 
 .wagonsize
 {
-	width: 100% !important;
+    width: 100% !important;
     /* padding-bottom: 100% !important; */
 }
 .boardsize
 {
-	width: 100% !important;
+    width: 100% !important;
     /* padding-bottom: 100% !important; */
 }
 .stallsize
 {
-	width: 22.1% !important;
-	height: 22.1% !important;
-	padding-bottom: 13.3% !important;
+    width: 22.1% !important;
+    height: 22.1% !important;
+    padding-bottom: 13.3% !important;
 }
 .pointer
 {
-    cursor: pointer;  
+    cursor: pointer;
 }
 
 
 .playerscards{
     width: 100%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    display : flex;
+    padding-bottom: 0%;
     align-items: center;
-    justify-content: center;	
-	flex-direction: column;
-	margin: 0% 0% 0% 0%;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0% 0% 0% 0%;
 }
 
 .zoom:hover {
-	transform: scale(2.3);
-	z-index: 100;
+    transform: scale(2.3);
+    z-index: 100;
 }
 
 .playercards {
-	display : flex;
-	flex-direction: column;
+    display : flex;
+    flex-direction: column;
     width: 90%;
     height: 30%;
-	display : flex;
+    display : flex;
     position: relative;
-	border-radius: 10px 10px;
-	/* overflow: auto; */
-	padding-top: 0%;
- 	padding-bottom: 0%;
-	align-items: center;
+    border-radius: 10px 10px;
+    /* overflow: auto; */
+    padding-top: 0%;
+     padding-bottom: 0%;
+    align-items: center;
    /* background-color: red;  */
 }
 
 .playernameclass{
-	display : flex;
-	flex-direction: row;
+    display : flex;
+    flex-direction: row;
     width: 80%;
     height: 100%;
     position: relative;
-	overflow: auto;	
-	padding-top: 0%;
- 	padding-bottom: 0%;
+    overflow: auto;
+    padding-top: 0%;
+     padding-bottom: 0%;
 }
 
-.wagons {
+#wagons {
     width: 80%;
     height: auto;
-	background-repeat: no-repeat;
-	background-size: contain;
+    background-repeat: no-repeat;
+    background-size: contain;
     position: relative;
-	display : flex;
-	padding-bottom: 0%;
+    display : flex;
+    padding-bottom: 0%;
     align-items: center;
     justify-content: center;
-	flex-wrap: wrap;	
-	flex-direction: row;
-	margin: 0% 0% 0% 0%;
-	max-width: 10000px;
+    flex-wrap: wrap;
+    flex-direction: row;
+    margin: 0% 0% 0% 0%;
+    max-width: 10000px;
 }
 
 .wagon
 {
-	border-radius: 5% 5%;
-	border: 0 solid;
-	width: 30%;
+    border-radius: 5% 5%;
+    border: 0 solid;
+    width: 30%;
     display: flex;
     position: relative;
     background-size: contain;
@@ -499,50 +611,50 @@
     margin-bottom: 2%;
     margin-top: 2%;
     margin-left: 4%;
-    z-index:5;  
+    z-index:5;
     transform-origin: center center;
-	filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
 }
 .wagon3
 {
-	background-image: url('img/Wagon3.png');
+    background-image: url('img/Wagon3.png');
 }
 .wagon2
 {
-	background-image: url('img/Wagon2.png');
-	width: 20% !important;
+    background-image: url('img/Wagon2.png');
+    width: 20% !important;
 }
 .wagon1
 {
-	background-image: url('img/Wagon1.png');
-	width: 10% !important;
+    background-image: url('img/Wagon1.png');
+    width: 10% !important;
 }
 
 .plnomoney
 {
-	display : flex;
-	flex-direction: row;
-	width: 80%;
+    display : flex;
+    flex-direction: row;
+    width: 80%;
 }
 .plnomoney2
 {
-	display : flex;
-	flex-direction: row;
-	width: 100%;
+    display : flex;
+    flex-direction: row;
+    width: 100%;
 }
 .player_number
 {
-	display : flex;
-	flex-direction: row;
-	width: 20%;
-	margin-right: 10%;
+    display : flex;
+    flex-direction: row;
+    width: 20%;
+    margin-right: 10%;
 }
 
 .money
 {
-	border-radius: 5% 5%;
-	border: 0 solid;
-	width: 10%;
+    border-radius: 5% 5%;
+    border: 0 solid;
+    width: 10%;
     display: flex;
     position: relative;
     background-size: contain;
@@ -552,259 +664,216 @@
     margin-bottom: 4%;
     margin-top: 4%;
     margin-left: 2%;
-    z-index:5;  
+    z-index:5;
     transform-origin: center center;
-	/* filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
-	background-image: url('img/Money.png');
+    /* filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
+    background-image: url('img/Money.png');
 }
 
 
 .tile
 {
-	border-radius: 5% 5%;
-	border: 0 solid;
+    border-radius: 5% 5%;
+    border: 0 solid;
     width: 40%;
-	display : flex;
+    display : flex;
     position: relative;
-	background-size: contain;
-	background-repeat: no-repeat;
-	padding-bottom: 40%;
-	margin-right: 1%;
-	margin-bottom: 1%;
-	margin-top: 1%;
-	margin-left: 1%;
-    z-index:5;  
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-bottom: 40%;
+    margin-right: 1%;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    margin-left: 1%;
+    z-index:5;
     transform-origin: center center;
-	filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
 
-	background-image: url('img/Tiles.png');
-	background-size: 600% /* basically corresponds to number of columns in the sprite */
-}
-
-.disk
-{
-	border-radius: 5% 5%;
-	border: 0 solid;
-    width: 40%;
-	display : flex;
-    position: absolute;
-	background-size: contain;
-	background-repeat: no-repeat;
-	padding-bottom: 40%;
-	margin-right: 1%;
-	margin-bottom: 1%;
-	margin-top: 1%;
-	margin-left: 1%;
-    z-index:5;  
-    transform-origin: center center;
-	filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-
-	background-image: url('img/Disk.png');
+    background-image: url('img/Tiles.png');
+    background-size: 600% /* basically corresponds to number of columns in the sprite */
 }
 
 .backtransition
 {
-	transition: background-image 1s;
-	z-index: 20;
+    transition: background-image 1s;
+    z-index: 20;
 }
 
 .tilesleft
 {
-	border-radius: 5% 5%;
-	border: 0 solid;
+    border-radius: 5% 5%;
+    border: 0 solid;
     width: 40%;
-	display : flex;
+    display : flex;
     position: absolute;
-	background-size: contain;
-	background-repeat: no-repeat;
-	padding-bottom: 40%;
-	margin-right: 1%;
-	margin-bottom: 1%;
-	margin-top: 1%;
-	margin-left: 1%;
-    z-index:115;  
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-bottom: 40%;
+    margin-right: 1%;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    margin-left: 1%;
+    z-index:115;
     transform-origin: center center;
-	filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-	color: white;
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    color: white;
 }
-
-.back
-{
-	border-radius: 5% 5%;
-	border: 0 solid;
-    width: 40%;
-	display : flex;
-    position: absolute;
-	background-size: contain;
-	background-repeat: no-repeat;
-	padding-bottom: 40%;
-	margin-right: 1%;
-	margin-bottom: 1%;
-	margin-top: 1%;
-	margin-left: 1%;
-    z-index:5;  
-    transform-origin: center center;
-	filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-	background-image: url('img/Back.png');
-}
-
 
 .tileC
 {
-	background-position: 0% 0%;
+    background-position: 0% 0%;
 }
 .tileCF
 {
-	background-position: 20% 0%;
+    background-position: 20% 0%;
 }
 .tileCM
 {
-	background-position: 40% 0%;
+    background-position: 40% 0%;
 }
 .tileCK
 {
-	background-position: 60% 0%;
-	border-radius: 70% 70%;
+    background-position: 60% 0%;
+    border-radius: 70% 70%;
 }
 .tileE
 {
-	background-position: 80% 0%;
+    background-position: 80% 0%;
 }
 .tileEF
 {
-	background-position: 100% 0%;
+    background-position: 100% 0%;
 }
 .tileEM
 {
-	background-position: 0% 20%;
+    background-position: 0% 20%;
 }
 .tileEK
 {
-	background-position: 20% 20%;
-	border-radius: 70% 70%;
+    background-position: 20% 20%;
+    border-radius: 70% 70%;
 }
 .tileF
 {
-	background-position: 40% 20%;
+    background-position: 40% 20%;
 }
 .tileFF
 {
-	background-position: 60% 20%;
+    background-position: 60% 20%;
 }
 .tileFM
 {
-	background-position: 80% 20%;
+    background-position: 80% 20%;
 }
 .tileFK
 {
-	background-position: 100% 20%;
-	border-radius: 70% 70%;
+    background-position: 100% 20%;
+    border-radius: 70% 70%;
 }
 .tileK
 {
-	background-position: 0% 40%;
+    background-position: 0% 40%;
 }
 .tileKF
 {
-	background-position: 20% 40%;
+    background-position: 20% 40%;
 }
 .tileKM
 {
-	background-position: 40% 40%;
+    background-position: 40% 40%;
 }
 .tileKK
 {
-	background-position: 60% 40%;
-	border-radius: 70% 70%;
+    background-position: 60% 40%;
+    border-radius: 70% 70%;
 }
 .tileL
 {
-	background-position: 80% 40%;
+    background-position: 80% 40%;
 }
 .tileLF
 {
-	background-position: 100% 40%;
+    background-position: 100% 40%;
 }
 .tileLM
 {
-	background-position: 0% 60%;
+    background-position: 0% 60%;
 }
 .tileLK
 {
-	background-position: 20% 60%;
-	border-radius: 70% 70%;
+    background-position: 20% 60%;
+    border-radius: 70% 70%;
 }
 .tileM
 {
-	background-position: 40% 60%;
+    background-position: 40% 60%;
 }
 .tileMF
 {
-	background-position: 60% 60%;
+    background-position: 60% 60%;
 }
 .tileMM
 {
-	background-position: 80% 60%;
+    background-position: 80% 60%;
 }
 .tileMK
 {
-	background-position: 100% 60%;
-	border-radius: 70% 70%;
+    background-position: 100% 60%;
+    border-radius: 70% 70%;
 }
 .tileP
 {
-	background-position: 0% 80%;
+    background-position: 0% 80%;
 }
 .tilePF
 {
-	background-position: 20% 80%;
+    background-position: 20% 80%;
 }
 .tilePM
 {
-	background-position: 40% 80%;
+    background-position: 40% 80%;
 }
 .tilePK
 {
-	background-position: 60% 80%;
-	border-radius: 70% 70%;
+    background-position: 60% 80%;
+    border-radius: 70% 70%;
 }
 .tileZ
 {
-	background-position: 80% 80%;
+    background-position: 80% 80%;
 }
 .tileZF
 {
-	background-position: 100% 80%;
+    background-position: 100% 80%;
 }
 .tileZM
 {
-	background-position: 0% 100%;
+    background-position: 0% 100%;
 }
 .tileZK
 {
-	background-position: 20% 100%;
-	border-radius: 70% 70%;
+    background-position: 20% 100%;
+    border-radius: 70% 70%;
 }
 .tileStallA
 {
-	background-position: 40% 100%;
+    background-position: 40% 100%;
 }
 .tileStallB
 {
-	background-position: 60% 100%;
+    background-position: 60% 100%;
 }
 .tileStallC
 {
-	background-position: 80% 100%;
+    background-position: 80% 100%;
 }
 .tileStallD
 {
-	background-position: 100% 100%;
+    background-position: 100% 100%;
 }
 
 .tileCoin
 {
-	background-image: url('img/Coin.png');
-	background-size: 100% 
+    background-image: url('img/Coin.png');
+    background-size: 100%
 }
-
