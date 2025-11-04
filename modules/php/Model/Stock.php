@@ -29,8 +29,7 @@ namespace Bga\Games\zooloretto\Model;
 
 use Bga\Games\zooloretto\Utils;
 
-// FIXME: rename to Stock
-class Deck {
+class Stock {
     /**
      * The available tiles. Both arrays are keyed by the tile ID.
      *
@@ -77,13 +76,13 @@ class Deck {
     }
 
     /** @param Tile[] $pool */
-    public static function create(array $pool): Deck {
+    public static function create(array $pool): Stock {
         $values = array_values($pool);
 
         Utils::shuffle($values);
         $lastset = array_splice($values, 0, self::LASTSET_SIZE);
 
-        return new Deck($values, $lastset, null);
+        return new Stock($values, $lastset, null);
     }
 }
 

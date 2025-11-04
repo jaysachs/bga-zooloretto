@@ -50,7 +50,7 @@ class Model {
         $this->db->execute("INSERT INTO tiles (id, type) VALUES "
                            . implode(',', array_map($make, $tilepool)));
 
-        // Deck
+        // Stock
         $notBlock = function (Tile $t) : bool {
             return $t->type != TileType::BLOCK;
         };
@@ -58,14 +58,14 @@ class Model {
             return function($t)  use(&$c) : bool { return !$c($t); };
         };
 
-		$deck = Deck::create(array_filter($tilepool, $notBlock));
+		$stock = Stock::create(array_filter($tilepool, $notBlock));
 
         $make2 = function (Tile $tile) : string { return "($tile->id)"; };
-        $values = array_map($make2, $deck->primary);
-		$this->db->execute("INSERT INTO primary_deck (tile_id) VALUES "
+        $values = array_map($make2, $stock->primary);
+		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
                            . implode(',', $values));
-        $values = array_map($make2, $deck->endgame);
-		$this->db->execute("INSERT INTO endgame_deck (tile_id) VALUES "
+        $values = array_map($make2, $stock->endgame);
+		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
                            . implode(',', $values));
 
         // Trucks
@@ -138,10 +138,10 @@ class Model {
         return $this->_players;
     }
 
-    private ?Deck $_deck = null;
+    private ?Stock $_stock = null;
 
-    public function getDeck(): Deck {
-        if ($this->_deck == null) {
+    public function getStock(): Stock {
+        if ($this->_stock == null) {
             $tileFromRow = function(array $row): Tile { return new Tile(intval($row["tile_id"]), TileType::from($row["type"])); };
             $d = $this->game->globals->get('drawn', 0);
             $drawn = null;
@@ -155,32 +155,32 @@ class Model {
                     $tileFromRow,
                     $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type FROM $tblname p INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
             };
-            $this->_deck = new Deck($select('primary_deck'), $select('endgame_deck'), $drawn);
+            $this->_stock = new Stock($select('primary_stock'), $select('endgame_stock'), $drawn);
         }
-        return $this->_deck;
+        return $this->_stock;
     }
 
-    private function updateDeck(): void {
-        $deck = $this->_deck;
-        if ($deck == null) {
+    private function updateStock(): void {
+        $stock = $this->_stock;
+        if ($stock == null) {
             return;
         }
         // FIXME: Come back and re-evaulate this approach.
         // As long as all mutations go through model-owned objects, we can handle this.
         // For now, we only handle newly-drawn tile updates.
-        if ($deck->drawn == null) {
+        if ($stock->drawn == null) {
             return;
         }
-        $id = $deck->drawn->id;
+        $id = $stock->drawn->id;
         $this->game->globals->set('drawn', $id);
-        $this->db->execute("DELETE FROM primary_deck WHERE tile_id = $id");
+        $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");
     }
 
-    public function drawTile(): Deck {
-        $deck = $this->getDeck();
-        $deck->drawTile();
-        $this->updateDeck();
-        return $deck;
+    public function drawTile(): Stock {
+        $stock = $this->getStock();
+        $stock->drawTile();
+        $this->updateStock();
+        return $stock;
     }
 
 }

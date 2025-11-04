@@ -80,16 +80,16 @@ class Game extends \Bga\GameFramework\Table
 	protected function getAllDatas(): array
 	{
 		$model = new Model($this);
-		$deck = $model->getDeck();
+		$stock = $model->getStock();
 		$datas = [
             'trucks' => [
             ],
             'enclosures' => [
             ],
-            'primary_decksize' => count($deck->primary),
-            'endgame_decksize' => count($deck->endgame),
-            'drawntile' => ($deck->drawn == null) ? null : $deck->drawn->type->value,
-            'lastround' => $deck->inLastRound(),
+            'primary_stocksize' => count($stock->primary),
+            'endgame_stocksize' => count($stock->endgame),
+            'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
+            'lastround' => $stock->inLastRound(),
 		];
 		foreach ($model->getPlayers() as $player) {
 			$datas['players'][$player->id]['player_no'] = $player->no;

@@ -66,8 +66,8 @@ class CSS {
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
-  primary_decksize: number;
-  endgame_decksize: number;
+  primary_stocksize: number;
+  endgame_stocksize: number;
   lastround: boolean;
 }
 
@@ -214,11 +214,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       }
     };
 
-    addStock('endgame_pile', this.gamedatas.endgame_decksize);
+    addStock('endgame_pile', this.gamedatas.endgame_stocksize);
     if (!this.gamedatas.lastround) {
       this.addStockTile('endgame_pile', 'disk');
     }
-    addStock('primary_pile', this.gamedatas.primary_decksize);
+    addStock('primary_pile', this.gamedatas.primary_stocksize);
   }
 
   private currentPlayerNo: number;

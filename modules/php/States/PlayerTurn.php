@@ -68,7 +68,7 @@ class PlayerTurn extends AbstractState
 		}));
 		*/
 		return [
-			'can_draw' => $model->getDeck()->drawn == null,
+			'can_draw' => $model->getStock()->drawn == null,
 			'can_purchase' => $player->available_extensions > 0,
 			'can_buy' => false,
 			'can_swap' => false,
@@ -121,10 +121,10 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel();
 
-		$deck = $model->drawTile();
-		$tile = $deck->drawn;
+		$stock = $model->drawTile();
+		$tile = $stock->drawn;
 
-		if ($deck->waslastRoundTriggered()) {
+		if ($stock->waslastRoundTriggered()) {
 			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
 		}
 
@@ -135,8 +135,8 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'tile_id' => $tile->id,
 				'tile_type' => $tile->type->value,
-				'primary_left' => count($deck->primary),
-				'endgame_left' => count($deck->endgame),
+				'primary_left' => count($stock->primary),
+				'endgame_left' => count($stock->endgame),
 				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]
