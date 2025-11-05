@@ -212,7 +212,7 @@
     */
 }
 
-.back
+.back,.tileblock
 {
     /*
     width: 40%;
@@ -231,7 +231,9 @@
     border-radius: 5% 5%;
     border: 0 solid;
     filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-    background-image: url('img/Back.png');
+    background-size: 100% !important;
+    background-position: 0% 0% !important;
+    background-image: url('img/Back.png') !important;
 }
 
 .disk
@@ -622,7 +624,7 @@
 }
 
 
-.wagonsize
+.truck .tile
 {
     width: 100% !important;
     /* padding-bottom: 100% !important; */

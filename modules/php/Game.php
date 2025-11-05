@@ -29,6 +29,8 @@ namespace Bga\Games\zooloretto;
 
 use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Tile;
+use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
@@ -82,8 +84,15 @@ class Game extends \Bga\GameFramework\Table
 		$model = new Model($this);
 		$stock = $model->getStock();
 		$datas = [
-            'trucks' => [
-            ],
+            'trucks' => array_map(function (Truck $truck): array {
+				$content = function(int $pos, ?Tile $tile): array {
+					return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];
+				};
+				return [
+					'truck_id' => $truck->id,
+					'contents' => [ $content(1, $truck->tile1), $content(2, $truck->tile2), $content(3, $truck->tile3) ],
+				];
+			}, $model->getTrucks()),
             'enclosures' => [
             ],
             'primary_stocksize' => count($stock->primary),

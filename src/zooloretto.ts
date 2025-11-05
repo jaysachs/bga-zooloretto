@@ -24,6 +24,12 @@ class Attrs {
 }
 
 class IDS {
+  static readonly TRUCKS = 'trucks';
+  static readonly PRIMARY_PILE = 'primary_pile';
+  static readonly ENDGAME_PILE = 'endgame_pile';
+  static readonly DRAWN = 'drawn';
+  static truck(id : number) { return `truck_${id}`; }
+  static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
   /*
     static readonly AVAILABLE_ZCARDS: string = 'bbl_available_zcards';
     static readonly BOARD = 'bbl_board';
@@ -58,6 +64,7 @@ class IDS {
 class CSS {
   static readonly BACK = 'back';
   static readonly TILE = 'tile';
+  static readonly TRUCK = 'truck';
   static tile(tile_type: string) : string {
     return `tile${tile_type}`;
   }
@@ -74,7 +81,7 @@ class CSS {
 // The rules use "space".
 interface TruckSpace {
   // Unclear if we need this. Can just use position.
-  cell_id: number;
+  pos: number;
 
   // Unclear that we need this.
   // tile_id: number;
@@ -213,11 +220,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `
       <div id = "container1">
         <div id = "container2">
-          <div id = "wagons"></div>
-          <div id = "tiles"></div>
-          <div id = "stock">
-            <div id="primary_pile"></div>
-            <div id="endgame_pile"></div>
+          <div id="${IDS.TRUCKS}"></div>
+          <div id="${IDS.DRAWN}"></div>
+          <div id="stock">
+            <div id="${IDS.PRIMARY_PILE}"></div>
+            <div id="${IDS.ENDGAME_PILE}"></div>
           </div>
         </div>
 
@@ -237,6 +244,31 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 ` ;
   }
 
+  private setupTrucks(): void {
+    for (let truck of this.gamedatas.trucks) {
+      this.addTruckDiv(truck);
+    }
+  }
+
+  private addTruckDiv(truck: Truck): void {
+    let div = document.createElement('div');
+    div.id = IDS.truck(truck.truck_id);
+    div.classList.add(CSS.TRUCK);
+    this.trucks.appendChild(div);
+
+    for (let i in truck.contents) {
+      let contents = truck.contents[i]!;
+      let spaceDiv = document.createElement('div');
+      spaceDiv.id = IDS.truckSpace(truck.truck_id, contents.pos);
+      div.appendChild(spaceDiv);
+      if (contents.tile_type != null) {
+        let typeDiv = document.createElement('div');
+        typeDiv.classList.add(`tile${contents.tile_type}`, CSS.TILE);
+        spaceDiv.appendChild(typeDiv);
+      }
+    }
+  }
+
   private addStockTile(pileElem: HTMLElement, cls: string = 'back') {
     let div = document.createElement('span');
     pileElem.appendChild(div);
@@ -249,6 +281,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private endgamePile : HTMLElement;
   private primaryPile : HTMLElement;
   private drawnTiles : HTMLElement;
+  private trucks : HTMLElement;
 
   private setupStock() : void {
     let addStock = (pileElem : HTMLElement, size: number) => {
@@ -286,6 +319,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
 
     this.setupStock();
+    this.setupTrucks();
     this.setupDrawn(gamedatas.drawntile);
 
     /*
@@ -329,9 +363,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private setupGameHtml(): void {
     this.getGameAreaElement().insertAdjacentHTML('beforeend', this.baseHtml());
-    this.primaryPile = $('primary_pile');
-    this.endgamePile = $('endgame_pile');
-    this.drawnTiles = $('tiles');
+    this.primaryPile = $(IDS.PRIMARY_PILE);
+    this.endgamePile = $(IDS.ENDGAME_PILE);
+    this.drawnTiles = $(IDS.DRAWN);
+    this.trucks = $(IDS.TRUCKS);
   }
 
   private setupPlayerBoard(player: ZPlayer): void {
@@ -389,7 +424,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile.classList.remove(CSS.BACK);
     tile.classList.add(CSS.TILE, 'backtransition', CSS.tile(args.tile_type));
     // FIXME: need to handle disk removal
-    return this.animationManager.slideAndAttach(tile, $('tiles'), {})
+    return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
         .then(() => {
           let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
           if (count >= 5) {

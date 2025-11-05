@@ -80,11 +80,6 @@ class Tile {
 			$values[] = new Tile($x, TileType::LEOPARD_FEMALE);
 		}
 
-        if ($player_count == 2) {
-            for ($x = 201; $x <= 203; $x++) {
-                $values[] = new Tile($x, TileType::BLOCK);
-            }
-        }
 		if ($player_count >= 3) {
 			for ($x = 56; $x <= 62; $x++) {
 				$values[] = new Tile($x, TileType::MONKEY);

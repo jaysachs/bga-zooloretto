@@ -50,7 +50,7 @@ class Truck {
     }
 
     /**
-     * @param $pos 1-based position on the wagon
+     * @param $pos 1-based position on the truck
      */
     public function placeTileAt(Tile $tile, int $pos): void {
         switch ($pos) {

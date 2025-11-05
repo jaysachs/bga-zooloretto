@@ -40,44 +40,37 @@ class Model {
 
     public function createNewGame(int $player_count): void {
         $tilepool = Tile::createInitialPool($player_count);
+		$stock = Stock::create($tilepool);
+
+        // Now add "tiles" that should not be part of stock
+        // NOTE: we hardcode insertion of the "block", excluding it from the pool
+        // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
+        $block = new Tile(0, TileType::BLOCK);
+        $tilepool[] = $block;
+
 		$make = function (Tile $tile): string {
 			$id = $tile->id;
 			$ty = $tile->type->value;
 			return "($id,'$ty')";
 		};
 
-        // Overall tile -> type map.
+        // Insert overall tile -> type map.
         $this->db->execute("INSERT INTO tiles (id, type) VALUES "
                            . implode(',', array_map($make, $tilepool)));
 
-        // Stock
-        $notBlock = function (Tile $t) : bool {
-            return $t->type != TileType::BLOCK;
-        };
-        $negate = function (\Closure $c): \Closure {
-            return function($t)  use(&$c) : bool { return !$c($t); };
-        };
-
-		$stock = Stock::create(array_filter($tilepool, $notBlock));
-
+        // Insert stock piles
         $make2 = function (Tile $tile) : string { return "($tile->id)"; };
-        $values = array_map($make2, $stock->primary);
 		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
-                           . implode(',', $values));
-        $values = array_map($make2, $stock->endgame);
+                           . implode(',', array_map($make2, $stock->primary)));
 		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
-                           . implode(',', $values));
+                           . implode(',', array_map($make2, $stock->endgame)));
 
         // Trucks
         $trucks = [];
         if ($player_count == 2) {
-            $blocks = array_filter($tilepool, $negate($notBlock));
-            if (count($blocks) != 3) {
-                throw new ModelException("Expected exactly 3 block tiles");
-            }
             $trucks[] = new Truck(1);
-            $trucks[] = new Truck(2, null, null, array_shift($blocks));
-            $trucks[] = new Truck(3, null, array_shift($blocks), array_shift($blocks));
+            $trucks[] = new Truck(2, null, null, $block);
+            $trucks[] = new Truck(3, null, $block, $block);
         }
         else {
 			for ($x = 1; $x <= $player_count; $x++) {
@@ -183,6 +176,30 @@ class Model {
         $stock->drawTile();
         $this->updateStock();
         return $stock;
+    }
+
+    private ?array $_trucks = null;
+
+    /** @return Truck[] */
+    public function getTrucks(): array {
+        if ($this->_trucks == null) {
+            $rows = $this->db->getObjectList(
+                'SELECT tr.id, tr.taken_by, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3
+                FROM trucks AS tr
+                LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
+                LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
+                LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
+                ORDER BY tr.id');
+            $this->_trucks = array_map(function (array $row) : Truck {
+                $tile = function(int $pos) use (&$row): ?Tile {
+                    $id = $row["tile_id{$pos}"];
+                    if ($id == null) { return null; }
+                    return new Tile(intval($id), TileType::from($row["type{$pos}"]));
+                };
+                return new Truck(intval($row['id']), $tile(1), $tile(2), $tile(3));
+            }, $rows);
+        }
+        return $this->_trucks;
     }
 
 }

@@ -10,7 +10,7 @@
 
 -- For offspring, we'll add a new one starting at id 200.
 CREATE TABLE IF NOT EXISTS `tiles` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL,
   -- The tile type:
   --  C: camel generic
   --  CM: camel male
@@ -29,12 +29,13 @@ CREATE TABLE IF NOT EXISTS `tiles` (
   `type` varchar(10) NOT NULL,
   `reproduced` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `trucks` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   -- which player id took it, or 0 if still available
   `taken_by` int(10) NOT NULL DEFAULT 0,
+  -- NULL is empty; 0 is "blocked off"
   `tile_id1` int(10) unsigned,
   `tile_id2` int(10) unsigned,
   `tile_id3` int(10) unsigned,
