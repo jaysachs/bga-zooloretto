@@ -390,6 +390,36 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   */
   }
 
+  private onUpdateActionButtons_PlaceTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
+    // FIXME:
+    //   (a) slid tile "shrinks" and grows only at end
+    this.statusBar.removeActionButtons();
+    args.available_spaces.forEach((s) => {
+      $(IDS.truckSpace(s.truck_id, s.pos)).onclick = (evt) => {
+        let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
+        let dest = $(IDS.truckSpace(s.truck_id, s.pos));
+        this.animationManager.slideAndAttach(tile, dest, {})
+          .then(() => {
+            this.statusBar.removeActionButtons();
+            args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.pos)).onclick = null);
+            this.statusBar.addActionButton(_('Confirm'),
+              () => { this.bgaPerformAction('actPlaceTile', s) }, { autoclick: false });
+            this.statusBar.addActionButton(_('Cancel'),
+              () => { this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => this.onUpdateActionButtons_PlaceTile(args)); });
+          });
+        return true;
+      };
+    });
+  }
+
+  private async notif_PlaceTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, pos: number }) {
+    if (this.player_id != args.player_id) {
+      let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
+      let dest = $(IDS.truckSpace(args.truck_id, args.pos));
+      return this.animationManager.slideAndAttach(tile, dest, {});
+    }
+  }
+
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     if (playState.can_draw) {
       this.statusBar.addActionButton(_('Draw tile'), () => {
@@ -416,6 +446,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 				endgame_left: number,
     }
   ): Promise<void> {
+    // FIXME: the 2nd and subsequent draws from from the endgamePile
+
     // get the tile on the right pile
     // FIXME: factor out common IDs and elemes
     let pileElem = args.drawn_from_endgame_pile ? this.primaryPile : this.endgamePile;
