@@ -39,10 +39,6 @@ class Stock {
     public function __construct(public private(set) array $primary, public private(set) array $endgame, public private(set) ?Tile $drawn) {
     }
 
-    public function asTileMap(): array {
-        return array_map(function (Tile $tile): array { return [$tile->id, $tile->type->value]; }, $this->all());
-    }
-
     public function drawTile(): Tile {
         if ($this->drawn != null) {
             throw new \BgaUserException("Attmpt to draw a 2nd tile");
