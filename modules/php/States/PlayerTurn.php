@@ -69,11 +69,11 @@ class PlayerTurn extends AbstractState
 		*/
 		return [
 			'can_draw' => $model->getStock()->drawn == null && $model->spacesOnTrucks() > 0,
-			'can_purchase' => $player->available_extensions > 0,
+			'can_purchase' => $player->canPurchaseExtension(),
 			'can_buy' => false,
 			'can_swap' => false,
 			'can_move' => false,
-			'can_take_truck' => true, // FIXME: verify always true if we're in this state
+			'can_take_truck' => ! $player->truck_taken, // FIXME: verify always true if we're in this state
 			'money' => $player->money,
 			'unblockedzoo' => $player->purchased_extensions,
 			// 'wagons' =>  $wagondata,

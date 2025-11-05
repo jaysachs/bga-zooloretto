@@ -28,6 +28,10 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use \Bga\GameFramework\Table;
+use \Bga\GameFramework\Components\Counters\PlayerCounter;
+use \Bga\GameFramework\Components\Counters\TableCounter;
+
+
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
@@ -35,6 +39,9 @@ use \Bga\GameFramework\Table;
 */
 
 class Model {
+
+    private TableCounter $bankMoney;
+    private PlayerCounter $playerMoney;
 
     public function __construct(private Table $game, private Db $db = new DefaultDb()) {}
 
@@ -93,8 +100,29 @@ class Model {
         $this->db->execute("UPDATE player SET money = 2");
 
         $this->game->globals->set('drawn', 0);
+
+        $this->bankMoney = $this->game->counterFactory->createTableCounter('bankmoney');
+        $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
+
+        $this->bankMoney->set(30);
+        foreach ($this->getPlayers() as $player) {
+            $this->giveMoneyFromBank($player->id, 2);
+        }
     }
 
+    private function payMoney(Player $player, int $amount): void {
+        $player->payMoney($amount);
+        $this->bankMoney->inc($amount);
+    }
+
+    private function giveMoneyFromBank(Player $player, int $amount): void {
+        $bank = $this->bankMoney->get();
+        if ($bank < $amount) {
+            $amount = $bank;
+        }
+        $player->receiveMoney($amount);
+        $this->bankMoney->inc(-$amount);
+    }
 
     private function validatePlayer(Player $player): void {
         if ($player !== $this->getPlayer($player->id)) {
@@ -105,7 +133,6 @@ class Model {
     public function getActivePlayer(): Player {
         return $this->getPlayer(intval($this->game->getActivePlayerId()));
     }
-
 
     private function getPlayer(int $id): Player {
         $players = $this->getPlayers();
@@ -127,7 +154,7 @@ class Model {
             $potentialExtensions = $numPlayers == 2 ? 2 : 1;
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), 0, 0, false);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 0, 0, false);
             }
         }
         return $this->_players;
