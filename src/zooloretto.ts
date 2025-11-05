@@ -70,11 +70,46 @@ class CSS {
     */
 }
 
+// "cell" is a bad name. "container"? "spot"? "box"? "pen"? "cage"?
+// The rules use "space".
+interface TruckSpace {
+  // Unclear if we need this. Can just use position.
+  cell_id: number;
+
+  // Unclear that we need this.
+  // tile_id: number;
+
+  // Empty string for empty. FIXME: use null?
+  tile_type: string;
+
+  // We'll need to know if it's placeable, i.e. if coin. Bool? Or just use special type checks?
+  // We'll also need to know if it's animal or stall. Again, just special case certain types?
+  // Or do we pass back "where can this be placed" information?
+  // The latter works fine if we fully handle placement server-side.
+}
+
+interface Destination {
+  barn: boolean;
+  enclosure_id: number; // could use 0 for barn, or let this be 0-based
+  stall: boolean; // true if going to stall
+  space_id: number; // 1-based location
+}
+
+interface Truck {
+  truck_id: number;
+  // Should always be 3. null means empty.
+  // FIXME: Need to be careful about 0- and 1- based; probably best to be consistent
+  //   and use "null" for "nothing" and 0-based.
+  contents: TruckSpace[];
+}
+
 interface ZGamedatas extends Gamedatas<ZPlayer> {
   primary_stocksize: number;
   endgame_stocksize: number;
   lastround: boolean;
   drawntile: string;
+  // Should always be 3.
+  trucks: Truck[];
 }
 
 interface PlayState {
