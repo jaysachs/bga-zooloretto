@@ -28,6 +28,7 @@ class IDS {
   static readonly PRIMARY_PILE = 'primary_pile';
   static readonly ENDGAME_PILE = 'endgame_pile';
   static readonly DRAWN = 'drawn';
+
   static truck(id : number) { return `truck_${id}`; }
   static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
   /*
@@ -65,6 +66,9 @@ class CSS {
   static readonly BACK = 'back';
   static readonly TILE = 'tile';
   static readonly TRUCK = 'truck';
+  static readonly TARGETABLE = 'targetable';
+  static readonly SELECTABLE = 'selectable';
+  static readonly MOVED = 'moved';
   static tile(tile_type: string) : string {
     return `tile${tile_type}`;
   }
@@ -390,22 +394,43 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   */
   }
 
+  /**
+   *
+   * Need to write 1 or 2 more of these for the pattern(s) to become apparent.
+   *
+   * Consider these conceptual things:
+   *   1) "targetables" -- destinations for moves
+   *   2) "selectables" -- things that can be moved
+   *   3) "moved" -- things that were just moved
+   * Use these for CSS class names, etc, instead of the generic "highlight"
+   *
+
+   */
   private onUpdateActionButtons_PlaceTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
     // FIXME:
     //   (a) slid tile "shrinks" and grows only at end
     this.statusBar.removeActionButtons();
     args.available_spaces.forEach((s) => {
-      $(IDS.truckSpace(s.truck_id, s.pos)).onclick = (evt) => {
+      let space = $(IDS.truckSpace(s.truck_id, s.pos));
+      space.classList.add(CSS.TARGETABLE);
+      space.onclick = (evt) => {
+        space.classList.remove(CSS.TARGETABLE);
         let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
         let dest = $(IDS.truckSpace(s.truck_id, s.pos));
         this.animationManager.slideAndAttach(tile, dest, {})
           .then(() => {
+            dest.classList.add(CSS.MOVED);
             this.statusBar.removeActionButtons();
+            // mark as "targetable" and add onclick handlers
             args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.pos)).onclick = null);
             this.statusBar.addActionButton(_('Confirm'),
-              () => { this.bgaPerformAction('actPlaceTile', s) }, { autoclick: false });
+              () => { this.bgaPerformAction('actPlaceTile', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: false });
+              // FIXME: can we automatically capture this "cancelable"/"undoable" animation?
+              //   eg.    this.slideThing(from, to).then((undo) => ....  undo() ... )
+              //     where slideThing returns the undo as part of the returned promise?
+              //    also the notion of cancel has the "restart" sense
             this.statusBar.addActionButton(_('Cancel'),
-              () => { this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => this.onUpdateActionButtons_PlaceTile(args)); });
+              () => { dest.classList.remove(CSS.MOVED); this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => { this.onUpdateActionButtons_PlaceTile(args); }); });
           });
         return true;
       };

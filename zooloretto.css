@@ -460,7 +460,10 @@
 }
 
 
-
+.moved {
+    border:#22A520 0.4vw solid !important;
+    margin: -0.4vw !important;
+}
 
 .highlighted
 {
@@ -468,14 +471,14 @@
     transform: scale(0.84) !important;
 }
 
-.highlighted2
+.highlighted2,.targetable
 {
     border:#A52220 0.4vw solid !important;
     transform: scale(1) !important;
     cursor: pointer;
 }
 
-.highlighted3
+.highlighted3,.selectable
 {
     border:#2220A5 0.4vw solid !important;
     transform: scale(1) !important;
