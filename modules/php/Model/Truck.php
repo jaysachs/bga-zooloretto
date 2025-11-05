@@ -49,6 +49,10 @@ class Truck {
         }
     }
 
+    public function freeSpaces(): int {
+        return ($this->tile1 == null ? 1 : 0) + ($this->tile3 == null ? 1 : 0) + ($this->tile3 == null ? 1 : 0);
+    }
+
     /**
      * @param $pos 1-based position on the truck
      */

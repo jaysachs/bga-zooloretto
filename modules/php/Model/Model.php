@@ -233,6 +233,10 @@ class Model {
 
         return $tile;
     }
+
+    public function spacesOnTrucks() : int {
+        return array_sum(array_map(function (Truck $t): int { return $t->freeSpaces(); }, $this->getTrucks()));
+    }
 }
 
 /*
