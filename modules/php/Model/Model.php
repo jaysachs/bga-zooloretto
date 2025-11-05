@@ -164,6 +164,7 @@ class Model {
         // As long as all mutations go through model-owned objects, we can handle this.
         // For now, we only handle newly-drawn tile updates.
         if ($stock->drawn == null) {
+            $this->game->globals->set('drawn', 0);
             return;
         }
         $id = $stock->drawn->id;
@@ -202,6 +203,36 @@ class Model {
         return $this->_trucks;
     }
 
+    public function getTruck(int $truck_id): Truck {
+        foreach ($this->getTrucks() as $truck) {
+            if ($truck->id == $truck_id) {
+                return $truck;
+            }
+        }
+        throw new \Exception("No truck $truck_id found");
+    }
+
+    private function updateTruck(Truck $truck): void {
+        $nv = function (?Tile $tile): string { return $tile == null ? "NULL": "{$tile->id}"; };
+        $this->db->execute("UPDATE trucks
+                            SET tile_id1=" . $nv($truck->tile1) . ", tile_id2=" . $nv($truck->tile2) . ", tile_id3=" . $nv($truck->tile3) .
+                            " WHERE id = {$truck->id}");
+    }
+
+    public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {
+        $stock = $this->getStock();
+        if ($stock->drawn == null) {
+            throw new \Exception("No tile drawn");
+        }
+        $truck = $this->getTruck($truck_id);
+        $tile = $stock->removeDrawnTile();
+
+        $truck->placeTileAt($tile, $pos);
+        $this->updateStock();
+        $this->updateTruck($truck);
+
+        return $tile;
+    }
 }
 
 /*

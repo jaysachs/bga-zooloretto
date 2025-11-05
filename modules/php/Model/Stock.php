@@ -39,6 +39,15 @@ class Stock {
     public function __construct(public private(set) array $primary, public private(set) array $endgame, public private(set) ?Tile $drawn) {
     }
 
+    public function removeDrawnTile(): Tile {
+        if ($this->drawn == null) {
+            throw new \BgaUserException("Attmpt to remove a drawn tile but none drawn");
+        }
+        $tile = $this->drawn;
+        $this->drawn = null;
+        return $tile;
+    }
+
     public function drawTile(): Tile {
         if ($this->drawn != null) {
             throw new \BgaUserException("Attmpt to draw a 2nd tile");

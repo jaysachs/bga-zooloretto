@@ -29,8 +29,9 @@ namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
-use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Truck;
 
 class PlaceTile extends AbstractState
 {
@@ -40,34 +41,46 @@ class PlaceTile extends AbstractState
             game: $game,
             id: 3,
             type: StateType::ACTIVE_PLAYER,
-    		description: clienttranslate('${actplayer} must place a tile on a Wagon.'),
-    		descriptionMyTurn: clienttranslate('${you} must place a tile on a Wagon.'),
+    		description: clienttranslate('${actplayer} must place a tile on a truck.'),
+    		descriptionMyTurn: clienttranslate('${you} must place a tile on a truck.'),
         );
     }
 
     public function getArgs(int $active_player_id): array
     {
-        return [];
+        $model = new Model($this->game);
+        $available = [];
+        foreach ($model->getTrucks() as $truck) {
+            if ($truck->tile1 == null) {
+                $available[] = [ 'truck_id' => $truck->id, 'pos' => 1 ];
+            }
+            if ($truck->tile2 == null) {
+                $available[] = [ 'truck_id' => $truck->id, 'pos' => 2 ];
+            }
+            if ($truck->tile3 == null) {
+                $available[] = [ 'truck_id' => $truck->id, 'pos' => 3 ];
+            }
+        }
+        return [
+            'available_spaces' => $available,
+        ];
     }
 
     #[PossibleAction]
-    public function actPlaceTile(int $active_player_id, int $wagon_id, int $pos): mixed {
+    public function actPlaceTile(int $active_player_id, int $truck_id, int $pos): mixed {
 
 		$model = $this->createModel();
-		// $x is wagon ID
-		// $y is position on wagon (1-based)
-		/** @var Tile */
-		$tile = null; // $model->placeDrawnTileOnWagon($wagon_id, $pos);
+		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);
 
 		$this->notify->all(
 			"PlaceTile",
-			clienttranslate( '${player_name} placed the ${translatedval} tile on space ${y} of wagon ${x}.'),
+			clienttranslate( '${player_name} placed the ${translatedval} tile on space ${pos} of truck ${truck_id}.'),
 			[
 				'player_id' => $active_player_id,
-				'id' => $tile->id,
+				'tile_id' => $tile->id,
 				'val' => $tile->type->value,
-				'x' => $wagon_id,
-				'y' => $pos,
+                'truck_id' => $truck_id,
+                'pos' => $pos,
 				'translatedval' => $tile->type->translated(),
 				'i18n' => [ 'translatedval' ],
 			]

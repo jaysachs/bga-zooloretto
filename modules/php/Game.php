@@ -258,6 +258,24 @@ class Game extends \Bga\GameFramework\Table
 		$this->globals->set($global, $value);
 	}
 
+	public function debug_placeTile(int $truck_id, int $pos): void {
+		$model = new Model($this);
+		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);
+		$this->notify->all(
+			"PlaceTile",
+			clienttranslate( '${player_name} placed the ${translatedval} tile on space ${pos} of truck ${truck_id}.'),
+			[
+				'player_id' => $this->getActivePlayerId(),
+				'tile_id' => $tile->id,
+				'val' => $tile->type->value,
+                'truck_id' => $truck_id,
+                'pos' => $pos,
+				'translatedval' => $tile->type->translated(),
+				'i18n' => [ 'translatedval' ],
+			]
+		);
+	}
+
 	public function debug_resetGame(): void {
 		// FIXME: do more tables including resetting money.
 		$db = new DefaultDb();
