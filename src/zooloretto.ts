@@ -31,35 +31,6 @@ class IDS {
 
   static truck(id : number) { return `truck_${id}`; }
   static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
-  /*
-    static readonly AVAILABLE_ZCARDS: string = 'bbl_available_zcards';
-    static readonly BOARD = 'bbl_board';
-    static readonly HAND = 'bbl_hand';
-
-    static handcount(playerId: number): string {
-      return `bbl_handcount_${playerId}`;
-    }
-
-    static poolcount(playerId: number): string {
-      return `bbl_poolcount_${playerId}`;
-    }
-
-    static citycount(playerId: number): string {
-      return `bbl_citycount_${playerId}`;
-    }
-
-    static hexDiv(rc: RowCol): string {
-      return `bbl_hex_${rc.row}_${rc.col}`;
-    }
-
-    static playerBoardZcards(playerId: number): string {
-      return `bbl_zcards_${playerId}`;
-    }
-
-    static zcard(type: string): string {
-      return `bbl_${type}`;
-    }
-    */
 }
 
 class CSS {
@@ -158,29 +129,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.addTooltip(ele.id, this.zcardTooltips[ele.getAttribute(Attrs.ZTYPE)!], '');
       });
       */
-  }
-
-  private playerBoardExt(player_no: number): string {
-    /*
-      return `
-        <div>
-          <span class='bbl_pb_hand_label_${color_index}'></span>
-          <span id='${IDS.handcount(player_id)}'>5</span>
-        </div>
-        <div>
-          <span class='bbl_pb_pool_label_${color_index}'></span>
-          <span id='${IDS.poolcount(player_id)}'>19</span>
-        </div>
-        <div>
-          <span class='bbl_pb_citycount_label'></span>
-          <span id='${IDS.citycount(player_id)}'>1</span>
-        </div>
-        <div id='${IDS.playerBoardZcards(player_id)}' class='bbl_pb_zcards'>
-          <span class='bbl_pb_zcard_label'></span>
-        </div>
-  `;
-  */
-    return `<div>!!! playerBoardExtension ${player_no} !!!</div>`;
   }
 
   private playerHtml(player?: ZPlayer ): string {
@@ -301,8 +249,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.setupGameHtml();
 
     console.log('setting up player boards', gamedatas.players);
-    for (const playerId in gamedatas.players) {
-      this.setupPlayerBoard(gamedatas.players[playerId]!);
+    for (const player of Object.values(gamedatas.players)) {
+      this.setupPlayerBoard(player);
     }
 
     this.setupStock();
@@ -358,23 +306,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private setupPlayerBoard(player: ZPlayer): void {
     const playerId = player.player_id;
-    console.log('Setting up board for player ' + playerId);
-    this.getPlayerPanelElement(playerId)
-      .insertAdjacentHTML('beforeend', this.playerBoardExt(player.player_no));
-
-    /*
-  //    create counters per player
-  this.handCounters[playerId] = new ebg.counter();
-  this.handCounters[playerId]!.create(IDS.handcount(playerId));
-  this.poolCounters[playerId] = new ebg.counter();
-  this.poolCounters[playerId]!.create(IDS.poolcount(playerId));
-  this.cityCounters[playerId] = new ebg.counter();
-  this.cityCounters[playerId]!.create(IDS.citycount(playerId));
-  this.updateHandCount(player, false);
-  this.updatePoolCount(player, false);
-  this.updateCapturedCityCount(player, false);
-  this.scoreCtrl[playerId]!.setValue(player.score);
-  */
+    console.log('Setting up board for player ' + player.player_id);
+    this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend',`
+                    <div>!!! playerBoardExtension ${player.player_no} !!!</div>
+                    <span>${_("Money")}: </span><span id="money-counter-${playerId}"></span>
+ `);
+    const counter = new ebg.counter();
+    counter.create(
+        `money-counter-${playerId}`,
+        { value: player.money, playerCounter: 'money', playerId: playerId }
+    );
   }
 
   /**
