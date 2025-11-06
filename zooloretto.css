@@ -50,18 +50,6 @@
     width: 10%;
     height: auto;
     position: relative;
-    /*
-    display : flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    padding-bottom: 0%;
-    align-items: flex-start;
-    justify-content: center;
-    flex-direction: row;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
-    flex-wrap: wrap;
-    */
 }
 
 #stock {
@@ -71,18 +59,6 @@
     display: flex;
     grid-gap: 4px;
     flex-direction: column;
-
-/*    min-height: 100px; */
-    /*
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: flex-start;
-*/
-    /*
-    padding-bottom: 0%;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
-*/
 }
 
 #primary_pile {
@@ -97,12 +73,6 @@
     top: 40%;
     /* margin-top: 45%; */
 }
-/*
-#primary_pile,#endgame_pile {
-    position: relative;
-    display: block;
-}
-*/
 
 #primary_pile > span:nth-child(1) { left: 4%; margin-top: 4%; }
 #primary_pile > span:nth-child(2) { left: 8%; margin-top: 8%; }
@@ -124,42 +94,10 @@
     width: 30%;
     padding-bottom: 30%;
     margin-left: 30%;
-
-    /*
-    background-repeat: no-repeat;
-    background-size: contain;
-    */
-    /*
-    border-radius: 5% 5%;
-    border: 0 solid;
-    margin-right: 1%;
-    margin-bottom: 1%;
-    */
-    /*
-    margin-top: 1%;
-    margin-left: 1%;
-   */
-   /*
-    z-index:5;
-    transform-origin: center center;
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-    */
 }
 
 .back,.tileblock
 {
-    /*
-    width: 40%;
-    display : block;
-    position: absolute;
-    padding-bottom: 40%;
-    margin-right: 1%;
-    margin-bottom: 1%;
-    margin-top: 1%;
-    margin-left: 1%;
-    z-index:5;
-    transform-origin: center center;
-*/
     background-size: contain;
     background-repeat: no-repeat;
     border-radius: 5% 5%;
@@ -172,18 +110,6 @@
 
 .disk
 {
-    /*
-    width: 40%;
-    display : flex;
-    position: absolute;
-    padding-bottom: 40%;
-    margin-right: 1%;
-    margin-bottom: 1%;
-    margin-top: 1%;
-    margin-left: 1%;
-    z-index:5;
-    transform-origin: center center;
-*/
     filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
     border-radius: 5% 5%;
     border: 0 solid;
@@ -208,7 +134,6 @@
 }
 
 .leftpanel {
-
     width: 50%;
     height: auto;
     background-repeat: no-repeat;
@@ -223,8 +148,7 @@
     max-width: 10000px;
 }
 
-.playeraid
-{
+.playeraid {
     margin-top: 2%;
     margin-bottom: 2%;
     width: 30%;
@@ -253,12 +177,6 @@
     position: relative;
     padding-bottom: 46%;
     transition: background-image 2s;
-
-    /*
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    */
 }
 
 .board {
@@ -282,49 +200,6 @@
     background-image: url('img/Board22.png');
 }
 
-.cell {
-    width: 9%;
-    height: 9%;
-    position: absolute;
-    display : flex;
-    /* background-color: red;  */
-    z-index:5;
-    transform-origin: center center;
-}
-
-.cell2 {
-    width: 7.38%;
-    height: 9%;
-    position: absolute;
-    display : flex;
-    /* background-color: red;  */
-    z-index:5;
-    transform-origin: center center;
-}
-
-.stall {
-    width: 40%;
-    height: 15%;
-    position: absolute;
-    display : flex;
-     /* background-color: red;   */
-    flex-wrap: wrap;
-    z-index:5;
-    transform-origin: center center;
-}
-
-.stall2 {
-    width: 32.80816922%;
-    height: 15%;
-    position: absolute;
-    display : flex;
-     /* background-color: red;   */
-    flex-wrap: wrap;
-    z-index:5;
-    transform-origin: center center;
-}
-
-
 .moved {
     border:#22A520 0.4vw solid !important;
     margin: -0.4vw !important;
@@ -342,61 +217,6 @@
     /* cursor: pointer; */
 }
 
-.highlighted
-{
-    border:#22A520 0.4vw solid !important;
-    transform: scale(0.84) !important;
-}
-
-.highlighted2
-{
-    border:#A52220 0.4vw solid !important;
-    transform: scale(1) !important;
-    cursor: pointer;
-}
-
-.highlighted3
-{
-    border:#2220A5 0.4vw solid !important;
-    transform: scale(1) !important;
-    cursor: pointer;
-}
-
-
-.thinking
-{
-    opacity: 0.7;
-}
-.boardsize
-{
-    width: 100% !important;
-    /* padding-bottom: 100% !important; */
-}
-.stallsize
-{
-    width: 22.1% !important;
-    height: 22.1% !important;
-    padding-bottom: 13.3% !important;
-}
-.pointer
-{
-    cursor: pointer;
-}
-
-
-.playerscards{
-    width: 100%;
-    height: auto;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    display : flex;
-    padding-bottom: 0%;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0% 0% 0% 0%;
-}
 
 .zoom:hover {
     transform: scale(2.3);
@@ -426,15 +246,13 @@
     position: relative;
     overflow: auto;
     padding-top: 0%;
-     padding-bottom: 0%;
+    padding-bottom: 0%;
 }
 
 #trucks {
     background-color: #e9c7e9;
     width: 80%;
     height: auto;
-    background-repeat: no-repeat;
-    background-size: contain;
     position: relative;
     display : flex;
     padding-bottom: 0%;
@@ -442,19 +260,11 @@
     justify-content: center;
     flex-wrap: no-wrap;
     flex-direction: row;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
 }
 
-.truck
-{
+.truck {
     border-radius: 5% 5%;
     border: 0 solid;
-    display: flex;
-    flex-wrap: wrap;
-/*
-    display: inline-block;
-*/
     width: 30%;
     position: relative;
     background-size: contain;
@@ -466,9 +276,6 @@
     margin-left: 2%;
     margin-bottom: 2%;
     margin-top: 2%;
-    z-index:5;
-
-    transform-origin: center center;
     filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
 }
 
@@ -499,65 +306,20 @@
     /* padding-bottom: 100% !important; */
 }
 
-.plnomoney
-{
-    display : flex;
-    flex-direction: row;
-    width: 80%;
-}
-.plnomoney2
-{
-    display : flex;
-    flex-direction: row;
-    width: 100%;
-}
-.player_number
-{
-    display : flex;
-    flex-direction: row;
-    width: 20%;
-    margin-right: 10%;
-}
-
-.money
-{
+.tile {
+    /* these make sense, they round the corners */
     border-radius: 5% 5%;
     border: 0 solid;
-    width: 10%;
-    display: flex;
-    position: relative;
-    background-size: contain;
-    background-repeat: no-repeat;
-    padding-bottom: 10%;
-    margin-right: 2%;
-    margin-bottom: 4%;
-    margin-top: 4%;
-    margin-left: 2%;
-    z-index:5;
-    transform-origin: center center;
-    /* filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
-    background-image: url('img/Money.png');
-}
 
-
-.tile
-{
-    border-radius: 5% 5%;
-    border: 0 solid;
+    /* but why are all three of these needed for the "drawn" tile and also the animation of them moving? */
+    /* this sort of makes sense */
+    display: inline-block;
+    /* i guess specifying a width helps, but I don't understand the choice of number here. */
     width: 40%;
-    display : flex;
-    position: relative;
-    background-size: contain;
-    background-repeat: no-repeat;
+    /* and this?? */
     padding-bottom: 40%;
-    margin-right: 1%;
-    margin-bottom: 1%;
-    margin-top: 1%;
-    margin-left: 1%;
-    z-index:5;
-    transform-origin: center center;
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
 
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
     background-image: url('img/Tiles.png');
     background-size: 600% /* basically corresponds to number of columns in the sprite */
 }
@@ -743,3 +505,135 @@
 {
     background-image: url('img/SummaryDE.png');
 }
+
+
+
+/**************/
+
+
+
+.plnomoney
+{
+    display : flex;
+    flex-direction: row;
+    width: 80%;
+}
+.plnomoney2
+{
+    display : flex;
+    flex-direction: row;
+    width: 100%;
+}
+.player_number
+{
+    display : flex;
+    flex-direction: row;
+    width: 20%;
+    margin-right: 10%;
+}
+
+.money
+{
+    border-radius: 5% 5%;
+    border: 0 solid;
+    width: 10%;
+    display: flex;
+    position: relative;
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-bottom: 10%;
+    margin-right: 2%;
+    margin-bottom: 4%;
+    margin-top: 4%;
+    margin-left: 2%;
+    z-index:5;
+    transform-origin: center center;
+    /* filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
+    background-image: url('img/Money.png');
+}
+
+
+.cell {
+    width: 9%;
+    height: 9%;
+    position: absolute;
+    display : flex;
+    /* background-color: red;  */
+    z-index:5;
+    transform-origin: center center;
+}
+
+.cell2 {
+    width: 7.38%;
+    height: 9%;
+    position: absolute;
+    display : flex;
+    /* background-color: red;  */
+    z-index:5;
+    transform-origin: center center;
+}
+
+.stall {
+    width: 40%;
+    height: 15%;
+    position: absolute;
+    display : flex;
+     /* background-color: red;   */
+    flex-wrap: wrap;
+    z-index:5;
+    transform-origin: center center;
+}
+
+.stall2 {
+    width: 32.80816922%;
+    height: 15%;
+    position: absolute;
+    display : flex;
+     /* background-color: red;   */
+    flex-wrap: wrap;
+    z-index:5;
+    transform-origin: center center;
+}
+
+
+.highlighted
+{
+    border:#22A520 0.4vw solid !important;
+    transform: scale(0.84) !important;
+}
+
+.highlighted2
+{
+    border:#A52220 0.4vw solid !important;
+    transform: scale(1) !important;
+    cursor: pointer;
+}
+
+.highlighted3
+{
+    border:#2220A5 0.4vw solid !important;
+    transform: scale(1) !important;
+    cursor: pointer;
+}
+
+
+.thinking
+{
+    opacity: 0.7;
+}
+.boardsize
+{
+    width: 100% !important;
+    /* padding-bottom: 100% !important; */
+}
+.stallsize
+{
+    width: 22.1% !important;
+    height: 22.1% !important;
+    padding-bottom: 13.3% !important;
+}
+.pointer
+{
+    cursor: pointer;
+}
+
