@@ -445,20 +445,43 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
+  private addCancelButton(onCancel: CallableFunction): void {
+      this.statusBar.addActionButton(_('Cancel'),
+          () => {
+            this.statusBar.removeActionButtons();
+            onCancel();
+          });
+  }
+
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
+    let again = (c?: CallableFunction) =>
+      () => {
+        if (c) { c(); }
+        this.onUpdateActionButtons_PlayerTurn(playState);
+      };
     if (playState.can_draw) {
       this.statusBar.addActionButton(_('Draw tile'), () => {
         this.statusBar.removeActionButtons();
         this.statusBar.addActionButton(_('Confirm draw'),
           () => this.bgaPerformAction('actDrawTile'),
           { autoclick: true });
-        this.statusBar.addActionButton(_('Cancel'),
-          () => {
-            this.statusBar.removeActionButtons();
-            this.onUpdateActionButtons_PlayerTurn(playState);
-          });
+        this.addCancelButton(again());
       });
     }
+    if (playState.can_purchase) {
+      this.statusBar.addActionButton(_('Purchase extension'), () => {
+        this.statusBar.removeActionButtons();
+        this.renderNewExtension();
+        this.statusBar.addActionButton(_('Confirm purchase'),
+          () => this.bgaPerformAction('actPurchaseExtension'),
+          { autoclick: true });
+        this.addCancelButton(again(() => this.renderNewExtension()));
+      });
+    }
+  }
+
+  private renderNewExtension(): void {
+
   }
 
 
