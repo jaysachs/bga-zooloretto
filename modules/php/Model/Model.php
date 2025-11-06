@@ -100,13 +100,13 @@ class Model {
         $this->db->execute("UPDATE player SET money = 2");
 
         $this->game->globals->set('drawn', 0);
-
+        $player_ids = $this->db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
         $this->bankMoney = $this->game->counterFactory->createTableCounter('bankmoney');
+        $this->bankMoney->initDb(30);
         $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
-
-        $this->bankMoney->set(30);
+        $this->playerMoney->initDb($player_ids);
         foreach ($this->getPlayers() as $player) {
-            $this->giveMoneyFromBank($player->id, 2);
+            $this->giveMoneyFromBank($player, 2);
         }
     }
 
@@ -116,12 +116,13 @@ class Model {
     }
 
     private function giveMoneyFromBank(Player $player, int $amount): void {
-        $bank = $this->bankMoney->get();
+       $bank = $this->bankMoney->get();
         if ($bank < $amount) {
             $amount = $bank;
         }
         $player->receiveMoney($amount);
-        $this->bankMoney->inc(-$amount);
+       $this->playerMoney->inc($player->id, $amount);
+       $this->bankMoney->inc(-$amount);
     }
 
     private function validatePlayer(Player $player): void {
@@ -154,7 +155,7 @@ class Model {
             $potentialExtensions = $numPlayers == 2 ? 2 : 1;
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 0, 0, false);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), /* $this->playerMoney->get($id) */0, 0, 0, false);
             }
         }
         return $this->_players;
