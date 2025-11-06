@@ -573,26 +573,23 @@
     transform-origin: center center;
 }
 
-.stall {
-    width: 40%;
+.barn,.barn2p {
+    top: 82%;
     height: 15%;
     position: absolute;
-    display : flex;
-     /* background-color: red;   */
-    flex-wrap: wrap;
-    z-index:5;
-    transform-origin: center center;
+
+    background-color: red;
+    opacity: 0.4;
 }
 
-.stall2 {
+.barn {
+    left: 20%;
+    width: 40%;
+}
+
+.barn2p {
+    left: 34.383661599999996%;
     width: 32.80816922%;
-    height: 15%;
-    position: absolute;
-    display : flex;
-     /* background-color: red;   */
-    flex-wrap: wrap;
-    z-index:5;
-    transform-origin: center center;
 }
 
 

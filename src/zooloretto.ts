@@ -183,7 +183,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `<div>!!! playerBoardExtension ${player_no} !!!</div>`;
   }
 
-  private playerHtml(playerNo: number): string {
+  private playerHtml(playerNo: number, twoPlayer: boolean): string {
     return ``;
   }
 
@@ -192,35 +192,33 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const ratio2p = 0.82020423;
 
     let player_count = Object.keys(this.gamedatas.players).length;
-    var othersHtml = '';
-    var j = 0;
-    const ratio = player_count == 2 ? ratio2p : 1.0;
-    const delta = player_count == 2 ? delta2p : 0.0;
-    const stallClass = player_count == 2 ? "stall2" : "stall"
+    const twoPlayer = player_count == 2;
+    const ratio = twoPlayer ? ratio2p : 1.0;
+    const delta = twoPlayer ? delta2p : 0.0;
+    const barnClass = twoPlayer ? "barn2p" : "barn"
+    const boardClass = twoPlayer ? "board2p" : "board";
+    const barnLeft = twoPlayer ? 34.3836 : 20;
     var currentPlayer: ZPlayer | null = null;
+    var othersHtml = '';
+    // FIXME: use flexbox for playercards, not absolute top positioning
+    var pcardTop = 13;
     for (let i in this.gamedatas.players) {
-      let x = this.gamedatas.players[i]!;
-      if (x.player_no == this.currentPlayerNo) {
-        currentPlayer = x;
+      let player = this.gamedatas.players[i]!;
+      if (player.player_no == this.currentPlayerNo) {
+        currentPlayer = player;
       } else {
-        let pno = x.player_no;
-        j++;
-        let left = 0;
-        let top = 13 + j * 35;
-        let a = delta + ratio * 20;
-        let b = 82;
-        let boardClass = (player_count == 2) ? "board2p" : "board";
+        let pno = player.player_no;
         othersHtml += `
-              <div id="playercards_${pno}" class="playercards whiteblock" style="left: ${left}%; top: ${top}%;">
-                <div id ="playername_${pno}" class="playernameclass"><p>${x.name}</p></div>
-                <div id="board_${pno}" class="${boardClass} zoom" extensions="${x.purchased_extensions}">
-`                 + this.playerHtml(x.player_no) + `
-                  <div id="stall_${pno}" class="${stallClass}" style="left: ${a}%; top: ${b}%;"></div>
+              <div id="playercards_${pno}" class="playercards whiteblock" style="top: ${pcardTop}%;">
+                <div id ="playername_${pno}" class="playernameclass"><p>${player.name}</p></div>
+                <div id="board_${pno}" class="${boardClass} zoom" extensions="${player.purchased_extensions}">
+`                 + this.playerHtml(pno, twoPlayer) + `
+                  <div id="barn_${pno}" class="${barnClass}"></div>
                 </div>
               </div>`;
+        pcardTop += 35;
       }
     }
-    let boardClass = (player_count == 2) ? "board2p" : "board";
     return `
       <div id = "container1">
         <div id = "container2">
@@ -234,8 +232,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
         <div class="container3" id = "container3">
           <div id="board_${this.currentPlayerNo}" class="${boardClass}" extensions="${currentPlayer!.purchased_extensions}">
-`           + this.playerHtml(this.currentPlayerNo) + `
-            <div id="stall_${this.currentPlayerNo}" class="${stallClass}" style="left: 20%; top: 82%;"></div>
+`           + this.playerHtml(this.currentPlayerNo, twoPlayer) + `
+            <div id="barn_${this.currentPlayerNo}" class="${barnClass}"></div>
           </div>
           <div id="leftpanel" class="leftpanel">
             <div id="playercards" class="playercards">
