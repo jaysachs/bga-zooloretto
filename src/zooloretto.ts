@@ -307,14 +307,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private setupPlayerBoard(player: ZPlayer): void {
     const playerId = player.player_id;
     console.log('Setting up board for player ' + player.player_id);
+    const moneyid = `playermoney-counter-${playerId}`;
     this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend',`
                     <div>!!! playerBoardExtension ${player.player_no} !!!</div>
-                    <span>${_("Money")}: </span><span id="money-counter-${playerId}"></span>
+                    <span>${_("Money")}: </span><span id="${moneyid}"></span>
  `);
     const counter = new ebg.counter();
     counter.create(
-        `money-counter-${playerId}`,
-        { value: player.money, playerCounter: 'money', playerId: playerId }
+        moneyid,
+        { value: player.money, playerCounter: 'playermoney', playerId: playerId }
     );
   }
 
