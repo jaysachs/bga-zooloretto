@@ -183,42 +183,37 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `<div>!!! playerBoardExtension ${player_no} !!!</div>`;
   }
 
-  private playerHtml(playerNo: number, twoPlayer: boolean): string {
-    return ``;
+  private playerHtml(player?: ZPlayer ): string {
+    if (!player) { return ''; }
+    const barnClass = this.twoPlayer ? "barn2p" : "barn"
+    const boardClass = this.twoPlayer ? "board2p" : "board";
+    const zoomClass = player.player_id != this.player_id ? "zoom" : "";
+    return `
+                    <div id="board_${player.player_no}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
+                      <div id="barn_${player.player_no}" class="${barnClass}"></div>
+                    </div>
+`;
+  }
+
+  private otherPlayerHtml(player: ZPlayer) : string {
+    return `
+              <div id="playercards_${player.player_no}" class="playercards whiteblock">
+                <div id ="playername_${player.player_no}" class="playernameclass"><p>${player.name}</p></div>
+`                 + this.playerHtml(player) + `
+                </div>
+              </div>
+  `;
   }
 
   private baseHtml(): string {
+    /*
     const delta2p = 17.979577;
     const ratio2p = 0.82020423;
-
-    let player_count = Object.keys(this.gamedatas.players).length;
-    const twoPlayer = player_count == 2;
     const ratio = twoPlayer ? ratio2p : 1.0;
     const delta = twoPlayer ? delta2p : 0.0;
-    const barnClass = twoPlayer ? "barn2p" : "barn"
-    const boardClass = twoPlayer ? "board2p" : "board";
-    const barnLeft = twoPlayer ? 34.3836 : 20;
-    var currentPlayer: ZPlayer | null = null;
-    var othersHtml = '';
-    // FIXME: use flexbox for playercards, not absolute top positioning
-    var pcardTop = 13;
-    for (let i in this.gamedatas.players) {
-      let player = this.gamedatas.players[i]!;
-      if (player.player_no == this.currentPlayerNo) {
-        currentPlayer = player;
-      } else {
-        let pno = player.player_no;
-        othersHtml += `
-              <div id="playercards_${pno}" class="playercards whiteblock" style="top: ${pcardTop}%;">
-                <div id ="playername_${pno}" class="playernameclass"><p>${player.name}</p></div>
-                <div id="board_${pno}" class="${boardClass} zoom" extensions="${player.purchased_extensions}">
-`                 + this.playerHtml(pno, twoPlayer) + `
-                  <div id="barn_${pno}" class="${barnClass}"></div>
-                </div>
-              </div>`;
-        pcardTop += 35;
-      }
-    }
+*/
+    let currentPlayer = this.gamedatas.players[this.player_id];
+    let players = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
     return `
       <div id = "container1">
         <div id = "container2">
@@ -229,27 +224,21 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             <div id="${IDS.ENDGAME_PILE}"></div>
           </div>
         </div>
-
         <div class="container3" id = "container3">
-          <div id="board_${this.currentPlayerNo}" class="${boardClass}" extensions="${currentPlayer!.purchased_extensions}">
-`           + this.playerHtml(this.currentPlayerNo, twoPlayer) + `
-            <div id="barn_${this.currentPlayerNo}" class="${barnClass}"></div>
-          </div>
+`         + this.playerHtml(currentPlayer) + `
           <div id="leftpanel" class="leftpanel">
             <div id="playercards" class="playercards">
-`             + othersHtml + `
+`             + players.map((p) => this.otherPlayerHtml(p)) + `
             </div>
           </div>
         </div>
-        <div class="playeraid" id = "playeraid"></div>
+        <div id="playeraid"></div>
       </div>
 ` ;
   }
 
   private setupTrucks(): void {
-    for (let truck of this.gamedatas.trucks) {
-      this.addTruckDiv(truck);
-    }
+    this.gamedatas.trucks.forEach((truck) => this.addTruckDiv(truck));
   }
 
   private addTruckDiv(truck: Truck): void {
@@ -299,18 +288,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     addStock(this.primaryPile, this.gamedatas.primary_stocksize);
   }
 
-  private currentPlayerNo: number;
+  private twoPlayer: boolean;
 
   override setup(gamedatas: ZGamedatas) {
     console.log(gamedatas);
     super.setup(gamedatas);
-
+    this.twoPlayer = Object.keys(gamedatas.players).length == 2;
     for (const playerId in gamedatas.players) {
       const pd = gamedatas.players[playerId]!;
       this.playerIdToColorIndex[playerId] = colorIndexMap[pd.color]!;
-      if (this.player_id == pd.player_id) {
-        this.currentPlayerNo = pd.player_no;
-      }
     }
 
     this.setupGameHtml();
