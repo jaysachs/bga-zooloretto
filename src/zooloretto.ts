@@ -131,14 +131,43 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       */
   }
 
+  private cellId(player_no: number, enclosure_id : number, cell : number) {
+    return ;
+  }
+
   private playerHtml(player?: ZPlayer ): string {
     if (!player) { return ''; }
     const barnClass = this.twoPlayer ? "barn2p" : "barn"
     const boardClass = this.twoPlayer ? "board2p" : "board";
     const zoomClass = player.player_id != this.player_id ? "zoom" : "";
+    const cellClass = "cell";
+    const enclosureClass = "enclosure";
+    const pno = player.player_no;
+    let cellId = (e:number, c:number) => `enclosure_${pno}_${e}_${c}`;
+    let enclosure = (e:number, n: number): string => {
+      let html = `
+                    <div id="enclosure_${pno}_${e}" enclosure="${e}">
+`;
+      for (let i = 0; i < n; ++i) {
+        html += `
+                      <div id="${cellId(e, i)}" class="${cellClass}"></div>
+`;
+      }
+      html += `
+                    </div>
+`;
+      return html;
+    };
+    // FIXME: the last one is the stalls.
     return `
-                    <div id="board_${player.player_no}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
-                      <div id="barn_${player.player_no}" class="${barnClass}"></div>
+                    <div id="board_${pno}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
+                      <div id="barn_${pno}" class="${barnClass}"></div>
+`                     + enclosure(1, 5)
+                      + enclosure(2, 4)
+                      + enclosure(3, 6)
+                      + enclosure(4, 5)
+                      + enclosure(5, 5)
+                      + (this.twoPlayer ? enclosure(6, 6) : '') + `
                     </div>
 `;
   }
@@ -349,7 +378,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             // mark as "targetable" and add onclick handlers
             args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.pos)).onclick = null);
             this.statusBar.addActionButton(_('Confirm'),
-              () => { this.bgaPerformAction('actPlaceTile', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: false });
+              () => { this.bgaPerformAction('actPlaceTile', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: true });
               // FIXME: can we automatically capture this "cancelable"/"undoable" animation?
               //   eg.    this.slideThing(from, to).then((undo) => ....  undo() ... )
               //     where slideThing returns the undo as part of the returned promise?
