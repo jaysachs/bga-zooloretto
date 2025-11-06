@@ -209,18 +209,18 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         let top = 13 + j * 35;
         let a = delta + ratio * 20;
         let b = 82;
-        let boardClass = "board" + (player_count == 2 ? '2' : '') + x.purchased_extensions;
+        let boardClass = (player_count == 2) ? "board2p" : "board";
         othersHtml += `
               <div id="playercards_${pno}" class="playercards whiteblock" style="left: ${left}%; top: ${top}%;">
                 <div id ="playername_${pno}" class="playernameclass"><p>${x.name}</p></div>
-                <div id="board_${pno}" class="${boardClass} zoom">
+                <div id="board_${pno}" class="${boardClass} zoom" extensions="${x.purchased_extensions}">
 `                 + this.playerHtml(x.player_no) + `
                   <div id="stall_${pno}" class="${stallClass}" style="left: ${a}%; top: ${b}%;"></div>
                 </div>
               </div>`;
       }
     }
-    let boardClass = "board" + (player_count == 2 ? '2' : '') + currentPlayer!.purchased_extensions;
+    let boardClass = (player_count == 2) ? "board2p" : "board";
     return `
       <div id = "container1">
         <div id = "container2">
@@ -233,7 +233,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         </div>
 
         <div class="container3" id = "container3">
-          <div id="board_${this.currentPlayerNo}" class="${boardClass}">
+          <div id="board_${this.currentPlayerNo}" class="${boardClass}" extensions="${currentPlayer!.purchased_extensions}">
 `           + this.playerHtml(this.currentPlayerNo) + `
             <div id="stall_${this.currentPlayerNo}" class="${stallClass}" style="left: 20%; top: 82%;"></div>
           </div>
