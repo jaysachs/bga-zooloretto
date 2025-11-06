@@ -40,10 +40,13 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 
 class Model {
 
-    private TableCounter $bankMoney;
-    private PlayerCounter $playerMoney;
+    public TableCounter $bankMoney;
+    public PlayerCounter $playerMoney;
 
-    public function __construct(private Table $game, private Db $db = new DefaultDb()) {}
+    public function __construct(private Table $game, private Db $db = new DefaultDb()) {
+        $this->bankMoney = $this->game->counterFactory->createTableCounter('bankmoney');
+        $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
+    }
 
     public function createNewGame(int $player_count): void {
         $tilepool = Tile::createInitialPool($player_count);
@@ -101,9 +104,7 @@ class Model {
 
         $this->game->globals->set('drawn', 0);
         $player_ids = $this->db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
-        $this->bankMoney = $this->game->counterFactory->createTableCounter('bankmoney');
         $this->bankMoney->initDb(30);
-        $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
         $this->playerMoney->initDb($player_ids);
         foreach ($this->getPlayers() as $player) {
             $this->giveMoneyFromBank($player, 2);

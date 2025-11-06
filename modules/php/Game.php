@@ -105,6 +105,8 @@ class Game extends \Bga\GameFramework\Table
 			$datas['players'][$player->id]['player_id'] = $player->id;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 		}
+		$model->playerMoney->fillResult($datas);
+		$model->bankMoney->fillResult($datas);
         return $datas;
 	}
 

@@ -315,7 +315,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const counter = new ebg.counter();
     counter.create(
         moneyid,
-        { value: player.money, playerCounter: 'playermoney', playerId: playerId }
+        { value: (player as any).playermoney, playerCounter: 'playermoney', playerId: playerId }
     );
   }
 
