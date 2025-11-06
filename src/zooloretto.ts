@@ -199,8 +199,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `
               <div id="playercards_${player.player_no}" class="playercards whiteblock">
                 <div id ="playername_${player.player_no}" class="playernameclass"><p>${player.name}</p></div>
-`                 + this.playerHtml(player) + `
-                </div>
+`               + this.playerHtml(player) + `
               </div>
   `;
   }
