@@ -1,7 +1,7 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * Zooloretto implementation : © <Your name here> <Your email address here>
+ * Zooloretto implementation : © Jay Sachs <vagabond@covariant.org>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -12,60 +12,6 @@
  * Zooloretto stylesheet
  *
  */
-
-/*
-    This is the CSS stylesheet of your game User Interface.
-
-    Styles defined on this file will be applied to the HTML elements you define in your
-    HTML template (zooloretto_zooloretto.tpl), and to HTML elements you create dynamically
-    (in zooloretto.js).
-
-    Usually, you are using CSS to:
-
-    1°) define the overall layout of your game
-        (ex: place the board on the top left, place player's hand beside, place the deck on the right, ...).
-
-    2°) create your CSS-sprites:
-        All images of your games should be gathered into a small number of image files. Then, using
-        background-image and background-position CSS properties, you create HTML blocks that can
-        display these images correctly (see example below).
-
-    3°) ... anything else:
-        It is really easy to add and remove CSS classes dynamically from your Javascript with
-        dojo.addClass and dojo.removeClass. It is also easy to check if an element has a class
-        (dojo.hasClass) or to get all elements with a specific class (dojo.query). This is why,
-        very often, using CSS classes for the logic of your user interface allow you to do complex
-        thing easily.
-
-
-     Note: on the production platform, this file will be compressed and comments will be removed.
-           Consequently, don't hesitate to put as many comments as necessary.
-*/
-
-
-/* Note: you must not use any @import directive */
-
-
-/********* You can start writing your CSS below this line: **********/
-
-
-/*
-    Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
-
-    .white_token {
-        background-image: url('img/tokens.png');
-        background-position: 0px 0px;
-    }
-    .black_token {
-        background-image: url('img/tokens.png');
-        background-position: -20px 0px;
-    }
-    .token {
-        width: 20px;
-        height: 20px;
-        background-repeat: none;
-    }
-*/
 
 #container1 {
     background-color: yellow;
@@ -98,18 +44,6 @@
     margin: 0% 0% 0% 0%;
     max-width: 10000px;
 }
-
-.buttonvisible
-{
-    display: inline-block !important;
-}
-
-
-.buttoninvisible
-{
-    display: none !important;
-}
-
 
 #drawn {
     background-color: #e3d7c9;
@@ -259,7 +193,6 @@
 }
 
 .container3 {
-
     width: 100%;
     height: auto;
     background-repeat: no-repeat;
@@ -290,26 +223,6 @@
     max-width: 10000px;
 }
 
-
-
-.board0 {
-    margin-top: 2%;
-    margin-bottom: 2%;
-    width: 46%;
-    height: auto;
-    display: flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    padding-bottom: 46%;
-    align-items: flex-start;
-    justify-content: flex-start;
-    background-image: url('img/Board0.png');
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
-}
-
 .playeraid
 {
     margin-top: 2%;
@@ -328,93 +241,45 @@
     margin-left: 1%;
 }
 
-.playeraidIT
-{
-    background-image: url('img/SummaryIT.png');
-}
-.playeraidEN
-{
-    background-image: url('img/SummaryEN.png');
-}
-.playeraidFR
-{
-    background-image: url('img/SummaryFR.png');
-}
-.playeraidDE
-{
-    background-image: url('img/SummaryDE.png');
-}
-
-.board1 {
+.board, .board2p {
+    margin-right: 1%;
+    margin-left: 1%;
     margin-top: 2%;
     margin-bottom: 2%;
     width: 46%;
     height: auto;
-    display: flex;
     background-repeat: no-repeat;
     background-size: contain;
     position: relative;
     padding-bottom: 46%;
+    transition: background-image 2s;
+
+    /*
+    display: flex;
     align-items: flex-start;
     justify-content: flex-start;
+    */
+}
+
+.board {
+    background-image: url('img/Board0.png');
+}
+
+.board[extensions="1"] {
     background-image: url('img/Board1.png');
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
 }
 
-.board20 {
-    margin-top: 2%;
-    margin-bottom: 2%;
-    width: 46%;
-    height: auto;
-    display: flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
+.board2p {
     padding-bottom: 38%;
-    align-items: flex-start;
-    justify-content: flex-start;
     background-image: url('img/Board20.png');
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
 }
 
-.board21 {
-    margin-top: 2%;
-    margin-bottom: 2%;
-    width: 46%;
-    height: auto;
-    display: flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    padding-bottom: 38%;
-    align-items: flex-start;
-    justify-content: flex-start;
+.board2p[extensions="1"] {
     background-image: url('img/Board21.png');
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
 }
 
-.board22 {
-    margin-top: 2%;
-    margin-bottom: 2%;
-    width: 46%;
-    height: auto;
-    display: flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    padding-bottom: 38%;
-    align-items: flex-start;
-    justify-content: flex-start;
+.board2p[extensions="2"] {
     background-image: url('img/Board22.png');
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
 }
 
 .cell {
@@ -465,20 +330,32 @@
     margin: -0.4vw !important;
 }
 
+.targetable {
+    cursor: pointer;
+    border:#A52220 0.4vw solid !important;
+    margin: -0.4vw !important;
+}
+
+.selectable {
+    border:#2220A5 0.4vw solid !important;
+    transform: scale(1) !important;
+    /* cursor: pointer; */
+}
+
 .highlighted
 {
     border:#22A520 0.4vw solid !important;
     transform: scale(0.84) !important;
 }
 
-.highlighted2,.targetable
+.highlighted2
 {
     border:#A52220 0.4vw solid !important;
     transform: scale(1) !important;
     cursor: pointer;
 }
 
-.highlighted3,.selectable
+.highlighted3
 {
     border:#2220A5 0.4vw solid !important;
     transform: scale(1) !important;
@@ -615,17 +492,6 @@
     top: 14%;
     left: 67%;
 }
-
-.cellwagon3 {
-	width: 26.835%;
-    height: 70%;
-    position: absolute;
-	display : flex;
-    /* background-color: red;  */
-    z-index: 5;
-	transform-origin: top;
-}
-
 
 .truck .tile
 {
@@ -859,4 +725,21 @@
 {
     background-image: url('img/Coin.png');
     background-size: 100%
+}
+
+.playeraidIT
+{
+    background-image: url('img/SummaryIT.png');
+}
+.playeraidEN
+{
+    background-image: url('img/SummaryEN.png');
+}
+.playeraidFR
+{
+    background-image: url('img/SummaryFR.png');
+}
+.playeraidDE
+{
+    background-image: url('img/SummaryDE.png');
 }
