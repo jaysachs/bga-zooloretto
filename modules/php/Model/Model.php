@@ -163,8 +163,8 @@ class Model {
             $potentialExtensions = $numPlayers == 2 ? 2 : 1;
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $taken = $row["taken_by"];
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 2, 0, $taken != null && $taken != "0");
+                $taken = intval($row["taken_by"]);
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 2, 0, $taken);
             }
         }
         return $this->_players;
@@ -254,7 +254,8 @@ class Model {
         $this->db->execute("UPDATE trucks
                             SET tile_id1=" . $nv($truck->tileAt(1)) . ", "
                              . "tile_id2=" . $nv($truck->tileAt(2)) . ", "
-                             . "tile_id3=" . $nv($truck->tileAt(3))
+                             . "tile_id3=" . $nv($truck->tileAt(3)) . ", "
+                             . "taken_by=" . $truck->taken_by
                              . " WHERE id = {$truck->id}");
     }
 
@@ -279,7 +280,7 @@ class Model {
 
     public function playerTakeTruck(int $player_id, int $truck_id): Truck {
         $player = $this->getPlayer($player_id);
-        $player->takeTruck();
+        $player->takeTruck($truck_id);
         $truck = $this->getTruck($truck_id);
         $truck->taken_by = $player_id;
         $this->updateTruck($truck);

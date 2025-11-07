@@ -34,7 +34,7 @@ class Player {
         public private(set) int $money,
         public private(set) int $available_extensions,
         public private(set) int $purchased_extensions,
-        public private(set) bool $truck_taken) {}
+        public private(set) int $truck_taken) {}
 
     private int $spent = 0;
     private int $received = 0;
@@ -53,11 +53,11 @@ class Player {
         $this->receiveMoney(self::DISCARD_COST);
     }
 
-    public function takeTruck(): void {
+    public function takeTruck(int $truck_id): void {
         if ($this->truck_taken) {
-            throw new \BgaUserException("Wagon already taken by player $this->id");
+            throw new \BgaUserException("Truck already taken by player $this->id");
         }
-        $this->truck_taken = true;
+        $this->truck_taken = $truck_id;
     }
 
     public function receiveMoney(int $amount): void {
