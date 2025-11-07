@@ -230,7 +230,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let spaceDiv = document.createElement('div');
       spaceDiv.id = IDS.truckSpace(truck.truck_id, contents.pos);
       div.appendChild(spaceDiv);
-      if (contents.tile_type != null) {
+      if (contents.tile_type != '') {
         let typeDiv = document.createElement('div');
         typeDiv.classList.add(`tile${contents.tile_type}`, CSS.TILE);
         spaceDiv.appendChild(typeDiv);

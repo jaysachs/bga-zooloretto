@@ -52,7 +52,7 @@ class PlaceTile extends AbstractState
         $available = [];
         foreach ($model->getTrucks() as $truck) {
             foreach ($truck->getAllTiles() as $pos => $tile)
-            if ($tile == null) {
+            if ($tile->type->isEmpty()) {
                 $available[] = [ 'truck_id' => $truck->id, 'pos' => $pos ];
             }
         }

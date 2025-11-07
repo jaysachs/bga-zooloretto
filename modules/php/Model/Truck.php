@@ -27,17 +27,27 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use \Bga\Games\zooloretto\Utils;
+
 class Truck {
     public const CAPACITY = 3;
 
-    /** @param $tiles ?Tile[] */
+    /** @param $tiles Tile[] */
     public function __construct(
         public readonly int $id,
-        private array $tiles = [null, null, null],
+        private ?array $tiles = null,
         public int $taken_by = 0) {
-        $c = count($tiles);
+        if ($this->tiles == null) {
+            $this->tiles = [Tile::empty(), Tile::empty(), Tile::empty()];
+        }
+        $c = count($this->tiles);
         if ($c != self::CAPACITY) {
             throw new \Exception("Attempt to construct Truck with contents of size {$c} different than {" + self::CAPACITY);
+        }
+        foreach ($this->tiles as $tile) {
+            if ($tile == null) {
+                throw new \Exception("Cannot have null tiles in a truck");
+            }
         }
     }
 
@@ -67,7 +77,7 @@ class Truck {
             return false;
         }
         foreach ($this->tiles as $tile) {
-            if ($tile != null && !$tile->type->isBlock()) {
+            if (! $tile->type->isEmpty() && !$tile->type->isBlock()) {
                 return true;
             }
         }
@@ -82,20 +92,28 @@ class Truck {
     }
 
     public function freeSpaces(): int {
-        return array_reduce($this->tiles, fn ($s, $t) => ($s + ($t == null ? 1 : 0)), 0);
+        return array_reduce($this->tiles, fn ($s, Tile $t) => ($s + ($t->type->isEmpty() ? 1 : 0)), 0);
     }
 
     /**
      * @param $pos 1-based position on the truck
      */
     public function placeTileAt(Tile $tile, int $pos): void {
+        if ($tile == null) {
+            throw new ModelException("Cannot place null tile into truck");
+        }
         if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot place tile in position $pos of truck");
         }
         $p = $pos - 1;
-        if ($this->tiles[$p] != null) {
+        if (!$this->tiles[$p]->type->isEmpty()) {
             throw new ModelException("Cannot place tile in already occupied truck position $pos");
         }
         $this->tiles[$p] = $tile;
+    }
+
+    public function __toString(): string
+    {
+        return "Truck(id=$this->id,tiles=" . Utils::arrayToString($this->tiles) . ")";
     }
 }

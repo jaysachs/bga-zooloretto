@@ -145,6 +145,10 @@ class Tile {
         return $values;
     }
 
+	// public function isEmpty(): bool {
+	// 	return $this->type->isEmpty();
+	// }
+
 	public function __toString()
 	{
 		$type = $this->type->value;

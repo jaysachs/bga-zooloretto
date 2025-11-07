@@ -38,25 +38,27 @@ class Enclosure {
      */
     public function __construct(public readonly int $id, int $animal_capacity, int $stall_capacity , public array $animals = [], public array $stalls = []) {
         while (count($animals) < $animal_capacity) {
-            $animals[] = null;
+            $animals[] = Tile::empty();
         }
         while (count($stalls) < $stall_capacity) {
-            $stalls[] = null;
+            $stalls[] = Tile::empty();
         }
         foreach ($stalls as $spot) {
-            if ($spot != null) {
+            if ($spot == null) {
+                throw new ModelException("null tiles not allowed in Enclosure stalls");
+            }
+            if (!$spot->type->isEmpty() && !$spot->type->isStall()) {
                 $t = $spot->type->value;
-                if (!$spot->type->isStall()) {
-                    throw new \BgaUserException("Enclosure $id should not contain non-stall tile id $spot->id of type $t");
-                }
+                throw new ModelException("Enclosure $id should not contain non-stall tile id $spot->id of type $t");
             }
         }
         foreach ($animals as $spot) {
-            if ($spot != null) {
+            if ($spot == null) {
+                throw new \Exception("null tiles not allowed in Enclosure stalls");
+            }
+            if (!$spot->type->isEmpty() && !$spot->type->isAnimal()) {
                 $t = $spot->type->value;
-                if (!$spot->type->isAnimal()) {
-                    throw new \BgaUserException("Enclosure $id should not contain non-animal tile id $spot->id of type $t");
-                }
+                throw new ModelException("Enclosure $id should not contain non-animal tile id $spot->id of type $t");
             }
         }
     }
@@ -73,7 +75,7 @@ class Enclosure {
 
     private function availableStallPos(): int {
         foreach ($this->stalls as $i => $t) {
-            if ($t == null) {
+            if ($t->type->isEmpty()) {
                 return $i+1;
             }
         }
@@ -82,7 +84,7 @@ class Enclosure {
 
     private function availableAnimalPos(TileType $type): int {
         foreach ($this->animals as $i => $t) {
-            if ($t == null) {
+            if ($t->type->isEmpty()) {
                 return $i+1;
             }
         }

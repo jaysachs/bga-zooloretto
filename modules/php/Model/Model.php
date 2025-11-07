@@ -57,8 +57,9 @@ class Model {
         // Now add "tiles" that should not be part of stock
         // NOTE: we hardcode insertion of the "block", excluding it from the pool
         // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
-        $block = new Tile(0, TileType::BLOCK);
+        $block = new Tile(10000, TileType::BLOCK);
         $tilepool[] = $block;
+        $tilepool[] = Tile::empty();
 
 		$make = function (Tile $tile): string {
 			$id = $tile->id;
@@ -81,8 +82,8 @@ class Model {
         $trucks = [];
         if ($player_count == 2) {
             $trucks[] = new Truck(1);
-            $trucks[] = new Truck(2, [null, null, $block]);
-            $trucks[] = new Truck(3, [null, $block, $block]);
+            $trucks[] = new Truck(2, [Tile::empty(), Tile::empty(), $block]);
+            $trucks[] = new Truck(3, [Tile::empty(), $block, $block]);
         }
         else {
 			for ($x = 1; $x <= $player_count; $x++) {
@@ -230,9 +231,7 @@ class Model {
                 ORDER BY tr.id');
             $this->_trucks = array_map(function (array $row) : Truck {
                 $tile = function(int $pos) use (&$row): ?Tile {
-                    $id = $row["tile_id{$pos}"];
-                    if ($id == null) { return null; }
-                    return new Tile(intval($id), TileType::from($row["type{$pos}"]));
+                    return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)]);
             }, $rows);

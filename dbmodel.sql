@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS `trucks` (
   -- which player id took it, or 0 if still available
   `taken_by` int(10) NOT NULL DEFAULT 0,
   -- NULL is empty; 0 is "blocked off"
-  `tile_id1` int(10) unsigned,
-  `tile_id2` int(10) unsigned,
-  `tile_id3` int(10) unsigned,
+  `tile_id1` int(10) unsigned NOT NULL DEFAULT 0,
+  `tile_id2` int(10) unsigned NOT NULL DEFAULT 0,
+  `tile_id3` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
