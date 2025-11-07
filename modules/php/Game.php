@@ -197,7 +197,7 @@ class Game extends \Bga\GameFramework\Table
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
 
-		$this->doCreateGame(array_map(fn ($p) => $p['player_id'], $players));
+		$this->doCreateGame(array_keys($players));
 		$this->playerStats->init([
 			'full1',
 			'full2',
