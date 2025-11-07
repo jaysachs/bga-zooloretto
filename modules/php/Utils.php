@@ -29,6 +29,10 @@ namespace Bga\Games\zooloretto;
 
 class Utils
 {
+    public static function arrayToString(array $arr): string {
+        return "[" . implode(',', $arr) . "]";
+    }
+
     public static function shuffle(array &$arr): void
     {
         $e = sizeof($arr) - 1;
