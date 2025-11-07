@@ -77,7 +77,7 @@ class Truck {
             return false;
         }
         foreach ($this->tiles as $tile) {
-            if (! $tile->type->isEmpty() && !$tile->type->isBlock()) {
+            if (! $tile->isEmpty() && !$tile->type->isBlock()) {
                 return true;
             }
         }
@@ -92,7 +92,7 @@ class Truck {
     }
 
     public function freeSpaces(): int {
-        return array_reduce($this->tiles, fn ($s, Tile $t) => ($s + ($t->type->isEmpty() ? 1 : 0)), 0);
+        return array_reduce($this->tiles, fn ($s, Tile $t) => ($s + ($t->isEmpty() ? 1 : 0)), 0);
     }
 
     /**
@@ -106,7 +106,7 @@ class Truck {
             throw new ModelException("Cannot place tile in position $pos of truck");
         }
         $p = $pos - 1;
-        if (!$this->tiles[$p]->type->isEmpty()) {
+        if (!$this->tiles[$p]->isEmpty()) {
             throw new ModelException("Cannot place tile in already occupied truck position $pos");
         }
         $this->tiles[$p] = $tile;
