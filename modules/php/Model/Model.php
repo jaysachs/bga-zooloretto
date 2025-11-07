@@ -79,8 +79,8 @@ class Model {
         $trucks = [];
         if ($player_count == 2) {
             $trucks[] = new Truck(1);
-            $trucks[] = new Truck(2, null, null, $block);
-            $trucks[] = new Truck(3, null, $block, $block);
+            $trucks[] = new Truck(2, [null, null, $block]);
+            $trucks[] = new Truck(3, [null, $block, $block]);
         }
         else {
 			for ($x = 1; $x <= $player_count; $x++) {
@@ -92,9 +92,9 @@ class Model {
             $nv = function(?Tile $t): string { return $t == null ? "NULL" : "$t->id"; };
             $values[] = sprintf("(%d, %s, %s, %s)",
                                $truck->id,
-                               $nv($truck->tile1),
-                               $nv($truck->tile2),
-                               $nv($truck->tile3));
+                               $nv($truck->tileAt(1)),
+                               $nv($truck->tileAt(2)),
+                               $nv($truck->tileAt(3)));
         }
         $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
                            . implode(',', $values));
@@ -226,7 +226,7 @@ class Model {
                     if ($id == null) { return null; }
                     return new Tile(intval($id), TileType::from($row["type{$pos}"]));
                 };
-                return new Truck(intval($row['id']), $tile(1), $tile(2), $tile(3));
+                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)]);
             }, $rows);
         }
         return $this->_trucks;
@@ -244,8 +244,10 @@ class Model {
     private function updateTruck(Truck $truck): void {
         $nv = function (?Tile $tile): string { return $tile == null ? "NULL": "{$tile->id}"; };
         $this->db->execute("UPDATE trucks
-                            SET tile_id1=" . $nv($truck->tile1) . ", tile_id2=" . $nv($truck->tile2) . ", tile_id3=" . $nv($truck->tile3) .
-                            " WHERE id = {$truck->id}");
+                            SET tile_id1=" . $nv($truck->tileAt(1)) . ", "
+                             . "tile_id2=" . $nv($truck->tileAt(2)) . ", "
+                             . "tile_id3=" . $nv($truck->tileAt(3))
+                             . " WHERE id = {$truck->id}");
     }
 
     public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {

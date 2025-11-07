@@ -30,12 +30,15 @@ namespace Bga\Games\zooloretto\Model;
 class Truck {
     public const CAPACITY = 3;
 
+    /** @param $tiles ?Tile[] */
     public function __construct(
         public readonly int $id,
-        public ?Tile $tile1 = null,
-        public ?Tile $tile2 = null,
-        public ?Tile $tile3 = null,
+        private array $tiles = [null, null, null],
         public int $taken_by = 0) {
+        $c = count($tiles);
+        if ($c != self::CAPACITY) {
+            throw new \Exception("Attempt to construct Truck with contents of size {$c} different than {" + self::CAPACITY);
+        }
     }
 
     public function setTakenBy(int $player_id): void {
@@ -49,35 +52,28 @@ class Truck {
         }
     }
 
+    public function tileAt(int $pos): ?Tile {
+        if ($pos <= 0 || $pos > self::CAPACITY) {
+            throw new ModelException("Cannot get tile in position $pos of truck");
+        }
+        return $this->tiles[$pos-1];
+    }
+
     public function freeSpaces(): int {
-        return ($this->tile1 == null ? 1 : 0) + ($this->tile3 == null ? 1 : 0) + ($this->tile3 == null ? 1 : 0);
+        return array_reduce($this->tiles, fn ($s, $t) => ($s + ($t == null ? 1 : 0)), 0);
     }
 
     /**
      * @param $pos 1-based position on the truck
      */
     public function placeTileAt(Tile $tile, int $pos): void {
-        switch ($pos) {
-        case 1:
-            if ($this->tile1 != null) {
-                throw new ModelException("Cannot place tile in already occupied truck position $pos");
-            }
-            $this->tile1 = $tile;
-            break;
-        case 2:
-            if ($this->tile2 != null) {
-                throw new ModelException("Cannot place tile in already occupied truck position $pos");
-            }
-            $this->tile2 = $tile;
-            break;
-        case 3:
-            if ($this->tile3 != null) {
-                throw new ModelException("Cannot place tile in already occupied truck position $pos");
-            }
-            $this->tile3 = $tile;
-            break;
-        default:
+        if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot place tile in position $pos of truck");
         }
+        $p = $pos - 1;
+        if ($this->tiles[$p] != null) {
+            throw new ModelException("Cannot place tile in already occupied truck position $pos");
+        }
+        $this->tiles[$p] = $tile;
     }
 }

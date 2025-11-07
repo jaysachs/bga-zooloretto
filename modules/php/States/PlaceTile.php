@@ -51,13 +51,13 @@ class PlaceTile extends AbstractState
         $model = new Model($this->game);
         $available = [];
         foreach ($model->getTrucks() as $truck) {
-            if ($truck->tile1 == null) {
+            if ($truck->tileAt(1) == null) {
                 $available[] = [ 'truck_id' => $truck->id, 'pos' => 1 ];
             }
-            if ($truck->tile2 == null) {
+            if ($truck->tileAt(2) == null) {
                 $available[] = [ 'truck_id' => $truck->id, 'pos' => 2 ];
             }
-            if ($truck->tile3 == null) {
+            if ($truck->tileAt(3) == null) {
                 $available[] = [ 'truck_id' => $truck->id, 'pos' => 3 ];
             }
         }

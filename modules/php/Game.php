@@ -88,9 +88,14 @@ class Game extends \Bga\GameFramework\Table
 				$content = function(int $pos, ?Tile $tile): array {
 					return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];
 				};
+				$pos = 1;
 				return [
 					'truck_id' => $truck->id,
-					'contents' => [ $content(1, $truck->tile1), $content(2, $truck->tile2), $content(3, $truck->tile3) ],
+					'contents' => [
+						$content(1, $truck->tileAt(1)),
+						$content(2, $truck->tileAt(2)),
+						$content(3, $truck->tileAt(3)),
+					],
 				];
 			}, $model->getTrucks()),
             'enclosures' => [
