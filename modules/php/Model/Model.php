@@ -133,7 +133,7 @@ class Model {
 
     private function validatePlayer(Player $player): void {
         if ($player !== $this->getPlayer($player->id)) {
-            throw new \Exception("Got unknown player");
+            throw new ModelException("Got unknown player");
         }
     }
 
@@ -146,7 +146,7 @@ class Model {
         if (isset($players[$id])) {
             return $players[$id];
         }
-        throw new \Exception("attempt to retrieve unknown player $id");
+        throw new ModelException("attempt to retrieve unknown player $id");
     }
 
     /** @var Player[] */
@@ -245,7 +245,7 @@ class Model {
                 return $truck;
             }
         }
-        throw new \Exception("No truck $truck_id found");
+        throw new ModelException("No truck $truck_id found");
     }
 
     private function updateTruck(Truck $truck): void {
@@ -261,7 +261,7 @@ class Model {
     public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {
         $stock = $this->getStock();
         if ($stock->drawn == null) {
-            throw new \Exception("No tile drawn");
+            throw new ModelException("No tile drawn");
         }
         $truck = $this->getTruck($truck_id);
         $tile = $stock->removeDrawnTile();

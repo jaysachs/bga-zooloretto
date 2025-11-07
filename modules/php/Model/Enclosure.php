@@ -54,7 +54,7 @@ class Enclosure {
         }
         foreach ($animals as $spot) {
             if ($spot == null) {
-                throw new \Exception("null tiles not allowed in Enclosure stalls");
+                throw new ModelException("null tiles not allowed in Enclosure animals");
             }
             if (!$spot->type->isEmpty() && !$spot->type->isAnimal()) {
                 $t = $spot->type->value;
@@ -98,7 +98,7 @@ class Enclosure {
             }
             return $this->stalls[$pos - 1 - count($this->animals)];
         }
-        throw new \BgaUserException("No position $pos in encluse $this->id");
+        throw new ModelException("No position $pos in encluse $this->id");
     }
 
     /**
@@ -110,27 +110,27 @@ class Enclosure {
         $t = $tile->type->value;
         if ($tile->type->isAnimal()) {
             if ($pos < 1 || $pos > count($this->animals)) {
-                throw new \BgaUserException("Not position $pos for animals in encluse $this->id");
+                throw new ModelException("Not position $pos for animals in encluse $this->id");
             }
             $p1 = $pos - 1;
             if ($this->animals[$p1] == null) {
                 $this->animals[$p1] = $tile;
                 return;
             }
-            throw new \BgaUserException("Position $pos is not open in enclosure $this->id for animal $t");
+            throw new ModelException("Position $pos is not open in enclosure $this->id for animal $t");
         }
         if ($tile->type->isStall()) {
             $p2 = $pos - count($this->animals) - 1;
             if ($p2 <= 0 || $p2 > count($this->stalls)) {
-                throw new \BgaUserException("Not position $pos for stalls in encluse $this->id");
+                throw new ModelException("Not position $pos for stalls in encluse $this->id");
             }
             if ($this->stalls[$p2] == null) {
                 $this->stalls[$p2] = $tile;
                 return;
             }
-            throw new \BgaUserException("Position $pos is not open in enclosure $this->id for stall $t");
+            throw new ModelException("Position $pos is not open in enclosure $this->id for stall $t");
         }
-        throw new \BgaUserException("Can only place animals and stills in enclosures, not $t");
+        throw new ModelException("Can only place animals and stills in enclosures, not $t");
     }
 
     public function __toString(): string

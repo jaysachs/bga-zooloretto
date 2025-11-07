@@ -55,14 +55,14 @@ class Player {
 
     public function takeTruck(int $truck_id): void {
         if ($this->truck_taken) {
-            throw new \BgaUserException("Truck already taken by player $this->id");
+            throw new ModelException("Truck already taken by player $this->id");
         }
         $this->truck_taken = $truck_id;
     }
 
     public function receiveMoney(int $amount): void {
         if ($amount < 0) {
-            throw new \Exception("must give nonnegative money not $amount");
+            throw new ModelException("must give nonnegative money not $amount");
         }
         $this->money += $amount;
         $this->received += $amount;
@@ -70,7 +70,7 @@ class Player {
 
     public function payMoney(int $amount): void {
         if ($amount < 0) {
-            throw new \Exception("must pay nonnegative money not $amount");
+            throw new ModelException("must pay nonnegative money not $amount");
         }
         $this->money -= $amount;
         $this->spent += $amount;
@@ -78,10 +78,10 @@ class Player {
 
     public function buyEnclosure(): void {
 		if ($this->money < self::ENCLOSURE_COST) {
-			throw new \BgaUserException("Insufficient funds to buy enclosure");
+			throw new ModelException("Insufficient funds to buy enclosure");
 		}
 		if ($this->available_extensions <= 0) {
-			throw new \BgaUserException("No space for new enclosures");
+			throw new ModelException("No space for new enclosures");
 		}
         $this->payMoney(self::ENCLOSURE_COST);
         $this->available_extensions--;

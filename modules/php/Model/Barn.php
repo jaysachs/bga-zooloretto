@@ -45,6 +45,6 @@ class Barn {
                 return $tile;
             }
         }
-        throw new \BgaUserException("Attempt to discard tile $tileid from player $this->player_id barn but it's not there");
+        throw new ModelException("Attempt to discard tile $tileid from player $this->player_id barn but it's not there");
     }
 }

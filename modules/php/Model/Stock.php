@@ -41,7 +41,7 @@ class Stock {
 
     public function removeDrawnTile(): Tile {
         if ($this->drawn == null) {
-            throw new \BgaUserException("Attmpt to remove a drawn tile but none drawn");
+            throw new ModelException("Attmpt to remove a drawn tile but none drawn");
         }
         $tile = $this->drawn;
         $this->drawn = null;
@@ -50,13 +50,13 @@ class Stock {
 
     public function drawTile(): Tile {
         if ($this->drawn != null) {
-            throw new \BgaUserException("Attmpt to draw a 2nd tile");
+            throw new ModelException("Attmpt to draw a 2nd tile");
         }
         $tile = array_shift($this->primary);
         if ($tile == null) {
             $tile = array_shift($this->endgame);
             if ($tile == null) {
-                throw new \BgaUserException("No tiles left!");
+                throw new ModelException("No tiles left!");
             }
         }
         $this->drawn = $tile;
