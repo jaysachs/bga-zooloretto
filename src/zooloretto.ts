@@ -146,39 +146,34 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let cellId = (e:number, c:number) => `enclosure_${pno}_${e}_${c}`;
     let enclosure = (e:number, n: number): string => {
       let html = `
-                    <div id="enclosure_${pno}_${e}" enclosure="${e}">
-`;
+                    <div id="enclosure_${pno}_${e}" enclosure="${e}">`;
       for (let i = 0; i < n; ++i) {
         html += `
-                      <div id="${cellId(e, i)}" class="${cellClass}"></div>
-`;
+                      <div id="${cellId(e, i)}" class="${cellClass}"></div>`;
       }
       html += `
-                    </div>
-`;
+                    </div>`;
       return html;
     };
     // FIXME: the last one is the stalls.
     return `
                     <div id="board_${pno}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
-                      <div id="barn_${pno}" class="${barnClass}"></div>
-`                     + enclosure(1, 5)
+                      <div id="barn_${pno}" class="${barnClass}"></div>`
+                      + enclosure(1, 5)
                       + enclosure(2, 4)
                       + enclosure(3, 6)
                       + enclosure(4, 5)
                       + enclosure(5, 5)
                       + (this.twoPlayer ? enclosure(6, 6) : '') + `
-                    </div>
-`;
+                    </div>`;
   }
 
   private otherPlayerHtml(player: ZPlayer) : string {
     return `
               <div id="playercards_${player.player_no}" class="playercards whiteblock">
-                <div id ="playername_${player.player_no}" class="playernameclass"><p>${player.name}</p></div>
-`               + this.playerHtml(player) + `
-              </div>
-  `;
+                <div id ="playername_${player.player_no}" class="playernameclass"><p>${player.name}</p></div>`
+                + this.playerHtml(player) + `
+              </div>`;
   }
 
   private baseHtml(): string {
@@ -200,11 +195,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             <div id="${IDS.ENDGAME_PILE}"></div>
           </div>
         </div>
-        <div class="container3" id = "container3">
-`         + this.playerHtml(currentPlayer) + `
+        <div class="container3" id = "container3">`
+          + this.playerHtml(currentPlayer) + `
           <div id="leftpanel" class="leftpanel">
-            <div id="playercards" class="playercards">
-`             + players.map((p) => this.otherPlayerHtml(p)) + `
+            <div id="playercards" class="playercards">`
+            + players.map((p) => this.otherPlayerHtml(p)) + `
             </div>
           </div>
         </div>
