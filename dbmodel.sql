@@ -54,14 +54,6 @@ CREATE TABLE IF NOT EXISTS `endgame_stock` (
   PRIMARY KEY (`seq_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-CREATE TABLE IF NOT EXISTS `enclosures` (
-  `player_id` int(10) unsigned NOT NULL,
-  -- 0 is barn
-  `enclosure_id` int(10) unsigned NOT NULL,
-  `capacity` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`player_id`, `enclosure_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS `enclosure_contents` (
   `player_id` int(10) unsigned NOT NULL,
   -- 0 is barn
