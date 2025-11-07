@@ -56,7 +56,7 @@ class ArrangeZoo extends AbstractState
 		$enclosures = $model->getEnclosuresForPlayer($active_player_id);
 		$data = [];
 		foreach ($truck->getAllTiles() as $pos => $tile) {
-			if ($tile != null) {
+			if (!$tile->isEmpty()) {
 				$ed = [];
 				foreach ($enclosures as $enclosure) {
 					// We don't need to show more than one "available" position,
