@@ -48,7 +48,9 @@ class Model {
         $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
     }
 
-    public function createNewGame(int $player_count): void {
+    /** @param $player_ids int[] */
+    public function createNewGame(array $player_ids): void {
+        $player_count = count($player_ids);
         $tilepool = Tile::createInitialPool($player_count);
 		$stock = Stock::create($tilepool);
 
@@ -99,11 +101,13 @@ class Model {
         $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
                            . implode(',', $values));
 
+
+        // Enclosures - no DB init needed, as we only store what is there.
+
         // Extra player info
         $this->db->execute("UPDATE player SET money = 2");
 
         $this->game->globals->set('drawn', 0);
-        $player_ids = $this->db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
         $this->bankMoney->initDb(30);
         $this->playerMoney->initDb($player_ids);
         foreach ($this->getPlayers() as $player) {
