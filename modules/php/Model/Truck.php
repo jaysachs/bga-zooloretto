@@ -84,11 +84,23 @@ class Truck {
         return false;
     }
 
-    public function tileAt(int $pos): ?Tile {
+    // public function tileAt(int $pos): Tile {
+    //     if ($pos <= 0 || $pos > self::CAPACITY) {
+    //         throw new ModelException("Cannot get tile in position $pos of truck");
+    //     }
+    //     return $this->tiles[$pos-1];
+    // }
+
+    public function removeTileAt(int $pos): Tile {
         if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot get tile in position $pos of truck");
         }
-        return $this->tiles[$pos-1];
+        $tile = $this->tiles[$pos-1];
+        if ($tile->isEmpty()) {
+            throw new ModelException("Cannot remove from an empty space $pos of truck");
+        }
+        $this->tiles[$pos-1] = Tile::empty();
+        return $tile;
     }
 
     public function freeSpaces(): int {
@@ -101,6 +113,13 @@ class Truck {
     public function placeTileAt(Tile $tile, int $pos): void {
         if ($tile == null) {
             throw new ModelException("Cannot place null tile into truck");
+        }
+        if ($tile->isEmpty()) {
+            throw new ModelException("Cannot place empty tile into truck");
+        }
+        if (!$tile->type->isAnimal() && !$tile->type->isStall()) {
+            $type = $tile->type;
+            throw new ModelException("Cannot place tile of type $type on truck");
         }
         if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot place tile in position $pos of truck");

@@ -85,17 +85,15 @@ class Game extends \Bga\GameFramework\Table
 		$stock = $model->getStock();
 		$datas = [
             'trucks' => array_map(function (Truck $truck): array {
-				$content = function(int $pos, ?Tile $tile): array {
-					return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];
-				};
-				$pos = 1;
+				$tiles = $truck->getAllTiles();
 				return [
 					'truck_id' => $truck->id,
-					'contents' => [
-						$content(1, $truck->tileAt(1)),
-						$content(2, $truck->tileAt(2)),
-						$content(3, $truck->tileAt(3)),
-					],
+					'contents' => array_map(
+						function(Tile $tile, int $pos): array {
+							return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];
+						},
+						$tiles,
+						array_keys($tiles)),
 				];
 			}, $model->getTrucks()),
             'enclosures' => [

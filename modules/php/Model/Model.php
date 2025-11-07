@@ -92,18 +92,14 @@ class Model {
         }
         $values = [];
         foreach ($trucks as $truck) {
-            $nv = function(?Tile $t): string { return $t == null ? "NULL" : "$t->id"; };
-            $values[] = sprintf("(%d, %s, %s, %s)",
-                               $truck->id,
-                               $nv($truck->tileAt(1)),
-                               $nv($truck->tileAt(2)),
-                               $nv($truck->tileAt(3)));
+            $ts = array_map(fn (Tile $t): string => $t->type->value, $truck->getAllTiles());
+            $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[0], $ts[1], $ts[2]);
         }
         $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
                            . implode(',', $values));
 
 
-        // Enclosures - no DB init needed, as we only store what is there.
+        // Enclosures - no DB init needed, as missing contents is interpreted as empty.
 
         // Extra player info
         $this->db->execute("UPDATE player SET money = 2");
@@ -249,11 +245,11 @@ class Model {
     }
 
     private function updateTruck(Truck $truck): void {
-        $nv = function (?Tile $tile): string { return $tile == null ? "NULL": "{$tile->id}"; };
+        $tiles = $truck->getAllTiles();
         $this->db->execute("UPDATE trucks
-                            SET tile_id1=" . $nv($truck->tileAt(1)) . ", "
-                             . "tile_id2=" . $nv($truck->tileAt(2)) . ", "
-                             . "tile_id3=" . $nv($truck->tileAt(3)) . ", "
+                            SET tile_id1=" . $tiles[1]->id . ", "
+                             . "tile_id2=" . $tiles[2]->id . ", "
+                             . "tile_id3=" . $tiles[3]->id . ", "
                              . "taken_by=" . $truck->taken_by
                              . " WHERE id = {$truck->id}");
     }
@@ -282,6 +278,7 @@ class Model {
         $player->takeTruck($truck_id);
         $truck = $this->getTruck($truck_id);
         $truck->taken_by = $player_id;
+        // no need to update player, only stored on truck.
         $this->updateTruck($truck);
         return $truck;
     }
@@ -347,7 +344,7 @@ class Model {
                 $encl = $enc;
             }
         }
-        $tile = $truck->tileAt($truck_pos);
+        $tile = $truck->removeTileAt($truck_pos);
         $encl->placeTile($tile);
         $this->updateTruck($truck);
         $this->updateEnclosure($encl);
