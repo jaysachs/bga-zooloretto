@@ -149,7 +149,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
                     <div id="enclosure_${pno}_${e}" enclosure="${e}">`;
       for (let i = 0; i < n; ++i) {
         html += `
-                      <div id="${cellId(e, i)}" class="${cellClass}"></div>`;
+                      <div id="${cellId(e, i+1)}" class="${cellClass}"></div>`;
       }
       html += `
                     </div>`;
@@ -159,12 +159,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `
                     <div id="board_${pno}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
                       <div id="barn_${pno}" class="${barnClass}"></div>`
-                      + enclosure(1, 5)
-                      + enclosure(2, 4)
-                      + enclosure(3, 6)
-                      + enclosure(4, 5)
-                      + enclosure(5, 5)
-                      + (this.twoPlayer ? enclosure(6, 6) : '') + `
+                      + enclosure(1, 6)
+                      + enclosure(2, 6)
+                      + enclosure(3, 7)
+                      + enclosure(4, 6)
+                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
                     </div>`;
   }
 
