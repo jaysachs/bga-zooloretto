@@ -62,6 +62,18 @@ class Truck {
         }
     }
 
+    public function canBeTaken(): bool {
+        if ($this->taken_by != 0) {
+            return false;
+        }
+        foreach ($this->tiles as $tile) {
+            if ($tile != null && !$tile->type->isBlock()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function tileAt(int $pos): ?Tile {
         if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot get tile in position $pos of truck");

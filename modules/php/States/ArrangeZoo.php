@@ -47,7 +47,43 @@ class ArrangeZoo extends AbstractState
 
     public function getArgs(int $active_player_id): array
     {
-        return [];
+		$model = $this->createModel();
+		$playable = [];
+		$enclosures = $model->getEnclosuresForPlayer($active_player_id);
+		foreach ($model->getTrucks() as $truck) {
+			$data = [];
+			foreach ($truck->getAllTiles() as $pos => $tile) {
+				if ($tile != null) {
+					$ed = [];
+					foreach ($enclosures as $enclosure) {
+						$p = [];
+						$ap = $enclosure->availableAnimalPos();
+						if ($ap > 0) { $p[] = $ap; }
+
+						$sp = $enclosure->availableStallPos();
+						if ($sp > 0) { $p[] = $sp; }
+
+						if (count($p) > 0) {
+							$ed[] = [
+								'enclosure_id' => $enclosure->id,
+								'poisitions' => $p,
+							];
+						}
+					}
+					$pd = [
+						'pos' => $pos,
+						'barn' => $tile->type->canGoInBarn(),
+						'enclosures' => $ed,
+					];
+					$data[] = $pd;
+				}
+			}
+			$playable[] = [
+				'truck_id' => $truck->id,
+				'spaces' => $data,
+			];
+		}
+		return $playable;
     }
 
     #[PossibleAction]

@@ -59,6 +59,24 @@ class Enclosure {
         }
     }
 
+    public function availableStallPos(): int {
+        foreach ($this->stalls as $i => $t) {
+            if ($t == null) {
+                return $i+1;
+            }
+        }
+        return 0;
+    }
+
+    public function availableAnimalPos(): int {
+        foreach ($this->animals as $i => $t) {
+            if ($t == null) {
+                return $i+1;
+            }
+        }
+        return 0;
+    }
+
     public function tileAt(int $pos) {
         if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
             if ($pos <= count($this->animals)) {

@@ -53,6 +53,16 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel();
 		$player = $model->getActivePlayer();
+
+		$trucks_available = [];
+		if (!$player->truck_taken) {
+			foreach ($model->getTrucks() as $truck) {
+				if ($truck->canBeTaken()) {
+					$trucks_available[] = $truck->id;
+				}
+			}
+		}
+
 		/*
 		$wagondata = array_map(function (Wagon $wagon): array {
 			return [
@@ -73,46 +83,35 @@ class PlayerTurn extends AbstractState
 			'can_buy' => false,
 			'can_swap' => false,
 			'can_move' => false,
-			'can_take_truck' => ! $player->truck_taken, // FIXME: verify always true if we're in this state
-			'money' => $player->money,
+			'trucks_available' => $trucks_available,
+			// 'money' => $player->money,
 			'unblockedzoo' => $player->purchased_extensions,
 			// 'wagons' =>  $wagondata,
 		];
 	}
 
 	#[PossibleAction]
-	public function actTakeWagon(int $active_player_id, int $wagon_id): mixed
+	public function actTakeTruck(int $active_player_id, int $truck_id): mixed
 	{
 		$player_id = $active_player_id;
 
         $model = $this->createModel();
-		/*
-		$wagon = $model->takeWagon($wagon_id);
-		$tiles = array_filter($wagon->tiles, function ($t) { return $t != null; });
-		$wagontiles = array_map(function (Tile $tile): array {
-			return [
-				"id" => $tile->id,
-				"wagontile" => "tile_0_" . implode("_", [$tile->id, $tile->type->value, $tile->x, $tile->y]),
-			];
-		}, $tiles);
+		$truck = $model->playerTakeTruck($player_id, $truck_id);
 
-		$messagestring = implode(
-			', ',
-			array_map(function (Tile $tile): string { return $tile->type->translated(); },
-					  $wagon->tiles));
+		// $messagestring = implode(
+		// 	', ',
+		// 	array_map(function (Tile $tile): string { return $tile->type->translated(); },
+		// 			  $truck->getAllTiles()));
 
-		$this->notify->all(
-			"TakeWagon",
-			clienttranslate('${player_name} took a wagon with ${wag}.'),
-			[
-				'player_id' => $player_id,
-				'wagon_id' => $wagon_id,
-				'wag' => $messagestring,
-				'wagontiles' => $wagontiles,
-				'i18n' => ['wag']
-			]
-		);
-*/
+		$this->notify->all("TakeTruck", '${player_name} took truck ${truck_id}.',
+		[
+			'player_id' => $active_player_id,
+			'truck_id' => $truck_id,
+			'tiles' => [],
+			// 'contents' => $messagestring,
+			// 'i18n' => ['contents'],
+		]);
+
 		return ArrangeZoo::class;
 	}
 

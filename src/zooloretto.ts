@@ -101,12 +101,7 @@ interface PlayState {
   can_buy: boolean;
   can_swap: boolean;
   can_move: boolean;
-
-  /*
-    canEndTurn: boolean;
-    canUndo: boolean;
-    allowedMoves: RowCol[];
-    */
+  trucks_available: number[];
 }
 
 /** Game class */
@@ -426,6 +421,34 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.addCancelButton(again(() => this.renderNewExtension()));
       });
     }
+    if (playState.trucks_available.length > 0) {
+      this.statusBar.addActionButton(_('Take truck'), () => this.handleTakeTruck(playState));
+    }
+  }
+
+  private handleTakeTruck(playState: PlayState) {
+      this.statusBar.removeActionButtons();
+      // update message to "select a truck" / switch client state
+      this.statusBar.setTitle(_('Select a truck'));
+      let cleanup = () => playState.trucks_available.forEach((tid: number) => {
+        let elem = $(IDS.truck(tid));
+        elem.onclick = null;
+        elem.classList.remove(CSS.TARGETABLE);
+      });
+      this.statusBar.addActionButton(_('Cancel'), () => {
+        cleanup();
+        this.onUpdateActionButtons_PlayerTurn(playState);
+      });
+      playState.trucks_available.forEach((tid: number) => {
+        let elem = $(IDS.truck(tid));
+        elem.classList.add(CSS.TARGETABLE);
+        elem.onclick = (evt) => {
+          cleanup();
+          this.bgaPerformAction('actTakeTruck', { truck_id: tid }).then(() => {
+            // render truck taken
+          })
+        };
+      });
   }
 
   private renderNewExtension(): void {

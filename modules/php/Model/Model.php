@@ -155,12 +155,16 @@ class Model {
     public function getPlayers(): array {
         if ($this->_players == null) {
             $this->_players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money FROM player");
+            $data = $this->db->getObjectList("SELECT player_id, player_no, money, t.id AS taken_by
+                                              FROM player AS p
+                                              LEFT OUTER JOIN trucks AS t
+                                              ON p.player_id = t.taken_by");
             $numPlayers = count($data);
             $potentialExtensions = $numPlayers == 2 ? 2 : 1;
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), /* $this->playerMoney->get($id) */0, 0, 0, false);
+                $taken = $row["taken_by"];
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 2, 0, $taken != null && $taken != "0");
             }
         }
         return $this->_players;
@@ -273,6 +277,15 @@ class Model {
         return array_sum(array_map(function (Truck $t): int { return $t->freeSpaces(); }, $this->getTrucks()));
     }
 
+    public function playerTakeTruck(int $player_id, int $truck_id): Truck {
+        $player = $this->getPlayer($player_id);
+        $player->takeTruck();
+        $truck = $this->getTruck($truck_id);
+        $truck->taken_by = $player_id;
+        $this->updateTruck($truck);
+        return $truck;
+    }
+
     /** @return Enclosure[] */
     public function getEnclosuresForPlayer(int $player_id) : array {
         /*
@@ -295,9 +308,9 @@ class Model {
         }
 
         $rows = $this->db->getObjectList("SELECT e.enclosure_id, e.pos, e.tile_id, t.type
-                                          FROM enclosure_contents AS e
-                                          LEFT INNER JOIN tiles AS t
-                                          ON e.tileid = t.id
+                                          FROM enclosure_contents e
+                                          INNER JOIN tiles t
+                                          ON e.tile_id = t.id
                                           WHERE e.player_id = $player_id");
         foreach ($rows as $row) {
             $eid = intval($row['enclosure_id']);
