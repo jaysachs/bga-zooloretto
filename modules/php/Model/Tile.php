@@ -28,6 +28,15 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Tile {
+
+	private static ?Tile $EMPTY = null;
+	public static function empty() : Tile {
+		if (self::$EMPTY == null) {
+			self::$EMPTY = new Tile(0, TileType::EMPTY);
+		}
+		return self::$EMPTY;
+	}
+
     public function __construct(public readonly int $id, public readonly TileType $type) {}
 
 	/** @return Tile[] */
@@ -135,4 +144,10 @@ class Tile {
 
         return $values;
     }
+
+	public function __toString()
+	{
+		$type = $this->type->value;
+		return `Tile(id=$this->id,type=$type)`;
+	}
 }

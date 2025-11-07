@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 // FIXME: do I want an EMPTY type? then won't need null checks ....
 
 enum TileType: string {
+    // Animals
     case CAMEL = 'C';
     case CAMEL_MALE = 'CM';
     case CAMEL_FEMALE = 'CF';
@@ -70,15 +71,19 @@ enum TileType: string {
     case ZEBRA_FEMALE = 'ZF';
     case ZEBRA_KID = 'ZK';
 
-    case COIN = 'Coin';
+    // Stalls
 
     case KIOSK = 'StallA';
     case BARROW = 'StallB';
     case SNACKS = 'StallC';
     case POPCORN = 'StallD';
 
+    // Others
+
+    case COIN = 'Coin';
     // 2p unused flipped tile to block spaces
     case BLOCK = 'block';
+    case EMPTY = '';
 
     public function isSameSpecies(TileType $other): bool {
         return $this->isAnimal()
@@ -88,6 +93,10 @@ enum TileType: string {
 
     public function canGoInBarn(): bool {
         return $this->isAnimal() || $this->isStall();
+    }
+
+    public function isEmpty(): bool {
+        return $this == TileType::EMPTY;
     }
 
     public function isBlock(): bool {
@@ -138,12 +147,10 @@ enum TileType: string {
 
     public function isAnimal(): bool {
         return match ($this) {
-            TileType::COIN,
-            TileType::KIOSK,
-            TileType::BARROW,
-            TileType::SNACKS,
-            TileType::POPCORN => false,
-            default => true,
+            TileType::BLOCK,
+            TileType::EMPTY,
+            TileType::COIN => false,
+            default => !$this->isStall(),
         };
     }
 
