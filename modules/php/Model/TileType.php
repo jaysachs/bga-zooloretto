@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+// FIXME: do I want an EMPTY type? then won't need null checks ....
+
 enum TileType: string {
     case CAMEL = 'C';
     case CAMEL_MALE = 'CM';
