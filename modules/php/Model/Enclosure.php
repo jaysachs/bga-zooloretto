@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use \Bga\Games\zooloretto\Utils;
+
 class Enclosure {
     /**
      * @param int $id
@@ -59,7 +61,17 @@ class Enclosure {
         }
     }
 
-    public function availableStallPos(): int {
+    public function availablePos(TileType $type): int {
+        if ($type->isAnimal()) {
+            return $this->availableAnimalPos($type);
+        }
+        if ($type->isStall()) {
+            return $this->availableStallPos();
+        }
+        return 0;
+    }
+
+    private function availableStallPos(): int {
         foreach ($this->stalls as $i => $t) {
             if ($t == null) {
                 return $i+1;
@@ -68,7 +80,7 @@ class Enclosure {
         return 0;
     }
 
-    public function availableAnimalPos(): int {
+    private function availableAnimalPos(TileType $type): int {
         foreach ($this->animals as $i => $t) {
             if ($t == null) {
                 return $i+1;
@@ -117,5 +129,12 @@ class Enclosure {
             throw new \BgaUserException("Position $pos is not open in enclosure $this->id for stall $t");
         }
         throw new \BgaUserException("Can only place animals and stills in enclosures, not $t");
+    }
+
+    public function __toString(): string
+    {
+        $anims = Utils::arrayToString($this->animals);
+        $stalls = Utils::arrayToString($this->stalls);;
+        return "Enclosure(id=$this->id,animals=$anims,stalls=$stalls)";
     }
 }
