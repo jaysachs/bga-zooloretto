@@ -148,6 +148,6 @@ class Tile {
 	public function __toString()
 	{
 		$type = $this->type->value;
-		return `Tile(id=$this->id,type=$type)`;
+		return "Tile(id=$this->id,type=$type)";
 	}
 }
