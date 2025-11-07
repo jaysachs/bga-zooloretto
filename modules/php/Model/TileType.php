@@ -84,6 +84,10 @@ enum TileType: string {
             && $this->value[0] == $other->value[0];
     }
 
+    public function canGoInBarn(): bool {
+        return $this->isAnimal() || $this->isStall();
+    }
+
     public function isBlock(): bool {
         return $this == TileType::BLOCK;
     }

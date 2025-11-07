@@ -41,6 +41,16 @@ class Truck {
         }
     }
 
+    /** @return Tile[] indexed by position */
+    public function getAllTiles(): array {
+        $result = [];
+        $pos = 1;
+        foreach ($this->tiles as $tile) {
+            $result[$pos++] = $tile;
+        }
+        return $result;
+    }
+
     public function setTakenBy(int $player_id): void {
         if ($player_id == 0) {
             throw new ModelException("0 player cannot take a truck");
