@@ -40,50 +40,53 @@ class ArrangeZoo extends AbstractState
             game: $game,
             id: 5,
             type: StateType::ACTIVE_PLAYER,
-            description: clienttranslate('${actplayer} must arrange tiles in his Zoo.'),
-            descriptionMyTurn: clienttranslate('${you} must arrange tiles in your Zoo.'),
+            description: clienttranslate('${actplayer} must place tiles from the truck into their Zoo.'),
+            descriptionMyTurn: clienttranslate('${you} must place tiles from the truck into your Zoo.'),
         );
     }
 
     public function getArgs(int $active_player_id): array
     {
 		$model = $this->createModel();
-		$playable = [];
-		$enclosures = $model->getEnclosuresForPlayer($active_player_id);
-		foreach ($model->getTrucks() as $truck) {
-			$data = [];
-			foreach ($truck->getAllTiles() as $pos => $tile) {
-				if ($tile != null) {
-					$ed = [];
-					foreach ($enclosures as $enclosure) {
-						$p = [];
-						$ap = $enclosure->availableAnimalPos();
-						if ($ap > 0) { $p[] = $ap; }
-
-						$sp = $enclosure->availableStallPos();
-						if ($sp > 0) { $p[] = $sp; }
-
-						if (count($p) > 0) {
-							$ed[] = [
-								'enclosure_id' => $enclosure->id,
-								'poisitions' => $p,
-							];
-						}
-					}
-					$pd = [
-						'pos' => $pos,
-						'barn' => $tile->type->canGoInBarn(),
-						'enclosures' => $ed,
-					];
-					$data[] = $pd;
-				}
-			}
-			$playable[] = [
-				'truck_id' => $truck->id,
-				'spaces' => $data,
-			];
+		$taken = $model->getActivePlayer()->truck_taken;
+		if ($taken == 0) {
+			return [];
 		}
-		return $playable;
+		$truck = $model->getTruck($taken);
+		$enclosures = $model->getEnclosuresForPlayer($active_player_id);
+		$data = [];
+		foreach ($truck->getAllTiles() as $pos => $tile) {
+			if ($tile != null) {
+				$ed = [];
+				foreach ($enclosures as $enclosure) {
+					// We don't need to show more than one "available" position,
+					//   since we force placement into the "earliest" open space
+					// 0 means "not placeable"
+					$ap = $enclosure->availablePos($tile->type);
+					if ($ap > 0) {
+						$ed[] = [
+								'enclosure_id' => $enclosure->id,
+								'position' => $ap,
+						];
+					} else {
+						$ed[] = [
+							'type' => $tile->type,
+							'enc' => "$enclosure",
+						];
+					}
+				}
+				$pd = [
+					'pos' => $pos,
+					'barn' => $tile->type->canGoInBarn(),
+					'enclosures' => $ed,
+				];
+				$data[] = $pd;
+			}
+		}
+		return [
+			'truck_id' => $truck->id,
+			'spaces' => $data,
+		];
     }
 
     #[PossibleAction]

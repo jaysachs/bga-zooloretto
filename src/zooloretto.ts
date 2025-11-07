@@ -31,6 +31,8 @@ class IDS {
 
   static truck(id : number) { return `truck_${id}`; }
   static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
+  static enclosure(player_no: number, enclosure_id: number): string { return `enclosure_${player_no}_${enclosure_id}`; }
+  static enclosureSpace(player_no: number, enclosure_id: number, pos: number): string { return `enclosure_${player_no}_${enclosure_id}_${pos}`; }
 }
 
 class CSS {
@@ -104,6 +106,18 @@ interface PlayState {
   trucks_available: number[];
 }
 
+interface ArrangeState {
+  truck_id: number;
+  spaces: {
+    pos: number;
+    barn: boolean;
+    enclosures: {
+      enclosure_id: number;
+      position: number;
+    }[];
+  }[];
+}
+
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private playerIdToColorIndex: Record<number, number> = {};
@@ -138,13 +152,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const cellClass = "cell";
     const enclosureClass = "enclosure";
     const pno = player.player_no;
-    let cellId = (e:number, c:number) => `enclosure_${pno}_${e}_${c}`;
     let enclosure = (e:number, n: number): string => {
       let html = `
-                    <div id="enclosure_${pno}_${e}" enclosure="${e}">`;
+                    <div id="${IDS.enclosure(pno, e)}" enclosure="${e}">`;
       for (let i = 0; i < n; ++i) {
         html += `
-                      <div id="${cellId(e, i+1)}" class="${cellClass}"></div>`;
+                      <div id="${IDS.enclosureSpace(pno, e, i+1)}" class="${cellClass}"></div>`;
       }
       html += `
                     </div>`;
@@ -254,11 +267,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private twoPlayer: boolean;
+  private player_no: number = 0;
 
   override setup(gamedatas: ZGamedatas) {
     console.log(gamedatas);
     super.setup(gamedatas);
     this.twoPlayer = Object.keys(gamedatas.players).length == 2;
+    for (const player of Object.values(gamedatas.players)) {
+      if (player.player_id == this.player_id) {
+        this.player_no = player.player_no;
+      }
+    }
     for (const playerId in gamedatas.players) {
       const pd = gamedatas.players[playerId]!;
       this.playerIdToColorIndex[playerId] = colorIndexMap[pd.color]!;
@@ -385,6 +404,29 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
       let dest = $(IDS.truckSpace(args.truck_id, args.pos));
       return this.animationManager.slideAndAttach(tile, dest, {});
+    }
+  }
+
+  private onUpdateActionButtons_ArrangeZoo(arrangeState: ArrangeState) {
+    let telem = $(IDS.truck(arrangeState.truck_id));
+    for (let s of arrangeState.spaces) {
+      var canMove = false;
+      if (s.barn) {
+        console.log(`can place ${s.pos} in barn`);
+        // FIXME: highlight barn
+        canMove = true;
+      }
+      for (let e of s.enclosures) {
+        if (e.enclosure_id > 0) {
+          let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.position));
+          elem.classList.add(CSS.TARGETABLE);
+          canMove = true;
+        }
+      }
+      if (canMove) {
+        let selem = $(IDS.truckSpace(arrangeState.truck_id, s.pos));
+        selem.classList.add(CSS.SELECTABLE);
+      }
     }
   }
 
