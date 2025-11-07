@@ -272,6 +272,41 @@ class Model {
     public function spacesOnTrucks() : int {
         return array_sum(array_map(function (Truck $t): int { return $t->freeSpaces(); }, $this->getTrucks()));
     }
+
+    /** @return Enclosure[] */
+    public function getEnclosuresForPlayer(int $player_id) : array {
+        /*
+        from frontend:
+                      + enclosure(1, 6)
+                      + enclosure(2, 6)
+                      + enclosure(3, 7)
+                      + enclosure(4, 6)
+                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
+                      */
+        /** @var Enclosure[] */
+        $encl = [
+            1 => new Enclosure(1, 5, 1),
+            2 => new Enclosure(2, 4, 2),
+            3 => new Enclosure(3, 6, 1),
+            4 => new Enclosure(4, 5, 1),
+        ];
+        if (count($this->getPlayers()) == 2) {
+            $encl[5] = new Enclosure(5, 5, 1);
+        }
+
+        $rows = $this->db->getObjectList("SELECT e.enclosure_id, e.pos, e.tile_id, t.type
+                                          FROM enclosure_contents AS e
+                                          LEFT INNER JOIN tiles AS t
+                                          ON e.tileid = t.id
+                                          WHERE e.player_id = $player_id");
+        foreach ($rows as $row) {
+            $eid = intval($row['enclosure_id']);
+            $pos = intval($row['pos']);
+            $tileid = intval($row['tileid']);
+            $encl[$eid]->placeTile(new Tile($tileid, TileType::from($row["type"])), $pos);
+        }
+        return $encl;
+    }
 }
 
 /*
