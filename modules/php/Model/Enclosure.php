@@ -36,7 +36,7 @@ class Enclosure {
      * @param Tile[] $animals
      * @param Tile[] $stalls
      */
-    public function __construct(public readonly int $id, int $animal_capacity, int $stall_capacity , public array $animals = [], public array $stalls = []) {
+    public function __construct(public readonly int $id, readonly int $animal_capacity, int $stall_capacity , public array $animals = [], public array $stalls = []) {
         while (count($this->animals) < $animal_capacity) {
             $this->animals[] = Tile::empty();
         }
@@ -101,30 +101,49 @@ class Enclosure {
         throw new ModelException("No position $pos in encluse $this->id");
     }
 
+    /** @return Tile[] */
+    public function allTiles(): array {
+        return array_merge($this->animals, $this->stalls);
+    }
+
     /**
      * Positions are assigned starting with 1, animals first, and the consecutively going to stalls.
      * For example, if there are 4 animal positions and 2 stalls,
      * positions 1 through 4 inclusive are for animals, and positions 5 and 6 are for stalls.
+     *
+     * position 0 means "nextavailable"
      */
-    public function placeTile(Tile $tile, int $pos) {
+    public function placeTile(Tile $tile, int $pos = 0) {
         $t = $tile->type->value;
         if ($tile->type->isAnimal()) {
+            if ($pos == 0) {
+                while ($pos < count($this->animals) && !$this->animals[$pos]->isEmpty()) {
+                    $pos++;
+                }
+                $pos++;
+            }
             if ($pos < 1 || $pos > count($this->animals)) {
                 throw new ModelException("Not position $pos for animals in encluse $this->id");
             }
             $p1 = $pos - 1;
-            if ($this->animals[$p1] == null) {
+            if ($this->animals[$p1]->isEmpty()) {
                 $this->animals[$p1] = $tile;
                 return;
             }
             throw new ModelException("Position $pos is not open in enclosure $this->id for animal $t");
         }
         if ($tile->type->isStall()) {
+            if ($pos == 0) {
+                while ($pos < count($this->stalls) && !$this->stalls[$pos]->isEmpty()) {
+                    $pos++;
+                }
+                $pos++;
+            }
             $p2 = $pos - count($this->animals) - 1;
             if ($p2 <= 0 || $p2 > count($this->stalls)) {
                 throw new ModelException("Not position $pos for stalls in encluse $this->id");
             }
-            if ($this->stalls[$p2] == null) {
+            if ($this->stalls[$p2]->isEmpty()) {
                 $this->stalls[$p2] = $tile;
                 return;
             }

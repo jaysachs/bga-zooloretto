@@ -233,7 +233,7 @@ class Model {
                 $tile = function(int $pos) use (&$row): ?Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)]);
+                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], intval($row["taken_by"]));
             }, $rows);
         }
         return $this->_trucks;
@@ -311,14 +311,46 @@ class Model {
                                           FROM enclosure_contents e
                                           INNER JOIN tiles t
                                           ON e.tile_id = t.id
-                                          WHERE e.player_id = $player_id");
+                                          WHERE e.player_id = $player_id
+                                          ORDER BY e.enclosure_id, e.pos");
         foreach ($rows as $row) {
             $eid = intval($row['enclosure_id']);
             $pos = intval($row['pos']);
-            $tileid = intval($row['tileid']);
-            $encl[$eid]->placeTile(new Tile($tileid, TileType::from($row["type"])), $pos);
+            $tileid = intval($row['tile_id']);
+            $type = TileType::from($row["type"]);
+            if (!$type->isEmpty()) {
+                $encl[$eid]->placeTile(new Tile($tileid, $type), $pos);
+            }
         }
         return $encl;
+    }
+
+    private function updateEnclosure(Enclosure $enclosure): void {
+        $player_id = $this->getActivePlayer()->id;
+        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
+        $values = [];
+        $pos = 1;
+        foreach ($enclosure->allTiles() as $a) {
+            $values[] = "($player_id, $enclosure->id, $pos, $a->id)";
+            $pos++;
+        }
+        $sql = 'INSERT INTO enclosure_contents (player_id, enclosure_id, pos, tile_id) VALUES '
+             . implode(',', $values);
+        $this->db->execute($sql);
+    }
+
+    public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): void {
+        $truck = $this->getTruck($truck_id);
+        $encl = null;
+        foreach ($this->getEnclosuresForPlayer($this->getActivePlayer()->id) as $enc) {
+            if ($enc->id == $enclosure_id) {
+                $encl = $enc;
+            }
+        }
+        $tile = $truck->tileAt($truck_pos);
+        $encl->placeTile($tile);
+        $this->updateTruck($truck);
+        $this->updateEnclosure($encl);
     }
 }
 

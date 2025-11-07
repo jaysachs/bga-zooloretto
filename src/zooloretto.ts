@@ -386,7 +386,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             // mark as "targetable" and add onclick handlers
             args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.pos)).onclick = null);
             this.statusBar.addActionButton(_('Confirm'),
-              () => { this.bgaPerformAction('actPlaceTile', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: true });
+              () => { this.bgaPerformAction('actPlaceTileInTruck', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: true });
               // FIXME: can we automatically capture this "cancelable"/"undoable" animation?
               //   eg.    this.slideThing(from, to).then((undo) => ....  undo() ... )
               //     where slideThing returns the undo as part of the returned promise?
@@ -409,25 +409,43 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private onUpdateActionButtons_ArrangeZoo(arrangeState: ArrangeState) {
     let telem = $(IDS.truck(arrangeState.truck_id));
-    for (let s of arrangeState.spaces) {
-      var canMove = false;
-      if (s.barn) {
-        console.log(`can place ${s.pos} in barn`);
-        // FIXME: highlight barn
-        canMove = true;
-      }
-      for (let e of s.enclosures) {
-        if (e.enclosure_id > 0) {
-          let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.position));
-          elem.classList.add(CSS.TARGETABLE);
-          canMove = true;
-        }
-      }
-      if (canMove) {
-        let selem = $(IDS.truckSpace(arrangeState.truck_id, s.pos));
-        selem.classList.add(CSS.SELECTABLE);
-      }
+    let soc = (evt) => {
+
     }
+    let selems: HTMLElement[] = [];
+    for (let s of arrangeState.spaces) {
+      if (s.barn) {
+        // FIXME: highlight barn
+      }
+      let selem = $(IDS.truckSpace(arrangeState.truck_id, s.pos));
+      selems.push(selem);
+      selem.classList.add(CSS.SELECTABLE);
+      selem.onclick = (evt) => {
+        selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
+        selem.classList.add(CSS.MOVED);
+        for (let e of s.enclosures) {
+          if (e.enclosure_id > 0) {
+            let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.position));
+            elem.classList.add(CSS.TARGETABLE);
+            elem.onclick = (evt) => {
+              selem.classList.remove(CSS.MOVED);
+              elem.classList.remove(CSS.TARGETABLE);
+              // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
+              this.bgaPerformAction('actPlaceTileInZoo', { truck_id: arrangeState.truck_id, truck_pos: s.pos, enclosure_id: e.enclosure_id })
+                .then(() => this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {}));
+            };
+          }
+        }
+      };
+    }
+  }
+
+  private notif_PlaceTileInTruck(args: any) {
+    console.log("notif_PlaceTileInTruck", args);
+  }
+
+  private notif_PlaceTileInZoo(args: any) {
+    console.log("notif_PlaceTileInZoo", args);
   }
 
   private addCancelButton(onCancel: CallableFunction): void {

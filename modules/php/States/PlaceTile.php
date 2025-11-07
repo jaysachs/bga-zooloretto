@@ -62,7 +62,7 @@ class PlaceTile extends AbstractState
     }
 
     #[PossibleAction]
-    public function actPlaceTile(int $active_player_id, int $truck_id, int $pos): mixed {
+    public function actPlaceTileInTruck(int $active_player_id, int $truck_id, int $pos): mixed {
 
 		$model = $this->createModel();
 		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);

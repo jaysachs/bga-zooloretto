@@ -65,22 +65,18 @@ class ArrangeZoo extends AbstractState
 					$ap = $enclosure->availablePos($tile->type);
 					if ($ap > 0) {
 						$ed[] = [
-								'enclosure_id' => $enclosure->id,
-								'position' => $ap,
-						];
-					} else {
-						$ed[] = [
-							'type' => $tile->type,
-							'enc' => "$enclosure",
+							'enclosure_id' => $enclosure->id,
+							'position' => $ap,
 						];
 					}
 				}
-				$pd = [
-					'pos' => $pos,
-					'barn' => $tile->type->canGoInBarn(),
-					'enclosures' => $ed,
-				];
-				$data[] = $pd;
+				if ($tile->type->canGoInBarn() || count($ed) > 0) {
+					$data[] = [
+						'pos' => $pos,
+						'barn' => $tile->type->canGoInBarn(),
+						'enclosures' => $ed,
+					];
+				}
 			}
 		}
 		return [
@@ -88,6 +84,19 @@ class ArrangeZoo extends AbstractState
 			'spaces' => $data,
 		];
     }
+
+    #[PossibleAction]
+    public function actPlaceTileInZoo(int $active_player_id, int $truck_id, int $truck_pos, int $enclosure_id) : mixed {
+		$model = $this->createModel();
+		$model->placeTileInZoo($truck_id, $truck_pos, $enclosure_id);
+		$this->notify->all('PlaceTileInZoo', '${player_name} moved tile from truck ${truck_id} to enclosure ${enclosure_id}',
+		[
+			'player_id' => $active_player_id,
+			'truck_id' => $truck_id,
+			'enclosure_id' => $enclosure_id,
+		]);
+		return null;
+	}
 
     #[PossibleAction]
     public function actAutoArrangeTiles(int $active_player_id, string $wagonid, string $tileid1, string $posid1, string $tileid2, string $posid2, string $tileid3, string $posid3, string $x1, string $y1, string $x2, string $y2, string $x3, string $y3): mixed {
