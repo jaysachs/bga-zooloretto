@@ -32,10 +32,22 @@ class Enclosure {
      * @param int $id
      * @param int $capacity
      * @param Tile[] $animals
+     * @param Tile[] $stalls
      */
-    public function __construct(public readonly int $id, public readonly int $capacity, public array $animals, public Tile $stall) {
-        while (count($animals) < $capacity) {
+    public function __construct(public readonly int $id, int $animal_capacity, int $stall_capacity , public array $animals = [], public array $stalls = []) {
+        while (count($animals) < $animal_capacity) {
             $animals[] = null;
+        }
+        while (count($stalls) < $stall_capacity) {
+            $stalls[] = null;
+        }
+        foreach ($stalls as $spot) {
+            if ($spot != null) {
+                $t = $spot->type->value;
+                if (!$spot->type->isStall()) {
+                    throw new \BgaUserException("Enclosure $id should not contain non-stall tile id $spot->id of type $t");
+                }
+            }
         }
         foreach ($animals as $spot) {
             if ($spot != null) {
@@ -43,20 +55,49 @@ class Enclosure {
                 if (!$spot->type->isAnimal()) {
                     throw new \BgaUserException("Enclosure $id should not contain non-animal tile id $spot->id of type $t");
                 }
-                if ($spot->x != $id) {
-                    throw new \BgaUserException("Enclosure $id has animal tile $spot->id but that is in $spot->x");
-                }
             }
         }
     }
 
-    public function placeTile(Tile $tile) {
-        for ($i = 0; $i < $this->capacity; $i++) {
-            if ($this->animals[$i] == null) {
-                $this->animals[$i] = $tile;
+    public function tileAt(int $pos) {
+        if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
+            if ($pos <= count($this->animals)) {
+                return $this->animals[$pos-1];
+            }
+            return $this->stalls[$pos - 1 - count($this->animals)];
+        }
+        throw new \BgaUserException("No position $pos in encluse $this->id");
+    }
+
+    /**
+     * Positions are assigned starting with 1, animals first, and the consecutively going to stalls.
+     * For example, if there are 4 animal positions and 2 stalls,
+     * positions 1 through 4 inclusive are for animals, and positions 5 and 6 are for stalls.
+     */
+    public function placeTile(Tile $tile, int $pos) {
+        $t = $tile->type->value;
+        if ($tile->type->isAnimal()) {
+            if ($pos < 1 || $pos > count($this->animals)) {
+                throw new \BgaUserException("Not position $pos for animals in encluse $this->id");
+            }
+            $p1 = $pos - 1;
+            if ($this->animals[$p1] == null) {
+                $this->animals[$p1] = $tile;
                 return;
             }
+            throw new \BgaUserException("Position $pos is not open in enclosure $this->id for animal $t");
         }
-        throw new \BgaUserException("No open space in enclosure $this->id");
+        if ($tile->type->isStall()) {
+            $p2 = $pos - count($this->animals) - 1;
+            if ($p2 <= 0 || $p2 > count($this->stalls)) {
+                throw new \BgaUserException("Not position $pos for stalls in encluse $this->id");
+            }
+            if ($this->stalls[$p2] == null) {
+                $this->stalls[$p2] = $tile;
+                return;
+            }
+            throw new \BgaUserException("Position $pos is not open in enclosure $this->id for stall $t");
+        }
+        throw new \BgaUserException("Can only place animals and stills in enclosures, not $t");
     }
 }
