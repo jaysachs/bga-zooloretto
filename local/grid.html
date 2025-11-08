@@ -1,6 +1,16 @@
 <style>
 
-#overall-container {
+  #overall-container {
+      display-flex;
+      flex-direction: column;
+  }
+
+  #lower-portion {
+      background-color: #65efb9;
+  }
+
+  #upper-portion {
+      padding: 1%;
     display: flex;
     background-color: #eeeeee;
 
@@ -9,17 +19,47 @@
     position: relative;
 }
 
-#left-section {
-    width: 50%;
+#trucks {
+    width: 80%;
     display: flex;
+    justify-content: space-evenly;
+
     background-color: #eeee88;
-    height: 150px;
+    /* position:relative;*/
 }
 
+/* truck spaces */
+.truck > div {
+    width: 5.0vw;
+    height: 5.0vw;
+}
+
+.truck {
+    display: flex;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('../img/Wagon3.png');
+    width: 18.92vw;
+    height: 7vw;
+}
+
+
 #middle-section {
-    width: 40%;
+    width: 10%;
     display: flex;
     background-color: #88eeee;
+    justify-content: center;
+}
+
+.tile-container {
+    width: 5.0vw;
+    height: 5.0vw;
+    /* and this?? */
+    /* padding-bottom: 40%; */
+    aspect-ration: 1.0;
+}
+
+#drawn-tile {
 }
 
 #right-section {
@@ -71,6 +111,33 @@
 #endgame-pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
 #endgame-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
 
+.tile {
+    /* these make sense, they round the corners */
+    border-radius: 5% 5%;
+    border: 0 solid;
+
+    /* but why are all three of these needed for the "drawn" tile and also the animation of them moving? */
+    /* this sort of makes sense */
+    display: inline-block;
+    /* i guess specifying a width helps, but I don't understand the choice of number here. */
+    /*    width: 40%; */
+    width: 100%;
+    height: 100%;
+
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    background-image: url('../img/Tiles.png');
+    /* basically corresponds to number of columns in the sprite */
+    background-size: 600% 600%;
+
+/*    background-position: 20% 80%;*/
+}
+
+.tileStallA
+{
+    background-position: 40% 100%;
+}
+
+
 /* non-essential demo styles */
 span:nth-child(1) { background-color: lightgreen; }
 span:nth-child(2) { background-color: orange; }
@@ -83,22 +150,64 @@ span:nth-child(5) { background-color: yellow; }
 <html>
   <body>
     <div id="overall-container">
-      <div id="left-section"></div>
-      <div id="middle-section"></div>
-      <div id="right-section">
-        <div id="primary-pile">
-          <span class="tile"></span>
-          <span class="tile"></span>
-          <span class="tile"></span>
-          <span class="tile"></span>
-          <span class="tile"></span>
+
+      <div id="upper-portion">
+        <div id="trucks">
+          <div id="truck1" class="truck">
+            <div id="truckspace1_1">
+            </div>
+            <div id="truckspace1_2">
+              <span class="tile tileStallA"></span>
+            </div>
+            <div id="truckspace1_3">
+            </div>
+          </div>
+
+          <div id="truck2" class="truck">
+            <div id="truckspace1_1">
+            </div>
+            <div id="truckspace1_2">
+            </div>
+            <div id="truckspace1_3">
+            </div>
+          </div>
+
+          <div id="truck3" class="truck">
+            <div id="truckspace1_1">
+            </div>
+            <div id="truckspace1_2">
+            </div>
+            <div id="truckspace1_3">
+            </div>
+          </div>
+
         </div>
-        <div id="endgame-pile">
-          <span class="tile"></span>
-          <span class="tile"></span>
-          <span class="tile"></span>
+
+        <div id="middle-section">
+          <div id="drawn-tile" class="tile-container">
+            <span class="tile tileStallA"></span>
+          </div>
+        </div>
+
+        <div id="right-section">
+          <div id="primary-pile">
+            <span class="tile"></span>
+            <span class="tile"></span>
+            <span class="tile"></span>
+            <span class="tile"></span>
+            <span class="tile"></span>
+          </div>
+          <div id="endgame-pile">
+            <span class="tile"></span>
+            <span class="tile"></span>
+            <span class="tile"></span>
+          </div>
         </div>
       </div>
+
+      <div id="lower-portion">
+      </div>
+
     </div>
   </body>
 </html>
