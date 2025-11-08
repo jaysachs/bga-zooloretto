@@ -1,26 +1,26 @@
 <style>
 
-  #overall-container {
-      display-flex;
-      flex-direction: column;
-  }
+#overall-container {
+    display-flex;
+    flex-direction: column;
+}
 
-  #lower-portion {
-      background-color: #65efb9;
-  }
+#lower-portion {
+    background-color: #65efb9;
+    height: 50vw;
+}
 
-  #upper-portion {
-      padding: 1%;
+#upper-portion {
+    padding: 1%;
     display: flex;
     background-color: #eeeeee;
-
 
     /* seems irrelevant: */
     position: relative;
 }
 
 #trucks {
-    width: 80%;
+    width: 70%;
     display: flex;
     justify-content: space-evenly;
 
@@ -67,9 +67,6 @@
 .tile-container {
     width: 5.0vw;
     height: 5.0vw;
-    /* and this?? */
-    /* padding-bottom: 40%; */
-    aspect-ration: 1.0;
 }
 
 #drawn-tile {
@@ -78,53 +75,48 @@
 }
 
 #right-section {
-    position: relative;
-    width: 10%;
+    width: 20%;
     display: flex;
-    grid-gap: 4px;
-    flex-direction: column;
+/*    grid-gap: 4px; */
+    flex-direction: row;
     background-color: #ee88ee;
 }
 
-#primary-pile {
-    margin-top: 5%;
+.pile {
     position: relative;
-    display: block;
 }
 
-#endgame-pile {
-    top: 45%;
-    position: relative;
-    display: block;
-}
-
-#primary-pile > span {
-    display: flex;
+.pile > span {
     position: absolute;
-    width: 40%;
-    padding-bottom: 40%;
-    margin-left: 25%;
+    width: 5.0vw;
+    height: 5.0vw;
 }
 
-#endgame-pile > span {
-    display: flex;
-    position: absolute;
-    width: 40%;
-    padding-bottom: 40%;
-    margin-left: 25%;
+.pile > span:nth-child(1) { left: 0; top: 0; }
+.pile > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
+.pile > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
+.pile > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
+.pile > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
+
+.tileBack {
+    /* may not be in a tile container */
+    width: 5.0vw;
+    height: 5.0vw;
+
+    /* these 6 shared with tile */
+    border-radius: 5% 5%;
+    border: 0 solid;
+    /* this sort of makes sense */
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+
+    /* differ from tile */
+    background-size: contain;
+    backgorund-repeat: no-repeat;
+    background-image: url('../img/Back.png');
 }
-
-#primary-pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
-#primary-pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
-#primary-pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
-#primary-pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
-#primary-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
-
-#endgame-pile > span:nth-child(1) { left: 2%; margin-top: 2%; }
-#endgame-pile > span:nth-child(2) { left: 4%; margin-top: 4%; }
-#endgame-pile > span:nth-child(3) { left: 6%; margin-top: 6%; }
-#endgame-pile > span:nth-child(4) { left: 8%; margin-top: 8%; }
-#endgame-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
 
 .tile {
     /* round the corners */
@@ -204,17 +196,17 @@ span:nth-child(5) { background-color: yellow; }
         </div>
 
         <div id="right-section">
-          <div id="primary-pile">
-            <span class="tile"></span>
-            <span class="tile"></span>
-            <span class="tile"></span>
-            <span class="tile"></span>
-            <span class="tile"></span>
+          <div id="primary-pile" class="pile">
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
           </div>
-          <div id="endgame-pile">
-            <span class="tile"></span>
-            <span class="tile"></span>
-            <span class="tile"></span>
+          <div id="endgame-pile" class="pile">
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
+            <span class="tileBack"></span>
           </div>
         </div>
       </div>
