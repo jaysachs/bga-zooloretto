@@ -73,9 +73,9 @@ class Model {
 
         // Insert stock piles
 		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
-                           . implode(',', $stock->primaryIds()));
+                           . implode(',', array_map(fn ($i) => "($i)", $stock->primaryIds())));
 		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
-                           . implode(',', $stock->endgameIds()));
+                           . implode(',', array_map(fn ($i) => "($i)", $stock->endgameIds())));
 
         // Trucks
         $trucks = [];
@@ -91,8 +91,8 @@ class Model {
         }
         $values = [];
         foreach ($trucks as $truck) {
-            $ts = array_map(fn (Tile $t): string => $t->type->value, $truck->getAllTiles());
-            $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[0], $ts[1], $ts[2]);
+            $ts = array_map(fn (Tile $t): string => "$t->id", $truck->getAllTiles());
+            $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[1], $ts[2], $ts[3]);
         }
         $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
                            . implode(',', $values));
