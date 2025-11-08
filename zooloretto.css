@@ -55,8 +55,8 @@
 /* FIXME: should we use a CSS class "zoo-pile" instead of this? */
 #zoo-stock > div {
     position: relative;
-    width: 7.5vw;
-    height: 7.5vw;
+    width: calc(var(--zoo-tile-size) * 1.5);
+    height: calc(var(--zoo-tile-size) * 1.5);
 }
 
 #zoo-stock > div > span {
@@ -219,6 +219,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Wagon3.png');
+    /* FIXME: these depend on tile size! */
     width: 18.92vw;
     height: 7vw;
 }
@@ -228,8 +229,11 @@
     position: relative;
     width: calc(var(--zoo-tile-size));
     height: calc(var(--zoo-tile-size));
+    /* FIXME: this depends on tile size! */
     top: 12%;
 }
+
+/* FIXME: these depend on tile size! */
 .zoo-truck > div:nth-child(1) {
     left: 5%;
 }
@@ -241,10 +245,12 @@
 }
 
 /* FIXME: not used; should we, instead of spreading this around? */
+/*
 .zoo-tile-container {
     width: calc(var(--zoo-tile-size));
     height: calc(var(--zoo-tile-size));
 }
+*/
 
 #zoo-drawn-tile {
     width: calc(var(--zoo-tile-size));
@@ -508,6 +514,7 @@
 }
 
 .barn,.barn2p {
+    /* FIXME: these depend on tile size! */
     top: 82%;
     height: 15%;
     position: absolute;
@@ -516,6 +523,7 @@
     opacity: 0.4;
 }
 
+/* FIXME: these MAY depend on tile size! */
 .barn {
     left: 20%;
     width: 40%;
@@ -572,6 +580,7 @@
 
 
 .cell {
+    /* FIXME: these depend on tile size! */
     width: 9%;
     height: 9%;
     position: absolute;
@@ -586,6 +595,7 @@
 }
 
 .board2p .cell {
+    /* FIXME: these depend on tile size! */
     width: 7.38%;
 }
 
@@ -596,6 +606,7 @@
 [enclosure="4"] .cell {  background-color: purple; }
 [enclosure="5"] .cell {  background-color: red; }
 
+/* FIXME: these depend on tile size! */
 .board2p [enclosure='1'] .cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
 .board2p [enclosure='1'] .cell:nth-child(2) { left: 41.355397555%; top: 23.5%; }
 .board2p [enclosure='1'] .cell:nth-child(3) { left: 52.182093391%; top: 21.2%; }
