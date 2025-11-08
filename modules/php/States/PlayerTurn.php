@@ -135,8 +135,7 @@ class PlayerTurn extends AbstractState
 			else return 200;
 		};
 
-		// FIXME: move onto Stock?
-		$drawn_from_endgame_pile = $stock->waslastRoundTriggered() || count($stock->primary) == 0;
+		$drawn_from_endgame_pile = $stock->lastDrawFromEndgamePile();
 
 		$this->notify->all(
 			"DrawTile",
@@ -147,8 +146,8 @@ class PlayerTurn extends AbstractState
 				'tile_id' => $tile->id,
 				'tile_type' => $tile->type->value,
 				'drawn_from_endgame_pile' => $drawn_from_endgame_pile,
-				'primary_left' => $amt(count($stock->primary)),
-				'endgame_left' => $amt(count($stock->endgame)),
+				'primary_left' => $amt($stock->primaryCount()),
+				'endgame_left' => $amt($stock->endgameCount()),
 				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]

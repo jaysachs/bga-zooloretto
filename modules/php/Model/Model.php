@@ -72,11 +72,10 @@ class Model {
                            . implode(',', array_map($make, $tilepool)));
 
         // Insert stock piles
-        $make2 = function (Tile $tile) : string { return "($tile->id)"; };
 		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
-                           . implode(',', array_map($make2, $stock->primary)));
+                           . implode(',', $stock->primaryIds()));
 		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
-                           . implode(',', array_map($make2, $stock->endgame)));
+                           . implode(',', $stock->endgameIds()));
 
         // Trucks
         $trucks = [];

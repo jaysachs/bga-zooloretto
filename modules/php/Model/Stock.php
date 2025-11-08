@@ -36,7 +36,25 @@ class Stock {
      * @param $tiles Tile[]
      * @param $lastset Tile[]
      */
-    public function __construct(public private(set) array $primary, public private(set) array $endgame, public private(set) ?Tile $drawn) {
+    public function __construct(private array $primary, private array $endgame, public private(set) ?Tile $drawn) {
+    }
+
+    public function primaryCount(): int {
+        return count($this->primary);
+    }
+
+    public function endgameCount(): int {
+        return count($this->endgame);
+    }
+
+    /** @return int[] */
+    public function primaryIds(): array {
+        return array_map(fn (Tile $t):int => $t->id, $this->primary);
+    }
+
+    /** @return int[] */
+    public function endgameIds(): array {
+        return array_map(fn (Tile $t):int => $t->id, $this->endgame);
     }
 
     public function removeDrawnTile(): Tile {
@@ -46,6 +64,10 @@ class Stock {
         $tile = $this->drawn;
         $this->drawn = null;
         return $tile;
+    }
+
+    public function lastDrawFromEndgamePile(): bool {
+        return $this->waslastRoundTriggered() || count($this->primary) == 0;
     }
 
     public function drawTile(): Tile {

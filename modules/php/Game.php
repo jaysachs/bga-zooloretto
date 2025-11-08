@@ -98,8 +98,8 @@ class Game extends \Bga\GameFramework\Table
 			}, $model->getTrucks()),
             'enclosures' => [
             ],
-            'primary_stocksize' => count($stock->primary),
-            'endgame_stocksize' => count($stock->endgame),
+            'primary_stocksize' => $stock->primaryCount(),
+            'endgame_stocksize' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
             'lastround' => $stock->inLastRound(),
 		];
