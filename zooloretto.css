@@ -48,6 +48,7 @@
     background-color: #c3d7e9;
 }
 
+/* FIXME: should we use a CSS class "zoo-pile" instead of this? */
 #zoo-stock > div {
     position: relative;
     width: 7.5vw;
@@ -67,29 +68,7 @@
 #zoo-stock > div > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
 #zoo-stock > div > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; }
 
-.back,.tileblock
-{
-    background-size: contain;
-    background-repeat: no-repeat;
-    border-radius: 5% 5%;
-    border: 0 solid;
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-    background-size: 100% !important;
-    background-position: 0% 0% !important;
-    background-image: url('img/Back.png') !important;
-}
-
-.disk
-{
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-    border-radius: 5% 5%;
-    border: 0 solid;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-image: url('img/Disk.png');
-}
-
-.container3 {
+#zoo-boards {
     width: 100%;
     height: auto;
     background-repeat: no-repeat;
@@ -220,7 +199,7 @@
     padding-bottom: 0%;
 }
 
-#trucks {
+#zoo-trucks {
     width: 70%;
     display: flex;
     justify-content: space-evenly;
@@ -230,25 +209,7 @@
     /* position:relative;*/
 }
 
-/* truck spaces */
-.truck > div {
-    position: relative;
-    width: 5.0vw;
-    height: 5.0vw;
-    top: 12%;
-}
-.truck > div:nth-child(1) {
-    left: 5%;
-}
-.truck > div:nth-child(2) {
-    left: 10%;
-}
-.truck > div:nth-child(3) {
-    left: 15%;
-}
-
-
-.truck {
+.zoo-truck {
     display: flex;
     background-size: contain;
     background-repeat: no-repeat;
@@ -257,7 +218,24 @@
     height: 7vw;
 }
 
-.tile-container {
+/* truck spaces */
+.zoo-truck > div {
+    position: relative;
+    width: 5.0vw;
+    height: 5.0vw;
+    top: 12%;
+}
+.zoo-truck > div:nth-child(1) {
+    left: 5%;
+}
+.zoo-truck > div:nth-child(2) {
+    left: 10%;
+}
+.zoo-truck > div:nth-child(3) {
+    left: 15%;
+}
+
+.zoo-tile-container {
     width: 5.0vw;
     height: 5.0vw;
 }
@@ -270,27 +248,50 @@
     border: yellow 0.2vw dashed;
 }
 
-.tileBack {
-    /* may not be in a tile container */
-    width: 5.0vw;
-    height: 5.0vw;
-
-    /* these 6 shared with tile */
-    border-radius: 5% 5%;
-    border: 0 solid;
-    /* this sort of makes sense */
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-
-    /* differ from tile */
-    background-size: contain;
-    backgorund-repeat: no-repeat;
-    background-image: url('../img/Back.png');
+.backtransition
+{
+    transition: background-image 1s;
+    z-index: 20;
 }
 
-.tile {
+.zoo-tile-back,.zoo-tile-block,.zoo-disk,
+.zoo-tile-C,
+.zoo-tile-CF,
+.zoo-tile-CM,
+.zoo-tile-CK,
+.zoo-tile-E,
+.zoo-tile-EF,
+.zoo-tile-EM,
+.zoo-tile-EK,
+.zoo-tile-F,
+.zoo-tile-FF,
+.zoo-tile-FM,
+.zoo-tile-FK,
+.zoo-tile-K,
+.zoo-tile-KF,
+.zoo-tile-KM,
+.zoo-tile-KK,
+.zoo-tile-L,
+.zoo-tile-LF,
+.zoo-tile-LM,
+.zoo-tile-LK,
+.zoo-tile-M,
+.zoo-tile-MF,
+.zoo-tile-MM,
+.zoo-tile-MK,
+.zoo-tile-P,
+.zoo-tile-PF,
+.zoo-tile-PM,
+.zoo-tile-PK,
+.zoo-tile-Z,
+.zoo-tile-ZF,
+.zoo-tile-ZM,
+.zoo-tile-ZK,
+.zoo-tile-StallA,
+.zoo-tile-StallB,
+.zoo-tile-StallC,
+.zoo-tile-Coin,
+.zoo-tile-StallD {
     /* round the corners */
     border-radius: 5% 5%;
     border: 0 solid;
@@ -304,173 +305,192 @@
     background-image: url('img/Tiles.png');
     /* basically corresponds to number of columns in the sprite */
     background-size: 600% 600%;
-
-/*    background-position: 20% 80%;*/
 }
 
-.backtransition
+.zoo-tile-back,.zoo-tile-block,.zoo-disk {
+    /* may not be in a tile container */
+    width: 5.0vw;
+    height: 5.0vw;
+
+    /* differ from tile */
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+}
+
+.zoo-tile-back,.zoo-tile-block {
+    background-image: url('img/Back.png') !important;
+}
+
+.zoo-disk {
+    background-image: url('img/Disk.png') !important;
+}
+
+.zoo-tile-Coin {
+    background-image: url('img/Coin.png') !important;
+}
+
+/* offspring tiles are actually round */
+.zoo-tile-CK,
+.zoo-tile-EK,
+.zoo-tile-FK,
+.zoo-tile-KK,
+.zoo-tile-LK,
+.zoo-tile-MK,
+.zoo-tile-PK
+.zoo-tile-ZK
 {
-    transition: background-image 1s;
-    z-index: 20;
+    border-radius: 70% 70%;
 }
 
-.tileC
+.zoo-tile-C
 {
     background-position: 0% 0%;
 }
-.tileCF
+.zoo-tile-CF
 {
     background-position: 20% 0%;
 }
-.tileCM
+.zoo-tile-CM
 {
     background-position: 40% 0%;
 }
-.tileCK
+.zoo-tile-CK
 {
     background-position: 60% 0%;
-    border-radius: 70% 70%;
 }
-.tileE
+.zoo-tile-E
 {
     background-position: 80% 0%;
 }
-.tileEF
+.zoo-tile-EF
 {
     background-position: 100% 0%;
 }
-.tileEM
+.zoo-tile-EM
 {
     background-position: 0% 20%;
 }
-.tileEK
+.zoo-tile-EK
 {
     background-position: 20% 20%;
-    border-radius: 70% 70%;
 }
-.tileF
+.zoo-tile-F
 {
     background-position: 40% 20%;
 }
-.tileFF
+.zoo-tile-FF
 {
     background-position: 60% 20%;
 }
-.tileFM
+.zoo-tile-FM
 {
     background-position: 80% 20%;
 }
-.tileFK
+.zoo-tile-FK
 {
     background-position: 100% 20%;
-    border-radius: 70% 70%;
 }
-.tileK
+.zoo-tile-K
 {
     background-position: 0% 40%;
 }
-.tileKF
+.zoo-tile-KF
 {
     background-position: 20% 40%;
 }
-.tileKM
+.zoo-tile-KM
 {
     background-position: 40% 40%;
 }
-.tileKK
+.zoo-tile-KK
 {
     background-position: 60% 40%;
-    border-radius: 70% 70%;
 }
-.tileL
+.zoo-tile-L
 {
     background-position: 80% 40%;
 }
-.tileLF
+.zoo-tile-LF
 {
     background-position: 100% 40%;
 }
-.tileLM
+.zoo-tile-LM
 {
     background-position: 0% 60%;
 }
-.tileLK
+.zoo-tile-LK
 {
     background-position: 20% 60%;
-    border-radius: 70% 70%;
 }
-.tileM
+.zoo-tile-M
 {
     background-position: 40% 60%;
 }
-.tileMF
+.zoo-tile-MF
 {
     background-position: 60% 60%;
 }
-.tileMM
+.zoo-tile-MM
 {
     background-position: 80% 60%;
 }
-.tileMK
+.zoo-tile-MK
 {
     background-position: 100% 60%;
-    border-radius: 70% 70%;
 }
-.tileP
+.zoo-tile-P
 {
     background-position: 0% 80%;
 }
-.tilePF
+.zoo-tile-PF
 {
     background-position: 20% 80%;
 }
-.tilePM
+.zoo-tile-PM
 {
     background-position: 40% 80%;
 }
-.tilePK
+.zoo-tile-PK
 {
     background-position: 60% 80%;
-    border-radius: 70% 70%;
 }
-.tileZ
+.zoo-tile-Z
 {
     background-position: 80% 80%;
 }
-.tileZF
+.zoo-tile-ZF
 {
     background-position: 100% 80%;
 }
-.tileZM
+.zoo-tile-ZM
 {
     background-position: 0% 100%;
 }
-.tileZK
+.zoo-tile-ZK
 {
     background-position: 20% 100%;
-    border-radius: 70% 70%;
 }
-.tileStallA
+.zoo-tile-StallA
 {
     background-position: 40% 100%;
 }
-.tileStallB
+.zoo-tile-StallB
 {
     background-position: 60% 100%;
 }
-.tileStallC
+.zoo-tile-StallC
 {
     background-position: 80% 100%;
 }
-.tileStallD
+.zoo-tile-StallD
 {
     background-position: 100% 100%;
 }
 
-.tileCoin
+.zoo-tile-Coin
 {
     background-image: url('img/Coin.png');
-    background-size: 100%
+    background-size: 100%;
 }
 
 .playeraidIT

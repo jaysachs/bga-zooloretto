@@ -753,33 +753,35 @@ height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
 
 
 <!-- GAME STARTS HERE -->
+
+
 <div id="zoo-game-container">
   <div id="zoo-upper-container">
-    <div id="trucks">
-      <div id="truck_1" class="truck">
+    <div id="zoo-trucks">
+      <div id="truck_1" class="zoo-truck">
         <div id="truckspace_1_1"></div>
-        <div id="truckspace_1_2"><span class="tile tileCF"></span></div>
+        <div id="truckspace_1_2"><span class="zoo-tile-CF"></span></div>
         <div id="truckspace_1_3"></div>
       </div>
-      <div id="truck_2" class="truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div class="tileblock tile"></div></div></div>
-      <div id="truck_3" class="truck">
-        <div id="truckspace_3_1"></div>
-        <div id="truckspace_3_2"><div class="tileblock tile"></div></div>
-        <div id="truckspace_3_3"><div class="tileblock tile"></div></div>
+      <div id="truck_2" class="zoo-truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div class="zoo-tile-block"></div></div></div>
+      <div id="truck_3" class="zoo-truck">
+        <div id="truckspace_3_1"><span class="zoo-tile-Coin"></span></div>
+        <div id="truckspace_3_2"><div class="zoo-tile-block"></div></div>
+        <div id="truckspace_3_3"><div class="zoo-tile-block"></div></div>
       </div>
     </div>
 
-    <div id="zoo-drawn"><div id="zoo-drawn-tile" class="tile-container"></div></div>
+    <div id="zoo-drawn"><div id="zoo-drawn-tile" class="zoo-tile-container"><span class="zoo-tile-PM"></span></div></div>
 
     <div id="zoo-stock">
 
-      <div id="zoo-primary-pile"><span class="back"></span><span class="back"></span><span class="back"></span><span class="back"></span><span class="back"></span></div>
+      <div id="zoo-primary-pile"><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span></div>
 
-      <div id="zoo-endgame-pile"><span class="back"></span><span class="back"></span><span class="back"></span><span class="back"></span><span class="back"></span><span class="disk"></span></div>
+      <div id="zoo-endgame-pile"><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-tile-back"></span><span class="zoo-disk"></span></div>
     </div>
   </div>
 
-  <div class="container3" id="container3">
+  <div id="zoo-boards">
     <div id="board_1" class="board2p " extensions="0">
       <div id="barn_1" class="barn2p"></div>
       <div id="enclosure_1_1" enclosure="1">
