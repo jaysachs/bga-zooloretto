@@ -125,25 +125,17 @@
     margin-left: 1%;
     margin-top: 2%;
     margin-bottom: 2%;
-    width: 46%;
-    height: auto;
+    /* FIXME: at this width, can't use the 5.0vw tile size */
+    width: 65%;
     background-repeat: no-repeat;
     background-size: contain;
     position: relative;
-    padding-bottom: 46%;
+/*    padding-bottom: 46%; */
     transition: background-image 2s;
 }
 
-.board {
-    background-image: url('img/Board0.png');
-}
-
-.board[extensions="1"] {
-    background-image: url('img/Board1.png');
-}
-
 .board2p {
-    padding-bottom: 38% !important;
+    aspect-ratio: 1097 / 899;
     background-image: url('img/Board20.png');
 }
 
@@ -153,6 +145,15 @@
 
 .board2p[extensions="2"] {
     background-image: url('img/Board22.png');
+}
+
+.board {
+    aspect-ratio: 1;
+    background-image: url('img/Board0.png');
+}
+
+.board[extensions="1"] {
+    background-image: url('img/Board1.png');
 }
 
 .moved {
@@ -170,12 +171,6 @@
     border:#2220A5 0.4vw solid !important;
     transform: scale(1) !important;
     /* cursor: pointer; */
-}
-
-
-.zoom:hover {
-    transform: scale(2.3);
-    z-index: 100;
 }
 
 .playercards {
@@ -219,9 +214,8 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Wagon3.png');
-    /* FIXME: these depend on tile size! */
-    width: 18.92vw;
-    height: 7vw;
+    width: calc(1.4 * 2.7 * (var(--zoo-tile-size)));
+    height: calc(1.4 * var(--zoo-tile-size));
 }
 
 /* truck spaces */
@@ -229,11 +223,10 @@
     position: relative;
     width: calc(var(--zoo-tile-size));
     height: calc(var(--zoo-tile-size));
-    /* FIXME: this depends on tile size! */
-    top: 12%;
+    top: 14%;
 }
 
-/* FIXME: these depend on tile size! */
+/* FIXME: these don't depend on tile size, just the relative dimension of trucks. compute this on trick width/height or vice-versa? */
 .zoo-truck > div:nth-child(1) {
     left: 5%;
 }
@@ -722,4 +715,33 @@
 .pointer
 {
     cursor: pointer;
+}
+
+
+
+/*
+  Zoom other player boards.
+*/
+
+#zoo-boards:not(:has(.zoom:hover)) #board_1 {
+    transition: 1s;
+}
+
+#zoo-boards:has(.zoom:hover) #board_1 {
+    transform: scale(0.5) translate(-50%,-50%);
+    transition: 1s;
+}
+
+.zoom:not(:hover) {
+    transition: 1s;
+}
+
+.zoom:hover {
+    /* FIXME: the translate here relates to the % given to the active player board */
+    /* for 65% it's kinda but not exactly: */
+    transform: scale(2.4) translate(-19%,20%);
+    transition: 1s;
+
+    /* transform: scale(2.3) translate(0 ,0); */
+    z-index: 100;
 }
