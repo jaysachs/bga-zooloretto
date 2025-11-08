@@ -27,7 +27,7 @@
     background-color:lightgreen;
 }
 
-#drawn {
+#zoo-drawn {
     width: 10%;
     justify-content: center;
     align-items: center;
@@ -36,7 +36,7 @@
     background-color: #e3d7c9;
 }
 
-#stock {
+#zoo-stock {
     width: 20%;
     padding: 0.5%;
     display: flex;
@@ -48,24 +48,24 @@
     background-color: #c3d7e9;
 }
 
-#stock > div {
+#zoo-stock > div {
     position: relative;
     width: 7.5vw;
     height: 7.5vw;
 }
 
-#stock > div > span {
+#zoo-stock > div > span {
     position: absolute;
     width: 5.0vw;
     height: 5.0vw;
 }
 
-#stock > div > span:nth-child(1) { left: 0; top: 0; }
-#stock > div > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
-#stock > div > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
-#stock > div > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
-#stock > div > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
-#stock > div > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; }
+#zoo-stock > div > span:nth-child(1) { left: 0; top: 0; }
+#zoo-stock > div > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
+#zoo-stock > div > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
+#zoo-stock > div > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
+#zoo-stock > div > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
+#zoo-stock > div > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; }
 
 .back,.tileblock
 {
@@ -263,7 +263,7 @@
 }
 
 /* Needs to be tile-container too ... */
-#drawn-tile {
+#zoo-drawn-tile {
     width: 5.0vw;
     height: 5.0vw;
     border-radius: 5% 5%;
