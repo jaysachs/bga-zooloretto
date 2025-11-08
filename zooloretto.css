@@ -13,6 +13,10 @@
  *
  */
 
+:root {
+    --zoo-tile-size: 5.0vw;
+}
+
 #zoo-game-container {
     display : flex;
     flex-direction: column;
@@ -57,10 +61,11 @@
 
 #zoo-stock > div > span {
     position: absolute;
-    width: 5.0vw;
-    height: 5.0vw;
+    width: calc(var(--zoo-tile-size));
+    height: calc(var(--zoo-tile-size));
 }
 
+/* FIXME: use class instead of `#zoo-stock > div` ? */
 #zoo-stock > div > span:nth-child(1) { left: 0; top: 0; }
 #zoo-stock > div > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
 #zoo-stock > div > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
@@ -221,8 +226,8 @@
 /* truck spaces */
 .zoo-truck > div {
     position: relative;
-    width: 5.0vw;
-    height: 5.0vw;
+    width: calc(var(--zoo-tile-size));
+    height: calc(var(--zoo-tile-size));
     top: 12%;
 }
 .zoo-truck > div:nth-child(1) {
@@ -235,15 +240,15 @@
     left: 15%;
 }
 
+/* FIXME: not used; should we, instead of spreading this around? */
 .zoo-tile-container {
-    width: 5.0vw;
-    height: 5.0vw;
+    width: calc(var(--zoo-tile-size));
+    height: calc(var(--zoo-tile-size));
 }
 
-/* Needs to be tile-container too ... */
 #zoo-drawn-tile {
-    width: 5.0vw;
-    height: 5.0vw;
+    width: calc(var(--zoo-tile-size));
+    height: calc(var(--zoo-tile-size));
     border-radius: 5% 5%;
     border: yellow 0.2vw dashed;
 }
@@ -308,10 +313,6 @@
 }
 
 .zoo-tile-back,.zoo-tile-block,.zoo-disk {
-    /* may not be in a tile container */
-    width: 5.0vw;
-    height: 5.0vw;
-
     /* differ from tile */
     background-size: contain !important;
     background-repeat: no-repeat !important;
