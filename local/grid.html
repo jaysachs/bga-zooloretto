@@ -30,9 +30,21 @@
 
 /* truck spaces */
 .truck > div {
+    position: relative;
     width: 5.0vw;
     height: 5.0vw;
+    top: 12%;
 }
+.truck > div:nth-child(1) {
+    left: 5%;
+}
+.truck > div:nth-child(2) {
+    left: 10%;
+}
+.truck > div:nth-child(3) {
+    left: 15%;
+}
+
 
 .truck {
     display: flex;
@@ -112,15 +124,12 @@
 #endgame-pile > span:nth-child(5) { left: 10%; margin-top: 10%; }
 
 .tile {
-    /* these make sense, they round the corners */
+    /* round the corners */
     border-radius: 5% 5%;
     border: 0 solid;
 
-    /* but why are all three of these needed for the "drawn" tile and also the animation of them moving? */
     /* this sort of makes sense */
     display: inline-block;
-    /* i guess specifying a width helps, but I don't understand the choice of number here. */
-    /*    width: 40%; */
     width: 100%;
     height: 100%;
 
@@ -155,11 +164,13 @@ span:nth-child(5) { background-color: yellow; }
         <div id="trucks">
           <div id="truck1" class="truck">
             <div id="truckspace1_1">
+              <span class="tile tileCF"></span>
             </div>
             <div id="truckspace1_2">
               <span class="tile tileStallA"></span>
             </div>
             <div id="truckspace1_3">
+              <span class="tile tileCF"></span>
             </div>
           </div>
 
