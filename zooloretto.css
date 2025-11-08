@@ -13,88 +13,59 @@
  *
  */
 
-#container1 {
-    background-color: yellow;
-    width: 100%;
-    height: auto;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
+#zoo-game-container {
     display : flex;
-    padding-bottom: 0%;
-    align-items: flex-start;
-    justify-content: center;
     flex-direction: column;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
+
+    background-color: yellow;
 }
 
-#container2 {
-    background-color:lightgreen;
-    width: 100%;
-    height: auto;
-    position: relative;
-    display : flex;
+#zoo-upper-container {
+    padding: 1%;
+    display: flex;
 
-    background-repeat: no-repeat;
-    background-size: contain;
-    padding-bottom: 0%;
-    justify-content: center;
-    flex-direction: row;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
+    background-color:lightgreen;
 }
 
 #drawn {
-    background-color: #e3d7c9;
     width: 10%;
-    height: auto;
-    position: relative;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+
+    background-color: #e3d7c9;
 }
 
 #stock {
+    width: 20%;
+    padding: 0.5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    /*    grid-gap: 4px; */
+
     background-color: #c3d7e9;
-    position: relative;
-    width: 10%;
-    display: flex;
-    grid-gap: 4px;
-    flex-direction: column;
 }
 
-#primary_pile {
+#stock > div {
     position: relative;
-    display: block;
-    margin-top: 5%;
+    width: 7.5vw;
+    height: 7.5vw;
 }
 
-#endgame_pile {
-    position: relative;
-    display: block;
-    top: 40%;
-    /* margin-top: 45%; */
-}
-
-#primary_pile > span:nth-child(1) { left: 4%; margin-top: 4%; }
-#primary_pile > span:nth-child(2) { left: 8%; margin-top: 8%; }
-#primary_pile > span:nth-child(3) { left: 12%; margin-top: 12%; }
-#primary_pile > span:nth-child(4) { left: 16%; margin-top: 16%; }
-#primary_pile > span:nth-child(5) { left: 20%; margin-top: 20%; }
-#primary_pile > span:nth-child(6) { left: 24%; margin-top: 24%; }
-
-#endgame_pile > span:nth-child(1) { left: 4%; margin-top: 4%; }
-#endgame_pile > span:nth-child(2) { left: 8%; margin-top: 8%; }
-#endgame_pile > span:nth-child(3) { left: 12%; margin-top: 12%; }
-#endgame_pile > span:nth-child(4) { left: 16%; margin-top: 16%; }
-#endgame_pile > span:nth-child(5) { left: 20%; margin-top: 20%; }
-#endgame_pile > span:nth-child(6) { left: 24%; margin-top: 24%; }
-
-#primary_pile > span,#endgame_pile > span {
+#stock > div > span {
     position: absolute;
-    display: flex;
-    width: 30%;
-    padding-bottom: 30%;
-    margin-left: 30%;
+    width: 5.0vw;
+    height: 5.0vw;
 }
+
+#stock > div > span:nth-child(1) { left: 0; top: 0; }
+#stock > div > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
+#stock > div > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
+#stock > div > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
+#stock > div > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
+#stock > div > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; }
 
 .back,.tileblock
 {
@@ -250,78 +221,91 @@
 }
 
 #trucks {
-    background-color: #e9c7e9;
-    width: 80%;
-    height: auto;
-    position: relative;
-    display : flex;
-    padding-bottom: 0%;
+    width: 70%;
+    display: flex;
+    justify-content: space-evenly;
     align-items: center;
-    justify-content: center;
-    flex-wrap: no-wrap;
-    flex-direction: row;
+
+    background-color: #e9c7e9;
+    /* position:relative;*/
 }
 
-.truck {
-    border-radius: 5% 5%;
-    border: 0 solid;
-    width: 30%;
-    position: relative;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-image: url('img/Wagon3.png');
-
-    padding-bottom: 11.5%;
-    margin-right: 2%;
-    margin-left: 2%;
-    margin-bottom: 2%;
-    margin-top: 2%;
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
-}
-
+/* truck spaces */
 .truck > div {
-    width: 26.835%;
-    height: 70%;
-    position: absolute;
-    display : flex;
-    z-index: 5;
-    transform-origin: top;
+    position: relative;
+    width: 5.0vw;
+    height: 5.0vw;
+    top: 12%;
 }
 .truck > div:nth-child(1) {
-    top: 14%;
     left: 5%;
 }
 .truck > div:nth-child(2) {
-    top: 14%;
-    left: 36%;
+    left: 10%;
 }
 .truck > div:nth-child(3) {
-    top: 14%;
-    left: 67%;
+    left: 15%;
 }
 
-.truck .tile
-{
-    width: 100% !important;
-    /* padding-bottom: 100% !important; */
+
+.truck {
+    display: flex;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Wagon3.png');
+    width: 18.92vw;
+    height: 7vw;
+}
+
+.tile-container {
+    width: 5.0vw;
+    height: 5.0vw;
+}
+
+/* Needs to be tile-container too ... */
+#drawn-tile {
+    width: 5.0vw;
+    height: 5.0vw;
+    border-radius: 5% 5%;
+    border: yellow 0.2vw dashed;
+}
+
+.tileBack {
+    /* may not be in a tile container */
+    width: 5.0vw;
+    height: 5.0vw;
+
+    /* these 6 shared with tile */
+    border-radius: 5% 5%;
+    border: 0 solid;
+    /* this sort of makes sense */
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+
+    /* differ from tile */
+    background-size: contain;
+    backgorund-repeat: no-repeat;
+    background-image: url('../img/Back.png');
 }
 
 .tile {
-    /* these make sense, they round the corners */
+    /* round the corners */
     border-radius: 5% 5%;
     border: 0 solid;
 
-    /* but why are all three of these needed for the "drawn" tile and also the animation of them moving? */
     /* this sort of makes sense */
     display: inline-block;
-    /* i guess specifying a width helps, but I don't understand the choice of number here. */
-    width: 40%;
-    /* and this?? */
-    padding-bottom: 40%;
+    width: 100%;
+    height: 100%;
 
     filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
     background-image: url('img/Tiles.png');
-    background-size: 600% /* basically corresponds to number of columns in the sprite */
+    /* basically corresponds to number of columns in the sprite */
+    background-size: 600% 600%;
+
+/*    background-position: 20% 80%;*/
 }
 
 .backtransition
@@ -711,4 +695,3 @@
 {
     cursor: pointer;
 }
-
