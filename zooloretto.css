@@ -325,10 +325,6 @@
     background-image: url('img/Disk.png') !important;
 }
 
-.zoo-tile-Coin {
-    background-image: url('img/Coin.png') !important;
-}
-
 /* offspring tiles are actually round */
 .zoo-tile-CK,
 .zoo-tile-EK,
@@ -490,7 +486,7 @@
 .zoo-tile-Coin
 {
     background-image: url('img/Coin.png');
-    background-size: 100%;
+    background-size: contain;
 }
 
 .playeraidIT
