@@ -76,7 +76,7 @@ class Enclosure {
     private function availableStallPos(): int {
         foreach ($this->stalls as $i => $t) {
             if ($t->isEmpty()) {
-                return $i+1;
+                return count($this->animals) + $i+1;
             }
         }
         return 0;
@@ -138,10 +138,11 @@ class Enclosure {
                     $pos++;
                 }
                 $pos++;
+                $pos += count($this->animals);
             }
             $p2 = $pos - count($this->animals) - 1;
-            if ($p2 <= 0 || $p2 > count($this->stalls)) {
-                throw new ModelException("Not position $pos for stalls in encluse $this->id");
+            if ($p2 < 0 || $p2 >= count($this->stalls)) {
+                throw new ModelException("Not position $pos ($p2) for stalls in encluse $this->id");
             }
             if ($this->stalls[$p2]->isEmpty()) {
                 $this->stalls[$p2] = $tile;
