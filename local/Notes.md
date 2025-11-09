@@ -32,6 +32,7 @@ player boards at low-zoom).
    board "zooms", the active board "shrinks", i.e. they swap
    sizes. That probably requires javascript.
 
-6. BIG ISSUE: while responsivle layout works great with player panels
-   on top, they fail totally when playerboards are on the right. Need
-   to have two mockups, for each possiblity.
+6. FIXED. BIG ISSUE: while responsivle layout works great with player
+   panels on top, they fail totally when playerboards are on the
+   right. Need to have two mockups, for each possiblity.  Switched to
+   4.0vw size and this works now.

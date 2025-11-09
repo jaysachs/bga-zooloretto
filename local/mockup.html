@@ -768,8 +768,20 @@ height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
                           }
                           t.classList.toggle('zoo-selected');
                       }
+                      function changeSize(delta) {
+                          const name = '--zoo-tile-size';
+                          let s = document.documentElement.style;
+                          let v = s.getPropertyValue(name);
+                          let val = Number(v.substring(0, v.indexOf('vw')));
+                          s.setProperty(name, (val + delta) + "vw");
+                      }
                       </script>
-
+                    <div style="display: flex;">
+                      <span>tile size</span>
+                      <button type="submit" onclick="changeSize(0.5)">Increase</button>
+                      <button type="submit" onclick="changeSize(-0.5)">Decrease</button>
+                      <br></br>
+                    </div>
 <div id="zoo-game-container">
   <div id="zoo-upper-container">
     <div id="zoo-depot">
