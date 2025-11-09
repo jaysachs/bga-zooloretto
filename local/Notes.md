@@ -25,3 +25,5 @@ player boards at low-zoom).
    *could* remove itself.
 
 4. Add unit tests.
+
+5. For layout, having active playerboard take 50% (actually 46%) means easy zoom of other players to have no overlap. Ideally, the active board would be more than 50% of the screen width, and when another board "zooms", the active board "shrinks", i.e. they swap sizes. That probably requires javascript.
