@@ -24,11 +24,12 @@ class Attrs {
 }
 
 class IDS {
-  static readonly TRUCKS = 'zoo-trucks';
+  static readonly DEPOT = 'zoo-depot';
   static readonly PRIMARY_PILE = 'zoo-primary-pile';
   static readonly ENDGAME_PILE = 'vl-endgame-pile';
   static readonly DRAWN = 'zoo-drawn-tile';
 
+  static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(id : number) { return `truck_${id}`; }
   static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
   static enclosure(player_no: number, enclosure_id: number): string { return `enclosure_${player_no}_${enclosure_id}`; }
@@ -41,7 +42,9 @@ class CSS {
   static readonly TRUCK = 'zoo-truck';
   static readonly TARGETABLE = 'zoo-targetable';
   static readonly SELECTABLE = 'zoo-selectable';
+  static readonly SELECTED = 'zoo-selected';
   static readonly MOVED = 'moved';
+  static readonly DEPOT_SPACE = 'zoo-depot-space';
   static tile(tile_type: string) : string {
     return `zoo-tile-${tile_type}`;
   }
@@ -195,7 +198,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return `
       <div id = "zoo-game-container">
         <div id = "zoo-upper-container">
-          <div id="${IDS.TRUCKS}"></div>
+          <div id="${IDS.DEPOT}"></div>
           <div id="zoo-drawn"><div id="${IDS.DRAWN}"></div></div>
           <div id="zoo-stock">
             <div id="${IDS.PRIMARY_PILE}"></div>
@@ -220,10 +223,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private addTruckDiv(truck: Truck): void {
+    let depotSpace = document.createElement('div');
+    depotSpace.id = IDS.depotSpace(truck.truck_id);
+    depotSpace.classList = CSS.DEPOT_SPACE;
+    this.depot.appendChild(depotSpace);
+
     let div = document.createElement('div');
     div.id = IDS.truck(truck.truck_id);
     div.classList.add(CSS.TRUCK);
-    this.trucks.appendChild(div);
+    depotSpace.appendChild(div);
 
     for (let i in truck.contents) {
       let contents = truck.contents[i]!;
@@ -250,7 +258,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private endgamePile : HTMLElement;
   private primaryPile : HTMLElement;
   private drawnTiles : HTMLElement;
-  private trucks : HTMLElement;
+  private depot : HTMLElement;
 
   private setupStock() : void {
     let addStock = (pileElem : HTMLElement, size: number) => {
@@ -338,7 +346,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.primaryPile = $(IDS.PRIMARY_PILE);
     this.endgamePile = $(IDS.ENDGAME_PILE);
     this.drawnTiles = $(IDS.DRAWN);
-    this.trucks = $(IDS.TRUCKS);
+    this.depot = $(IDS.DEPOT);
   }
 
   private setupPlayerBoard(player: ZPlayer): void {
@@ -369,8 +377,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
    */
   private onUpdateActionButtons_PlaceTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
-    // FIXME:
-    //   (a) slid tile "shrinks" and grows only at end
     this.statusBar.removeActionButtons();
     args.available_spaces.forEach((s) => {
       let space = $(IDS.truckSpace(s.truck_id, s.pos));
@@ -457,6 +463,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
+    this.statusBar.removeActionButtons();
     let again = (c?: CallableFunction) =>
       () => {
         if (c) { c(); }
@@ -509,6 +516,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           })
         };
       });
+  }
+
+  private async notif_TakeTruck(args : {
+    player_id: number;
+    truck_id: number
+  }) {
+    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
   }
 
   private renderNewExtension(): void {

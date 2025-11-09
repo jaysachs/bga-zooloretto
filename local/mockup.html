@@ -755,23 +755,40 @@ height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
 <!-- GAME STARTS HERE -->
                     <script>
                       function doSelect(e) {
-                          e.target.classList.toggle('zoo-selectable');
+                          var t = e.target;
+                          while (!t.classList.contains('zoo-truck')) {
+                              t = t.parentElement;
+                          }
+                          t.classList.toggle('zoo-selectable');
+                      }
+                      function doMove (e) {
+                          var t = e.target;
+                          while (!t.classList.contains('zoo-truck')) {
+                              t = t.parentElement;
+                          }
+                          t.classList.toggle('zoo-selected');
                       }
                       </script>
 
 <div id="zoo-game-container">
   <div id="zoo-upper-container">
-    <div id="zoo-trucks">
-      <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
-        <div id="truckspace_1_1"></div>
-        <div id="truckspace_1_2" class="zoo-selectable"><span class="zoo-tile-CF"></span></div>
-        <div id="truckspace_1_3"></div>
+    <div id="zoo-depot">
+      <div id="zoo-depot-space-1" class="zoo-depot-space">
+        <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
+          <div id="truckspace_1_1"></div>
+          <div id="truckspace_1_2" class="zoo-selectable"><span class="zoo-tile-CF"></span></div>
+          <div id="truckspace_1_3"></div>
+        </div>
       </div>
-      <div id="truck_2" class="zoo-truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div class="zoo-tile-block"></div></div></div>
-      <div id="truck_3" class="zoo-truck">
-        <div id="truckspace_3_1"><span class="zoo-selectable zoo-tile-Coin"></span></div>
-        <div id="truckspace_3_2"><div class="zoo-tile-block"></div></div>
-        <div id="truckspace_3_3"><div class="zoo-tile-block"></div></div>
+      <div id="zoo-depot-space-2" class="zoo-depot-space">
+        <div id="truck_2" onclick="doMove(event);" class="zoo-truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div class="zoo-tile-block"></div></div></div>
+      </div>
+      <div id="zoo-depot-space-3" class="zoo-depot-space">
+        <div id="truck_3" class="zoo-truck">
+          <div id="truckspace_3_1"><span class="zoo-selectable zoo-tile-Coin"></span></div>
+          <div id="truckspace_3_2"><div class="zoo-tile-block"></div></div>
+          <div id="truckspace_3_3"><div class="zoo-tile-block"></div></div>
+        </div>
       </div>
     </div>
 

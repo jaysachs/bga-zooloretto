@@ -187,7 +187,7 @@
     padding-bottom: 0%;
 }
 
-#zoo-trucks {
+#zoo-depot {
     width: 70%;
     display: flex;
     justify-content: space-evenly;
@@ -209,7 +209,17 @@
 
 }
 
-/* truck spaces */
+.zoo-truck.zoo-selected {
+    transform: translate(0, 3.0vw);
+    transition: 1s;
+}
+
+.zoo-truck:not(.zoo-selected) {
+    transition: 1s;
+    transition-property: transform;
+}
+
+/* truck cells */
 .zoo-truck > div {
     position: relative;
     width: calc(var(--zoo-tile-size));
@@ -250,13 +260,17 @@
 }
 */
 
+.zoo-truck.zoo-selected {
+    border: 0.5vw  solid #ffbb44;;
+    margin: 0;
+}
 
-.zoo-truck.zoo-selectable {
+.zoo-truck.zoo-targetable {
     border: 0.5vw  solid #44bbff;;
     margin: 0;
 }
 
-:not(.zoo-truck).zoo-selectable::after {
+:not(.zoo-truck).zoo-targetable::after {
     content: '';
     display: inline-block;
     position: absolute;
