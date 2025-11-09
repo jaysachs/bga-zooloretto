@@ -13,8 +13,12 @@
  *
  */
 
-:root {
-    --zoo-tile-size: 4.0vw;
+body {
+    --zoo-tile-size: 4.4vw;
+}
+
+body.mobile_version {
+    --zoo-tile-size: 4.4vw;
 }
 
 #zoo-game-container {
