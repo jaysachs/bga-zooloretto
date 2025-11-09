@@ -376,8 +376,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
    *
 
    */
-  private onUpdateActionButtons_PlaceTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
+  private onUpdateActionButtons_PlaceDrawnTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
     this.statusBar.removeActionButtons();
+    if (args.available_spaces.length == 0) {
+      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
+      this.statusBar.addActionButton(_('Undo'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
+      return;
+    }
     args.available_spaces.forEach((s) => {
       let space = $(IDS.truckSpace(s.truck_id, s.pos));
       space.classList.add(CSS.TARGETABLE);
@@ -398,7 +403,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
               //     where slideThing returns the undo as part of the returned promise?
               //    also the notion of cancel has the "restart" sense
             this.statusBar.addActionButton(_('Cancel'),
-              () => { dest.classList.remove(CSS.MOVED); this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => { this.onUpdateActionButtons_PlaceTile(args); }); });
+              () => { dest.classList.remove(CSS.MOVED); this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => { this.onUpdateActionButtons_PlaceDrawnTile(args); }); });
           });
         return true;
       };
@@ -413,7 +418,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private onUpdateActionButtons_ArrangeZoo(arrangeState: ArrangeState) {
+  private onUpdateActionButtons_PlaceTruckTiles(arrangeState: ArrangeState) {
     let telem = $(IDS.truck(arrangeState.truck_id));
     let soc = (evt) => {
 

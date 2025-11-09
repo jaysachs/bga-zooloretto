@@ -34,7 +34,7 @@ use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Wagon;
 use Bga\Games\zooloretto\Model\WagonStatus;
-
+use Override;
 
 class PlayerTurn extends AbstractState
 {
@@ -47,6 +47,10 @@ class PlayerTurn extends AbstractState
 			description: clienttranslate('${actplayer} must take an action.'),
 			descriptionMyTurn: clienttranslate('${you} must take an action.'),
 		);
+	}
+
+	public function onEnteringState(int $active_player_id): void {
+		$this->game->undoSavepoint();
 	}
 
 	public function getArgs(int $active_player_id): array
@@ -112,7 +116,7 @@ class PlayerTurn extends AbstractState
 			// 'i18n' => ['contents'],
 		]);
 
-		return ArrangeZoo::class;
+		return PlaceTruckTiles::class;
 	}
 
 	#[PossibleAction]
@@ -122,6 +126,7 @@ class PlayerTurn extends AbstractState
 
 		$stock = $model->drawTile();
 		$tile = $stock->drawn;
+		$this->game->undoSavepoint();
 
 		if ($stock->waslastRoundTriggered()) {
 			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
@@ -152,7 +157,7 @@ class PlayerTurn extends AbstractState
 				'i18n' => ['translatedval']
 			]
 		);
-		return PlaceTile::class;
+		return PlaceDrawnTile::class;
 	}
 
 	#[PossibleAction]
