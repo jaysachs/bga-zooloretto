@@ -167,12 +167,6 @@
     margin: -0.4vw !important;
 }
 
-.selectable {
-    border:#2220A5 0.4vw solid !important;
-    transform: scale(1) !important;
-    /* cursor: pointer; */
-}
-
 .playercards {
     display : flex;
     flex-direction: column;
@@ -244,6 +238,30 @@
     height: calc(var(--zoo-tile-size));
 }
 */
+
+/** This works if we mark the tile itself selctable. */
+#zoo-boards:has(*.zoo-selectable)::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--zoo-tile-size) - 0.5vw);
+    height: calc(var(--zoo-tile-size) - 0.5vw);
+    border: 0.25vw solid #44bbff;
+}
+
+.zoo-selectable::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--zoo-tile-size) - 0.5vw);
+    height: calc(var(--zoo-tile-size) - 0.5vw);
+    border: 0.25vw solid #44bbff;
+}
+
 
 #zoo-drawn-tile {
     width: calc(var(--zoo-tile-size));
