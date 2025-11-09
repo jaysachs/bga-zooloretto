@@ -204,6 +204,9 @@
     background-image: url('img/Wagon3.png');
     width: calc(1.4 * 2.7 * (var(--zoo-tile-size)));
     height: calc(1.4 * var(--zoo-tile-size));
+
+    margin: 0.5vw;
+
 }
 
 /* truck spaces */
@@ -247,7 +250,13 @@
 }
 */
 
-.zoo-selectable::after {
+
+.zoo-truck.zoo-selectable {
+    border: 0.5vw  solid #44bbff;;
+    margin: 0;
+}
+
+:not(.zoo-truck).zoo-selectable::after {
     content: '';
     display: inline-block;
     position: absolute;
