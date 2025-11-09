@@ -51,9 +51,10 @@ class PlaceDrawnTile extends AbstractState
         $model = new Model($this->game);
         $available = [];
         foreach ($model->getTrucks() as $truck) {
-            foreach ($truck->getAllTiles() as $pos => $tile)
-            if ($tile->type->isEmpty()) {
-                $available[] = [ 'truck_id' => $truck->id, 'pos' => $pos ];
+            foreach ($truck->getAllTiles() as $pos => $tile) {
+                if ($tile->type->isEmpty()) {
+                    $available[] = [ 'truck_id' => $truck->id, 'pos' => $pos ];
+                }
             }
         }
         return [
