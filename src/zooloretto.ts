@@ -529,7 +529,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     // get the tile on the right pile
     // FIXME: factor out common IDs and elemes
-    let pileElem = args.drawn_from_endgame_pile ? this.primaryPile : this.endgamePile;
+    let pileElem = args.drawn_from_endgame_pile ? this.endgamePile : this.primaryPile;
     let tile = pileElem.lastElementChild as HTMLElement;
     // "flip" the top tile
     tile.classList.remove(CSS.BACK);
