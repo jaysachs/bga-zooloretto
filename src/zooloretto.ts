@@ -378,11 +378,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
    */
   private onUpdateActionButtons_PlaceDrawnTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
     this.statusBar.removeActionButtons();
-    if (args.available_spaces.length == 0) {
-      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
-      this.statusBar.addActionButton(_('Undo'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-      return;
-    }
     args.available_spaces.forEach((s) => {
       let space = $(IDS.truckSpace(s.truck_id, s.pos));
       space.classList.add(CSS.TARGETABLE);
@@ -419,6 +414,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlaceTruckTiles(arrangeState: ArrangeState) {
+    this.statusBar.removeActionButtons();
+    if (arrangeState.spaces.length == 0) {
+      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
+      this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
+      return;
+    }
+    this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
     let telem = $(IDS.truck(arrangeState.truck_id));
     let soc = (evt) => {
 
