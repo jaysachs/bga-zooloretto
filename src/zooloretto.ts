@@ -39,8 +39,8 @@ class CSS {
   static readonly BACK = 'zoo-tile-back';
   static readonly TILE = 'zoo-tile';
   static readonly TRUCK = 'zoo-truck';
-  static readonly TARGETABLE = 'targetable';
-  static readonly SELECTABLE = 'selectable';
+  static readonly TARGETABLE = 'zoo-targetable';
+  static readonly SELECTABLE = 'zoo-selectable';
   static readonly MOVED = 'moved';
   static tile(tile_type: string) : string {
     return `zoo-tile-${tile_type}`;

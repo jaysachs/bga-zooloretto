@@ -161,12 +161,6 @@
     margin: -0.4vw !important;
 }
 
-.targetable {
-    cursor: pointer;
-    border:#A52220 0.4vw solid !important;
-    margin: -0.4vw !important;
-}
-
 .playercards {
     display : flex;
     flex-direction: column;
@@ -240,6 +234,7 @@
 */
 
 /** This works if we mark the tile itself selctable. */
+/*
 #zoo-boards:has(*.zoo-selectable)::after {
     content: '';
     display: inline-block;
@@ -250,6 +245,7 @@
     height: calc(var(--zoo-tile-size) - 0.5vw);
     border: 0.25vw solid #44bbff;
 }
+*/
 
 .zoo-selectable::after {
     content: '';
@@ -261,6 +257,21 @@
     height: calc(var(--zoo-tile-size) - 0.5vw);
     border: 0.25vw solid #44bbff;
 }
+
+/* This (and selectable) don't work for non-tiles */
+/* Could make separate class(es) for things like trucks */
+.zoo-targetable::after {
+    cursor: pointer;
+    content: '';
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--zoo-tile-size) - 0.5vw);
+    height: calc(var(--zoo-tile-size) - 0.5vw);
+    border: 0.25vw solid #ffffbb;
+}
+
 
 
 #zoo-drawn-tile {
