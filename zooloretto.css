@@ -730,20 +730,20 @@
   Zoom other player boards.
 */
 
-#zoo-boards:not(:has(.zoom:hover)) #zoo-main-board {
+#zoo-boards:not(:has(.zoo-zoom:hover)) #zoo-main-board {
     transition: 1s;
 }
 
-#zoo-boards:has(.zoom:hover) #zoo-main-board {
+#zoo-boards:has(.zoo-zoom:hover) #zoo-main-board {
     transform: scale(0.5) translate(-50%,-50%);
     transition: 1s;
 }
 
-.zoom:not(:hover) {
+.zoo-zoom:not(:hover) {
     transition: 1s;
 }
 
-.zoom:hover {
+.zoo-zoom:hover {
     /* FIXME: the translate here relates to the % given to the active player board */
     /* for 65% it's kinda but not exactly: */
     transform: scale(2.4) translate(-19%,20%);

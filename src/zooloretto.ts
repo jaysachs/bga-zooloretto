@@ -148,7 +148,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (!player) { return ''; }
     const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
     const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
-    const zoomClass = player.player_id != this.player_id ? "zoom" : "";
+    const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     const cellClass = "cell";
     const enclosureClass = "enclosure";
     const pno = player.player_no;
@@ -163,7 +163,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
                     </div>`;
       return html;
     };
-    const board_id = player.player_id != this.player_id ? "zoo-main-board" : "";
+    const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
     return `
                     <div id="${board_id}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
                       <div id="barn_${pno}" class="${barnClass}"></div>`
