@@ -405,7 +405,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     });
   }
 
-  private async notif_PlaceTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, pos: number }) {
+  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, pos: number }) {
     if (this.player_id != args.player_id) {
       let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
       let dest = $(IDS.truckSpace(args.truck_id, args.pos));
