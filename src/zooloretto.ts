@@ -414,6 +414,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlaceTruckTiles(arrangeState: ArrangeState) {
+    // FIXME: is this the ideal? better to thread through getAllDatas?
+    $(IDS.truck(arrangeState.truck_id)).classList.add(CSS.SELECTED);
+
     this.statusBar.removeActionButtons();
     if (arrangeState.spaces.length == 0) {
       this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
