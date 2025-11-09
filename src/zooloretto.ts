@@ -24,10 +24,10 @@ class Attrs {
 }
 
 class IDS {
-  static readonly TRUCKS = 'trucks';
-  static readonly PRIMARY_PILE = 'primary_pile';
-  static readonly ENDGAME_PILE = 'endgame_pile';
-  static readonly DRAWN = 'drawn';
+  static readonly TRUCKS = 'zoo-trucks';
+  static readonly PRIMARY_PILE = 'zoo-primary-pile';
+  static readonly ENDGAME_PILE = 'vl-endgame-pile';
+  static readonly DRAWN = 'zoo-drawn-tile';
 
   static truck(id : number) { return `truck_${id}`; }
   static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
@@ -36,14 +36,14 @@ class IDS {
 }
 
 class CSS {
-  static readonly BACK = 'back';
-  static readonly TILE = 'tile';
-  static readonly TRUCK = 'truck';
+  static readonly BACK = 'zoo-tile-back';
+  static readonly TILE = 'zoo-tile';
+  static readonly TRUCK = 'zoo-truck';
   static readonly TARGETABLE = 'targetable';
   static readonly SELECTABLE = 'selectable';
   static readonly MOVED = 'moved';
   static tile(tile_type: string) : string {
-    return `tile${tile_type}`;
+    return `zoo-tile-${tile_type}`;
   }
   /*
     static readonly IN_NETWORK = 'bbl_in_network';
@@ -146,8 +146,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private playerHtml(player?: ZPlayer ): string {
     if (!player) { return ''; }
-    const barnClass = this.twoPlayer ? "barn2p" : "barn"
-    const boardClass = this.twoPlayer ? "board2p" : "board";
+    const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
+    const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
     const zoomClass = player.player_id != this.player_id ? "zoom" : "";
     const cellClass = "cell";
     const enclosureClass = "enclosure";
@@ -163,9 +163,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
                     </div>`;
       return html;
     };
-    // FIXME: the last one is the stalls.
+    const board_id = player.player_id != this.player_id ? "zoo-main-board" : "";
     return `
-                    <div id="board_${pno}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
+                    <div id="${board_id}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
                       <div id="barn_${pno}" class="${barnClass}"></div>`
                       + enclosure(1, 6)
                       + enclosure(2, 6)
@@ -193,16 +193,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let currentPlayer = this.gamedatas.players[this.player_id];
     let players = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
     return `
-      <div id = "container1">
-        <div id = "container2">
+      <div id = "zoo-game-container">
+        <div id = "zoo-upper-container">
           <div id="${IDS.TRUCKS}"></div>
-          <div id="${IDS.DRAWN}"></div>
-          <div id="stock">
+          <div id="zoo-drawn"><div id="${IDS.DRAWN}"></div></div>
+          <div id="zoo-stock">
             <div id="${IDS.PRIMARY_PILE}"></div>
             <div id="${IDS.ENDGAME_PILE}"></div>
           </div>
         </div>
-        <div class="container3" id = "container3">`
+        <div id="zoo-boards">`
           + this.playerHtml(currentPlayer) + `
           <div id="leftpanel" class="leftpanel">
             <div id="playercards" class="playercards">`
@@ -210,7 +210,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             </div>
           </div>
         </div>
-        <div id="playeraid"></div>
+        <div id="playeraid" class="playeraidEN"></div>
       </div>
 ` ;
   }
@@ -232,13 +232,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       div.appendChild(spaceDiv);
       if (contents.tile_type != '') {
         let typeDiv = document.createElement('div');
-        typeDiv.classList.add(`tile${contents.tile_type}`, CSS.TILE);
+        typeDiv.classList.add(CSS.tile(contents.tile_type), CSS.TILE);
         spaceDiv.appendChild(typeDiv);
       }
     }
   }
 
-  private addStockTile(pileElem: HTMLElement, cls: string = 'back') {
+  private addStockTile(pileElem: HTMLElement, cls: string = CSS.BACK) {
     let div = document.createElement('span');
     pileElem.appendChild(div);
     div.classList.add(cls);
@@ -261,7 +261,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     };
     addStock(this.endgamePile, this.gamedatas.endgame_stocksize);
     if (!this.gamedatas.lastround) {
-      this.addStockTile(this.endgamePile, 'disk');
+      this.addStockTile(this.endgamePile, 'zoo-disk');
     }
     addStock(this.primaryPile, this.gamedatas.primary_stocksize);
   }
