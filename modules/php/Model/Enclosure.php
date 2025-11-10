@@ -112,6 +112,7 @@ class Enclosure {
      * positions 1 through 4 inclusive are for animals, and positions 5 and 6 are for stalls.
      *
      * position 0 means "nextavailable"
+     * @return int the position it was placed in
      */
     public function placeTile(Tile $tile, int $pos = 0) {
         $t = $tile->type->value;
@@ -128,7 +129,7 @@ class Enclosure {
             $p1 = $pos - 1;
             if ($this->animals[$p1]->isEmpty()) {
                 $this->animals[$p1] = $tile;
-                return;
+                return $pos;
             }
             throw new ModelException("Position $pos is not open in enclosure $this->id for animal $t");
         }
@@ -146,7 +147,7 @@ class Enclosure {
             }
             if ($this->stalls[$p2]->isEmpty()) {
                 $this->stalls[$p2] = $tile;
-                return;
+                return $pos;
             }
             throw new ModelException("Position $pos is not open in enclosure $this->id for stall $t");
         }

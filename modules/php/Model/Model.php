@@ -335,7 +335,8 @@ class Model {
         $this->db->execute($sql);
     }
 
-    public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): void {
+    /** @return the position in the enclosure it was plased in */
+    public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
         $truck = $this->getTruck($truck_id);
         $encl = null;
         foreach ($this->getEnclosuresForPlayer($this->getActivePlayer()->id) as $enc) {
@@ -344,9 +345,10 @@ class Model {
             }
         }
         $tile = $truck->removeTileAt($truck_pos);
-        $encl->placeTile($tile);
+        $pos = $encl->placeTile($tile);
         $this->updateTruck($truck);
         $this->updateEnclosure($encl);
+        return $pos;
     }
 }
 
