@@ -14,6 +14,9 @@ interface ZPlayer extends Player {
     */
 }
 
+interface TruckLocation{ truck_id: number, truck_pos: number };
+interface PlaceDrawnTileArgs { available_spaces: TruckLocation[] };
+
 class Attrs {
   /*
     static readonly ZTYPE : string = 'bbl_ztype';
@@ -26,7 +29,7 @@ class Attrs {
 class IDS {
   static readonly DEPOT = 'zoo-depot';
   static readonly PRIMARY_PILE = 'zoo-primary-pile';
-  static readonly ENDGAME_PILE = 'vl-endgame-pile';
+  static readonly ENDGAME_PILE = 'zoo-endgame-pile';
   static readonly DRAWN = 'zoo-drawn-tile';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
@@ -126,7 +129,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       const elements = document.querySelectorAll(`[${Attrs.ZTYPE}]:not([${Attrs.TT_PROCESSED}])`);
       elements.forEach(ele => {
         ele.setAttribute(Attrs.TT_PROCESSED, '');  // prevents tooltips being re-added to previous log entries
-        this.addTooltip(ele.id, this.zcardTooltips[ele.getAttribute(Attrs.ZTYPE)!], '');
+        this.addTooltip(ele.id, this.zcardTooltips[ele.attribute(Attrs.ZTYPE)!], '');
       });
       */
   }
@@ -170,15 +173,101 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
                     </div>`;
   }
 
-  private otherPlayerHtml(player: ZPlayer) : string {
-    return `
-              <div id="playercards_${player.player_no}" class="playercards whiteblock">
-                <div id ="playername_${player.player_no}" class="playernameclass"><p>${player.name}</p></div>`
-                + this.playerHtml(player) + `
-              </div>`;
+  private makeElem(ty: string, id?: string, classes?: (string | string[])): HTMLElement {
+    let d = document.createElement(ty);
+    if (id) { d.id = id; }
+    if (classes) {
+      if (typeof(classes) == "string") { classes = [classes]; }
+      classes.forEach(c => { if (c) d.classList.add(c) });
+    }
+    return d;
   }
 
-  private baseHtml(): string {
+  private makediv(id?: string, classes?: (string | string[])): HTMLElement {
+    return this.makeElem('div', id, classes);
+  }
+
+  private spanC(classes? : (string | string[])) : HTMLElement {
+    let e = classes? this.makeElem('span', undefined, classes) : this.makeElem('span');
+    return e;
+  }
+
+  private div(id?: string, ...children : (HTMLElement | undefined)[]) : HTMLElement {
+    return this.divC(id, undefined, ... children);
+  }
+
+  private divC(id: string | undefined, classes: (string | string[] | undefined), ...children : (HTMLElement | undefined)[]) : HTMLElement {
+    let e = this.makediv(id, classes);
+    children.forEach(c => c && e.appendChild(c));
+    return e;
+  }
+
+  private range(start: number, end: number) {
+    return Array.from({length: (end - start + 1)}, (v, k) => k + start);
+  }
+
+  private playerDiv(player?: ZPlayer): HTMLElement | undefined {
+    if (!player) { return undefined; }
+
+    const pno = player.player_no;
+
+    const cellClass = "cell";
+    let enclosure = (e: number, n: number): HTMLElement =>
+      this.div(IDS.enclosure(pno, e), // enclosure=${e}
+        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), cellClass))
+      );
+    // let enclosure = (e:number, n: number): string => {
+    //   let html = `
+    //                 <div id="${IDS.enclosure(pno, e)}" enclosure="${e}">`;
+    //   for (let i = 0; i < n; ++i) {
+    //     html += `
+    //                   <div id="${IDS.enclosureSpace(pno, e, i+1)}" class="${cellClass}"></div>`;
+    //   }
+    //   html += `
+    //                 </div>`;
+    //   return html;
+    // };
+
+    const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
+    const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
+    const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
+    const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
+    return this.divC(board_id, [ boardClass, zoomClass ], // extensions="${player.purchased_extensions}"
+        this.divC("barn_${pno}", barnClass),
+        enclosure(1, 6),
+        enclosure(2, 6),
+        enclosure(3, 7),
+        enclosure(4, 6),
+        this.twoPlayer ? enclosure(5, 6) : undefined
+      );
+    // return `
+    //                 <div id="${board_id}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
+    //                   <div id="barn_${pno}" class="${barnClass}"></div>`
+    //                   + enclosure(1, 6)
+    //                   + enclosure(2, 6)
+    //                   + enclosure(3, 7)
+    //                   + enclosure(4, 6)
+    //                   + (this.twoPlayer ? enclosure(5, 6) : '') + `
+    //                 </div>`;
+  }
+
+  private otherPlayerDiv(player: ZPlayer): HTMLElement {
+    const p = (s: string) => {
+      let h = document.createElement('p');
+      // FIXME: escaped?
+      h.innerText = s;
+      return h;
+    };
+
+    return this.divC(`playercards_${player.player_no}`, [ "playercards", "whiteblock" ],
+        this.divC(`playername_${player.player_no}`,"playernameclass",
+          p(player.name)
+        ),
+        this.playerDiv(player)
+      );
+  }
+
+  private baseHtml(): HTMLElement {
     /*
     const delta2p = 17.979577;
     const ratio2p = 0.82020423;
@@ -187,27 +276,65 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 */
     let currentPlayer = this.gamedatas.players[this.player_id];
     let players = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
-    return `
-      <div id = "zoo-game-container">
-        <div id = "zoo-upper-container">
-          <div id="${IDS.DEPOT}"></div>
-          <div id="zoo-drawn"><div id="${IDS.DRAWN}"></div></div>
-          <div id="zoo-stock">
-            <div id="${IDS.PRIMARY_PILE}"></div>
-            <div id="${IDS.ENDGAME_PILE}"></div>
-          </div>
-        </div>
-        <div id="zoo-boards">`
-          + this.playerHtml(currentPlayer) + `
-          <div id="leftpanel" class="leftpanel">
-            <div id="playercards" class="playercards">`
-            + players.map((p) => this.otherPlayerHtml(p)) + `
-            </div>
-          </div>
-        </div>
-        <div id="playeraid" class="playeraidEN"></div>
-      </div>
-` ;
+
+    return this.div('zoo-game-container',
+        this.div('zoo-upper-container',
+          this.div(IDS.DEPOT),
+          this.div('zoo-drawn',
+            this.div(IDS.DRAWN)
+          ),
+          this.div('zoo-stock',
+            this.div(IDS.PRIMARY_PILE),
+            this.div(IDS.ENDGAME_PILE)
+          )
+        ),
+        this.div('zoo-boards',
+          this.playerDiv(currentPlayer),
+          this.divC('leftpanel', 'leftpanel',
+            this.divC('playercards', 'playercards',
+            ... players.map((p) => this.otherPlayerDiv(p))
+          )
+        ),
+        this.div('playeraid')
+        )
+      );
+
+    // this.getGameAreaElement().appendChild(
+    //   this.div('zoo-game-container').append(
+    //     this.div('zoo-upper-container').append(
+    //       this.div(IDS.DEPOT),
+    //       this.div('zoo-drawn'),
+    //       this.div('zoo-stock').append(
+    //         this.div(IDS.PRIMARY_PILE),
+    //         this.div(IDS.ENDGAME_PILE)
+    //       ),
+    //       this.div('zoo-boards').append()
+    //     )
+    //   )
+    // );
+
+
+//     return `
+//       <div id = "zoo-game-container">
+//         <div id = "zoo-upper-container">
+//           <div id="${IDS.DEPOT}"></div>
+//           <div id="zoo-drawn"><div id="${IDS.DRAWN}"></div></div>
+//           <div id="zoo-stock">
+//             <div id="${IDS.PRIMARY_PILE}"></div>
+//             <div id="${IDS.ENDGAME_PILE}"></div>
+//           </div>
+//         </div>
+//         <div id="zoo-boards">`
+//           + this.playerHtml(currentPlayer) + `
+//           <div id="leftpanel" class="leftpanel">
+//             <div id="playercards" class="playercards">`
+//             + players.map((p) => this.otherPlayerHtml(p)) + `
+//             </div>
+//           </div>
+//         </div>
+//         <div id="playeraid" class="playeraidEN"></div>
+//       </div>
+// ` ;
   }
 
   private setupTrucks(): void {
@@ -215,15 +342,29 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private addTruckDiv(truck: Truck): void {
-    let depotSpace = document.createElement('div');
-    depotSpace.id = IDS.depotSpace(truck.truck_id);
-    depotSpace.classList = CSS.DEPOT_SPACE;
-    this.depot.appendChild(depotSpace);
 
-    let div = document.createElement('div');
-    div.id = IDS.truck(truck.truck_id);
-    div.classList.add(CSS.TRUCK);
-    depotSpace.appendChild(div);
+    this.depot.append(
+      this.divC(IDS.depotSpace(truck.truck_id), CSS.DEPOT_SPACE,
+        this.divC(IDS.truck(truck.truck_id), CSS.TRUCK,
+          ... truck.contents.map((contents, i) =>
+            this.div(IDS.truckSpace(truck.truck_id, contents.pos),
+              contents.tile_type
+                   ? this.divC(undefined, [ CSS.tile(contents.tile_type), CSS.TILE ])
+                   : undefined
+            )
+          )
+        )
+      )
+    );
+      /*
+      div.appendChild(spaceDiv);
+      if (contents.tile_type != '') {
+        let typeDiv = document.createElement('div');
+        typeDiv.classList.add(CSS.tile(contents.tile_type), CSS.TILE);
+        spaceDiv.appendChild(typeDiv);
+      }
+          }, truck.contents)
+    )
 
     for (let i in truck.contents) {
       let contents = truck.contents[i]!;
@@ -236,15 +377,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         spaceDiv.appendChild(typeDiv);
       }
     }
+      */
   }
 
   private addStockTile(pileElem: HTMLElement, cls: string = CSS.BACK) {
-    let div = document.createElement('span');
-    pileElem.appendChild(div);
-    div.classList.add(cls);
-    // let w = pileElem.getBoundingClientRect().width;
-    // let i = stockdiv.childNodes.length;
-    // div.style = `left: ${i * 5}px; top: ${(i * 5)}px`;
+    pileElem.appendChild(this.spanC(cls));
   }
 
   private endgamePile : HTMLElement;
@@ -254,11 +391,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private setupStock() : void {
     let addStock = (pileElem : HTMLElement, size: number) => {
-      var n = size > 5 ? 5 : size;
-      for (let i = 0; i < n; i++) {
-        this.addStockTile(pileElem);
-      }
+      let n = size > 5 ? 5 : size;
+      this.range(1, n-1).forEach(() => this.addStockTile(pileElem));
     };
+
     addStock(this.endgamePile, this.gamedatas.endgame_stocksize);
     if (!this.gamedatas.lastround) {
       this.addStockTile(this.endgamePile, 'zoo-disk');
@@ -334,7 +470,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private setupGameHtml(): void {
-    this.getGameAreaElement().insertAdjacentHTML('beforeend', this.baseHtml());
+    this.getGameAreaElement().appendChild(this.baseHtml());
     this.primaryPile = $(IDS.PRIMARY_PILE);
     this.endgamePile = $(IDS.ENDGAME_PILE);
     this.drawnTiles = $(IDS.DRAWN);
@@ -368,35 +504,38 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
    *
 
    */
-  private onUpdateActionButtons_PlaceDrawnTile(args: { available_spaces: { truck_id: number; truck_pos: number }[] }): void {
+  private placeDrawnTileArgs: PlaceDrawnTileArgs;
+  private origPlaceDrawnTileArgs: PlaceDrawnTileArgs;
+
+  private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
+    this.placeDrawnTileArgs = structuredClone(args);
+    this.origPlaceDrawnTileArgs = args;
     this.statusBar.removeActionButtons();
-    let tile = this.drawnTileElem()!;
-    args.available_spaces.forEach((s) => {
-      let space = this.truckSpaceElem(s)!;
+    this.placeDrawnTileArgs.available_spaces.forEach((truckLoc: TruckLocation) => {
+      let space = this.truckSpaceElem(truckLoc)!;
       space.classList.add(CSS.TARGETABLE);
-      space.onclick = (evt) => {
-        space.classList.remove(CSS.TARGETABLE);
-        this.animationManager.slideAndAttach(tile, space, {})
-          .then(() => {
-            space.classList.add(CSS.MOVED);
-            this.statusBar.removeActionButtons();
-            // mark as "targetable" and add onclick handlers
-            args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.truck_pos)).onclick = null);
-            this.statusBar.addActionButton(_('Confirm'),
-              () => { this.bgaPerformAction('actPlaceTileInTruck', s).then(() => space.classList.remove(CSS.MOVED)) }, { autoclick: true });
-              // FIXME: can we automatically capture this "cancelable"/"undoable" animation?
-              //   eg.    this.slideThing(from, to).then((undo) => ....  undo() ... )
-              //     where slideThing returns the undo as part of the returned promise?
-              //    also the notion of cancel has the "restart" sense
-            this.statusBar.addActionButton(_('Cancel'),
-              () => {
-                space.classList.remove(CSS.MOVED);
-                this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
-                  .then(() => { this.onUpdateActionButtons_PlaceDrawnTile(args); }); });
-          });
-        return true;
-      };
+      space.onclick = (evt) => this.onclick_PlaceDrawnTile(truckLoc, evt);
     });
+  }
+
+  private onclick_PlaceDrawnTile(truckLoc: {truck_id: number, truck_pos: number}, e: MouseEvent) {
+    let space = e.target as HTMLElement;
+    let tile = this.drawnTileElem()!;
+    space.classList.remove(CSS.TARGETABLE);
+    this.placeDrawnTileArgs.available_spaces.forEach((s) => this.truckSpaceElem(s).onclick = null);
+    this.statusBar.removeActionButtons();
+    this.animationManager.slideAndAttach(tile, space, {})
+      .then(() => {
+        space.classList.add(CSS.MOVED);
+        this.statusBar.addActionButton(_('Confirm'),
+          () => { this.bgaPerformAction('actPlaceTileInTruck', truckLoc).then(() => space.classList.remove(CSS.MOVED)) }, { autoclick: true });
+        this.statusBar.addActionButton(_('Cancel'),
+          () => {
+            space.classList.remove(CSS.MOVED);
+            this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
+              .then(() => { this.onUpdateActionButtons_PlaceDrawnTile(this.origPlaceDrawnTileArgs); }); });
+      });
+    return true;
   }
 
   private onUpdateActionButtons_PlaceTruckTiles(
@@ -421,10 +560,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       return;
     }
     this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-    let telem = $(IDS.truck(args.truck_id));
-    let soc = (evt) => {
-
-    }
     let selems: HTMLElement[] = [];
     for (let s of args.spaces) {
       if (s.barn) {
@@ -433,23 +568,32 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let selem = $(IDS.truckSpace(args.truck_id, s.truck_pos));
       selems.push(selem);
       selem.classList.add(CSS.SELECTABLE);
-      selem.onclick = (evt) => {
-        selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
-        selem.classList.add(CSS.MOVED);
-        for (let e of s.enclosures) {
-          if (e.enclosure_id > 0) {
-            let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
-            elem.classList.add(CSS.TARGETABLE);
-            elem.onclick = (evt) => {
-              selem.classList.remove(CSS.MOVED);
-              elem.classList.remove(CSS.TARGETABLE);
-              // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
-              this.bgaPerformAction('actPlaceTileInZoo', { truck_id: args.truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
-                .then(() => this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {}));
-            };
-          }
-        }
-      };
+      selem.onclick = (evt) => this.handleEnclosureClick(selem, selems, args.truck_id, s);
+    }
+  }
+
+  private handleEnclosureClick(selem: HTMLElement, selems: HTMLElement[], truck_id: number, s: {
+        truck_pos: number;
+        barn: boolean;
+        enclosures: {
+          enclosure_id: number;
+          enclosure_pos: number;
+        }[]}) {
+    selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
+    selem.classList.add(CSS.MOVED);
+    for (let e of s.enclosures) {
+      if (e.enclosure_id > 0) { // FIXME: why not label barn as enclosure ID 0?
+        let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
+        elem.classList.add(CSS.TARGETABLE);
+        elem.onclick = (evt) => {
+          selem.classList.remove(CSS.MOVED);
+          let tgtElem = evt.target as HTMLElement;
+          tgtElem.classList.remove(CSS.TARGETABLE);
+          // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
+          this.bgaPerformAction('actPlaceTileInZoo', { truck_id: truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
+            ;
+        };
+      }
     }
   }
 
