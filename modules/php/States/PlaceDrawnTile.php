@@ -53,7 +53,7 @@ class PlaceDrawnTile extends AbstractState
         foreach ($model->getTrucks() as $truck) {
             foreach ($truck->getAllTiles() as $pos => $tile) {
                 if ($tile->type->isEmpty()) {
-                    $available[] = [ 'truck_id' => $truck->id, 'pos' => $pos ];
+                    $available[] = [ 'truck_id' => $truck->id, 'truck_pos' => $pos ];
                 }
             }
         }
@@ -63,20 +63,20 @@ class PlaceDrawnTile extends AbstractState
     }
 
     #[PossibleAction]
-    public function actPlaceTileInTruck(int $active_player_id, int $truck_id, int $pos): mixed {
+    public function actPlaceTileInTruck(int $active_player_id, int $truck_id, int $truck_pos): mixed {
 
 		$model = $this->createModel();
-		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);
+		$tile = $model->placeDrawnTileOnTruck($truck_id, $truck_pos);
 
 		$this->notify->all(
 			"PlaceDrawnTile",
-			clienttranslate( '${player_name} placed the drawn ${translatedval} tile on space ${pos} of truck ${truck_id}.'),
+			clienttranslate( '${player_name} placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.'),
 			[
 				'player_id' => $active_player_id,
 				'tile_id' => $tile->id,
 				'val' => $tile->type->value,
                 'truck_id' => $truck_id,
-                'pos' => $pos,
+                'truck_pos' => $truck_pos,
 				'translatedval' => $tile->type->translated(),
 				'i18n' => [ 'translatedval' ],
 			]

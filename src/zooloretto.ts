@@ -109,18 +109,6 @@ interface PlayState {
   trucks_available: number[];
 }
 
-interface ArrangeState {
-  truck_id: number;
-  spaces: {
-    pos: number;
-    barn: boolean;
-    enclosures: {
-      enclosure_id: number;
-      position: number;
-    }[];
-  }[];
-}
-
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private playerIdToColorIndex: Record<number, number> = {};
@@ -145,6 +133,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private cellId(player_no: number, enclosure_id : number, cell : number) {
     return ;
+  }
+
+  private playerNumber(player_id : number): number {
+    return this.gamedatas.players[player_id]!.player_no;
   }
 
   private playerHtml(player?: ZPlayer ): string {
@@ -376,64 +368,69 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
    *
 
    */
-  private onUpdateActionButtons_PlaceDrawnTile(args: { available_spaces: { player_id: number, truck_id: number; pos: number }[] }): void {
+  private onUpdateActionButtons_PlaceDrawnTile(args: { available_spaces: { truck_id: number; truck_pos: number }[] }): void {
     this.statusBar.removeActionButtons();
+    let tile = this.drawnTileElem()!;
     args.available_spaces.forEach((s) => {
-      let space = $(IDS.truckSpace(s.truck_id, s.pos));
+      let space = this.truckSpaceElem(s)!;
       space.classList.add(CSS.TARGETABLE);
       space.onclick = (evt) => {
         space.classList.remove(CSS.TARGETABLE);
-        let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
-        let dest = $(IDS.truckSpace(s.truck_id, s.pos));
-        this.animationManager.slideAndAttach(tile, dest, {})
+        this.animationManager.slideAndAttach(tile, space, {})
           .then(() => {
-            dest.classList.add(CSS.MOVED);
+            space.classList.add(CSS.MOVED);
             this.statusBar.removeActionButtons();
             // mark as "targetable" and add onclick handlers
-            args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.pos)).onclick = null);
+            args.available_spaces.forEach((s) => $(IDS.truckSpace(s.truck_id, s.truck_pos)).onclick = null);
             this.statusBar.addActionButton(_('Confirm'),
-              () => { this.bgaPerformAction('actPlaceTileInTruck', s).then(() => dest.classList.remove(CSS.MOVED)) }, { autoclick: true });
+              () => { this.bgaPerformAction('actPlaceTileInTruck', s).then(() => space.classList.remove(CSS.MOVED)) }, { autoclick: true });
               // FIXME: can we automatically capture this "cancelable"/"undoable" animation?
               //   eg.    this.slideThing(from, to).then((undo) => ....  undo() ... )
               //     where slideThing returns the undo as part of the returned promise?
               //    also the notion of cancel has the "restart" sense
             this.statusBar.addActionButton(_('Cancel'),
-              () => { dest.classList.remove(CSS.MOVED); this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {}).then(() => { this.onUpdateActionButtons_PlaceDrawnTile(args); }); });
+              () => {
+                space.classList.remove(CSS.MOVED);
+                this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
+                  .then(() => { this.onUpdateActionButtons_PlaceDrawnTile(args); }); });
           });
         return true;
       };
     });
   }
 
-  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, pos: number }) {
-    if (this.player_id != args.player_id) {
-      let tile = $(IDS.DRAWN).firstElementChild as HTMLElement;
-      let dest = $(IDS.truckSpace(args.truck_id, args.pos));
-      return this.animationManager.slideAndAttach(tile, dest, {});
-    }
-  }
-
-  private onUpdateActionButtons_PlaceTruckTiles(arrangeState: ArrangeState) {
+  private onUpdateActionButtons_PlaceTruckTiles(
+    args: {
+      truck_id: number;
+      spaces: {
+        truck_pos: number;
+        barn: boolean;
+        enclosures: {
+          enclosure_id: number;
+          enclosure_pos: number;
+        }[];
+      }[]
+    }) {
     // FIXME: is this the ideal? better to thread through getAllDatas?
-    $(IDS.truck(arrangeState.truck_id)).classList.add(CSS.SELECTED);
+    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
 
     this.statusBar.removeActionButtons();
-    if (arrangeState.spaces.length == 0) {
+    if (args.spaces.length == 0) {
       this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
       this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
       return;
     }
     this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-    let telem = $(IDS.truck(arrangeState.truck_id));
+    let telem = $(IDS.truck(args.truck_id));
     let soc = (evt) => {
 
     }
     let selems: HTMLElement[] = [];
-    for (let s of arrangeState.spaces) {
+    for (let s of args.spaces) {
       if (s.barn) {
         // FIXME: highlight barn
       }
-      let selem = $(IDS.truckSpace(arrangeState.truck_id, s.pos));
+      let selem = $(IDS.truckSpace(args.truck_id, s.truck_pos));
       selems.push(selem);
       selem.classList.add(CSS.SELECTABLE);
       selem.onclick = (evt) => {
@@ -441,27 +438,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         selem.classList.add(CSS.MOVED);
         for (let e of s.enclosures) {
           if (e.enclosure_id > 0) {
-            let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.position));
+            let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
             elem.classList.add(CSS.TARGETABLE);
             elem.onclick = (evt) => {
               selem.classList.remove(CSS.MOVED);
               elem.classList.remove(CSS.TARGETABLE);
               // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
-              this.bgaPerformAction('actPlaceTileInZoo', { truck_id: arrangeState.truck_id, truck_pos: s.pos, enclosure_id: e.enclosure_id })
+              this.bgaPerformAction('actPlaceTileInZoo', { truck_id: args.truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
                 .then(() => this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {}));
             };
           }
         }
       };
     }
-  }
-
-  private notif_PlaceTileInTruck(args: any) {
-    console.log("notif_PlaceTileInTruck", args);
-  }
-
-  private notif_PlaceTileInZoo(args: any) {
-    console.log("notif_PlaceTileInZoo", args);
   }
 
   private addCancelButton(onCancel: CallableFunction): void {
@@ -528,11 +517,44 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       });
   }
 
+  private drawnTileElem(): HTMLElement | undefined {
+      return $(IDS.DRAWN).firstElementChild as (HTMLElement | undefined);
+  }
+
+  private truckSpaceElem(args: { truck_id: number, truck_pos: number }) : HTMLElement{
+    return $(IDS.truckSpace(args.truck_id, args.truck_pos))
+  }
+
+  private truckSpaceTile(args: { truck_id: number, truck_pos: number }) : (HTMLElement | undefined) {
+    return this.truckSpaceElem(args).firstChild as (HTMLElement | undefined);
+  }
+
+  private enclosureSpaceElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
+    return $(IDS.enclosureSpace(this.playerNumber(args.player_id), args.enclosure_id, args.enclosure_pos));
+  }
+
+  private async notif_PlaceTileInZoo(args: { player_id: number,
+			truck_id: number,
+			truck_pos: number,
+			enclosure_id: number,
+			enclosure_pos: number }) {
+    return this.animationManager.slideAndAttach(this.truckSpaceTile(args)!, this.enclosureSpaceElem(args), {});
+  }
+
+  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
+    if (this.player_id != args.player_id) {
+      return this.animationManager.slideAndAttach(this.drawnTileElem()!, this.truckSpaceElem(args), {});
+    }
+  }
+
   private async notif_TakeTruck(args : {
     player_id: number;
     truck_id: number
   }) {
     $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
+  }
+
+  private async notify_ConfirmTilePlacement(args: { player_id: number }) {
   }
 
   private renderNewExtension(): void {

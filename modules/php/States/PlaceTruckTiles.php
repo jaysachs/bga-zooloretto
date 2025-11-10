@@ -31,6 +31,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Enclosure;
 
 class PlaceTruckTiles extends AbstractState
 {
@@ -55,7 +56,7 @@ class PlaceTruckTiles extends AbstractState
 		$truck = $model->getTruck($taken);
 		$enclosures = $model->getEnclosuresForPlayer($active_player_id);
 		$data = [];
-		foreach ($truck->getAllTiles() as $pos => $tile) {
+		foreach ($truck->getAllTiles() as $truck_pos => $tile) {
 			if (!$tile->isEmpty()) {
 				$ed = [];
 				foreach ($enclosures as $enclosure) {
@@ -66,13 +67,13 @@ class PlaceTruckTiles extends AbstractState
 					if ($ap > 0) {
 						$ed[] = [
 							'enclosure_id' => $enclosure->id,
-							'position' => $ap,
+							'enclosure_pos' => $ap,
 						];
 					}
 				}
 				if ($tile->type->canGoInBarn() || count($ed) > 0) {
 					$data[] = [
-						'pos' => $pos,
+						'truck_pos' => $truck_pos,
 						'barn' => $tile->type->canGoInBarn(),
 						'enclosures' => $ed,
 					];
@@ -88,14 +89,17 @@ class PlaceTruckTiles extends AbstractState
     #[PossibleAction]
     public function actPlaceTileInZoo(int $active_player_id, int $truck_id, int $truck_pos, int $enclosure_id) : mixed {
 		$model = $this->createModel();
-		$model->placeTileInZoo($truck_id, $truck_pos, $enclosure_id);
+		$enclosure_pos = $model->placeTileInZoo($truck_id, $truck_pos, $enclosure_id);
 		// FIXME: this should add children, and include them in the notify
 		$this->notify->all('PlaceTileInZoo', '${player_name} moved tile from truck ${truck_id} to enclosure ${enclosure_id}',
+			array_merge($this->getArgs($active_player_id),
 		[
 			'player_id' => $active_player_id,
-			'truck_id' => $truck_id,
+			// 'truck_id' => $truck_id,
+			'truck_pos' => $truck_pos,
 			'enclosure_id' => $enclosure_id,
-		]);
+			'enclosure_pos' => $enclosure_pos,
+		]));
 		return null;
 	}
 
