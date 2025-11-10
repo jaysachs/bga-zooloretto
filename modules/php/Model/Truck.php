@@ -117,8 +117,8 @@ class Truck {
         if ($tile->isEmpty()) {
             throw new ModelException("Cannot place empty tile into truck");
         }
-        if (!$tile->type->isAnimal() && !$tile->type->isStall()) {
-            $type = $tile->type;
+        if (!$tile->type->isAnimal() && !$tile->type->isStall() && $tile->type != TileType::COIN) {
+            $type = $tile->type->value;
             throw new ModelException("Cannot place tile of type $type on truck");
         }
         if ($pos <= 0 || $pos > self::CAPACITY) {
