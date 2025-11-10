@@ -5,13 +5,6 @@ interface ZPlayer extends Player {
   player_no: number;
   money: number;
   purchased_extensions: number;
-
-  /*
-    hand_size: number;
-    pool_size: number;
-    captured_city_count: number;
-    score: number;
-    */
 }
 
 interface TruckLocation{ truck_id: number, truck_pos: number };
@@ -51,13 +44,6 @@ class CSS {
   static tile(tile_type: string) : string {
     return `zoo-tile-${tile_type}`;
   }
-  /*
-    static readonly IN_NETWORK = 'bbl_in_network';
-    static readonly SELECTED = 'bbl_selected';
-    static readonly PLAYABLE = 'bbl_playable';
-    static readonly UNPLAYABLE = 'bbl_unplayable';
-    static readonly UNIMPORTANT = 'bbl_unimportant';
-    */
 }
 
 // "cell" is a bad name. "container"? "spot"? "box"? "pen"? "cage"?
@@ -134,43 +120,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       */
   }
 
-  private cellId(player_no: number, enclosure_id : number, cell : number) {
-    return ;
-  }
-
   private playerNumber(player_id : number): number {
     return this.gamedatas.players[player_id]!.player_no;
-  }
-
-  private playerHtml(player?: ZPlayer ): string {
-    if (!player) { return ''; }
-    const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
-    const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
-    const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
-    const cellClass = "cell";
-    const enclosureClass = "enclosure";
-    const pno = player.player_no;
-    let enclosure = (e:number, n: number): string => {
-      let html = `
-                    <div id="${IDS.enclosure(pno, e)}" enclosure="${e}">`;
-      for (let i = 0; i < n; ++i) {
-        html += `
-                      <div id="${IDS.enclosureSpace(pno, e, i+1)}" class="${cellClass}"></div>`;
-      }
-      html += `
-                    </div>`;
-      return html;
-    };
-    const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
-    return `
-                    <div id="${board_id}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
-                      <div id="barn_${pno}" class="${barnClass}"></div>`
-                      + enclosure(1, 6)
-                      + enclosure(2, 6)
-                      + enclosure(3, 7)
-                      + enclosure(4, 6)
-                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
-                    </div>`;
   }
 
   private makeElem(ty: string, id?: string, classes?: (string | string[])): HTMLElement {
@@ -211,28 +162,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     const pno = player.player_no;
 
-    const cellClass = "cell";
     let enclosure = (e: number, n: number): HTMLElement =>
       this.div(IDS.enclosure(pno, e), // enclosure=${e}
-        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), cellClass))
+        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "cell"))
       );
-    // let enclosure = (e:number, n: number): string => {
-    //   let html = `
-    //                 <div id="${IDS.enclosure(pno, e)}" enclosure="${e}">`;
-    //   for (let i = 0; i < n; ++i) {
-    //     html += `
-    //                   <div id="${IDS.enclosureSpace(pno, e, i+1)}" class="${cellClass}"></div>`;
-    //   }
-    //   html += `
-    //                 </div>`;
-    //   return html;
-    // };
 
     const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
     const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
     const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
-    return this.divC(board_id, [ boardClass, zoomClass ], // extensions="${player.purchased_extensions}"
+    return this
+      .divC(board_id, [ boardClass, zoomClass ], // FIXME: add attr extensions="${player.purchased_extensions}"
         this.divC("barn_${pno}", barnClass),
         enclosure(1, 6),
         enclosure(2, 6),
@@ -240,15 +180,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         enclosure(4, 6),
         this.twoPlayer ? enclosure(5, 6) : undefined
       );
-    // return `
-    //                 <div id="${board_id}" class="${boardClass} ${zoomClass}" extensions="${player.purchased_extensions}">
-    //                   <div id="barn_${pno}" class="${barnClass}"></div>`
-    //                   + enclosure(1, 6)
-    //                   + enclosure(2, 6)
-    //                   + enclosure(3, 7)
-    //                   + enclosure(4, 6)
-    //                   + (this.twoPlayer ? enclosure(5, 6) : '') + `
-    //                 </div>`;
   }
 
   private otherPlayerDiv(player: ZPlayer): HTMLElement {
@@ -259,7 +190,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       return h;
     };
 
-    return this.divC(`playercards_${player.player_no}`, [ "playercards", "whiteblock" ],
+    return this
+      .divC(`playercards_${player.player_no}`, [ "playercards", "whiteblock" ],
         this.divC(`playername_${player.player_no}`,"playernameclass",
           p(player.name)
         ),
@@ -268,16 +200,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private baseHtml(): HTMLElement {
-    /*
-    const delta2p = 17.979577;
-    const ratio2p = 0.82020423;
-    const ratio = twoPlayer ? ratio2p : 1.0;
-    const delta = twoPlayer ? delta2p : 0.0;
-*/
     let currentPlayer = this.gamedatas.players[this.player_id];
     let players = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
 
-    return this.div('zoo-game-container',
+    return this
+      .div('zoo-game-container',
         this.div('zoo-upper-container',
           this.div(IDS.DEPOT),
           this.div('zoo-drawn',
@@ -298,43 +225,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.div('playeraid')
         )
       );
-
-    // this.getGameAreaElement().appendChild(
-    //   this.div('zoo-game-container').append(
-    //     this.div('zoo-upper-container').append(
-    //       this.div(IDS.DEPOT),
-    //       this.div('zoo-drawn'),
-    //       this.div('zoo-stock').append(
-    //         this.div(IDS.PRIMARY_PILE),
-    //         this.div(IDS.ENDGAME_PILE)
-    //       ),
-    //       this.div('zoo-boards').append()
-    //     )
-    //   )
-    // );
-
-
-//     return `
-//       <div id = "zoo-game-container">
-//         <div id = "zoo-upper-container">
-//           <div id="${IDS.DEPOT}"></div>
-//           <div id="zoo-drawn"><div id="${IDS.DRAWN}"></div></div>
-//           <div id="zoo-stock">
-//             <div id="${IDS.PRIMARY_PILE}"></div>
-//             <div id="${IDS.ENDGAME_PILE}"></div>
-//           </div>
-//         </div>
-//         <div id="zoo-boards">`
-//           + this.playerHtml(currentPlayer) + `
-//           <div id="leftpanel" class="leftpanel">
-//             <div id="playercards" class="playercards">`
-//             + players.map((p) => this.otherPlayerHtml(p)) + `
-//             </div>
-//           </div>
-//         </div>
-//         <div id="playeraid" class="playeraidEN"></div>
-//       </div>
-// ` ;
   }
 
   private setupTrucks(): void {
@@ -356,28 +246,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         )
       )
     );
-      /*
-      div.appendChild(spaceDiv);
-      if (contents.tile_type != '') {
-        let typeDiv = document.createElement('div');
-        typeDiv.classList.add(CSS.tile(contents.tile_type), CSS.TILE);
-        spaceDiv.appendChild(typeDiv);
-      }
-          }, truck.contents)
-    )
-
-    for (let i in truck.contents) {
-      let contents = truck.contents[i]!;
-      let spaceDiv = document.createElement('div');
-      spaceDiv.id = IDS.truckSpace(truck.truck_id, contents.pos);
-      div.appendChild(spaceDiv);
-      if (contents.tile_type != '') {
-        let typeDiv = document.createElement('div');
-        typeDiv.classList.add(CSS.tile(contents.tile_type), CSS.TILE);
-        spaceDiv.appendChild(typeDiv);
-      }
-    }
-      */
   }
 
   private addStockTile(pileElem: HTMLElement, cls: string = CSS.BACK) {
