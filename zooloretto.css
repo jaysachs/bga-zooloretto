@@ -568,8 +568,10 @@ body.mobile_version {
     height: 15%;
     position: absolute;
 
+    /*
     background-color: red;
     opacity: 0.4;
+    */
 }
 
 /* FIXME: these MAY depend on tile size! */
@@ -639,21 +641,22 @@ body.mobile_version {
     transform-origin: center center;
 */
     /* background-color: orangered; */
-    opacity: 0.33;
+    /* opacity: 0.33; */
 /*    border: 2px solid white; */
 }
 
 .zoo-board-2p .cell {
-    /* FIXME: these depend on tile size! */
     width: 7.38%;
 }
 
 /** for debugging */
+/*
 [enclosure="1"] .cell {  background-color: orange; }
 [enclosure="2"] .cell {  background-color: blue; }
 [enclosure="3"] .cell {  background-color: yellow; }
 [enclosure="4"] .cell {  background-color: purple; }
 [enclosure="5"] .cell {  background-color: red; }
+*/
 
 /* FIXME: these depend on tile size! */
 .zoo-board-2p [enclosure='1'] .cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
