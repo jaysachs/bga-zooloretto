@@ -162,6 +162,32 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     throw new Error("element not found among its parent's children: ${el}");
   }
 
+    private makeElem(ty: string, args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
+    let e = document.createElement(ty);
+    if (args.id) { e.id = args.id; }
+    if (args.classes) {
+      if (typeof(args.classes) == "string") { args.classes = [args.classes]; }
+      args.classes.forEach(c => { if (c) e.classList.add(c) });
+    }
+    if (args.text) {
+      e.innerText = args.text;
+    }
+    children.forEach(c => c && e.appendChild(c));
+    return e;
+  }
+
+  protected div(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+    return this.makeElem('div', args, ...children);
+  }
+
+  protected span(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+    return this.makeElem('span', args, ...children);
+  }
+
+  protected range(start: number, end: number) {
+    return Array.from({length: (end - start + 1)}, (v, k) => k + start);
+  }
+
   protected async notif_debug(args: any) {
     console.log("debug", args);
   }

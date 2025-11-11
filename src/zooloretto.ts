@@ -128,63 +128,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return this.gamedatas.players[player_id]!.player_no;
   }
 
-  private makeElem(ty: string, id?: string, classes?: (string | string[])): HTMLElement {
-    let d = document.createElement(ty);
-    if (id) { d.id = id; }
-    if (classes) {
-      if (typeof(classes) == "string") { classes = [classes]; }
-      classes.forEach(c => { if (c) d.classList.add(c) });
-    }
-    return d;
-  }
-
-  private makediv(id?: string, classes?: (string | string[])): HTMLElement {
-    return this.makeElem('div', id, classes);
-  }
-
-  private spanText(text: string, id?: string): HTMLElement {
-    let elem = this.makeElem('span', id);
-    elem.innerText = text;
-    return elem;
-  }
-
-  private divText(text: string, id?: string): HTMLElement {
-    let elem = this.makeElem('div', id);
-    elem.innerText = text;
-    return elem;
-  }
-
-  private span(id : string) : HTMLElement {
-    return this.makeElem('span', id);
-  }
-
-  private spanC(classes? : (string | string[])) : HTMLElement {
-    let e = classes? this.makeElem('span', undefined, classes) : this.makeElem('span');
-    return e;
-  }
-
-  private div(id?: string, ...children : (HTMLElement | undefined)[]) : HTMLElement {
-    return this.divC(id, undefined, ... children);
-  }
-
-  private divC(id: string | undefined, classes: (string | string[] | undefined), ...children : (HTMLElement | undefined)[]) : HTMLElement {
-    let e = this.makediv(id, classes);
-    children.forEach(c => c && e.appendChild(c));
-    return e;
-  }
-
-  private range(start: number, end: number) {
-    return Array.from({length: (end - start + 1)}, (v, k) => k + start);
-  }
-
   private playerDiv(player?: ZPlayer): HTMLElement | undefined {
     if (!player) { return undefined; }
 
     const pno = player.player_no;
 
     let enclosure = (e: number, n: number): HTMLElement => {
-      let elem = this.div(IDS.enclosure(pno, e),
-        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "zoo-cell"))
+      let elem = this.div({id: IDS.enclosure(pno, e) },
+        ... this.range(1, n).map(i => this.div({ id: IDS.enclosureSpace(pno, e, i), classes: "zoo-cell"} ))
       );
       elem.setAttribute(Attrs.ENCLOSURE, ""+e);
       return elem;
@@ -193,8 +144,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     let elem = this
-      .divC(board_id, [ 'zoo-board', zoomClass ],
-        this.divC(`zoo-barn-${pno}`, 'zoo-barn'),
+      .div({ id: board_id, classes: [ 'zoo-board', zoomClass ]},
+        this.div({ id: `zoo-barn-${pno}`, classes: 'zoo-barn' }),
         enclosure(1, 6),
         enclosure(2, 6),
         enclosure(3, 7),
@@ -214,8 +165,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     };
 
     return this
-      .divC(`zoo-playerboard-${player.player_no}`, [ "zoo-playerboard", "whiteblock" ],
-        this.divC(`zoo-playername-${player.player_no}`,"zoo-playername",
+      .div({ id: `zoo-playerboard-${player.player_no}`, classes: [ "zoo-playerboard", "whiteblock" ] },
+        this.div({ id: `zoo-playername-${player.player_no}`, classes: "zoo-playername"},
           p(player.name)
         ),
         this.playerDiv(player)
@@ -227,24 +178,24 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
 
     return this
-      .divC(IDS.GAME, this.twoPlayer ? 'zoo-2p' : '',
-        this.div('zoo-upper-container',
-          this.div(IDS.DEPOT),
-          this.div('zoo-drawn',
-            this.div(IDS.DRAWN)
+      .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
+        this.div({ id: 'zoo-upper-container' },
+          this.div({ id: IDS.DEPOT }),
+          this.div({ id: 'zoo-drawn' },
+            this.div({ id: IDS.DRAWN })
           ),
-          this.div('zoo-stock',
-            this.div(IDS.PRIMARY_PILE),
-            this.div(IDS.ENDGAME_PILE)
+          this.div({ id: 'zoo-stock' },
+            this.div({ id: IDS.PRIMARY_PILE }),
+            this.div({ id: IDS.ENDGAME_PILE })
           )
         ),
-        this.div('zoo-boards',
+        this.div({id: 'zoo-boards' },
           this.playerDiv(currentPlayer),
-          this.div('zoo-other-playerboards',
+          this.div({id: 'zoo-other-playerboards'},
             ... otherplayers.map((p) => this.otherPlayerDiv(p)
           )
         ),
-        this.div('playeraid')
+        this.div({id: 'playeraid' })
         )
       );
   }
@@ -255,12 +206,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private addTruckDiv(truck: Truck): void {
     this.depot.append(
-      this.divC(IDS.depotSpace(truck.truck_id), CSS.DEPOT_SPACE,
-        this.divC(IDS.truck(truck.truck_id), CSS.TRUCK,
+      this.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
+        this.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
           ... truck.contents.map((contents, i) =>
-            this.div(IDS.truckSpace(truck.truck_id, contents.pos),
+            this.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) },
               contents.tile_type
-                   ? this.divC(undefined, [ CSS.tile(contents.tile_type), CSS.TILE ])
+                   ? this.div({classes: [ CSS.tile(contents.tile_type), CSS.TILE ]})
                    : undefined
             )
           )
@@ -270,7 +221,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private addStockTile(pileElem: HTMLElement, cls: string = CSS.BACK) {
-    pileElem.appendChild(this.spanC(cls));
+    pileElem.appendChild(this.span({classes: cls}));
   }
 
   private endgamePile : HTMLElement;
@@ -372,9 +323,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     console.log('Setting up board for player ' + player.player_id);
     const moneyid = `playermoney-counter-${playerId}`;
     this.getPlayerPanelElement(playerId).append(
-      this.divText(`!!! playerBoardExtension ${player.player_no} !!!`),
-      this.spanText(_("Money")),
-      this.span(moneyid)
+      this.div({ text: `!!! playerBoardExtension ${player.player_no} !!!` }),
+      this.span({text: _("Money")}),
+      this.span({id:moneyid})
     );
     const counter = new ebg.counter();
     counter.create(
