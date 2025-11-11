@@ -36,3 +36,107 @@ player boards at low-zoom).
    panels on top, they fail totally when playerboards are on the
    right. Need to have two mockups, for each possiblity.  Switched to
    4.0vw size and this works now.
+
+
+
+UI idea:
+ state-based
+ all elements that can be interacted with have a generic onclick handler
+ that generic handler can have per-state "subhandlers" registered with them, and dispatch to the subhandler based on current state.
+
+ So, for example, choosing truck + placing tiles into enclosures:
+ 1. all trucks, truck spaces and enclosure spaces have onclick handlers
+ 2. We have server state
+    * PlaceTruckTiles, and
+    client states
+    * cChooseTruck:
+      * on entry
+        1. mark trucks "selectable"
+        2. Buttons:
+           * "Undo" => PlayerTurn
+      * on truck click
+        1. unmark trucks selectable
+        2. "elevate" the selected truck
+        3. => cChooseTruckTile
+    * cChooseTruckTile
+      * on entry:
+        * if no placeable contents => cConfirmPlaceTruckTiles
+          else mark truck contents "selectable"
+        * Buttons:
+          * "Undo" => server undo (which does =>PlayerTurn)
+      * on truck tile click
+        1. unmark truck contents
+        2. mark selected tile "selected"
+        3. => cTruckTileChosen
+    * cTruckTileChosen
+      * on entry:
+        * mark available destinations "selectable"
+        * Buttons:
+          * "Undo" => server undo
+      * on truck tile click
+        1. unmark current available destinations
+        2. mark available destinations "selectable"
+      * on enclosure space click
+        1. unmark current available destinations
+        2. unmark selected truck tile
+        3. execute action
+        4. => cChooseTruckTile
+    * cConfirmPlaceTruckTiles
+      * on entry:
+        * Buttons:
+          * "Undo" => server undo
+          * "Confirm" => server action
+
+Some thoughts: want these to be "together" in the source code; don't
+want it spread out.
+
+Could define a "lifecycle" object:
+```
+   onEntry: () => { }
+   onLeave: () => { }
+```
+and in `onEntry`, we register the onclicks (which could be functions on the object). `onLeave` we de-regiter them? could we automated that somehow?
+
+class ClientStateDispatcher {
+  private registry: (Event -> any)[];
+  public register(h : Event -> any, state: string) {
+    this.registry[state] = h;
+  }
+  public onclick(evt): any {
+    let h = this.registry[currentState];
+    if (h) { h(evt); }
+  }
+}
+
+class ClientStateHandler {
+  protected registerHandler(h : Event -> any, element: string | HTMLElement, state: string) {
+    if (element.onclick == null) {
+      // Don't need a new one for each element, just a new one for each kind.
+      element.onclick = new ClientStateDispatcher();
+    }
+    (onWhat.onclick as ClientStateDispatcher).register(h, state);
+  }
+  public onEntry() { }
+  public onLeave() { }
+}
+
+class cChooseTruckTileHandler extends ClientStateHandler {
+  public cChooseTruckTileHandler(truck_id: number) {
+    this.registerHandler(this.onClick, "all (placeable) tiles on the truck");
+  }
+  public override onEntry() {
+    if (noPlaceableTiles) {
+      this.changeClientState(cConfirmPlaceTruckTiles);
+    } else {
+      this.markAllContentsSelectable();
+    }
+    this.removeAllButtons();
+    this.addUndoButtonForServerUndo();
+  }
+
+  protected onClick(evt) {
+    this.unmarkAllContents();
+    this.markSelectedTileSelected();
+    this.changeClientState(cTruckTileChosen);
+  }
+}
