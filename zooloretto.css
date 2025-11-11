@@ -147,7 +147,7 @@ body.mobile_version {
     background-image: url('img/Board1.png');
 }
 
-#zoo-game.zoo-2p[zoo-extensions="0"] .zoo-board {
+#zoo-game.zoo-2p .zoo-board[zoo-extensions="0"] {
     aspect-ratio: 1097 / 899;
     background-image: url('img/Board20.png')
 }
