@@ -164,7 +164,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     let enclosure = (e: number, n: number): HTMLElement =>
       this.div(IDS.enclosure(pno, e), // enclosure=${e}
-        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "cell"))
+        ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "zoo-cell"))
       );
 
     const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
@@ -173,7 +173,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     return this
       .divC(board_id, [ boardClass, zoomClass ], // FIXME: add attr extensions="${player.purchased_extensions}"
-        this.divC("barn_${pno}", barnClass),
+        this.divC("zoo-barn-${pno}", barnClass),
         enclosure(1, 6),
         enclosure(2, 6),
         enclosure(3, 7),
@@ -191,8 +191,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     };
 
     return this
-      .divC(`playercards_${player.player_no}`, [ "playercards", "whiteblock" ],
-        this.divC(`playername_${player.player_no}`,"playernameclass",
+      .divC(`zoo-playerboard-${player.player_no}`, [ "zoo-playerboard", "whiteblock" ],
+        this.divC(`zoo-playername-${player.player_no}`,"zoo-playername",
           p(player.name)
         ),
         this.playerDiv(player)
@@ -217,9 +217,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         ),
         this.div('zoo-boards',
           this.playerDiv(currentPlayer),
-          this.divC('leftpanel', 'leftpanel',
-            this.divC('playercards', 'playercards',
-            ... players.map((p) => this.otherPlayerDiv(p))
+          this.div('zoo-other-playerboards',
+            ... players.map((p) => this.otherPlayerDiv(p)
           )
         ),
         this.div('playeraid')
@@ -232,7 +231,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private addTruckDiv(truck: Truck): void {
-
     this.depot.append(
       this.divC(IDS.depotSpace(truck.truck_id), CSS.DEPOT_SPACE,
         this.divC(IDS.truck(truck.truck_id), CSS.TRUCK,
@@ -297,6 +295,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.setupStock();
     this.setupTrucks();
     this.setupDrawn(gamedatas.drawntile);
+    // this.setupEnclosures(...);
 
     /*
         console.log('setting the the game board');
