@@ -12,7 +12,8 @@ interface PlaceDrawnTileArgs { available_spaces: TruckLocation[] };
 
 class Attrs {
   // FIXME: rename value to have zoo- prefix.
-  static readonly ENCLOSURE : string = 'enclosure';
+  static readonly ENCLOSURE : string = 'zoo-enclosure';
+  static readonly EXTENSIONS : string = 'zoo-extensions';
   /*
     static readonly ZTYPE : string = 'bbl_ztype';
     static readonly ZUSED : string = 'bbl_zused';
@@ -174,8 +175,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
-    return this
-      .divC(board_id, [ 'zoo-board', zoomClass ], // FIXME: add attr extensions="${player.purchased_extensions}"
+    let elem = this
+      .divC(board_id, [ 'zoo-board', zoomClass ],
         this.divC(`zoo-barn-${pno}`, 'zoo-barn'),
         enclosure(1, 6),
         enclosure(2, 6),
@@ -183,6 +184,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         enclosure(4, 6),
         this.twoPlayer ? enclosure(5, 6) : undefined
       );
+    elem.setAttribute(Attr.EXTENSIONS, ""+player.purchased_extensions);
+    return elem;
   }
 
   private otherPlayerDiv(player: ZPlayer): HTMLElement {
