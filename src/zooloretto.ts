@@ -11,6 +11,8 @@ interface TruckLocation{ truck_id: number, truck_pos: number };
 interface PlaceDrawnTileArgs { available_spaces: TruckLocation[] };
 
 class Attrs {
+  // FIXME: rename value to have zoo- prefix.
+  static readonly ENCLOSURE : string = 'enclosure';
   /*
     static readonly ZTYPE : string = 'bbl_ztype';
     static readonly ZUSED : string = 'bbl_zused';
@@ -162,18 +164,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     const pno = player.player_no;
 
-    let enclosure = (e: number, n: number): HTMLElement =>
-      this.div(IDS.enclosure(pno, e), // enclosure=${e}
+    let enclosure = (e: number, n: number): HTMLElement => {
+      let elem = this.div(IDS.enclosure(pno, e), // enclosure=${e}
         ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "zoo-cell"))
       );
+      elem.setAttribute(Attrs.ENCLOSURE, ""+e);
+      return elem;
+    };
 
     const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
-    const barnClass = this.twoPlayer ? "zoo-barn-2p" : "zoo-barn"
-    const boardClass = this.twoPlayer ? "zoo-board-2p" : "zoo-board";
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     return this
-      .divC(board_id, [ boardClass, zoomClass ], // FIXME: add attr extensions="${player.purchased_extensions}"
-        this.divC("zoo-barn-${pno}", barnClass),
+      .divC(board_id, [ 'zoo-board', zoomClass ], // FIXME: add attr extensions="${player.purchased_extensions}"
+        this.divC(`zoo-barn-${pno}`, 'zoo-barn'),
         enclosure(1, 6),
         enclosure(2, 6),
         enclosure(3, 7),
@@ -201,10 +204,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private baseHtml(): HTMLElement {
     let currentPlayer = this.gamedatas.players[this.player_id];
-    let players = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
+    let otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
 
     return this
-      .div('zoo-game-container',
+      .divC('zoo-game', this.twoPlayer ? 'zoo-2p' : '',
         this.div('zoo-upper-container',
           this.div(IDS.DEPOT),
           this.div('zoo-drawn',
@@ -218,7 +221,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.div('zoo-boards',
           this.playerDiv(currentPlayer),
           this.div('zoo-other-playerboards',
-            ... players.map((p) => this.otherPlayerDiv(p)
+            ... otherplayers.map((p) => this.otherPlayerDiv(p)
           )
         ),
         this.div('playeraid')
