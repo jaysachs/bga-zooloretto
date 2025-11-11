@@ -140,3 +140,8 @@ class cChooseTruckTileHandler extends ClientStateHandler {
     this.changeClientState(cTruckTileChosen);
   }
 }
+
+An alternative to this is to add onclicks to "active" elements every state change; would need a way to remove the existing ones. So could use a `zoo_active` attribute to track this. Or, just use
+`document.querySelectorAll('#zoo_game [onclick]')`;
+
+Hmm, that's so much simpler I think.
