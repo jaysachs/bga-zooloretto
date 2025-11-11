@@ -649,14 +649,14 @@ body.mobile_version {
     width: 7.38%;
 }
 
-/** for debugging */
-/*
-[zoo-enclosure="1"] .zoo-cell {  background-color: orange; }
-[zoo-enclosure="2"] .zoo-cell {  background-color: blue; }
-[zoo-enclosure="3"] .zoo-cell {  background-color: yellow; }
-[zoo-enclosure="4"] .zoo-cell {  background-color: purple; }
-[zoo-enclosure="5"] .zoo-cell {  background-color: red; }
-*/
+
+
+#zoo-game.zoo-debug .zoo-cell { opacity: 0.5; }
+#zoo-game.zoo-debug [zoo-enclosure="1"] .zoo-cell {  background-color: orange; }
+#zoo-game.zoo-debug [zoo-enclosure="2"] .zoo-cell {  background-color: blue; }
+#zoo-game.zoo-debug [zoo-enclosure="3"] .zoo-cell {  background-color: yellow; }
+#zoo-game.zoo-debug [zoo-enclosure="4"] .zoo-cell {  background-color: purple; }
+#zoo-game.zoo-debug [zoo-enclosure="5"] .zoo-cell {  background-color: red; }
 
 /* FIXME: these depend on tile size! */
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
