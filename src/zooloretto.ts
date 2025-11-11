@@ -30,10 +30,10 @@ class IDS {
   static readonly DRAWN = 'zoo-drawn-tile';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
-  static truck(id : number) { return `truck_${id}`; }
-  static truckSpace(truck_id : number, pos: number) { return `truckspace_${truck_id}_${pos}`; }
-  static enclosure(player_no: number, enclosure_id: number): string { return `enclosure_${player_no}_${enclosure_id}`; }
-  static enclosureSpace(player_no: number, enclosure_id: number, pos: number): string { return `enclosure_${player_no}_${enclosure_id}_${pos}`; }
+  static truck(id : number) { return `truck-${id}`; }
+  static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
+  static enclosure(player_no: number, enclosure_id: number): string { return `enclosure-${player_no}-${enclosure_id}`; }
+  static enclosureSpace(player_no: number, enclosure_id: number, pos: number): string { return `enclosure-${player_no}-${enclosure_id}-${pos}`; }
 }
 
 class CSS {
@@ -106,14 +106,6 @@ interface PlayState {
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private playerIdToColorIndex: Record<number, number> = {};
 
-  private setupHandlers(): void {
-    /*
-      $(IDS.HAND).addEventListener('click', this.onHandClicked.bind(this));
-      $(IDS.BOARD).addEventListener('click', this.onBoardClicked.bind(this));
-      $(IDS.AVAILABLE_ZCARDS).addEventListener('click', this.onZcardClicked.bind(this));
-      */
-  }
-
   private addTooltipsToLog() {
     /*
       const elements = document.querySelectorAll(`[${Attrs.ZTYPE}]:not([${Attrs.TT_PROCESSED}])`);
@@ -157,17 +149,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private otherPlayerDiv(player: ZPlayer): HTMLElement {
-    const p = (s: string) => {
-      let h = document.createElement('p');
-      // FIXME: escaped?
-      h.innerText = s;
-      return h;
-    };
-
     return this
       .div({ id: `zoo-playerboard-${player.player_no}`, classes: [ "zoo-playerboard", "whiteblock" ] },
         this.div({ id: `zoo-playername-${player.player_no}`, classes: "zoo-playername"},
-          p(player.name)
+          this.span({ text: player.name })
         ),
         this.playerDiv(player)
       );
@@ -288,8 +273,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 */
 
         console.log('setting up handlers');
-        this.setupHandlers();
-
         this.bgaSetupPromiseNotifications({ logger: console.log, onEnd: this.addTooltipsToLog.bind(this) });
 
         // Active player gets their own undo notification with private data,
@@ -347,21 +330,30 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
    */
 
+  private onClickAbortController;
+
   private clearOnclicks(): void {
-    document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`)
-      .forEach((elem: HTMLElement) => { elem.onclick = null; elem.classList.remove(CSS.TARGETABLE); });
+    this.onClickAbortController.abort();
+    document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
+
+    // // FIXME: should be using event listeners?
+    // document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`)
+    //   .forEach((elem: HTMLElement) => { elem.onclick = null; elem.classList.remove(CSS.TARGETABLE); });
   }
 
   private addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
     elem.classList.add(CSS.TARGETABLE);
-    elem.onclick = onclick;
+    elem.addEventListener("click", onclick, { signal: this.onClickAbortController.signal });
+        //    elem.onclick = onclick;
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
+    console.log("onUpdateActionButtons_PlaceDrawnTile");
+    this.onClickAbortController = new AbortController();
     this.statusBar.removeActionButtons();
     args.available_spaces.forEach(
       (truckLoc: TruckLocation) =>
-        this.addSelectableOnclick(this.truckSpaceElem(truckLoc)!, (evt) => this.onclick_PlaceDrawnTile(truckLoc)));
+        this.addSelectableOnclick(this.truckSpaceElem(truckLoc), this.onclick_PlaceDrawnTile.bind(this)));
   }
 
   private markMoved(elem: HTMLElement): void {
@@ -372,16 +364,25 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     elem.classList.remove(CSS.MOVED);
   }
 
-  private onclick_PlaceDrawnTile(truckLoc: TruckLocation) {
+  private truckLocFromId(id: string): TruckLocation {
+    let parts = id.split('-');
+    return {
+      truck_id: Number(parts[1]),
+      truck_pos: Number(parts[2]),
+    }
+  }
+
+  private onclick_PlaceDrawnTile(evt: MouseEvent) {
+    console.log("onclick_PlaceDrawnTile", evt);
     this.clearOnclicks();
     this.statusBar.removeActionButtons();
-    let space = this.truckSpaceElem(truckLoc);
+    let space = evt.target as HTMLElement;
     let tile = this.drawnTileElem()!;
     this.animationManager.slideAndAttach(tile, space, {})
       .then(() => {
         this.markMoved(space);
         this.statusBar.addActionButton(_('Confirm'),
-          () => { this.bgaPerformAction('actPlaceTileInTruck', truckLoc).then(() => this.unmarkMoved(space)) }, { autoclick: true });
+          () => { this.bgaPerformAction('actPlaceTileInTruck', this.truckLocFromId(space.id)).then(() => this.unmarkMoved(space)) }, { autoclick: true });
         this.statusBar.addActionButton(_('Cancel'),
           () => {
             this.unmarkMoved(space);
