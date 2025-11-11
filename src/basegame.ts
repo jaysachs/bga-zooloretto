@@ -10,6 +10,7 @@ GameGui = /** @class */ (function () {
 
 class BaseGame<T extends Gamedatas> extends GameGui<T> {
   protected currentState: string | null;
+  protected currentStateArgs: any;
   protected animationManager: AnimationManager;
   private pendingUpdate: boolean;
   private currentPlayerWasActive: boolean;
@@ -19,6 +20,7 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     console.log('game constructor');
 
     this.currentState = null;
+    this.currentStateArgs = null;
     this.pendingUpdate = false;
     this.currentPlayerWasActive = false;
   }
@@ -73,12 +75,23 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return (this as any).inherited(arguments).then(() => console.debug("action completed", action, args));
   }
 
+  protected reenterCurrentState() {
+    console.debug("reenterCurrentState", this.currentState, this.currentStateArgs);
+    if (!this.currentState) {
+      console.error("Cannot re-enter unknown state");
+      return;
+    }
+    // FIXME: consider when onEnteringState_foo is defined.
+    this.callfn('onUpdateActionButtons_' + this.currentState, this.currentStateArgs);
+  }
+
   override onEnteringState(stateName: string, args: any) {
     console.debug('onEnteringState: ' + stateName, args, this.debugStateInfo());
     this.currentState = stateName;
     // Call appropriate method
     args = args ? args.args : null; // this method has extra wrapper for args for some reason
-    var methodName = 'onEnteringState_' + stateName;
+    this.currentStateArgs = args;
+    const methodName = 'onEnteringState_' + stateName;
     this.callfn(methodName, args);
 
     if (this.pendingUpdate) {
@@ -131,7 +144,7 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     if (anythis[methodName] !== undefined) {
       return anythis[methodName](args);
     } else {
-      // console.debug("no method", methodName);
+      console.debug("no method", methodName);
     }
     return undefined;
   }

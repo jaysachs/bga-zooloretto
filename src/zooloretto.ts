@@ -23,6 +23,7 @@ class Attrs {
 }
 
 class IDS {
+  static readonly GAME = 'zoo-game'; // top-level
   static readonly DEPOT = 'zoo-depot';
   static readonly PRIMARY_PILE = 'zoo-primary-pile';
   static readonly ENDGAME_PILE = 'zoo-endgame-pile';
@@ -141,6 +142,22 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return this.makeElem('div', id, classes);
   }
 
+  private spanText(text: string, id?: string): HTMLElement {
+    let elem = this.makeElem('span', id);
+    elem.innerText = text;
+    return elem;
+  }
+
+  private divText(text: string, id?: string): HTMLElement {
+    let elem = this.makeElem('div', id);
+    elem.innerText = text;
+    return elem;
+  }
+
+  private span(id : string) : HTMLElement {
+    return this.makeElem('span', id);
+  }
+
   private spanC(classes? : (string | string[])) : HTMLElement {
     let e = classes? this.makeElem('span', undefined, classes) : this.makeElem('span');
     return e;
@@ -166,7 +183,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const pno = player.player_no;
 
     let enclosure = (e: number, n: number): HTMLElement => {
-      let elem = this.div(IDS.enclosure(pno, e), // enclosure=${e}
+      let elem = this.div(IDS.enclosure(pno, e),
         ... this.range(1, n).map(i => this.divC(IDS.enclosureSpace(pno, e, i), "zoo-cell"))
       );
       elem.setAttribute(Attrs.ENCLOSURE, ""+e);
@@ -184,7 +201,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         enclosure(4, 6),
         this.twoPlayer ? enclosure(5, 6) : undefined
       );
-    elem.setAttribute(Attr.EXTENSIONS, ""+player.purchased_extensions);
+    elem.setAttribute(Attrs.EXTENSIONS, ""+player.purchased_extensions);
     return elem;
   }
 
@@ -210,7 +227,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
 
     return this
-      .divC('zoo-game', this.twoPlayer ? 'zoo-2p' : '',
+      .divC(IDS.GAME, this.twoPlayer ? 'zoo-2p' : '',
         this.div('zoo-upper-container',
           this.div(IDS.DEPOT),
           this.div('zoo-drawn',
@@ -354,14 +371,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const playerId = player.player_id;
     console.log('Setting up board for player ' + player.player_id);
     const moneyid = `playermoney-counter-${playerId}`;
-    this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend',`
-                    <div>!!! playerBoardExtension ${player.player_no} !!!</div>
-                    <span>${_("Money")}: </span><span id="${moneyid}"></span>
- `);
+    this.getPlayerPanelElement(playerId).append(
+      this.divText(`!!! playerBoardExtension ${player.player_no} !!!`),
+      this.spanText(_("Money")),
+      this.span(moneyid)
+    );
     const counter = new ebg.counter();
     counter.create(
         moneyid,
-        { value: (player as any).playermoney, playerCounter: 'playermoney', playerId: playerId }
+        { value: player.money, playerCounter: 'playermoney', playerId: playerId }
     );
   }
 
@@ -377,36 +395,48 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
    *
 
    */
-  private placeDrawnTileArgs: PlaceDrawnTileArgs;
-  private origPlaceDrawnTileArgs: PlaceDrawnTileArgs;
 
-  private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    this.placeDrawnTileArgs = structuredClone(args);
-    this.origPlaceDrawnTileArgs = args;
-    this.statusBar.removeActionButtons();
-    this.placeDrawnTileArgs.available_spaces.forEach((truckLoc: TruckLocation) => {
-      let space = this.truckSpaceElem(truckLoc)!;
-      space.classList.add(CSS.TARGETABLE);
-      space.onclick = (evt) => this.onclick_PlaceDrawnTile(truckLoc, evt);
-    });
+  private clearOnclicks(): void {
+    document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`)
+      .forEach((elem: HTMLElement) => { elem.onclick = null; elem.classList.remove(CSS.TARGETABLE); });
   }
 
-  private onclick_PlaceDrawnTile(truckLoc: {truck_id: number, truck_pos: number}, e: MouseEvent) {
-    let space = e.target as HTMLElement;
-    let tile = this.drawnTileElem()!;
-    space.classList.remove(CSS.TARGETABLE);
-    this.placeDrawnTileArgs.available_spaces.forEach((s) => this.truckSpaceElem(s).onclick = null);
+  private addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
+    elem.classList.add(CSS.TARGETABLE);
+    elem.onclick = onclick;
+  }
+
+  private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
     this.statusBar.removeActionButtons();
+    args.available_spaces.forEach(
+      (truckLoc: TruckLocation) =>
+        this.addSelectableOnclick(this.truckSpaceElem(truckLoc)!, (evt) => this.onclick_PlaceDrawnTile(truckLoc)));
+  }
+
+  private markMoved(elem: HTMLElement): void {
+    elem.classList.add(CSS.MOVED);
+  }
+
+  private unmarkMoved(elem: HTMLElement): void {
+    elem.classList.remove(CSS.MOVED);
+  }
+
+  private onclick_PlaceDrawnTile(truckLoc: TruckLocation) {
+    this.clearOnclicks();
+    this.statusBar.removeActionButtons();
+    let space = this.truckSpaceElem(truckLoc);
+    let tile = this.drawnTileElem()!;
     this.animationManager.slideAndAttach(tile, space, {})
       .then(() => {
-        space.classList.add(CSS.MOVED);
+        this.markMoved(space);
         this.statusBar.addActionButton(_('Confirm'),
-          () => { this.bgaPerformAction('actPlaceTileInTruck', truckLoc).then(() => space.classList.remove(CSS.MOVED)) }, { autoclick: true });
+          () => { this.bgaPerformAction('actPlaceTileInTruck', truckLoc).then(() => this.unmarkMoved(space)) }, { autoclick: true });
         this.statusBar.addActionButton(_('Cancel'),
           () => {
-            space.classList.remove(CSS.MOVED);
+            this.unmarkMoved(space);
             this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
-              .then(() => { this.onUpdateActionButtons_PlaceDrawnTile(this.origPlaceDrawnTileArgs); }); });
+              .then(() => this.reenterCurrentState())
+            });
       });
     return true;
   }
