@@ -241,7 +241,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private player_no: number = 0;
 
   override setup(gamedatas: ZGamedatas) {
-    console.log(gamedatas);
     super.setup(gamedatas);
     this.twoPlayer = Object.keys(gamedatas.players).length == 2;
     for (const player of Object.values(gamedatas.players)) {
@@ -358,7 +357,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    console.log("onUpdateActionButtons_PlaceDrawnTile");
     this.onClickAbortController = new AbortController();
     this.statusBar.removeActionButtons();
     args.available_spaces.forEach(
@@ -383,7 +381,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onclick_PlaceDrawnTile(evt: MouseEvent) {
-    console.log("onclick_PlaceDrawnTile", evt);
+    console.debug("onclick_PlaceDrawnTile", evt);
     this.clearOnclicks();
     this.statusBar.removeActionButtons();
     let space = evt.target as HTMLElement;

@@ -28,8 +28,8 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   }
 
   override setup(gamedatas: T) {
-    console.log('Starting game setup', gameui);
     this.gamedatas = gamedatas;
+    console.log('Starting game setup', this);
     // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
     this.animationManager = new BgaAnimations.Manager({
       animationsActive: () => this.bgaAnimationsActive(),
@@ -115,7 +115,6 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
 
   override setClientState(stateName: string, args: any) {
     if (this.clientStateNames.indexOf(stateName) < 0) {
-      console.log("no client state");
       throw new Error(`No client state ${stateName}`);
     }
     if (stateName == this.currentState) {
@@ -124,7 +123,6 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
       return;
     }
     this.onLeavingState(this.currentState!);
-    console.log("about to call inherited");
     (this as any).inherited(arguments); // super.setClientState(stateName, args);
     this.onEnteringState(stateName, args);
     this.onUpdateActionButtons(stateName, args);
@@ -173,7 +171,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     if (fnName) {
       return (this as any)[fnName](args);
     }
-    console.debug("no fn", fnName);
+    console.debug("no function", fnName);
     return undefined;
   }
 
