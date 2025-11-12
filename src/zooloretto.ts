@@ -452,46 +452,55 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private addCancelButton(onCancel: CallableFunction): void {
+  private addCancelButton(onCancel?: CallableFunction): void {
       this.statusBar.addActionButton(_('Cancel'),
           () => {
             this.statusBar.removeActionButtons();
-            onCancel();
+            onCancel && onCancel();
+            this.restoreServerGameState();
           });
+  }
+
+  private readonly clientStates ={
+      clientDrawTile: this.onUpdateActionButtons_clientDrawTile,
+      clientPurchaseExtension: this.onUpdateActionButtons_clientPurchaseExtension,
+      clientTakeTruck: this.onUpdateActionButtons_clientTakeTruck,
+    };
+  protected clientStateNames() : string[] {
+    return Object.keys(this.clientStates);
+  };
+
+  protected gotoClientState(st: keyof(typeof this.clientStates), args?: any) {
+    this.setClientState(st, args);
+  }
+
+  private onUpdateActionButtons_clientDrawTile(): void {
+    this.statusBar.removeActionButtons();
+    this.statusBar.addActionButton(_('Confirm draw'), () => this.bgaPerformAction('actDrawTile'), { autoclick: false });
+    this.addCancelButton();
+  }
+
+  private onUpdateActionButtons_clientPurchaseExtension(): void {
+    this.statusBar.removeActionButtons();
+    this.renderNewExtension();
+    this.statusBar.addActionButton(_('Confirm purchase'), () => this.bgaPerformAction('actPurchaseExtension'), { autoclick: true });
+    this.addCancelButton(() => { this.renderNewExtension(); });
   }
 
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     this.statusBar.removeActionButtons();
-    let again = (c?: CallableFunction) =>
-      () => {
-        if (c) { c(); }
-        this.onUpdateActionButtons_PlayerTurn(playState);
-      };
     if (playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'), () => {
-        this.statusBar.removeActionButtons();
-        this.statusBar.addActionButton(_('Confirm draw'),
-          () => this.bgaPerformAction('actDrawTile'),
-          { autoclick: true });
-        this.addCancelButton(again());
-      });
+      this.statusBar.addActionButton(_('Draw tile'), () => this.gotoClientState('clientDrawTile'));
     }
     if (playState.can_purchase) {
-      this.statusBar.addActionButton(_('Purchase extension'), () => {
-        this.statusBar.removeActionButtons();
-        this.renderNewExtension();
-        this.statusBar.addActionButton(_('Confirm purchase'),
-          () => this.bgaPerformAction('actPurchaseExtension'),
-          { autoclick: true });
-        this.addCancelButton(again(() => this.renderNewExtension()));
-      });
+      this.statusBar.addActionButton(_('Purchase extension'), () => this.gotoClientState('clientPurchaseExtension'));
     }
     if (playState.trucks_available.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'), () => this.handleTakeTruck(playState));
+      this.statusBar.addActionButton(_('Take truck'), () => this.gotoClientState('clientTakeTruck', playState));
     }
   }
 
-  private handleTakeTruck(playState: PlayState) {
+  private onUpdateActionButtons_clientTakeTruck(playState: PlayState) {
       this.statusBar.removeActionButtons();
       // update message to "select a truck" / switch client state
       this.statusBar.setTitle(_('Select a truck'));
@@ -500,10 +509,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         elem.onclick = null;
         elem.classList.remove(CSS.TARGETABLE);
       });
-      this.statusBar.addActionButton(_('Cancel'), () => {
-        cleanup();
-        this.onUpdateActionButtons_PlayerTurn(playState);
-      });
+      this.addCancelButton(cleanup);
       playState.trucks_available.forEach((tid: number) => {
         let elem = $(IDS.truck(tid));
         elem.classList.add(CSS.TARGETABLE);

@@ -8,7 +8,7 @@ GameGui = /** @class */ (function () {
 /** Class that extends default bga core game class with more functionality
  */
 
-class BaseGame<T extends Gamedatas> extends GameGui<T> {
+abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   protected currentState: string | null;
   protected currentStateArgs: any;
   protected animationManager: AnimationManager;
@@ -35,9 +35,14 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     this.autowireStateChangeMethods();
   }
 
+  protected abstract clientStateNames(): string[];
+
   private autowireStateChangeMethods() {
+    // TODO: also ensure all client states have some callback!
+    //   maybe do for server states as well, or have an "ignore" list?
     console.log("Checking dynamic state change methods");
-    const stateNames = Object.entries(this.gamedatas.gamestates).map(([id,gs]) => gs.name);
+    const stateNames = Object.values(this.gamedatas.gamestates).filter((gs: Gamestate) => gs.type == 'activeplayer').map((gs) => gs.name);
+    stateNames.push(... this.clientStateNames());
     const maybeMatch = new RegExp('^on[A-Z][A-Za-z0-9_]*_(' + stateNames.join('|') + ')$');
     let wiredUp: string[] = [];
     let wrong: string[] = [];
@@ -61,6 +66,15 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
         }
       }
     );
+    let noCallbacks : string[] = [];
+    stateNames.forEach((name: string ) => {
+      if (!this.onUpdateActionButtonsFn(name) && !this.onEnteringStateFn(name)) {
+        noCallbacks.push(name);
+      }
+    });
+    if (noCallbacks.length > 0) {
+      console.error("Found states with no callbacks: ", noCallbacks.join(','));
+    }
     if (wrong.length > 0) {
       throw new Error("Found state-change methods that do not correspond to a state: " + wrong);
     }
@@ -82,7 +96,7 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
       return;
     }
     // FIXME: consider when onEnteringState_foo is defined.
-    this.callfn('onUpdateActionButtons_' + this.currentState, this.currentStateArgs);
+    this.maybeCallFn(this.onUpdateActionButtonsFn(this.currentState), this.currentStateArgs);
   }
 
   override onEnteringState(stateName: string, args: any) {
@@ -91,13 +105,29 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
     // Call appropriate method
     args = args ? args.args : null; // this method has extra wrapper for args for some reason
     this.currentStateArgs = args;
-    const methodName = 'onEnteringState_' + stateName;
-    this.callfn(methodName, args);
+    this.maybeCallFn(this.onEnteringStateFn(stateName), args);
 
     if (this.pendingUpdate) {
       this.onUpdateActionButtons(stateName, args);
       this.pendingUpdate = false;
     }
+  }
+
+  override setClientState(stateName: string, args: any) {
+    if (this.clientStateNames().indexOf(stateName) < 0) {
+      console.log("no client state");
+      throw new Error(`No client state ${stateName}`);
+    }
+    if (stateName == this.currentState) {
+      (this as any).inherited(arguments); // super.setClientState(stateName, args);
+      this.onUpdateActionButtons(stateName, args);
+      return;
+    }
+    this.onLeavingState(this.currentState!);
+    console.log("about to call inherited");
+    (this as any).inherited(arguments); // super.setClientState(stateName, args);
+    this.onEnteringState(stateName, args);
+    this.onUpdateActionButtons(stateName, args);
   }
 
   override onLeavingState(stateName: string) {
@@ -117,7 +147,7 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
       console.debug('onUpdateActionButtons: ' + stateName, args, this.debugStateInfo());
       this.currentPlayerWasActive = true;
       // Call appropriate method
-      this.callfn('onUpdateActionButtons_' + stateName, args);
+      this.maybeCallFn(this.onUpdateActionButtonsFn(stateName), args);
     } else {
       this.currentPlayerWasActive = false;
     }
@@ -139,14 +169,24 @@ class BaseGame<T extends Gamedatas> extends GameGui<T> {
    * @param {object} args
    * @returns
    */
-  private callfn(methodName: string, args: any): any {
-    const anythis = this as any;
-    if (anythis[methodName] !== undefined) {
-      return anythis[methodName](args);
-    } else {
-      console.debug("no method", methodName);
+  private maybeCallFn(fnName: string | undefined, args: any): any {
+    if (fnName) {
+      return (this as any)[fnName](args);
     }
+    console.debug("no fn", fnName);
     return undefined;
+  }
+
+  private onUpdateActionButtonsFn(stateName: string) : string | undefined {
+    const anythis = this as any;
+    const methodName = "onUpdateActionButtons_" + stateName;
+    return (anythis[methodName]) ? methodName : undefined;
+  }
+
+  private onEnteringStateFn(stateName: string) : string | undefined {
+    const anythis = this as any;
+    const methodName = "onEnteringState_" + stateName;
+    return (anythis[methodName]) ? methodName : undefined;
   }
 
   // Returns the index of the given element among its parent's child elements
