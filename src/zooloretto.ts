@@ -92,6 +92,12 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   trucks: Truck[];
 }
 
+interface AvailableTruck {
+  truck_id: number;
+  // FIXME:
+  playable: any;
+}
+
 interface PlayState {
   can_draw: boolean;
   can_purchase: boolean;
@@ -99,7 +105,7 @@ interface PlayState {
   can_buy: boolean;
   can_swap: boolean;
   can_move: boolean;
-  trucks_available: number[];
+  available_trucks: AvailableTruck[];
 }
 
 /** Game class */
@@ -497,7 +503,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (playState.can_purchase) {
       this.statusBar.addActionButton(_('Purchase extension'), () => this.gotoClientState('clientPurchaseExtension'));
     }
-    if (playState.trucks_available.length > 0) {
+    if (playState.available_trucks.length > 0) {
       this.statusBar.addActionButton(_('Take truck'), () => this.gotoClientState('clientTakeTruck', playState));
     }
   }
@@ -506,13 +512,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.statusBar.removeActionButtons();
       // update message to "select a truck" / switch client state
       this.statusBar.setTitle(_('Select a truck'));
-      let cleanup = () => playState.trucks_available.forEach((tid: number) => {
+      let cleanup = () => playState.available_trucks.forEach((at: AvailableTruck) => {
+        const tid = at.truck_id;
         let elem = $(IDS.truck(tid));
         elem.onclick = null;
         elem.classList.remove(CSS.TARGETABLE);
       });
       this.addCancelButton(cleanup);
-      playState.trucks_available.forEach((tid: number) => {
+      playState.available_trucks.forEach((at: AvailableTruck) => {
+        const tid = at.truck_id;
         let elem = $(IDS.truck(tid));
         elem.classList.add(CSS.TARGETABLE);
         elem.onclick = (evt) => {

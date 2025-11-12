@@ -62,7 +62,10 @@ class PlayerTurn extends AbstractState
 		if (!$player->truck_taken) {
 			foreach ($model->getTrucks() as $truck) {
 				if ($truck->canBeTaken()) {
-					$trucks_available[] = $truck->id;
+					$trucks_available[] = [
+						'truck_id' => $truck->id,
+						'playable' => $model->getPossiblePlacements($active_player_id, $truck->id)->serialize(),
+					];
 				}
 			}
 		}
@@ -87,7 +90,7 @@ class PlayerTurn extends AbstractState
 			'can_buy' => false,
 			'can_swap' => false,
 			'can_move' => false,
-			'trucks_available' => $trucks_available,
+			'available_trucks' => $trucks_available,
 			// 'money' => $player->money,
 			'unblockedzoo' => $player->purchased_extensions,
 			// 'wagons' =>  $wagondata,
