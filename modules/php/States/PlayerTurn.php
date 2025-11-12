@@ -87,9 +87,10 @@ class PlayerTurn extends AbstractState
 		return [
 			'can_draw' => $model->getStock()->drawn == null && $model->spacesOnTrucks() > 0,
 			'can_purchase' => $player->canPurchaseExtension(),
+			'can_move' => false,
 			'can_buy' => false,
 			'can_swap' => false,
-			'can_move' => false,
+			'can_discard' => false,
 			'available_trucks' => $trucks_available,
 			// 'money' => $player->money,
 			'unblockedzoo' => $player->purchased_extensions,
@@ -164,7 +165,7 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actBuyEnclosure(int $active_player_id): mixed
+	public function actPurchaseEnclosure(int $active_player_id): mixed
 	{
         $model = $this->createModel();
 		$player = $model->getActivePlayer();
@@ -185,25 +186,25 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actMove(): mixed
+	public function actMoveTile(): mixed
 	{
 		return Move::class;
 	}
 
 	#[PossibleAction]
-	public function actSwap(): mixed
+	public function actSwapEnclosureContents(): mixed
 	{
 		return Swap::class;
 	}
 
 	#[PossibleAction]
-	public function actBuy(): mixed
+	public function actBuyTile(): mixed
 	{
 		return Buy::class;
 	}
 
 	#[PossibleAction]
-	public function actDiscard(): mixed
+	public function actDiscardTile(): mixed
 	{
 		return Discard::class;
 	}

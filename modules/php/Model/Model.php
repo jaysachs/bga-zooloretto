@@ -286,8 +286,12 @@ class Model {
      * Returns enclosure mapped by enclosure_id.
      *
      * @return Enclosure[int]
-     * */
+     *
+     */
     public function getEnclosuresForPlayer(int $player_id) : array {
+        // FIXME: need to handle un-purchased extensions!
+        // Either a boolean on the Extension (easy)
+        //   or not returning it.
         /*
         from frontend:
                       + enclosure(1, 6)
@@ -297,6 +301,8 @@ class Model {
                       + (this.twoPlayer ? enclosure(5, 6) : '') + `
                       */
         /** @var Enclosure[] */
+        // FIXME: find some way to have this auto-sync with the FE
+        //   bonus points: also with the CSS!
         $encl = [
             1 => new Enclosure(1, 5, 1),
             2 => new Enclosure(2, 4, 2),
