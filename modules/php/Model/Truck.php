@@ -42,7 +42,7 @@ class Truck {
         }
         $c = count($this->tiles);
         if ($c != self::CAPACITY) {
-            throw new ModelException("Attempt to construct Truck with contents of size {$c} different than {" + self::CAPACITY);
+            throw new ModelException("Attempt to construct Truck with contents of size {$c} different than " . self::CAPACITY);
         }
         foreach ($this->tiles as $tile) {
             if ($tile == null) {
