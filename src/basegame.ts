@@ -14,8 +14,9 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   protected animationManager: AnimationManager;
   private pendingUpdate: boolean;
   private currentPlayerWasActive: boolean;
+  private readonly clientStateNames: string[];
 
-  constructor() {
+  constructor(clientStateNames: string[]) {
     super();
     console.log('game constructor');
 
@@ -23,6 +24,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     this.currentStateArgs = null;
     this.pendingUpdate = false;
     this.currentPlayerWasActive = false;
+    this.clientStateNames = clientStateNames;
   }
 
   override setup(gamedatas: T) {
@@ -35,14 +37,12 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     this.autowireStateChangeMethods();
   }
 
-  protected abstract clientStateNames(): string[];
-
   private autowireStateChangeMethods() {
     // TODO: also ensure all client states have some callback!
     //   maybe do for server states as well, or have an "ignore" list?
     console.log("Checking dynamic state change methods");
     const stateNames = Object.values(this.gamedatas.gamestates).filter((gs: Gamestate) => gs.type == 'activeplayer').map((gs) => gs.name);
-    stateNames.push(... this.clientStateNames());
+    stateNames.push(... this.clientStateNames);
     const maybeMatch = new RegExp('^on[A-Z][A-Za-z0-9_]*_(' + stateNames.join('|') + ')$');
     let wiredUp: string[] = [];
     let wrong: string[] = [];
@@ -114,7 +114,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   }
 
   override setClientState(stateName: string, args: any) {
-    if (this.clientStateNames().indexOf(stateName) < 0) {
+    if (this.clientStateNames.indexOf(stateName) < 0) {
       console.log("no client state");
       throw new Error(`No client state ${stateName}`);
     }

@@ -106,6 +106,10 @@ interface PlayState {
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private playerIdToColorIndex: Record<number, number> = {};
 
+  constructor() {
+    super(Object.keys(ZoolorettoGame.clientStates));
+  }
+
   private addTooltipsToLog() {
     /*
       const elements = document.querySelectorAll(`[${Attrs.ZTYPE}]:not([${Attrs.TT_PROCESSED}])`);
@@ -461,18 +465,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           });
   }
 
-  private readonly clientStates ={
-      clientDrawTile: this.onUpdateActionButtons_clientDrawTile,
-      clientPurchaseExtension: this.onUpdateActionButtons_clientPurchaseExtension,
-      clientTakeTruck: this.onUpdateActionButtons_clientTakeTruck,
-    };
-  protected clientStateNames() : string[] {
-    return Object.keys(this.clientStates);
-  };
-
-  protected gotoClientState(st: keyof(typeof this.clientStates), args?: any) {
+  protected gotoClientState(st: keyof(typeof ZoolorettoGame.clientStates), args?: any) {
     this.setClientState(st, args);
   }
+
+  static readonly clientStates = {
+    clientDrawTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientDrawTile,
+    clientPurchaseExtension: ZoolorettoGame.prototype.onUpdateActionButtons_clientPurchaseExtension,
+    clientTakeTruck: ZoolorettoGame.prototype.onUpdateActionButtons_clientTakeTruck,
+  };
+
 
   private onUpdateActionButtons_clientDrawTile(): void {
     this.statusBar.removeActionButtons();
