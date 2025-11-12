@@ -124,6 +124,14 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
+	public function actPlaceTruckTiles(int $active_player_id): mixed {
+		$this->notify->all('PlaceTruckTiles', '${player_name} place tiles from truck', [
+			'player_id' => $active_player_id,
+		]);
+		return NextPlayer::class;
+	}
+
+	#[PossibleAction]
 	public function actDrawTile(int $active_player_id): mixed
 	{
         $model = $this->createModel();
