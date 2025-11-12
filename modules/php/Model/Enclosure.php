@@ -91,6 +91,20 @@ class Enclosure {
         return 0;
     }
 
+    public function takeTileAt($pos): Tile {
+        if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
+            if ($pos <= count($this->animals)) {
+                $t = $this->animals[$pos-1];
+                $this->animals[$pos-1] = Tile::empty();
+                return $t;
+            }
+            $t = $this->stalls[$pos - 1 - count($this->animals)];
+            $this->stalls[$pos - 1 - count($this->animals)] = Tile::empty();
+            return $t;
+        }
+        throw new ModelException("No position $pos in encluse $this->id");
+    }
+
     public function tileAt(int $pos) {
         if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
             if ($pos <= count($this->animals)) {
