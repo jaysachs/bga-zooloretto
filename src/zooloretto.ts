@@ -92,10 +92,20 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   trucks: Truck[];
 }
 
+interface PossibleEnclosurePlacement {
+  enclosure_id: number;
+  enclosure_pos: number;
+  next: PossiblePlacement[];
+}
+interface PossiblePlacement {
+  truck_pos: number;
+  tile_type: string;
+  encs: PossibleEnclosurePlacement[];
+}
+
 interface AvailableTruck {
   truck_id: number;
-  // FIXME:
-  playable: any;
+  playable: PossiblePlacement[];
 }
 
 interface PlayState {
@@ -477,6 +487,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     clientDrawTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientDrawTile,
     clientPurchaseExtension: ZoolorettoGame.prototype.onUpdateActionButtons_clientPurchaseExtension,
     clientTakeTruck: ZoolorettoGame.prototype.onUpdateActionButtons_clientTakeTruck,
+    clientChooseTruckTileToPlace: ZoolorettoGame.prototype.onUpdateActionButtons_clientChooseTruckTileToPlace,
+    clientPlaceTruckTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientPlaceTruckTile,
   };
 
 
@@ -507,8 +519,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_clientTakeTruck(playState: PlayState) {
+    this.onClickAbortController = new AbortController();
       this.statusBar.removeActionButtons();
-      // update message to "select a truck" / switch client state
       this.statusBar.setTitle(_('Select a truck'));
       let cleanup = () => playState.available_trucks.forEach((at: AvailableTruck) => {
         const tid = at.truck_id;
@@ -523,12 +535,55 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         elem.classList.add(CSS.TARGETABLE);
         elem.onclick = (evt) => {
           cleanup();
-          this.bgaPerformAction('actTakeTruck', { truck_id: tid }).then(() => {
-            // render truck taken
-          })
+          this.selectedTruck = at;
+          this.selectedTileToPlace = null;
+          // this.bgaPerformAction('actTakeTruck', { truck_id: tid }).then(() => {});
+          this.gotoClientState('clientChooseTruckTileToPlace', playState);
         };
       });
   }
+
+  private selectedTruck: AvailableTruck;
+  private selectedTileToPlace: HTMLElement | null = null;
+
+  private onUpdateActionButtons_clientChooseTruckTileToPlace(playState: PlayState) {
+    console.log("choosing truck tile from ", this.selectedTruck);
+    this.onClickAbortController = new AbortController();
+    this.statusBar.removeActionButtons();
+    this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
+    let elems: HTMLElement[] = [];
+    let cleanup = () => { this.clearOnclicks(); };
+    this.selectedTruck.playable.forEach((pp: PossiblePlacement) => {
+      let elem = this.truckSpaceElem({ truck_id: this.selectedTruck.truck_id, truck_pos: pp.truck_pos});
+      this.addSelectableOnclick(elem, (evt) => {
+        cleanup();
+        this.selectedTileToPlace = elem;
+        elem.classList.add(CSS.SELECTED);
+        this.gotoClientState('clientPlaceTruckTile');
+      });
+      elems.push(elem);
+    });
+    // this.selectedTruck.playable
+    this.addCancelButton(cleanup);
+    this.statusBar.addActionButton(_('Confirm'), () => {
+      cleanup();
+      this.bgaPerformAction('actPlaceTruckTiles', { });
+    });
+  }
+
+  private onUpdateActionButtons_clientPlaceTruckTile(args: any) {
+    console.log("choosing destination for ", this.selectedTileToPlace);
+    this.onClickAbortController = new AbortController();
+    this.statusBar.removeActionButtons();
+    this.statusBar.setTitle(_('Choose a destination for the selected tile'));
+    let elems: HTMLElement[] = [];
+    let cleanup = () => { this.clearOnclicks(); };
+    this.addCancelButton(cleanup);
+    // this.statusBar.addActionButton(_('Confirm'), () => {
+    //   cleanup();
+    //   this.bgaPerformAction('actPlaceTruckTiles', { });
+    // });
+}
 
   private drawnTileElem(): HTMLElement | undefined {
       return $(IDS.DRAWN).firstElementChild as (HTMLElement | undefined);
