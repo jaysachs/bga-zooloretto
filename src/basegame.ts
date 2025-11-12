@@ -114,6 +114,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   }
 
   override setClientState(stateName: string, args: any) {
+    this.gamedatas.gamestate.args = args;
     if (this.clientStateNames.indexOf(stateName) < 0) {
       throw new Error(`No client state ${stateName}`);
     }
@@ -122,10 +123,10 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
       this.onUpdateActionButtons(stateName, args);
       return;
     }
-    this.onLeavingState(this.currentState!);
+    // this.onLeavingState(this.currentState!);
     (this as any).inherited(arguments); // super.setClientState(stateName, args);
-    this.onEnteringState(stateName, args);
-    this.onUpdateActionButtons(stateName, args);
+    // this.onEnteringState(stateName, args);
+    // this.onUpdateActionButtons(stateName, args);
   }
 
   override onLeavingState(stateName: string) {
