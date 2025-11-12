@@ -71,10 +71,10 @@ class PlaceTruckTiles extends AbstractState
 						];
 					}
 				}
-				if ($tile->type->canGoInBarn() || count($ed) > 0) {
+				if ($tile->type->isPlaceable() || count($ed) > 0) {
 					$data[] = [
 						'truck_pos' => $truck_pos,
-						'barn' => $tile->type->canGoInBarn(),
+						'barn' => $tile->type->isPlaceable(),
 						'enclosures' => $ed,
 					];
 				}

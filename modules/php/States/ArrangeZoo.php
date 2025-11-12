@@ -70,10 +70,10 @@ class ArrangeZoo extends AbstractState
 						];
 					}
 				}
-				if ($tile->type->canGoInBarn() || count($ed) > 0) {
+				if ($tile->type->isPlaceable() || count($ed) > 0) {
 					$data[] = [
 						'pos' => $pos,
-						'barn' => $tile->type->canGoInBarn(),
+						'barn' => $tile->type->isPlaceable(),
 						'enclosures' => $ed,
 					];
 				}
