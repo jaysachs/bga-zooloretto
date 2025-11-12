@@ -282,7 +282,11 @@ class Model {
         return $truck;
     }
 
-    /** @return Enclosure[] */
+    /**
+     * Returns enclosure mapped by enclosure_id.
+     *
+     * @return Enclosure[int]
+     * */
     public function getEnclosuresForPlayer(int $player_id) : array {
         /*
         from frontend:
@@ -338,12 +342,7 @@ class Model {
     /** @return the position in the enclosure it was plased in */
     public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
         $truck = $this->getTruck($truck_id);
-        $encl = null;
-        foreach ($this->getEnclosuresForPlayer($this->getActivePlayer()->id) as $enc) {
-            if ($enc->id == $enclosure_id) {
-                $encl = $enc;
-            }
-        }
+        $encl = $this->getEnclosuresForPlayer($this->getActivePlayer()->id)[$enclosure_id];
         $tile = $truck->removeTileAt($truck_pos);
         $pos = $encl->placeTile($tile);
         $this->updateTruck($truck);
