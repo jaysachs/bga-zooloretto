@@ -480,6 +480,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   protected gotoClientState(st: keyof(typeof ZoolorettoGame.clientStates), args?: any) {
+    console.log('goto ', st, args);
     this.setClientState(st, args);
   }
 
@@ -557,9 +558,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let elem = this.truckSpaceElem({ truck_id: this.selectedTruck.truck_id, truck_pos: pp.truck_pos});
       this.addSelectableOnclick(elem, (evt) => {
         cleanup();
-        this.selectedTileToPlace = elem;
+        this.selectedTileToPlace = elem.firstElementChild as HTMLElement;
         elem.classList.add(CSS.SELECTED);
-        this.gotoClientState('clientPlaceTruckTile');
+        this.gotoClientState('clientPlaceTruckTile', pp);
       });
       elems.push(elem);
     });
@@ -571,14 +572,25 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     });
   }
 
-  private onUpdateActionButtons_clientPlaceTruckTile(args: any) {
-    console.log("choosing destination for ", this.selectedTileToPlace);
+  private onUpdateActionButtons_clientPlaceTruckTile(pp: PossiblePlacement) {
+    console.log("choosing destination for ", pp, this.selectedTileToPlace);
     this.onClickAbortController = new AbortController();
     this.statusBar.removeActionButtons();
     this.statusBar.setTitle(_('Choose a destination for the selected tile'));
     let elems: HTMLElement[] = [];
     let cleanup = () => { this.clearOnclicks(); };
     this.addCancelButton(cleanup);
+    pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
+      let elem = this.enclosureSpaceElem({ player_id: this.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
+      elem.classList.add(CSS.TARGETABLE);
+      this.addSelectableOnclick(elem, (evt:MouseEvent) => {
+        cleanup();
+        this.animationManager.slideAndAttach(this.selectedTileToPlace!,elem, {}).then( () => {
+          // FIXME: mutate things to account for this, navigate the possible placements
+          this.gotoClientState('clientChooseTruckTileToPlace');
+        });
+      });
+    });
     // this.statusBar.addActionButton(_('Confirm'), () => {
     //   cleanup();
     //   this.bgaPerformAction('actPlaceTruckTiles', { });
