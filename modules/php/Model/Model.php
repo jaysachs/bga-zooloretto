@@ -349,6 +349,10 @@ class Model {
         $this->updateEnclosure($encl);
         return $pos;
     }
+
+    public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {
+        return PossiblePlacement::possiblePlacementFor($this->getTruck($truck_id), $this->getEnclosuresForPlayer($player_id));
+    }
 }
 
 /*
