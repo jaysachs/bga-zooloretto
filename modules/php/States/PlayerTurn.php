@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\States;
 
+use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Decoder;
@@ -124,9 +125,15 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actPlaceTruckTiles(int $active_player_id): mixed {
-		$this->notify->all('PlaceTruckTiles', '${player_name} place tiles from truck', [
-			'player_id' => $active_player_id,
+	public function actPlaceTruckTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
+		$model = $this->createModel();
+		foreach ($placed_tiles as $placed_tile) {
+			$model->placeTileInZoo($truck_id, intval($placed_tile['enclosure_id']), intval($placed_tile['enclosure_pos']));
+		}
+
+		$this->notify->all('PlaceTruckTiles', '${player_name} place tiles from truck ${truck_id}', [
+		  'player_id' => $active_player_id,
+		  'truck_id' => $truck_id,
 		]);
 		return NextPlayer::class;
 	}

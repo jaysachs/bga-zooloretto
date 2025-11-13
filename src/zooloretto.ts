@@ -549,14 +549,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     private selectedTileToPlace: HTMLElement | null = null;
 
+    private submit(truck_id: number) {
+      this.game.bgaPerformAction('actPlaceTruckTiles', {
+        truck_id: truck_id,
+        placed_tiles: JSON.stringify(this.placedTiles),
+      });
+    }
+
     private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], playState: PlayState) {
       this.game.statusBar.removeActionButtons();
       if (pps.length == 0) {
         this.game.statusBar.setTitle(_('Confirm your truck tile placements'));
         this.game.statusBar.addActionButton(
           _('Confirm'),
-          () => this.game.bgaPerformAction('actPlaceTruckTiles', { })
-        );
+          () => this.submit(truck_id));
       }
       else {
         this.game.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
