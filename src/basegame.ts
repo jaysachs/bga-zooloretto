@@ -114,14 +114,14 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   }
 
   override setClientState(stateName: string, args: any) {
-    this.gamedatas.gamestate.args = args;
+    // this.gamedatas.gamestate.args = args;
     if (this.clientStateNames.indexOf(stateName) < 0) {
       throw new Error(`No client state ${stateName}`);
     }
     if (stateName == this.currentState) {
-      (this as any).inherited(arguments); // super.setClientState(stateName, args);
-      this.onUpdateActionButtons(stateName, args);
-      return;
+      // (this as any).inherited(arguments); // super.setClientState(stateName, args);
+      // this.onUpdateActionButtons(stateName, args);
+      // return;
     }
     // this.onLeavingState(this.currentState!);
     (this as any).inherited(arguments); // super.setClientState(stateName, args);
@@ -201,7 +201,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     throw new Error("element not found among its parent's children: ${el}");
   }
 
-    private makeElem(ty: string, args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
+  private makeElem(ty: string, args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
     let e = document.createElement(ty);
     if (args.id) { e.id = args.id; }
     if (args.classes) {
@@ -211,6 +211,9 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     if (args.text) {
       e.innerText = args.text;
     }
+    if (args.attrs) {
+      Object.keys(args.attrs).forEach(k => e.setAttribute(k, args.attrs![k]!));
+    }
     children.forEach(c => c && e.appendChild(c));
     return e;
   }
@@ -219,7 +222,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return this.makeElem('div', args, ...children);
   }
 
-  protected span(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  protected span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('span', args, ...children);
   }
 

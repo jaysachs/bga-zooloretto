@@ -14,6 +14,7 @@ class Attrs {
   // FIXME: rename value to have zoo- prefix.
   static readonly ENCLOSURE : string = 'zoo-enclosure';
   static readonly EXTENSIONS : string = 'zoo-extensions';
+  static readonly TILE : string = 'zoo-tile';
   /*
     static readonly ZTYPE : string = 'bbl_ztype';
     static readonly ZUSED : string = 'bbl_zused';
@@ -209,15 +210,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.trucks.forEach((truck) => this.addTruckDiv(truck));
   }
 
+  private makeTileSpan(tile_type?: string): HTMLElement | undefined {
+    return tile_type ? this.span({ classes: CSS.tile(tile_type), attrs: { 'zoo-tile': tile_type } }) : undefined;
+  }
+
   private addTruckDiv(truck: Truck): void {
     this.depot.append(
       this.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
         this.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
           ... truck.contents.map((contents, i) =>
             this.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) },
-              contents.tile_type
-                   ? this.div({classes: [ CSS.tile(contents.tile_type), CSS.TILE ]})
-                   : undefined
+              this.makeTileSpan(contents.tile_type)
             )
           )
         )
@@ -306,9 +309,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private setupDrawn(tile_type? : string) {
     if (tile_type) {
-      let elem = document.createElement('span');
-      elem.classList.add(CSS.TILE, CSS.tile(tile_type));
-      this.drawnTiles.appendChild(elem);
+      this.drawnTiles.appendChild(this.makeTileSpan(tile_type)!);
     }
   }
 
@@ -374,6 +375,33 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.addSelectableOnclick(this.truckSpaceElem(truckLoc), this.onclick_PlaceDrawnTile.bind(this)));
   }
 
+  private onUpdateActionButtons_clientPlaceDrawnTile(args: any): void {
+
+  }
+
+  private onclick_PlaceDrawnTile(evt: MouseEvent) {
+    this.clearOnclicks();
+    this.statusBar.removeActionButtons();
+    let space = evt.target as HTMLElement;
+    let tile = this.drawnTileElem()!;
+    this.animationManager.slideAndAttach(tile, space, {})
+      .then(() => {
+        let tl = this.truckLocFromId(space.id);
+        this.statusBar.setTitle(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
+        { tile: tile.getAttribute(Attrs.TILE), truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+        this.markMoved(space);
+        this.statusBar.removeActionButtons();
+        this.statusBar.addActionButton(_('Confirm'),
+          () => { this.bgaPerformAction('actPlaceTileInTruck', this.truckLocFromId(space.id)).then(() => this.unmarkMoved(space)) }, { autoclick: true });
+        this.addCancelButton(() => {
+            this.unmarkMoved(space);
+            this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
+              .then(() => this.restoreServerGameState())
+            });
+      });
+    return true;
+  }
+
   private markMoved(elem: HTMLElement): void {
     elem.classList.add(CSS.MOVED);
   }
@@ -388,27 +416,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       truck_id: Number(parts[1]),
       truck_pos: Number(parts[2]),
     }
-  }
-
-  private onclick_PlaceDrawnTile(evt: MouseEvent) {
-    console.debug("onclick_PlaceDrawnTile", evt);
-    this.clearOnclicks();
-    this.statusBar.removeActionButtons();
-    let space = evt.target as HTMLElement;
-    let tile = this.drawnTileElem()!;
-    this.animationManager.slideAndAttach(tile, space, {})
-      .then(() => {
-        this.markMoved(space);
-        this.statusBar.addActionButton(_('Confirm'),
-          () => { this.bgaPerformAction('actPlaceTileInTruck', this.truckLocFromId(space.id)).then(() => this.unmarkMoved(space)) }, { autoclick: true });
-        this.statusBar.addActionButton(_('Cancel'),
-          () => {
-            this.unmarkMoved(space);
-            this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
-              .then(() => this.reenterCurrentState())
-            });
-      });
-    return true;
   }
 
   private onUpdateActionButtons_PlaceTruckTiles(
@@ -471,12 +478,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private addCancelButton(onCancel?: CallableFunction): void {
-      this.statusBar.addActionButton(_('Cancel'),
+      this.statusBar.addActionButton(_('Restart turn'),
           () => {
             this.statusBar.removeActionButtons();
             onCancel && onCancel();
             this.restoreServerGameState();
-          });
+          },
+        { color: "secondary"});
   }
 
   protected gotoClientState(st: keyof(typeof ZoolorettoGame.clientStates), args?: any) {
@@ -490,12 +498,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     clientTakeTruck: ZoolorettoGame.prototype.onUpdateActionButtons_clientTakeTruck,
     clientChooseTruckTileToPlace: ZoolorettoGame.prototype.onUpdateActionButtons_clientChooseTruckTileToPlace,
     clientPlaceTruckTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientPlaceTruckTile,
+    clientPlaceDrawnTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientPlaceDrawnTile,
   };
-
 
   private onUpdateActionButtons_clientDrawTile(): void {
     this.statusBar.removeActionButtons();
-    this.statusBar.addActionButton(_('Confirm draw'), () => this.bgaPerformAction('actDrawTile'), { autoclick: false });
+    this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actDrawTile'), { autoclick: false });
     this.addCancelButton();
   }
 
@@ -509,7 +517,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     this.statusBar.removeActionButtons();
     if (playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'), () => this.gotoClientState('clientDrawTile'));
+      this.statusBar.addActionButton(_('Draw tile'), () => this.gotoClientState('clientDrawTile', { descriptionmyturn: _('Draw a tile? (cannot undo)')}));
     }
     if (playState.can_purchase) {
       this.statusBar.addActionButton(_('Purchase extension'), () => this.gotoClientState('clientPurchaseExtension'));
@@ -539,7 +547,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           this.selectedTruck = at;
           this.selectedTileToPlace = null;
           // this.bgaPerformAction('actTakeTruck', { truck_id: tid }).then(() => {});
-          this.gotoClientState('clientChooseTruckTileToPlace', playState);
+          this.gotoClientState('clientChooseTruckTileToPlace', {
+            descriptionmyturn: '${you} must choose a truck tile to place',
+            args: playState
+          });
         };
       });
   }
