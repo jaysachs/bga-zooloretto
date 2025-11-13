@@ -15,16 +15,10 @@ class Attrs {
   static readonly ENCLOSURE : string = 'zoo-enclosure';
   static readonly EXTENSIONS : string = 'zoo-extensions';
   static readonly TILE : string = 'zoo-tile';
-  /*
-    static readonly ZTYPE : string = 'bbl_ztype';
-    static readonly ZUSED : string = 'bbl_zused';
-    static readonly PIECE : string = 'bbl_piece';
-    static readonly TT_PROCESSED : string = 'bbl_tt_processed';
-    */
 }
 
 class IDS {
-  static readonly GAME = 'zoo-game'; // top-level
+  static readonly GAME = 'zoo-game'; // top-level element
   static readonly DEPOT = 'zoo-depot';
   static readonly PRIMARY_PILE = 'zoo-primary-pile';
   static readonly ENDGAME_PILE = 'zoo-endgame-pile';
@@ -51,29 +45,11 @@ class CSS {
   }
 }
 
-// "cell" is a bad name. "container"? "spot"? "box"? "pen"? "cage"?
-// The rules use "space".
 interface TruckSpace {
-  // Unclear if we need this. Can just use position.
   pos: number;
-
-  // Unclear that we need this.
-  // tile_id: number;
 
   // Empty string for empty. FIXME: use null?
   tile_type: string;
-
-  // We'll need to know if it's placeable, i.e. if coin. Bool? Or just use special type checks?
-  // We'll also need to know if it's animal or stall. Again, just special case certain types?
-  // Or do we pass back "where can this be placed" information?
-  // The latter works fine if we fully handle placement server-side.
-}
-
-interface Destination {
-  barn: boolean;
-  enclosure_id: number; // could use 0 for barn, or let this be 0-based
-  stall: boolean; // true if going to stall
-  space_id: number; // 1-based location
 }
 
 interface Truck {
@@ -91,6 +67,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   drawntile: string;
   // Should always be 3.
   trucks: Truck[];
+  // Needs to include enclosure contents, including barns.
 }
 
 interface PossibleEnclosurePlacement {
@@ -409,6 +386,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         { color: "secondary"});
   }
 
+  //
+  // Entry point for player turn
+  //
+
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     this.statusBar.removeActionButtons();
     if (playState.can_draw) {
@@ -421,6 +402,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.statusBar.addActionButton(_('Take truck'), () => this.client_TakeTruck(playState));
     }
   }
+
+
+  //
+  // Draw a tile
+  //
 
   private client_ConfirmDrawTile(): void {
     this.statusBar.removeActionButtons();
@@ -439,6 +425,37 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       { color: "secondary"}
     );
   }
+
+  private async notif_DrawTile(
+    args: {
+      tile_type: string,
+      drawn_from_endgame_pile: boolean,
+      primary_left: number,
+      endgame_left: number,
+    }
+  ): Promise<void> {
+    // get the tile on the right pile
+    // FIXME: factor out common IDs and elemes
+    let pileElem = args.drawn_from_endgame_pile ? this.endgamePile : this.primaryPile;
+    // FIXME: need to handle disk removal
+    pileElem.lastElementChild?.remove();
+    let tile = this.makeTileSpan(args.tile_type)!;
+    pileElem.appendChild(tile);
+    // FIXME: "flip" the top tile?
+    return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
+        .then(() => {
+          // FIXME: should not pass all this info forward. Just which pile needs refilling, if either.
+          let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
+          if (count >= 5) {
+            this.addStockTile(pileElem);
+          }
+        });
+  }
+
+  //
+  // Place a drawn tile
+  //    note this is a separate server state
+  //
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
     this.statusBar.removeActionButtons();
@@ -485,6 +502,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     );
   }
 
+  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
+    if (this.player_id != args.player_id) {
+      return this.animationManager.slideAndAttach(this.drawnTileElem()!, this.truckSpaceElem(args), {});
+    }
+  }
+
+  //
+  // Purchase an extension
+  //
+
   private renderNewExtension(): void {
 
   }
@@ -495,6 +522,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.statusBar.addActionButton(_('Confirm purchase'), () => this.bgaPerformAction('actPurchaseExtension'), { autoclick: true });
     this.addCancelButton(() => { this.renderNewExtension(); });
   }
+
+
+  //
+  // Take a truck
+  //
 
   private client_TakeTruck(playState: PlayState) {
       this.statusBar.removeActionButtons();
@@ -540,7 +572,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       elem.classList.add(CSS.TARGETABLE);
       this.addSelectableOnclick(elem, (evt:MouseEvent) => {
         this.animationManager.slideAndAttach(this.selectedTileToPlace!,elem, {}).then( () => {
-          // FIXME: mutate things to account for this, navigate the possible placements
           this.client_ChooseTruckTileToPlace(truck_id, pep.next, playState);
         });
       });
@@ -559,12 +590,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return this.animationManager.slideAndAttach(this.truckSpaceTile(args)!, this.enclosureSpaceElem(args), {});
   }
 
-  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
-    if (this.player_id != args.player_id) {
-      return this.animationManager.slideAndAttach(this.drawnTileElem()!, this.truckSpaceElem(args), {});
-    }
-  }
-
   private async notif_TakeTruck(args : {
     player_id: number;
     truck_id: number
@@ -573,32 +598,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private async notif_ConfirmTilePlacement(args: { player_id: number }) {
-  }
-
-  private async notif_DrawTile(
-    args: {
-      tile_type: string,
-      drawn_from_endgame_pile: boolean,
-      primary_left: number,
-      endgame_left: number,
-    }
-  ): Promise<void> {
-    // get the tile on the right pile
-    // FIXME: factor out common IDs and elemes
-    let pileElem = args.drawn_from_endgame_pile ? this.endgamePile : this.primaryPile;
-    // FIXME: need to handle disk removal
-    pileElem.lastElementChild?.remove();
-    let tile = this.makeTileSpan(args.tile_type)!;
-    pileElem.appendChild(tile);
-    // FIXME: "flip" the top tile?
-    return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
-        .then(() => {
-          // FIXME: should not pass all this info forward. Just which pile needs refilling, if either.
-          let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
-          if (count >= 5) {
-            this.addStockTile(pileElem);
-          }
-        });
   }
 
   private async notif_debugReset(): Promise<void> {
@@ -637,64 +636,4 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return { log, args };
   }
 
-/*
-  private onUpdateActionButtons_PlaceTruckTiles(
-    args: {
-      truck_id: number;
-      spaces: {
-        truck_pos: number;
-        barn: boolean;
-        enclosures: {
-          enclosure_id: number;
-          enclosure_pos: number;
-        }[];
-      }[]
-    }) {
-    // FIXME: is this the ideal? better to thread through getAllDatas?
-    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
-
-    this.statusBar.removeActionButtons();
-    if (args.spaces.length == 0) {
-      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
-      this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-      return;
-    }
-    this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-    let selems: HTMLElement[] = [];
-    for (let s of args.spaces) {
-      if (s.barn) {
-        // FIXME: highlight barn
-      }
-      let selem = $(IDS.truckSpace(args.truck_id, s.truck_pos));
-      selems.push(selem);
-      selem.classList.add(CSS.SELECTABLE);
-      selem.onclick = (evt) => this.handleEnclosureClick(selem, selems, args.truck_id, s);
-    }
-  }
-
-  private handleEnclosureClick(selem: HTMLElement, selems: HTMLElement[], truck_id: number, s: {
-        truck_pos: number;
-        barn: boolean;
-        enclosures: {
-          enclosure_id: number;
-          enclosure_pos: number;
-        }[]}) {
-    selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
-    selem.classList.add(CSS.MOVED);
-    for (let e of s.enclosures) {
-      if (e.enclosure_id > 0) { // FIXME: why not label barn as enclosure ID 0?
-        let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
-        elem.classList.add(CSS.TARGETABLE);
-        elem.onclick = (evt) => {
-          selem.classList.remove(CSS.MOVED);
-          let tgtElem = evt.target as HTMLElement;
-          tgtElem.classList.remove(CSS.TARGETABLE);
-          // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
-          this.bgaPerformAction('actPlaceTileInZoo', { truck_id: truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
-            ;
-        };
-      }
-    }
-  }
-    */
 }
