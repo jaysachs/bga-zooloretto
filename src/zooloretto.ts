@@ -124,7 +124,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private playerIdToColorIndex: Record<number, number> = {};
 
   constructor() {
-    super(Object.keys(ZoolorettoGame.clientStates));
+    super([]);
   }
 
   private addTooltipsToLog() {
@@ -384,19 +384,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  protected gotoClientState(st: keyof(typeof ZoolorettoGame.clientStates), args?: any) {
-    console.log('goto ', st, args);
-    this.setClientState(st, args);
-  }
-
-  static readonly clientStates = {
-    clientPurchaseExtension: ZoolorettoGame.prototype.onUpdateActionButtons_clientPurchaseExtension,
-    clientTakeTruck: ZoolorettoGame.prototype.onUpdateActionButtons_clientTakeTruck,
-    clientChooseTruckTileToPlace: ZoolorettoGame.prototype.onUpdateActionButtons_clientChooseTruckTileToPlace,
-    clientPlaceTruckTile: ZoolorettoGame.prototype.onUpdateActionButtons_clientPlaceTruckTile,
-  };
-
-
   private clearOnclicks(): void {
     this.onClickAbortController.abort();
     this.onClickAbortController = new AbortController();
@@ -411,6 +398,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       { signal: this.onClickAbortController.signal });
   }
 
+  // FIXME: separate "cancel" from "restart turn"
   private addCancelButton(onCancel?: CallableFunction): void {
       this.statusBar.addActionButton(_('Restart turn'),
           () => {
@@ -427,10 +415,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.statusBar.addActionButton(_('Draw tile'), () => this.client_ConfirmDrawTile());
     }
     if (playState.can_purchase) {
-      this.statusBar.addActionButton(_('Purchase extension'), () => this.gotoClientState('clientPurchaseExtension'));
+      this.statusBar.addActionButton(_('Purchase extension'), () => this.client_PurchaseExtension());
     }
     if (playState.available_trucks.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'), () => this.gotoClientState('clientTakeTruck', playState));
+      this.statusBar.addActionButton(_('Take truck'), () => this.client_TakeTruck(playState));
     }
   }
 
@@ -439,7 +427,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.statusBar.setTitle(_('Draw a tile? (cannot undo)'));
     this.statusBar.addActionButton(
       _('Confirm'),
-      () => this.bgaPerformAction('actDrawTile'), { autoclick: false }
+      () => this.bgaPerformAction('actDrawTile'),
+      { autoclick: false }
     );
     this.statusBar.addActionButton(
       _('Cancel'),
@@ -473,7 +462,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let tl = this.truckLocFromId(space.id);
     this.statusBar.setTitle(
       _('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
-      { tile: tile.getAttribute(Attrs.TILE), truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+      { tile: tile.getAttribute(Attrs.TILE), truck_id: tl.truck_id, truck_pos: tl.truck_pos }
+    );
     this.statusBar.addActionButton(
       _('Confirm'),
       () => {
@@ -481,7 +471,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.unmarkMoved(space);
         this.bgaPerformAction('actPlaceTileInTruck', this.truckLocFromId(space.id))
       },
-      { autoclick: true });
+      { autoclick: true }
+    );
     this.statusBar.addActionButton(
       _('Cancel'),
       () => {
@@ -490,143 +481,67 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.restoreServerGameState();
         this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
       },
-      { color: "secondary"});
+      { color: "secondary"}
+    );
   }
 
-  private onUpdateActionButtons_PlaceTruckTiles(
-    args: {
-      truck_id: number;
-      spaces: {
-        truck_pos: number;
-        barn: boolean;
-        enclosures: {
-          enclosure_id: number;
-          enclosure_pos: number;
-        }[];
-      }[]
-    }) {
-    // FIXME: is this the ideal? better to thread through getAllDatas?
-    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
+  private renderNewExtension(): void {
 
-    this.statusBar.removeActionButtons();
-    if (args.spaces.length == 0) {
-      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
-      this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-      return;
-    }
-    this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
-    let selems: HTMLElement[] = [];
-    for (let s of args.spaces) {
-      if (s.barn) {
-        // FIXME: highlight barn
-      }
-      let selem = $(IDS.truckSpace(args.truck_id, s.truck_pos));
-      selems.push(selem);
-      selem.classList.add(CSS.SELECTABLE);
-      selem.onclick = (evt) => this.handleEnclosureClick(selem, selems, args.truck_id, s);
-    }
   }
 
-  private handleEnclosureClick(selem: HTMLElement, selems: HTMLElement[], truck_id: number, s: {
-        truck_pos: number;
-        barn: boolean;
-        enclosures: {
-          enclosure_id: number;
-          enclosure_pos: number;
-        }[]}) {
-    selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
-    selem.classList.add(CSS.MOVED);
-    for (let e of s.enclosures) {
-      if (e.enclosure_id > 0) { // FIXME: why not label barn as enclosure ID 0?
-        let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
-        elem.classList.add(CSS.TARGETABLE);
-        elem.onclick = (evt) => {
-          selem.classList.remove(CSS.MOVED);
-          let tgtElem = evt.target as HTMLElement;
-          tgtElem.classList.remove(CSS.TARGETABLE);
-          // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
-          this.bgaPerformAction('actPlaceTileInZoo', { truck_id: truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
-            ;
-        };
-      }
-    }
-  }
-
-  private onUpdateActionButtons_clientPurchaseExtension(): void {
+  private client_PurchaseExtension(): void {
     this.statusBar.removeActionButtons();
     this.renderNewExtension();
     this.statusBar.addActionButton(_('Confirm purchase'), () => this.bgaPerformAction('actPurchaseExtension'), { autoclick: true });
     this.addCancelButton(() => { this.renderNewExtension(); });
   }
 
-  private onUpdateActionButtons_clientTakeTruck(playState: PlayState) {
+  private client_TakeTruck(playState: PlayState) {
       this.statusBar.removeActionButtons();
       this.statusBar.setTitle(_('Select a truck'));
-      let cleanup = () => playState.available_trucks.forEach((at: AvailableTruck) => {
-        const tid = at.truck_id;
-        let elem = $(IDS.truck(tid));
-        elem.onclick = null;
-        elem.classList.remove(CSS.TARGETABLE);
-      });
-      this.addCancelButton(cleanup);
-      playState.available_trucks.forEach((at: AvailableTruck) => {
-        const tid = at.truck_id;
-        let elem = $(IDS.truck(tid));
-        elem.classList.add(CSS.TARGETABLE);
-        elem.onclick = (evt) => {
-          cleanup();
-          this.selectedTruck = at;
-          this.selectedTileToPlace = null;
-          // this.bgaPerformAction('actTakeTruck', { truck_id: tid }).then(() => {});
-          this.gotoClientState('clientChooseTruckTileToPlace', {
-            descriptionmyturn: '${you} must choose a truck tile to place',
-            args: playState
-          });
-        };
+      this.addCancelButton();
+      playState.available_trucks.forEach((truck: AvailableTruck) => {
+        this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.client_ChooseTruckTileToPlace(truck, playState));
       });
   }
 
-  private selectedTruck: AvailableTruck;
   private selectedTileToPlace: HTMLElement | null = null;
 
-  private onUpdateActionButtons_clientChooseTruckTileToPlace(playState: PlayState) {
-    console.log("choosing truck tile from ", this.selectedTruck);
-    this.onClickAbortController = new AbortController();
+  private client_ChooseTruckTileToPlace(selectedTruck: AvailableTruck, playState: PlayState) {
     this.statusBar.removeActionButtons();
-    this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
-    let elems: HTMLElement[] = [];
-    this.selectedTruck.playable.forEach((pp: PossiblePlacement) => {
-      let elem = this.truckSpaceElem({ truck_id: this.selectedTruck.truck_id, truck_pos: pp.truck_pos});
-      this.addSelectableOnclick(elem, (evt) => {
-        this.selectedTileToPlace = elem.firstElementChild as HTMLElement;
-        elem.classList.add(CSS.SELECTED);
-        this.gotoClientState('clientPlaceTruckTile', pp);
+    if (selectedTruck.playable.length == 0) {
+      this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
+      this.statusBar.addActionButton(
+        _('Confirm'),
+        () => this.bgaPerformAction('actPlaceTruckTiles', { })
+      );
+    }
+    else {
+      this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
+      selectedTruck.playable.forEach((pp: PossiblePlacement) => {
+        let elem = this.truckSpaceElem({ truck_id: selectedTruck.truck_id, truck_pos: pp.truck_pos});
+        this.addSelectableOnclick(elem, (evt) => {
+          this.selectedTileToPlace = elem.firstElementChild as HTMLElement;
+          elem.classList.add(CSS.SELECTED);
+          this.client_PlaceTruckTile(pp, selectedTruck, playState);
+        });
       });
-      elems.push(elem);
-    });
-    // this.selectedTruck.playable
+    }
     this.addCancelButton();
-    this.statusBar.addActionButton(_('Confirm'), () => {
-      this.bgaPerformAction('actPlaceTruckTiles', { });
-    });
   }
 
-  private onUpdateActionButtons_clientPlaceTruckTile(pp: PossiblePlacement) {
+  private client_PlaceTruckTile(pp: PossiblePlacement, selectedTruck: AvailableTruck, playState: PlayState) {
     console.log("choosing destination for ", pp, this.selectedTileToPlace);
-    this.onClickAbortController = new AbortController();
     this.statusBar.removeActionButtons();
     this.statusBar.setTitle(_('Choose a destination for the selected tile'));
-    let elems: HTMLElement[] = [];
-    let cleanup = () => { this.clearOnclicks(); };
-    this.addCancelButton(cleanup);
+    this.addCancelButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
       let elem = this.enclosureSpaceElem({ player_id: this.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
       elem.classList.add(CSS.TARGETABLE);
       this.addSelectableOnclick(elem, (evt:MouseEvent) => {
-        cleanup();
         this.animationManager.slideAndAttach(this.selectedTileToPlace!,elem, {}).then( () => {
           // FIXME: mutate things to account for this, navigate the possible placements
-          this.gotoClientState('clientChooseTruckTileToPlace');
+          this.client_ChooseTruckTileToPlace(selectedTruck, playState);
         });
       });
     });
@@ -657,13 +572,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
   }
 
-  private async notify_ConfirmTilePlacement(args: { player_id: number }) {
+  private async notif_ConfirmTilePlacement(args: { player_id: number }) {
   }
-
-  private renderNewExtension(): void {
-
-  }
-
 
   private async notif_DrawTile(
     args: {
@@ -726,4 +636,65 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     return { log, args };
   }
+
+/*
+  private onUpdateActionButtons_PlaceTruckTiles(
+    args: {
+      truck_id: number;
+      spaces: {
+        truck_pos: number;
+        barn: boolean;
+        enclosures: {
+          enclosure_id: number;
+          enclosure_pos: number;
+        }[];
+      }[]
+    }) {
+    // FIXME: is this the ideal? better to thread through getAllDatas?
+    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
+
+    this.statusBar.removeActionButtons();
+    if (args.spaces.length == 0) {
+      this.statusBar.addActionButton(_('Confirm'), () => this.bgaPerformAction('actConfirmTilePlacement', {}));
+      this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
+      return;
+    }
+    this.statusBar.addActionButton(_('Reset turn'), () => this.bgaPerformAction('actUndoTilePlacement', {}), { color: "secondary" });
+    let selems: HTMLElement[] = [];
+    for (let s of args.spaces) {
+      if (s.barn) {
+        // FIXME: highlight barn
+      }
+      let selem = $(IDS.truckSpace(args.truck_id, s.truck_pos));
+      selems.push(selem);
+      selem.classList.add(CSS.SELECTABLE);
+      selem.onclick = (evt) => this.handleEnclosureClick(selem, selems, args.truck_id, s);
+    }
+  }
+
+  private handleEnclosureClick(selem: HTMLElement, selems: HTMLElement[], truck_id: number, s: {
+        truck_pos: number;
+        barn: boolean;
+        enclosures: {
+          enclosure_id: number;
+          enclosure_pos: number;
+        }[]}) {
+    selems.forEach((e) => e.classList.remove(CSS.SELECTABLE));
+    selem.classList.add(CSS.MOVED);
+    for (let e of s.enclosures) {
+      if (e.enclosure_id > 0) { // FIXME: why not label barn as enclosure ID 0?
+        let elem = $(IDS.enclosureSpace(this.player_no, e.enclosure_id, e.enclosure_pos));
+        elem.classList.add(CSS.TARGETABLE);
+        elem.onclick = (evt) => {
+          selem.classList.remove(CSS.MOVED);
+          let tgtElem = evt.target as HTMLElement;
+          tgtElem.classList.remove(CSS.TARGETABLE);
+          // this.animationManager.slideAndAttach(selem.firstElementChild as HTMLElement, elem, {});
+          this.bgaPerformAction('actPlaceTileInZoo', { truck_id: truck_id, truck_pos: s.truck_pos, enclosure_id: e.enclosure_id })
+            ;
+        };
+      }
+    }
+  }
+    */
 }
