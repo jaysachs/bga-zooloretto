@@ -501,16 +501,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.statusBar.setTitle(_('Select a truck'));
       this.addCancelButton();
       playState.available_trucks.forEach((truck: AvailableTruck) => {
-        this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.client_ChooseTruckTileToPlace(truck, playState));
+        this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.client_ChooseTruckTileToPlace(truck.truck_id, truck.playable, playState));
       });
   }
 
   private selectedTileToPlace: HTMLElement | null = null;
 
-  private client_ChooseTruckTileToPlace(selectedTruck: AvailableTruck, playState: PlayState) {
+  private client_ChooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], playState: PlayState) {
     this.statusBar.removeActionButtons();
-    if (selectedTruck.playable.length == 0) {
-      this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
+    if (pps.length == 0) {
+      this.statusBar.setTitle(_('Confirm your truck tile placements'));
       this.statusBar.addActionButton(
         _('Confirm'),
         () => this.bgaPerformAction('actPlaceTruckTiles', { })
@@ -518,19 +518,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     else {
       this.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
-      selectedTruck.playable.forEach((pp: PossiblePlacement) => {
-        let elem = this.truckSpaceElem({ truck_id: selectedTruck.truck_id, truck_pos: pp.truck_pos});
+      pps.forEach((pp: PossiblePlacement) => {
+        let elem = this.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos});
         this.addSelectableOnclick(elem, (evt) => {
           this.selectedTileToPlace = elem.firstElementChild as HTMLElement;
           elem.classList.add(CSS.SELECTED);
-          this.client_PlaceTruckTile(pp, selectedTruck, playState);
+          this.client_PlaceTruckTile(truck_id, pp, playState);
         });
       });
     }
     this.addCancelButton();
   }
 
-  private client_PlaceTruckTile(pp: PossiblePlacement, selectedTruck: AvailableTruck, playState: PlayState) {
+  private client_PlaceTruckTile(truck_id: number, pp: PossiblePlacement, playState: PlayState) {
     console.log("choosing destination for ", pp, this.selectedTileToPlace);
     this.statusBar.removeActionButtons();
     this.statusBar.setTitle(_('Choose a destination for the selected tile'));
@@ -541,7 +541,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.addSelectableOnclick(elem, (evt:MouseEvent) => {
         this.animationManager.slideAndAttach(this.selectedTileToPlace!,elem, {}).then( () => {
           // FIXME: mutate things to account for this, navigate the possible placements
-          this.client_ChooseTruckTileToPlace(selectedTruck, playState);
+          this.client_ChooseTruckTileToPlace(truck_id, pep.next, playState);
         });
       });
     });
