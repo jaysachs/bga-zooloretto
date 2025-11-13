@@ -550,6 +550,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     private selectedTileToPlace: HTMLElement | null = null;
 
     private submit(truck_id: number) {
+      console.log(this.placedTiles);
       this.game.bgaPerformAction('actPlaceTruckTiles', {
         truck_id: truck_id,
         placed_tiles: JSON.stringify(this.placedTiles),
@@ -601,17 +602,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 			truck_pos: number,
 			enclosure_id: number,
 			enclosure_pos: number }) {
-    return this.animationManager.slideAndAttach(this.truckSpaceTile(args)!, this.enclosureSpaceElem(args), {});
   }
 
-  private async notif_TakeTruck(args : {
-    player_id: number;
-    truck_id: number
-  }) {
-    $(IDS.truck(args.truck_id)).classList.add(CSS.SELECTED);
-  }
-
-  private async notif_ConfirmTilePlacement(args: { player_id: number }) {
+  private async notif_PlaceTruckTiles(args: { player_id: number, truck_id: number, placements: {
+    truck_pos: number;
+    enclosure_id: number;
+    enclosure_pos: number;
+  }[] }) {
+    console.log(args);
+    this.animationManager.playParallel(
+      args.placements.map((p) => () => this.animationManager.slideAndAttach(
+        this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+        this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: p.enclosure_id, enclosure_pos: p.enclosure_pos }),
+        {}),
+        args.placements));
   }
 
   private async notif_debugReset(): Promise<void> {

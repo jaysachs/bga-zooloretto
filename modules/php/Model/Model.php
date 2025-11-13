@@ -285,8 +285,7 @@ class Model {
     /**
      * Returns enclosure mapped by enclosure_id.
      *
-     * @return Enclosure[int]
-     *
+     * @return Enclosure[]
      */
     public function getEnclosuresForPlayer(int $player_id) : array {
         // FIXME: need to handle un-purchased extensions!
@@ -345,7 +344,7 @@ class Model {
         $this->db->execute($sql);
     }
 
-    /** @return the position in the enclosure it was plased in */
+    /** @return int the position in the enclosure it was plased in */
     public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
         $truck = $this->getTruck($truck_id);
         $encl = $this->getEnclosuresForPlayer($this->getActivePlayer()->id)[$enclosure_id];
@@ -354,6 +353,27 @@ class Model {
         $this->updateTruck($truck);
         $this->updateEnclosure($encl);
         return $pos;
+    }
+
+    /**
+     * @param Placement[] $placements
+     *
+     * @return Placement[]
+    */
+    public function placeTilesInZoo(int $player_id, array $placements): array {
+        $truck_id = $placements[0]->truck_id;
+        foreach ($placements as $placement) {
+            $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
+            if ($epos <> $placement->enclosure_pos) {
+                throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$epos}");
+                $placement->enclosure_pos = $epos;
+            }
+        }
+        $this->updateTruck($this->getTruck($truck_id));
+        foreach ($this->getEnclosuresForPlayer($player_id) as $enclosure) {
+            $this->updateEnclosure($enclosure);
+        }
+        return $placements;
     }
 
     public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {

@@ -115,6 +115,7 @@ class PossiblePlacement {
         return $p1;
     }
 
+    /** @param Enclosure[] $enclosures */
     public static function possiblePlacementFor(Truck $truck, array $enclosures): PossiblePlacement {
         $pp = new PossiblePlacement();
         foreach ($truck->getAllTiles() as $pos => $tile) {
