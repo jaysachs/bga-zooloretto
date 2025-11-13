@@ -74,6 +74,7 @@ class Enclosure {
     }
 
     private function availableStallPos(): int {
+        // FIXME: this doesn't work for the barn.
         foreach ($this->stalls as $i => $t) {
             if ($t->isEmpty()) {
                 return count($this->animals) + $i+1;
@@ -86,6 +87,9 @@ class Enclosure {
         foreach ($this->animals as $i => $t) {
             if ($t->isEmpty()) {
                 return $i+1;
+            } else if (!$t->type->isSameSpecies(($type))) {
+                // FIXME: unless we're the barn.
+                return 0;
             }
         }
         return 0;
