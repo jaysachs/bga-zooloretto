@@ -249,7 +249,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     console.log('setting up player boards', gamedatas.players);
     for (const player of Object.values(gamedatas.players)) {
-      this.setupPlayerBoard(player);
+      this.setupPlayerPanel(player);
     }
 
     this.setupStock();
@@ -257,24 +257,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.setupDrawn(gamedatas.drawntile);
     // this.setupEnclosures(...);
 
-    /*
-        console.log('setting the the game board');
-        this.setupGameBoard(gamedatas.board);
-
-        console.log('setting up player hand', gamedatas.hand);
-        gamedatas.hand.forEach((piece, i) => {
-          const hpd = this.handPosDiv(i);
-          if (piece && piece != Piece.EMPTY) {
-            hpd.appendChild(this.createPieceDiv(piece, this.player_id));
-          }
-        });
-
-        console.log('Setting up ziggurat cards', gamedatas.ziggurat_cards);
-        this.setupZcards(gamedatas.ziggurat_cards);
-*/
-
-        console.log('setting up handlers');
-        this.bgaSetupPromiseNotifications({ logger: console.log, onEnd: this.addTooltipsToLog.bind(this) });
+    this.bgaSetupPromiseNotifications({ logger: console.log, onEnd: this.addTooltipsToLog.bind(this) });
 
         // Active player gets their own undo notification with private data,
         //   so ignore the generic undo notification.
@@ -300,14 +283,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.depot = $(IDS.DEPOT);
   }
 
-  private setupPlayerBoard(player: ZPlayer): void {
+  private setupPlayerPanel(player: ZPlayer): void {
     const playerId = player.player_id;
-    console.log('Setting up board for player ' + player.player_id);
+    console.log('Setting up panel for player ' + player.player_id);
     const moneyid = `playermoney-counter-${playerId}`;
     this.getPlayerPanelElement(playerId).append(
-      this.div({ text: `!!! playerBoardExtension ${player.player_no} !!!` }),
-      this.span({text: _("Money")}),
-      this.span({id:moneyid})
+      this.div({ id: `zoo-taken-truck-${playerId}`}),
+      this.div({},
+        this.span({text: _("Money")}),
+        this.span({id:moneyid}))
     );
     const counter = new ebg.counter();
     counter.create(
@@ -341,6 +325,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private drawnTileElem(): HTMLElement | undefined {
       return $(IDS.DRAWN).firstElementChild as (HTMLElement | undefined);
+  }
+
+  private truckElem(truck_id: number) : HTMLElement {
+    return $(IDS.truck(truck_id));
   }
 
   private truckSpaceElem(args: { truck_id: number, truck_pos: number }) : HTMLElement{
@@ -532,63 +520,91 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private TakeTruck = new class {
     private game: ZoolorettoGame;
-    private placedTiles : PlacedTile[];
+    private placedTiles : PlacedTile[] = [];
+    private truck_id: number;
     constructor(g : ZoolorettoGame) {
       this.game = g;
+    }
+
+    cleanup() {
+      this.truck_id = 0;
+      this.placedTiles = [];
+      document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
+      document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTED}`).forEach((elem) => elem.classList.remove(CSS.SELECTED));
+      document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTABLE}`).forEach((elem) => elem.classList.remove(CSS.SELECTABLE));
+    }
+
+    addCancelButton() {
+      this.game.addCancelButton(() => {
+        if (this.truck_id == 0) {
+          this.cleanup();
+          return;
+        }
+        this.game.animationManager.playParallel(
+          this.placedTiles.map((pt:PlacedTile) => () => {
+              let tileElem = this.game.enclosureSpaceElem({
+                player_id: this.game.player_id,
+                enclosure_id: pt.enclosure_id,
+                enclosure_pos: pt.enclosure_pos,
+              } ).firstElementChild as HTMLElement;
+              let truckSpaceElem = this.game.truckSpaceElem({truck_id: this.truck_id, truck_pos: pt.truck_pos});
+              return this.game.animationManager.slideAndAttach(tileElem, truckSpaceElem);
+            }
+          )
+        ).then(() => this.cleanup())
+      });
     }
 
     takeTruck(playState: PlayState) {
       this.game.statusBar.removeActionButtons();
       this.game.statusBar.setTitle(_('Select a truck'));
-      this.game.addCancelButton();
+      this.addCancelButton();
       this.placedTiles = [];
       playState.available_trucks.forEach((truck: AvailableTruck) => {
         this.game.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, playState));
       });
     }
 
-    private selectedTileToPlace: HTMLElement | null = null;
-
-    private submit(truck_id: number) {
-      console.log(this.placedTiles);
-      this.game.bgaPerformAction('actPlaceTruckTiles', {
-        truck_id: truck_id,
-        placed_tiles: JSON.stringify(this.placedTiles),
-      });
-    }
-
     private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], playState: PlayState) {
+      this.truck_id = truck_id;
       this.game.statusBar.removeActionButtons();
       if (pps.length == 0) {
         this.game.statusBar.setTitle(_('Confirm your truck tile placements'));
         this.game.statusBar.addActionButton(
           _('Confirm'),
-          () => this.submit(truck_id));
+          () => {
+            this.game.bgaPerformAction('actPlaceTruckTiles', {
+              truck_id: truck_id,
+              placed_tiles: JSON.stringify(this.placedTiles),
+              // FIXME: slide truck to player board / panel
+            }).then(() => this.game.animationManager.slideAndAttach(this.game.truckElem(truck_id), $(`zoo-taken-truck-${this.game.player_id}`), {}))
+            .then(() => this.cleanup())
+          }
+        )
       }
       else {
         this.game.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
         pps.forEach((pp: PossiblePlacement) => {
           let elem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos});
           this.game.addSelectableOnclick(elem, (evt) => {
-            this.selectedTileToPlace = elem.firstElementChild as HTMLElement;
             elem.classList.add(CSS.SELECTED);
             this.client_PlaceTruckTile(truck_id, pp, playState);
           });
         });
       }
-      this.game.addCancelButton();
+      this.addCancelButton();
     }
 
     private client_PlaceTruckTile(truck_id: number, pp: PossiblePlacement, playState: PlayState) {
-      console.log("choosing destination for ", pp, this.selectedTileToPlace);
       this.game.statusBar.removeActionButtons();
       this.game.statusBar.setTitle(_('Choose a destination for the selected tile'));
-      this.game.addCancelButton();
+      this.addCancelButton();
       pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-        let elem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
-        elem.classList.add(CSS.TARGETABLE);
-        this.game.addSelectableOnclick(elem, (evt:MouseEvent) => {
-          this.game.animationManager.slideAndAttach(this.selectedTileToPlace!,elem, {}).then( () => {
+        let encElem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
+        encElem.classList.add(CSS.TARGETABLE);
+        this.game.addSelectableOnclick(encElem, (evt:MouseEvent) => {
+          let tileElem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos}).firstElementChild as HTMLElement;
+          this.game.animationManager.slideAndAttach(tileElem,encElem, {}).then( () => {
             this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
             this.chooseTruckTileToPlace(truck_id, pep.next, playState);
           });
@@ -615,7 +631,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
         this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: p.enclosure_id, enclosure_pos: p.enclosure_pos }),
         {}),
-        args.placements));
+        args.placements))
+        .then(() => this.animationManager.slideAndAttach(this.truckElem(args.truck_id), $(`zoo-taken-truck-${this.player_id}`), {}))
+
   }
 
   private async notif_debugReset(): Promise<void> {
