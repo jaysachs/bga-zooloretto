@@ -272,16 +272,6 @@ class Model {
         return array_sum(array_map(function (Truck $t): int { return $t->freeSpaces(); }, $this->getTrucks()));
     }
 
-    public function playerTakeTruck(int $player_id, int $truck_id): Truck {
-        $player = $this->getPlayer($player_id);
-        $player->takeTruck($truck_id);
-        $truck = $this->getTruck($truck_id);
-        $truck->taken_by = $player_id;
-        // no need to update player, only stored on truck.
-        $this->updateTruck($truck);
-        return $truck;
-    }
-
     /**
      * Returns enclosure mapped by enclosure_id.
      *
@@ -360,7 +350,7 @@ class Model {
      *
      * @return Placement[]
     */
-    public function placeTilesInZoo(int $player_id, array $placements): array {
+    public function placeTilesInZooAndTakeTruck(int $player_id, int $truck_id, array $placements): array {
         $truck_id = $placements[0]->truck_id;
         foreach ($placements as $placement) {
             $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
@@ -369,7 +359,12 @@ class Model {
                 $placement->enclosure_pos = $epos;
             }
         }
-        $this->updateTruck($this->getTruck($truck_id));
+
+        $this->getPlayer($player_id)->takeTruck($truck_id);
+        $truck = $this->getTruck($truck_id);
+        $truck->taken_by = $player_id;
+        $this->updateTruck($truck);
+
         foreach ($this->getEnclosuresForPlayer($player_id) as $enclosure) {
             $this->updateEnclosure($enclosure);
         }

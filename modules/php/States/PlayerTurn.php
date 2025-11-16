@@ -96,34 +96,9 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actTakeTruck(int $active_player_id, int $truck_id): mixed
-	{
-		$player_id = $active_player_id;
-
-        $model = $this->createModel();
-		$truck = $model->playerTakeTruck($player_id, $truck_id);
-
-		// $messagestring = implode(
-		// 	', ',
-		// 	array_map(function (Tile $tile): string { return $tile->type->translated(); },
-		// 			  $truck->getAllTiles()));
-
-		$this->notify->all("TakeTruck", '${player_name} took truck ${truck_id}.',
-		[
-			'player_id' => $active_player_id,
-			'truck_id' => $truck_id,
-			'tiles' => [],
-			// 'contents' => $messagestring,
-			// 'i18n' => ['contents'],
-		]);
-
-		return PlaceTruckTiles::class;
-	}
-
-	#[PossibleAction]
 	public function actPlaceTruckTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
 		$model = $this->createModel();
-		$placements = $model->placeTilesInZoo($active_player_id,
+		$placements = $model->placeTilesInZooAndTakeTruck($active_player_id, $truck_id,
 			array_map(fn ($pt) => new Placement(
 				$truck_id,
 				intval($pt['truck_pos']),
