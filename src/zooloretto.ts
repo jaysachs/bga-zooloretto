@@ -471,7 +471,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       () => {
         this.statusBar.removeActionButtons();
         this.unmarkMoved(space);
-        this.bgaPerformAction('actTakeTruckAndPlaceTiles', this.truckLocFromId(space.id))
+        this.bgaPerformAction('actPlaceDrawnTileInTruck', this.truckLocFromId(space.id))
       },
       { autoclick: true }
     );
@@ -487,7 +487,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     );
   }
 
-  private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
+  private async notif_PlaceDrawnTileInTruck(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
     if (this.player_id != args.player_id) {
       return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {});
       // FIXME: need to refresh stock pile. Should probably send pile sizes in the notif args
@@ -569,7 +569,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.game.statusBar.addActionButton(
           _('Confirm'),
           () => {
-            this.game.bgaPerformAction('actPlaceTruckTiles', {
+            this.game.bgaPerformAction('actTakeTruckAndPlaceTiles', {
               truck_id: truck_id,
               placed_tiles: JSON.stringify(this.placedTiles),
               // FIXME: slide truck to player board / panel
