@@ -88,6 +88,7 @@ class Game extends \Bga\GameFramework\Table
 				$tiles = $truck->getAllTiles();
 				return [
 					'truck_id' => $truck->id,
+					'taken_by_player_id' => $truck->taken_by,
 					'contents' => array_map(
 						function(Tile $tile, int $pos): array {
 							return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];

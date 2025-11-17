@@ -35,6 +35,7 @@ class IDS {
   static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
   static enclosure(player_no: number, enclosure_id: number): string { return `enclosure-${player_no}-${enclosure_id}`; }
   static enclosureSpace(player_no: number, enclosure_id: number, pos: number): string { return `enclosure-${player_no}-${enclosure_id}-${pos}`; }
+  static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
 }
 
 class CSS {
@@ -63,6 +64,7 @@ interface TruckSpace {
 }
 
 interface Truck {
+  taken_by_player_id: number;
   truck_id: number;
   // Should always be 3. null means empty.
   // FIXME: Need to be careful about 0- and 1- based; probably best to be consistent
@@ -190,7 +192,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private setupTrucks(): void {
-    this.gamedatas.trucks.forEach((truck) => this.addTruckDiv(truck));
+    for (let truck of this.gamedatas.trucks) {
+      let depotSpaceDiv = this.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE });
+      this.depot.append(depotSpaceDiv);
+      let truckDiv = this.makeTruckDiv(truck);
+      if (truck.taken_by_player_id) {
+        $(IDS.takenTruck(truck.taken_by_player_id)).appendChild(truckDiv);
+      } else {
+        depotSpaceDiv.append(truckDiv);
+      }
+    }
   }
 
   private setSpanToTile(elem: HTMLElement, tile_type?: string) {
@@ -205,18 +216,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return tile_type ? this.span({ attrs: Attrs.tile(tile_type) }) : undefined;
   }
 
-  private addTruckDiv(truck: Truck): void {
-    this.depot.append(
-      this.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
-        this.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
+  private makeTruckDiv(truck: Truck): HTMLElement {
+    return this.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
           ... truck.contents.map((contents, i) =>
             this.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) },
               this.makeTileSpan(contents.tile_type)
             )
           )
-        )
-      )
-    );
+        );
   }
 
   private addStockTile(tile_type: string = 'back') {
@@ -297,7 +304,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           this.span({classes: 'zoo-money-label'}),
           this.span({text: ': '}),
           this.span({id:moneyid})),
-        this.div({ classes: 'zoo-depot-space', id: `zoo-taken-truck-${playerId}`}),
+        this.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
       )
     );
     const counter = new ebg.counter();
@@ -572,9 +579,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             this.game.bgaPerformAction('actTakeTruckAndPlaceTiles', {
               truck_id: truck_id,
               placed_tiles: JSON.stringify(this.placedTiles),
-              // FIXME: slide truck to player board / panel
-            }).then(() => this.game.animationManager.slideAndAttach(this.game.truckElem(truck_id), $(`zoo-taken-truck-${this.game.player_id}`), {}))
-            .then(() => this.cleanup())
+            }).then(() => this.game.animationManager.slideAndAttach(
+                this.game.truckElem(truck_id),
+                $(IDS.takenTruck(this.game.player_id)), {}))
+              .then(() => this.cleanup())
           }
         )
       }
@@ -621,7 +629,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: p.enclosure_id, enclosure_pos: p.enclosure_pos }),
         {}),
         args.placements))
-        .then(() => this.animationManager.slideAndAttach(this.truckElem(args.truck_id), $(`zoo-taken-truck-${this.player_id}`), {}))
+        .then(() => this.animationManager.slideAndAttach(
+          this.truckElem(args.truck_id),
+          $(IDS.takenTruck(args.player_id)), {}))
 
   }
 
