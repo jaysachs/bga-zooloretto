@@ -117,13 +117,13 @@ class Model {
     }
 
     private function giveMoneyFromBank(Player $player, int $amount): void {
-       $bank = $this->bankMoney->get();
+        $bank = $this->bankMoney->get();
         if ($bank < $amount) {
             $amount = $bank;
         }
         $player->receiveMoney($amount);
-       $this->playerMoney->inc($player->id, $amount);
-       $this->bankMoney->inc(-$amount);
+        $this->playerMoney->inc($player->id, $amount);
+        $this->bankMoney->inc(-$amount);
     }
 
     private function validatePlayer(Player $player): void {
@@ -378,6 +378,33 @@ class Model {
 
     public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor($this->getTruck($truck_id), $this->getEnclosuresForPlayer($player_id));
+    }
+
+    /** @return int[] IDs of trucks returning to depot */
+    public function prepareNextTurn(): array {
+        $returning_truck_ids = [];
+        foreach ($this->getPlayers() as $player_id => $player) {
+            $tid = $player->truck_taken;
+            if ($tid > 0) {
+                $returning_truck_ids[] = $tid;
+                $pid = $this->getTruck($tid)->returnTruck();
+                if ($pid <> $player_id) {
+                    throw new ModelException("Truck {$tid} owned by {$pid} but {$player_id} owned it too");
+                }
+            }
+        }
+        foreach ($this->getTrucks() as $truck) {
+            if ($truck->taken_by > 0) {
+                throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
+            }
+            foreach ($truck->getAllTiles() as $tile) {
+                $truck->dumpTiles();
+            }
+        }
+        foreach ($this->getTrucks() as $truck) {
+            $this->updateTruck($truck);
+        }
+        return $returning_truck_ids;
     }
 }
 

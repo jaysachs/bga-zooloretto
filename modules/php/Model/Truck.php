@@ -61,6 +61,31 @@ class Truck {
         return $result;
     }
 
+    public function dumpTiles(): void {
+        if ($this->taken_by != 0) {
+            throw new ModelException("Cannot dump a non-taken truck");
+        }
+        foreach ($this->tiles as $tile) {
+            if (!$tile->type->isEmpty() && !$tile->type->isBlock()) {
+                $tile = Tile::empty();
+            }
+        }
+    }
+
+    public function returnTruck(): int {
+        if ($this->taken_by == 0) {
+            throw new ModelException("Cannot return a non-taken truck");
+        }
+        foreach ($this->tiles as $tile) {
+            if (!$tile->isEmpty() && !$tile->type->isBlock()) {
+                throw new ModelException("Cannot return a non-empty truck");
+            }
+        }
+        $pid = $this->taken_by;
+        $this->taken_by = 0;
+        return $pid;
+    }
+
     public function setTakenBy(int $player_id): void {
         if ($player_id == 0) {
             throw new ModelException("0 player cannot take a truck");

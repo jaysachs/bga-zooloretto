@@ -635,6 +635,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   }
 
+  private async notif_EndTurn(args: { truck_ids_returned: number[], last_round: boolean }) {
+    this.animationManager.playParallel(
+      args.truck_ids_returned.map((tid) => () =>
+        this.animationManager.slideAndAttach(this.truckElem(tid), $(IDS.depotSpace(tid)), {})
+      )
+    );
+    if (args.last_round) {
+      (this as any).addLastTurnBanner(_('This is the last turn!'));
+    }
+  }
+
   private async notif_debugReset(): Promise<void> {
     window.location.reload();
   }

@@ -29,6 +29,8 @@ namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Tile;
+use Bga\Games\zooloretto\Model\Truck;
 
 class NextTurn extends AbstractState
 {
@@ -46,23 +48,15 @@ class NextTurn extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel();
-
-        // FIXME: return all taken trucks, empty any remaining trucks
-        /*
-        if ($model->inLastRound()) {
-            return ComputeScores::class;
-        }
-
-        $model->prepareNextTurn();
-		$wagons = $this->game->getObjectListFromDB( "SELECT id, size from wagons" );
+        $truck_ids_returned = $model->prepareNextTurn();
         $this->notify->all(
             "EndTurn",
             clienttranslate('Turn is over... starting another turn.'),
             [
-                'wagons' => $wagons,
+                'truck_ids_returned' => $truck_ids_returned,
+                'last_round' => $model->getStock()->inLastRound(),
             ]
         );
-*/
         return PlayerTurn::class;
     }
 }
