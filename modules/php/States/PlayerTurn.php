@@ -67,20 +67,6 @@ class PlayerTurn extends AbstractState
 			}
 		}
 
-		/*
-		$wagondata = array_map(function (Wagon $wagon): array {
-			return [
-				"id" => $wagon->id,
-				"size" => $wagon->capacity,
-				"val1" => $wagon->valAt(1),
-				"val2" => $wagon->capacity >= 2 ? $wagon->valAt(2) : "",
-				"val3" => $wagon->capacity >= 3 ? $wagon->valAt(3) : "",
-			];
-		}, array_filter($model->getWagons(), function (Wagon $wagon): bool {
-			return $wagon->status == WagonStatus::AVAILABLE
-				|| $wagon->status == WagonStatus::TAKEN;
-		}));
-		*/
 		return [
 			'can_draw' => $model->getStock()->drawn == null && $model->spacesOnTrucks() > 0,
 			'can_purchase' => $player->canPurchaseExtension(),
