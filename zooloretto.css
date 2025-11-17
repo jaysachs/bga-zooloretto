@@ -229,7 +229,9 @@ playerboard widths (non-mobile): 1174
 9% of that is width of tile
 */
 .zoo-depot-space {
-    width: calc(3.764 * (var(--zoo-tile-size)));
+/*    width: calc(3.764 * (var(--zoo-tile-size))); */
+    width: calc(4 * (var(--zoo-tile-size)));
+    min-width: calc(4 * (var(--zoo-tile-size)));
     height: auto;
     aspect-ratio: 2.83333;
     margin: 0.5vw;
@@ -241,7 +243,8 @@ playerboard widths (non-mobile): 1174
     background-repeat: no-repeat;
     background-image: url('img/Wagon3.png');
     width: 100%;
-    height: 100%;
+    aspect-ratio: 527 / 186;
+    height: auto;
 }
 
 .zoo-truck.zoo-selected {
@@ -665,7 +668,7 @@ playerboard widths (non-mobile): 1174
 .player-board-game-specific-content .zoo-truck{
     width: 3em;
     height: auto;
-    aspect-ratio: 1.0;
+/*    aspect-ratio: 1.0; */
     top: 10%;
 }
 
