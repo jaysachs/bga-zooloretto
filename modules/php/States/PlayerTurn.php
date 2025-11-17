@@ -96,7 +96,7 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actPlaceTruckTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
+	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
 		$model = $this->createModel();
 		$placements = $model->placeTilesInZooAndTakeTruck($active_player_id, $truck_id,
 			array_map(fn ($pt) => new Placement(
@@ -106,7 +106,7 @@ class PlayerTurn extends AbstractState
 				intval($pt['enclosure_pos'])),
 			$placed_tiles));
 
-		$this->notify->all('PlaceTruckTiles', '${player_name} place tiles from truck ${truck_id}', [
+		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} place tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'placements' => array_map(fn ($p) => [

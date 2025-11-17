@@ -428,18 +428,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       endgame_left: number,
     }
   ): Promise<void> {
-    // FIXME: need to handle disk removal
+    // FIXME: need to handle disk removal / pile exhaustion
     // FIXME: "flip" the top tile?
     let cl = this.topPileElem()!.classList;
     this.setSpanToTile(this.topPileElem()!, args.tile_type);
-    // return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
-    //     .then(() => {
-    //       // FIXME: should not pass all this info forward. Just which pile needs refilling, if either.
-    //       let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
-    //       if (count >= 5) {
-    //         this.addStockTile(pileElem);
-    //       }
-    //     });
   }
 
   //
@@ -476,7 +468,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       () => {
         this.statusBar.removeActionButtons();
         this.unmarkMoved(space);
-        this.bgaPerformAction('actPlaceTileInTruck', this.truckLocFromId(space.id))
+        this.bgaPerformAction('actTakeTruckAndPlaceTiles', this.truckLocFromId(space.id))
       },
       { autoclick: true }
     );
@@ -495,6 +487,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
     if (this.player_id != args.player_id) {
       return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {});
+      // FIXME: need to refresh stock pile. Should probably send pile sizes in the notif args
     }
   }
 
@@ -613,19 +606,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }(this);
 
-  private async notif_PlaceTileInZoo(args: { player_id: number,
-			truck_id: number,
-			truck_pos: number,
-			enclosure_id: number,
-			enclosure_pos: number }) {
-  }
-
-  private async notif_PlaceTruckTiles(args: { player_id: number, truck_id: number, placements: {
+  private async notif_TakeTruckAndPlaceTiles(args: { player_id: number, truck_id: number, placements: {
     truck_pos: number;
     enclosure_id: number;
     enclosure_pos: number;
   }[] }) {
-    console.log(args);
+    // FIXME: need to handle coins in truck
     this.animationManager.playParallel(
       args.placements.map((p) => () => this.animationManager.slideAndAttach(
         this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
