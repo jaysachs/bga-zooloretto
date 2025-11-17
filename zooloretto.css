@@ -56,26 +56,24 @@ body.mobile_version {
     background-color: #c3d7e9;
 }
 
-/* FIXME: should we use a CSS class "zoo-pile" instead of this? */
-#zoo-stock > div {
+#zoo-pile {
     position: relative;
     width: calc(var(--zoo-tile-size) * 1.5);
     height: calc(var(--zoo-tile-size) * 1.5);
 }
 
-#zoo-stock > div > span {
+#zoo-pile > span {
     position: absolute;
     width: calc(var(--zoo-tile-size));
     height: calc(var(--zoo-tile-size));
 }
 
-/* FIXME: use class instead of `#zoo-stock > div` ? */
-#zoo-stock > div > span:nth-child(1) { left: 0; top: 0; }
-#zoo-stock > div > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
-#zoo-stock > div > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
-#zoo-stock > div > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
-#zoo-stock > div > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
-#zoo-stock > div > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; }
+#zoo-pile > span:nth-child(1) { left: 0; top: 0; }
+#zoo-pile > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
+#zoo-pile > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
+#zoo-pile > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
+#zoo-pile > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
+/* #zoo-pile > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; } */
 
 #zoo-boards {
     width: 100%;

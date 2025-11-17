@@ -20,9 +20,9 @@ class Attrs {
 class IDS {
   static readonly GAME = 'zoo-game'; // top-level element
   static readonly DEPOT = 'zoo-depot';
-  static readonly PRIMARY_PILE = 'zoo-primary-pile';
-  static readonly ENDGAME_PILE = 'zoo-endgame-pile';
-  static readonly DRAWN = 'zoo-drawn-tile';
+  static readonly PILE = 'zoo-pile';
+  static readonly STOCK = 'zoo-stock';
+
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(id : number) { return `truck-${id}`; }
@@ -40,6 +40,8 @@ class CSS {
   static readonly SELECTED = 'zoo-selected';
   static readonly MOVED = 'moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
+  static readonly DISK = 'zoo-disk';
+
   static tile(tile_type: string) : string {
     return `zoo-tile-${tile_type}`;
   }
@@ -172,12 +174,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
         this.div({ id: 'zoo-upper-container' },
           this.div({ id: IDS.DEPOT }),
-          this.div({ id: 'zoo-drawn' },
-            this.div({ id: IDS.DRAWN })
-          ),
-          this.div({ id: 'zoo-stock' },
-            this.div({ id: IDS.PRIMARY_PILE }),
-            this.div({ id: IDS.ENDGAME_PILE })
+          this.div({ id: IDS.STOCK },
+            this.div({ id: IDS.PILE })
           )
         ),
         this.div({id: 'zoo-boards' },
@@ -195,8 +193,21 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.trucks.forEach((truck) => this.addTruckDiv(truck));
   }
 
+  private attrOf(key: string, value: string) {
+    let result : Record<string, string> = {};
+    result[key] = value;
+    return result;
+  }
+
+  private setSpanToTile(elem: HTMLElement, tile_type?: string) {
+    if (!tile_type) { return; }
+    elem.classList.remove(CSS.BACK);
+    elem.classList.add(CSS.tile(tile_type));
+    elem.setAttribute(Attrs.TILE, tile_type);
+  }
+
   private makeTileSpan(tile_type?: string): HTMLElement | undefined {
-    return tile_type ? this.span({ classes: CSS.tile(tile_type), attrs: { 'zoo-tile': tile_type } }) : undefined;
+    return tile_type ? this.span({ classes: CSS.tile(tile_type), attrs: this.attrOf(Attrs.TILE, tile_type) }) : undefined;
   }
 
   private addTruckDiv(truck: Truck): void {
@@ -213,26 +224,33 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     );
   }
 
-  private addStockTile(pileElem: HTMLElement, cls: string = CSS.BACK) {
-    pileElem.appendChild(this.span({classes: cls}));
+  private addStockTile(tile_type: string = 'back') {
+    this.pileElem.appendChild(this.makeTileSpan(tile_type)!);
   }
 
-  private endgamePile : HTMLElement;
-  private primaryPile : HTMLElement;
-  private drawnTiles : HTMLElement;
+  private pileElem : HTMLElement;
   private depot : HTMLElement;
 
   private setupStock() : void {
-    let addStock = (pileElem : HTMLElement, size: number) => {
-      let n = size > 5 ? 5 : size;
-      this.range(1, n-1).forEach(() => this.addStockTile(pileElem));
-    };
 
-    addStock(this.endgamePile, this.gamedatas.endgame_stocksize);
-    if (!this.gamedatas.lastround) {
-      this.addStockTile(this.endgamePile, 'zoo-disk');
+    var n = this.gamedatas.primary_stocksize;
+    if (n > 5) { n = 5; }
+    // FIXME: handle exhausted primary pile
+    /*
+    if (n < 5) {
+      this.addStockTile(CSS.DISK);
     }
-    addStock(this.primaryPile, this.gamedatas.primary_stocksize);
+      */
+    if (this.gamedatas.drawntile) {
+      n--;
+    }
+    while  (n-- > 0) {
+      this.addStockTile();
+    }
+    if (this.gamedatas.drawntile) {
+      this.addStockTile(this.gamedatas.drawntile);
+    }
+
   }
 
   private twoPlayer: boolean;
@@ -254,7 +272,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     this.setupStock();
     this.setupTrucks();
-    this.setupDrawn(gamedatas.drawntile);
     // this.setupEnclosures(...);
 
     this.bgaSetupPromiseNotifications({ logger: console.log, onEnd: this.addTooltipsToLog.bind(this) });
@@ -269,17 +286,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     console.log('Game setup done');
   }
 
-  private setupDrawn(tile_type? : string) {
-    if (tile_type) {
-      this.drawnTiles.appendChild(this.makeTileSpan(tile_type)!);
-    }
-  }
-
   private setupGameHtml(): void {
     this.getGameAreaElement().appendChild(this.baseHtml());
-    this.primaryPile = $(IDS.PRIMARY_PILE);
-    this.endgamePile = $(IDS.ENDGAME_PILE);
-    this.drawnTiles = $(IDS.DRAWN);
+    this.pileElem = $(IDS.PILE);
     this.depot = $(IDS.DEPOT);
   }
 
@@ -323,8 +332,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     elem.classList.remove(CSS.MOVED);
   }
 
-  private drawnTileElem(): HTMLElement | undefined {
-      return $(IDS.DRAWN).firstElementChild as (HTMLElement | undefined);
+  private topPileElem(): HTMLElement | undefined {
+      return this.pileElem.lastElementChild as (HTMLElement | undefined);
   }
 
   private truckElem(truck_id: number) : HTMLElement {
@@ -424,22 +433,18 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       endgame_left: number,
     }
   ): Promise<void> {
-    // get the tile on the right pile
-    // FIXME: factor out common IDs and elemes
-    let pileElem = args.drawn_from_endgame_pile ? this.endgamePile : this.primaryPile;
     // FIXME: need to handle disk removal
-    pileElem.lastElementChild?.remove();
-    let tile = this.makeTileSpan(args.tile_type)!;
-    pileElem.appendChild(tile);
     // FIXME: "flip" the top tile?
-    return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
-        .then(() => {
-          // FIXME: should not pass all this info forward. Just which pile needs refilling, if either.
-          let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
-          if (count >= 5) {
-            this.addStockTile(pileElem);
-          }
-        });
+    let cl = this.topPileElem()!.classList;
+    this.setSpanToTile(this.topPileElem()!, args.tile_type);
+    // return this.animationManager.slideAndAttach(tile, this.drawnTiles, {})
+    //     .then(() => {
+    //       // FIXME: should not pass all this info forward. Just which pile needs refilling, if either.
+    //       let count = args.drawn_from_endgame_pile ? args.primary_left : args.endgame_left;
+    //       if (count >= 5) {
+    //         this.addStockTile(pileElem);
+    //       }
+    //     });
   }
 
   //
@@ -456,7 +461,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private onclick_PlaceDrawnTile(evt: MouseEvent) {
     let space = evt.target as HTMLElement;
-    let tile = this.drawnTileElem()!;
+    let tile = this.topPileElem()!;
     this.animationManager.slideAndAttach(tile, space, {})
       .then(() => {
         this.markMoved(space);
@@ -486,7 +491,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.statusBar.removeActionButtons();
         this.unmarkMoved(space);
         this.restoreServerGameState();
-        this.animationManager.slideAndAttach(tile, $(IDS.DRAWN), {})
+        this.animationManager.slideAndAttach(tile, this.pileElem, {});
       },
       { color: "secondary"}
     );
@@ -494,7 +499,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_PlaceDrawnTile(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
     if (this.player_id != args.player_id) {
-      return this.animationManager.slideAndAttach(this.drawnTileElem()!, this.truckSpaceElem(args), {});
+      return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {});
     }
   }
 
