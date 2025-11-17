@@ -15,6 +15,12 @@ class Attrs {
   static readonly ENCLOSURE : string = 'zoo-enclosure';
   static readonly EXTENSIONS : string = 'zoo-extensions';
   static readonly TILE : string = 'zoo-tile';
+
+  static tile(tile_type: string): Record<string, string> {
+    let a = {};
+    a[Attrs.TILE] = tile_type;
+    return a;
+  }
 }
 
 class IDS {
@@ -32,8 +38,6 @@ class IDS {
 }
 
 class CSS {
-  static readonly BACK = 'zoo-tile-back';
-  static readonly TILE = 'zoo-tile';
   static readonly TRUCK = 'zoo-truck';
   static readonly TARGETABLE = 'zoo-targetable';
   static readonly SELECTABLE = 'zoo-selectable';
@@ -41,10 +45,6 @@ class CSS {
   static readonly MOVED = 'moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
   static readonly DISK = 'zoo-disk';
-
-  static tile(tile_type: string) : string {
-    return `zoo-tile-${tile_type}`;
-  }
 }
 
 type PlacedTile = {
@@ -193,21 +193,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.trucks.forEach((truck) => this.addTruckDiv(truck));
   }
 
-  private attrOf(key: string, value: string) {
-    let result : Record<string, string> = {};
-    result[key] = value;
-    return result;
-  }
-
   private setSpanToTile(elem: HTMLElement, tile_type?: string) {
-    if (!tile_type) { return; }
-    elem.classList.remove(CSS.BACK);
-    elem.classList.add(CSS.tile(tile_type));
-    elem.setAttribute(Attrs.TILE, tile_type);
+    if (!tile_type) {
+      elem.removeAttribute(Attrs.TILE);
+    } else {
+      elem.setAttribute(Attrs.TILE, tile_type);
+    }
   }
 
   private makeTileSpan(tile_type?: string): HTMLElement | undefined {
-    return tile_type ? this.span({ classes: CSS.tile(tile_type), attrs: this.attrOf(Attrs.TILE, tile_type) }) : undefined;
+    return tile_type ? this.span({ attrs: Attrs.tile(tile_type) }) : undefined;
   }
 
   private addTruckDiv(truck: Truck): void {
