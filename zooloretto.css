@@ -14,11 +14,20 @@
  */
 
 body {
-    --zoo-tile-size: 4.4vw;
+/*    --zoo-tile-size: 3.28vw; */
+    /* right-side-width: 240px */
+    /*
+This should be right but isn't quite.
+55.4% * (100vw - 240px) is width of board
+9% of that is width of tile
+   */
+    --zoo-tile-size: calc(0.454 * (100vw - 240px) * 0.09);
 }
 
 body.mobile_version {
-    --zoo-tile-size: 4.4vw;
+/*    --zoo-tile-size: 3.28vw; */
+    /* right-side-width: 0px (effectively) */
+    --zoo-tile-size: calc(0.454 * 100vw * 0.09);
 }
 
 #zoo-game-container {
@@ -36,7 +45,7 @@ body.mobile_version {
 }
 
 #zoo-drawn {
-    width: 10%;
+    width: 5%;
     justify-content: center;
     align-items: center;
     display: flex;
@@ -45,7 +54,7 @@ body.mobile_version {
 }
 
 #zoo-stock {
-    width: 20%;
+    width: 15%;
     padding: 0.5%;
     display: flex;
     flex-direction: row;
@@ -195,7 +204,7 @@ body.mobile_version {
 }
 
 #zoo-depot {
-    width: 70%;
+    width: 80%;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -204,16 +213,35 @@ body.mobile_version {
     /* position:relative;*/
 }
 
+/*
+wagon image: 527x186
+tile to fit that: 140x140
+*/
+
+/*
+active player board: 650.3
+  or 807.6
+  Is 55.4% of non-mobile width (so excluding panels of 240px)
+playerboard widths (non-mobile): 1174
+  or 1458
+
+55.4% * (100vw - 240px) is width of board
+9% of that is width of tile
+*/
+.zoo-depot-space {
+    width: calc(3.764 * (var(--zoo-tile-size)));
+    height: auto;
+    aspect-ratio: 2.83333;
+    margin: 0.5vw;
+}
+
 .zoo-truck {
     display: flex;
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Wagon3.png');
-    width: calc(1.4 * 2.7 * (var(--zoo-tile-size)));
-    height: calc(1.4 * var(--zoo-tile-size));
-
-    margin: 0.5vw;
-
+    width: 100%;
+    height: 100%;
 }
 
 .zoo-truck.zoo-selected {
@@ -229,20 +257,21 @@ body.mobile_version {
 /* truck cells */
 .zoo-truck > div {
     position: relative;
-    width: calc(var(--zoo-tile-size));
-    height: calc(var(--zoo-tile-size));
+    width: /* 25%; */ calc(var(--zoo-tile-size));
+    height: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
+    aspect-ratio: 1.0 !important;
     top: 14%;
 }
 
 /* FIXME: these don't depend on tile size, just the relative dimension of trucks. compute this on trick width/height or vice-versa? */
 .zoo-truck > div:nth-child(1) {
-    left: 5%;
+    left: 4.4%;
 }
 .zoo-truck > div:nth-child(2) {
-    left: 10%;
+    left: 8.6%;
 }
 .zoo-truck > div:nth-child(3) {
-    left: 15%;
+    left: 13.0%;
 }
 
 /* FIXME: not used; should we, instead of spreading this around? */
@@ -633,8 +662,15 @@ body.mobile_version {
 }
 
 
+.player-board-game-specific-content .zoo-truck{
+    width: 3em;
+    height: auto;
+    aspect-ratio: 1.0;
+    top: 10%;
+}
+
 .zoo-cell {
-    /* FIXME: these depend on tile size! */
+    /* Note these are relative to, the image size of the boards. */
     width: 9%;
     height: 9%;
     position: absolute;
