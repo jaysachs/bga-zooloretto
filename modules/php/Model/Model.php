@@ -269,7 +269,12 @@ class Model {
     }
 
     public function spacesOnTrucks() : int {
-        return array_sum(array_map(function (Truck $t): int { return $t->freeSpaces(); }, $this->getTrucks()));
+        return array_sum(
+            array_map(
+                function (Truck $t): int { return $t->freeSpaces(); },
+                array_filter($this->getTrucks(), fn ($t) => ! $t->taken_by)
+            )
+        );
     }
 
     /**
