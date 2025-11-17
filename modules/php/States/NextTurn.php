@@ -46,6 +46,8 @@ class NextTurn extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel();
+
+        // FIXME: return all taken trucks, empty any remaining trucks
         /*
         if ($model->inLastRound()) {
             return ComputeScores::class;
