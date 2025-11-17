@@ -44,17 +44,8 @@ body.mobile_version {
     background-color:lightgreen;
 }
 
-#zoo-drawn {
-    width: 5%;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-
-    background-color: #e3d7c9;
-}
-
 #zoo-stock {
-    width: 15%;
+    width: 10%;
     padding: 0.5%;
     display: flex;
     flex-direction: row;
@@ -204,7 +195,7 @@ body.mobile_version {
 }
 
 #zoo-depot {
-    width: 80%;
+    width: 90%;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -335,13 +326,6 @@ playerboard widths (non-mobile): 1174
 }
 
 
-
-#zoo-drawn-tile {
-    width: calc(var(--zoo-tile-size));
-    height: calc(var(--zoo-tile-size));
-    border-radius: 5% 5%;
-    border: yellow 0.2vw dashed;
-}
 
 .backtransition
 {
