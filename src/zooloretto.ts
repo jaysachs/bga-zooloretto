@@ -292,10 +292,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     console.log('Setting up panel for player ' + player.player_id);
     const moneyid = `playermoney-counter-${playerId}`;
     this.getPlayerPanelElement(playerId).append(
-      this.div({ id: `zoo-taken-truck-${playerId}`}),
-      this.div({},
-        this.span({text: _("Money")}),
-        this.span({id:moneyid}))
+      this.div({ classes: 'zoo-player-panel-ext'},
+        this.span({ classes: 'zoo-money'},
+          this.span({classes: 'zoo-money-label'}),
+          this.span({text: ': '}),
+          this.span({id:moneyid})),
+        this.div({ classes: 'zoo-depot-space', id: `zoo-taken-truck-${playerId}`}),
+      )
     );
     const counter = new ebg.counter();
     counter.create(

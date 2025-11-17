@@ -219,9 +219,9 @@ playerboard widths (non-mobile): 1174
 */
 .zoo-depot-space {
 /*    width: calc(3.764 * (var(--zoo-tile-size))); */
-    width: calc(4 * (var(--zoo-tile-size)));
+    height: calc(1.4 * (var(--zoo-tile-size)));
     min-width: calc(4 * (var(--zoo-tile-size)));
-    height: auto;
+    width: auto;
     aspect-ratio: 2.83333;
     margin: 0.5vw;
 }
@@ -255,7 +255,7 @@ playerboard widths (non-mobile): 1174
     top: 14%;
 }
 
-/* FIXME: these don't depend on tile size, just the relative dimension of trucks. compute this on trick width/height or vice-versa? */
+/* FIXME: these don't depend on tile size, just the relative dimension of trucks. compute this on truck width/height or vice-versa? */
 .zoo-truck > div:nth-child(1) {
     left: 4.4%;
 }
@@ -601,12 +601,41 @@ playerboard widths (non-mobile): 1174
     background-image: url('img/Money.png');
 }
 
+.zoo-money-label {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    background-image: url('img/Money.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
 
-.player-board-game-specific-content .zoo-truck{
-    width: 3em;
-    height: auto;
-/*    aspect-ratio: 1.0; */
+.zoo-money {
+    flex: 1;
+    display:flex;
+    width: auto;
+}
+
+.zoo-player-panel-ext  {
+    display:flex;
+    width: auto;
+}
+
+.zoo-player-panel-ext .zoo-truck {
+    width: auto;
+    height: 100%;
     top: 10%;
+}
+
+.zoo-player-panel-ext .zoo-depot-space .zoo-truck > div {
+    width: 23%;
+    height: auto;
+}
+
+.zoo-player-panel-ext .zoo-depot-space {
+    flex: 1;
+    height: 1.5em;
+    margin: 0vw;
 }
 
 .zoo-cell {
