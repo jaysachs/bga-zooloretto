@@ -515,10 +515,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     );
   }
 
-  private async notif_PlaceDrawnTileInTruck(args: { player_id: number, tile_id: number, val: string, truck_id: number, truck_pos: number }) {
+  private async notif_PlaceDrawnTileInTruck(args: {
+    player_id: number,
+    tile_id: number,
+    val: string,
+    truck_id: number,
+    truck_pos: number,
+    primary_stock_size: number,
+    endgame_stock_size: number }) {
+    // FIXME: need to handle stock refresh -- need to send pile sizes in the notif args
     if (this.player_id != args.player_id) {
-      return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {});
-      // FIXME: need to refresh stock pile. Should probably send pile sizes in the notif args
+      return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {})
+        .then(() => this.addStockTile());
+    } else {
+      this.addStockTile();
     }
   }
 

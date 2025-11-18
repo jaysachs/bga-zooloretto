@@ -67,7 +67,7 @@ class PlaceDrawnTile extends AbstractState
 
 		$model = $this->createModel();
 		$tile = $model->placeDrawnTileOnTruck($truck_id, $truck_pos);
-
+        $stock = $model->getStock();
 		$this->notify->all(
 			"PlaceDrawnTileInTruck",
 			clienttranslate( '${player_name} placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.'),
@@ -78,6 +78,8 @@ class PlaceDrawnTile extends AbstractState
                 'truck_id' => $truck_id,
                 'truck_pos' => $truck_pos,
 				'translatedval' => $tile->type->translated(),
+                'primary_stock_size' => $stock->primaryCount(),
+                'endgame_stock_size' => $stock->endgameCount(),
 				'i18n' => [ 'translatedval' ],
 			]
 		);
