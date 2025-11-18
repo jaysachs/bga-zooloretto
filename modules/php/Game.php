@@ -28,7 +28,9 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto;
 
 use Bga\Games\zooloretto\Model\DefaultDb;
+use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Player;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
@@ -97,8 +99,27 @@ class Game extends \Bga\GameFramework\Table
 						array_keys($tiles)),
 				];
 			}, $model->getTrucks()),
-            'enclosures' => [
-            ],
+            'player_enclosures' => array_merge(array_map(
+				fn (Player $p) => [
+					'player_id' => $p->id,
+					'enclosures' => array_merge(array_map(
+						function (Enclosure $e) : array {
+							$contents = [];
+							foreach ($e->allContents() as $pos => $tile) {
+								$contents[] = [
+									'pos' => $pos,
+									'tile_type' => $tile->type->value,
+								];
+							}
+							return [
+								'enclosure_id' => $e->id,
+								'spaces' => $contents,
+							];
+						},
+						$model->getEnclosuresForPlayer($p->id)
+					)),
+				],
+				$model->getPlayers())),
             'primary_stocksize' => $stock->primaryCount(),
             'endgame_stocksize' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,

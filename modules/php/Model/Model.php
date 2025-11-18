@@ -329,10 +329,8 @@ class Model {
         $player_id = $this->getActivePlayer()->id;
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
         $values = [];
-        $pos = 1;
-        foreach ($enclosure->allTiles() as $a) {
-            $values[] = "($player_id, $enclosure->id, $pos, $a->id)";
-            $pos++;
+        foreach ($enclosure->allContents() as $pos => $t) {
+            $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
         }
         $sql = 'INSERT INTO enclosure_contents (player_id, enclosure_id, pos, tile_id) VALUES '
              . implode(',', $values);

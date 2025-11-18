@@ -333,7 +333,9 @@ playerboard widths (non-mobile): 1174
     width: 100%;
     height: 100%;
 
-    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404);
+    /*    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
+    filter: drop-shadow(1px 2px #573404) drop-shadow(1px 1px #573404) drop-shadow(1px 1px #573404);
+
     background-image: url('img/Tiles.png');
     /* basically corresponds to number of columns in the sprite */
     background-size: 600% 600%;

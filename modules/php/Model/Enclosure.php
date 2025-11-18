@@ -119,9 +119,17 @@ class Enclosure {
         throw new ModelException("No position $pos in encluse $this->id");
     }
 
-    /** @return Tile[] */
-    public function allTiles(): array {
-        return array_merge($this->animals, $this->stalls);
+    /** @return Tile[]  where key is position */
+    public function allContents(): array {
+        $result = [];
+        $pos = 1;
+        foreach ($this->animals as $t) {
+            $result[$pos++] = $t;
+        }
+        foreach ($this->stalls as $t) {
+            $result[$pos++] = $t;
+        }
+        return $result;
     }
 
     /**
