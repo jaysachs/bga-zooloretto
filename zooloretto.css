@@ -517,6 +517,7 @@ playerboard widths (non-mobile): 1174
 {
     background-image: url('img/Coin.png');
     background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .playeraidIT
