@@ -76,7 +76,7 @@ class Player {
         $this->spent += $amount;
     }
 
-    public function buyEnclosure(): void {
+    public function purchaseExtension(): void {
 		if ($this->money < self::ENCLOSURE_COST) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}

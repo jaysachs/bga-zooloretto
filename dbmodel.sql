@@ -64,8 +64,5 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- For players, we need (a) money and (b) how many extensions were bought
--- Could use counters or add column to player table.
---  (b) can be derived from `enclosures` table
-
--- how many coins
-ALTER TABLE `player` ADD COLUMN `money` int(10) NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;

@@ -157,7 +157,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       return elem;
     };
 
-    const board_id = player.player_id == this.player_id ? "zoo-main-board" : "";
+    const board_id = player.player_id == this.player_id ? "zoo-main-board" : ("zoo-board-" + pno);
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     let elem = this
       .div({ id: board_id, classes: [ 'zoo-board', zoomClass ]},
@@ -536,15 +536,23 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   // Purchase an extension
   //
 
-  private renderNewExtension(): void {
+  private renderExtensions(extensions: number, player_id? : number): void {
+    let elem = $(player_id ? ('zoo-board-' + this.gamedatas.players[player_id]?.player_no) : 'zoo-main-board');
+    elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
+  }
 
+  private getCurrentExtensions(player_id? : number): number {
+    let elem = $(player_id ? ('zoo-board-' + this.gamedatas.players[player_id]?.player_no) : 'zoo-main-board');
+    return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
   }
 
   private client_PurchaseExtension(): void {
     this.statusBar.removeActionButtons();
-    this.renderNewExtension();
+    let current = this.getCurrentExtensions();
+    this.renderExtensions(current + 1);
+    this.gamedatas.players[0]?.purchased_extensions;
     this.statusBar.addActionButton(_('Confirm purchase'), () => this.bgaPerformAction('actPurchaseExtension'), { autoclick: true });
-    this.addCancelButton(() => { this.renderNewExtension(); });
+    this.addCancelButton(() => { this.renderExtensions(current); });
   }
 
 

@@ -151,7 +151,7 @@ class Model {
     public function getPlayers(): array {
         if ($this->_players == null) {
             $this->_players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money, t.id AS taken_by
+            $data = $this->db->getObjectList("SELECT player_id, player_no, money, purchased_extensions, t.id AS taken_by
                                               FROM player AS p
                                               LEFT OUTER JOIN trucks AS t
                                               ON p.player_id = t.taken_by");
@@ -160,7 +160,9 @@ class Model {
             foreach ($data as $row) {
                 $id = intval($row["player_id"]);
                 $taken = intval($row["taken_by"]);
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), 2, 0, $taken);
+                $purchasedExtensions = intval($row["purchased_extensions"]);
+                $availableExtensions = $potentialExtensions - $purchasedExtensions;
+                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), $availableExtensions, $purchasedExtensions, $taken);
             }
         }
         return $this->_players;
@@ -412,10 +414,11 @@ class Model {
         }
         return $returning_truck_ids;
     }
-}
 
-/*
-echo "hi\n";
-$model = new Model( null, new TestDb() );
-$model->createNewGame(2);
-*/
+    /** @return Player total number of purchased extensions  */
+    public function purchaseExtension(int $player_id): Player {
+        $player = $this->getPlayer($player_id);
+        $player->purchaseExtension();
+        return $player;
+    }
+}

@@ -148,20 +148,16 @@ class PlayerTurn extends AbstractState
 	public function actPurchaseEnclosure(int $active_player_id): mixed
 	{
         $model = $this->createModel();
-		$player = $model->getActivePlayer();
-		/*
-		$model->buyEnclosure($player);
-		$this->playerStats->inc("coinsspent", $player->moneySpent(), $player->id);
-
+		$player = $model->purchaseExtension($active_player_id);
 		$this->notify->all(
-			"BuyEnclosure",
+			"PurchaseEnclosure",
 			clienttranslate('${player_name} bought an extra enclosure.'),
 			[
 				'player_id' => $active_player_id,
-				'unblockedzoo' => $player->purchased_extensions,
+				'purchased_extensions' => $player->purchased_extensions,
+				'money' => $player->money,
 			]
 		);
-*/
 		return NextPlayer::class;
 	}
 
