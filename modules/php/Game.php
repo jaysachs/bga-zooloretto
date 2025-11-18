@@ -68,8 +68,8 @@ class Game extends \Bga\GameFramework\Table
 			}
 			return $args;
 		});
-		// FIXME: structure globals better.
-		self::initGameStateLabels(['drawn' => 10]);
+
+		$this->initGameStateLabels([]);
 	}
 
 	/*
@@ -130,8 +130,6 @@ class Game extends \Bga\GameFramework\Table
 			$datas['players'][$player->id]['player_id'] = $player->id;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 		}
-		$model->playerMoney->fillResult($datas);
-		$model->bankMoney->fillResult($datas);
         return $datas;
 	}
 
@@ -280,10 +278,6 @@ class Game extends \Bga\GameFramework\Table
 
 	public function debug_setMoney(int $player_id, int $amount): void {
 		new DefaultDb()->execute("UPDATE player SET money = $amount WHERE player_id=$player_id");
-	}
-
-	public function debug_setGlobal(string $global, int $value): void {
-		$this->globals->set($global, $value);
 	}
 
 	public function debug_placeTile(int $truck_id, int $pos): void {

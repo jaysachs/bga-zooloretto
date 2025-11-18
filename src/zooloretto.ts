@@ -274,11 +274,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
       )
     );
+    /*
+      FIXME: need to manually update money, and thread changes in notifs.
     const counter = new ebg.counter();
     counter.create(
         moneyid,
         { value: player.money, playerCounter: 'playermoney', playerId: playerId }
     );
+    */
   }
 
   private setupTrucks(): void {

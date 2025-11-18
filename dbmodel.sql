@@ -8,7 +8,7 @@
 -- -----
 
 
--- For offspring, we'll add a new one starting at id 200.
+-- For offspring, we'll add a new one starting at id 300.
 CREATE TABLE IF NOT EXISTS `tiles` (
   `id` int(10) unsigned NOT NULL,
   -- The tile type:
@@ -54,6 +54,25 @@ CREATE TABLE IF NOT EXISTS `endgame_stock` (
   PRIMARY KEY (`seq_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
+CREATE TABLE IF NOT EXISTS `enclosures` (
+  `player_id` int(10) unsigned NOT NULL,
+  -- 0 is barn (?)
+  `enclosure_id` int(10) unsigned NOT NULL,
+  -- 0 is "unlimited"
+  `animal_capacity` int(10) unsigned NOT NULL,
+  `stall_capacity` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`player_id`, `enclosure_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `zglobals` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0,
+  `bank_money` int(10) unsigned NOT NULL,
+  `drawn_tile` int(10) unsigned,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `zglobals` (`bank_money`) VALUES(30);
+
 CREATE TABLE IF NOT EXISTS `enclosure_contents` (
   `player_id` int(10) unsigned NOT NULL,
   -- 0 is barn
@@ -65,4 +84,5 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
 
 -- For players, we need (a) money and (b) how many extensions were bought
 ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
+-- FIXME: instead of a column here, just count enclosures in that table
 ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;

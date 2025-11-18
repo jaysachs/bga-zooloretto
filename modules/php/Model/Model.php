@@ -40,13 +40,7 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 
 class Model {
 
-    public TableCounter $bankMoney;
-    public PlayerCounter $playerMoney;
-
-    public function __construct(private Table $game, private Db $db = new DefaultDb()) {
-        $this->bankMoney = $this->game->counterFactory->createTableCounter('bankmoney');
-        $this->playerMoney = $this->game->counterFactory->createPlayerCounter('playermoney');
-    }
+    public function __construct(private Table $game, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
 
     /** @param $player_ids int[] */
     public function createNewGame(array $player_ids): void {
@@ -61,22 +55,8 @@ class Model {
         $tilepool[] = $block;
         $tilepool[] = Tile::empty();
 
-		$make = function (Tile $tile): string {
-			$id = $tile->id;
-			$ty = $tile->type->value;
-			return "($id,'$ty')";
-		};
-
-        // Insert overall tile -> type map.
-        $this->db->execute("INSERT INTO tiles (id, type) VALUES "
-                           . implode(',', array_map($make, $tilepool)));
-
-        // Insert stock piles
-		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
-                           . implode(',', array_map(fn ($i) => "($i)", $stock->primaryIds())));
-		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
-                           . implode(',', array_map(fn ($i) => "($i)", $stock->endgameIds())));
-
+        $this->ps->insertTiles($tilepool);
+        $this->ps->insertStock($stock);
         // Trucks
         $trucks = [];
         if ($player_count == 2) {
@@ -89,46 +69,36 @@ class Model {
                 $trucks[] = new Truck($x);
             }
         }
-        $values = [];
-        foreach ($trucks as $truck) {
-            $ts = array_map(fn (Tile $t): string => "$t->id", $truck->getAllTiles());
-            $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[1], $ts[2], $ts[3]);
+        $this->ps->insertTrucks($trucks);
+
+        /* FIXME: find some way to have this auto-sync with the FE?
+           bonus points: also sync with the CSS!
+          from frontend:
+                      + enclosure(1, 6)
+                      + enclosure(2, 6)
+                      + enclosure(3, 7)
+                      + enclosure(4, 6)
+                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
+        */
+
+        /** @var Enclosure[] */
+        $encl = [
+            1 => new Enclosure(1, 5, 1),
+            2 => new Enclosure(2, 4, 2),
+            3 => new Enclosure(3, 6, 1),
+            4 => new Enclosure(4, 5, 1),
+        ];
+        if ($player_count == 2) {
+            $encl[5] = new Enclosure(5, 5, 1);
         }
-        $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
-                           . implode(',', $values));
-
-
-        // Enclosures - no DB init needed, as missing contents is interpreted as empty.
-
-        // Extra player info
-        $this->db->execute("UPDATE player SET money = 2");
-
-        $this->game->globals->set('drawn', 0);
-        $this->bankMoney->initDb(30);
-        $this->playerMoney->initDb($player_ids);
-        foreach ($this->getPlayers() as $player) {
-            $this->giveMoneyFromBank($player, 2);
+        foreach ($player_ids as $player_id) {
+            $this->ps->insertEnclosures($player_id, $encl);
         }
-    }
 
-    private function payMoney(Player $player, int $amount): void {
-        $player->payMoney($amount);
-        $this->bankMoney->inc($amount);
-    }
-
-    private function giveMoneyFromBank(Player $player, int $amount): void {
-        $bank = $this->bankMoney->get();
-        if ($bank < $amount) {
-            $amount = $bank;
-        }
-        $player->receiveMoney($amount);
-        $this->playerMoney->inc($player->id, $amount);
-        $this->bankMoney->inc(-$amount);
-    }
-
-    private function validatePlayer(Player $player): void {
-        if ($player !== $this->getPlayer($player->id)) {
-            throw new ModelException("Got unknown player");
+        $this->ps->updateBankMoney(30 - 2 * $player_count);
+        $available = $player_count == 2 ? 2 : 1;
+        foreach ($player_ids as $player_id) {
+            $this->ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
         }
     }
 
@@ -150,20 +120,7 @@ class Model {
     /** @returns Player[] */
     public function getPlayers(): array {
         if ($this->_players == null) {
-            $this->_players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money, purchased_extensions, t.id AS taken_by
-                                              FROM player AS p
-                                              LEFT OUTER JOIN trucks AS t
-                                              ON p.player_id = t.taken_by");
-            $numPlayers = count($data);
-            $potentialExtensions = $numPlayers == 2 ? 2 : 1;
-            foreach ($data as $row) {
-                $id = intval($row["player_id"]);
-                $taken = intval($row["taken_by"]);
-                $purchasedExtensions = intval($row["purchased_extensions"]);
-                $availableExtensions = $potentialExtensions - $purchasedExtensions;
-                $this->_players[$id] = new Player($id, intval($row["player_no"]), $this->playerMoney->get($id), $availableExtensions, $purchasedExtensions, $taken);
-            }
+            $this->_players = $this->ps->retrievePlayers();
         }
         return $this->_players;
     }
@@ -172,20 +129,7 @@ class Model {
 
     public function getStock(): Stock {
         if ($this->_stock == null) {
-            $tileFromRow = function(array $row): Tile { return new Tile(intval($row["tile_id"]), TileType::from($row["type"])); };
-            $d = $this->game->globals->get('drawn', 0);
-            $drawn = null;
-            if ($d != 0) {
-                $row = $this->db->getObjectList("SELECT id AS tile_id, type FROM tiles WHERE id = $d");
-                // $this->game->notify->all("fetchedRow", "Fetched row for drawn tile $d", $row);
-                $drawn = $tileFromRow($row[0]);
-            }
-            $select = function (string $tblname) use (&$tileFromRow): array {
-                return array_map(
-                    $tileFromRow,
-                    $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type FROM $tblname p INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
-            };
-            $this->_stock = new Stock($select('primary_stock'), $select('endgame_stock'), $drawn);
+            $this->_stock = $this->ps->retrieveStock();
         }
         return $this->_stock;
     }
@@ -193,18 +137,9 @@ class Model {
     private function updateStock(): void {
         $stock = $this->_stock;
         if ($stock == null) {
-            return;
+            throw new ModelException("Stock updaate before retrieval");
         }
-        // FIXME: Come back and re-evaulate this approach.
-        // As long as all mutations go through model-owned objects, we can handle this.
-        // For now, we only handle newly-drawn tile updates.
-        if ($stock->drawn == null) {
-            $this->game->globals->set('drawn', 0);
-            return;
-        }
-        $id = $stock->drawn->id;
-        $this->game->globals->set('drawn', $id);
-        $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");
+        $this->ps->updateStock($this->_stock);
     }
 
     public function drawTile(): Stock {
@@ -219,19 +154,7 @@ class Model {
     /** @return Truck[] */
     public function getTrucks(): array {
         if ($this->_trucks == null) {
-            $rows = $this->db->getObjectList(
-                'SELECT tr.id, tr.taken_by, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3
-                FROM trucks AS tr
-                LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
-                LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
-                LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
-                ORDER BY tr.id');
-            $this->_trucks = array_map(function (array $row) : Truck {
-                $tile = function(int $pos) use (&$row): ?Tile {
-                    return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
-                };
-                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], intval($row["taken_by"]));
-            }, $rows);
+            $this->_trucks = $this->ps->retrieveTrucks();
         }
         return $this->_trucks;
     }
@@ -246,13 +169,7 @@ class Model {
     }
 
     private function updateTruck(Truck $truck): void {
-        $tiles = $truck->getAllTiles();
-        $this->db->execute("UPDATE trucks
-                            SET tile_id1=" . $tiles[1]->id . ", "
-                             . "tile_id2=" . $tiles[2]->id . ", "
-                             . "tile_id3=" . $tiles[3]->id . ", "
-                             . "taken_by=" . $truck->taken_by
-                             . " WHERE id = {$truck->id}");
+        $this->ps->updateTruck($truck);
     }
 
     public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {
@@ -285,58 +202,11 @@ class Model {
      * @return Enclosure[]
      */
     public function getEnclosuresForPlayer(int $player_id) : array {
-        // FIXME: need to handle un-purchased extensions!
-        // Either a boolean on the Extension (easy)
-        //   or not returning it.
-        /*
-        from frontend:
-                      + enclosure(1, 6)
-                      + enclosure(2, 6)
-                      + enclosure(3, 7)
-                      + enclosure(4, 6)
-                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
-                      */
-        /** @var Enclosure[] */
-        // FIXME: find some way to have this auto-sync with the FE
-        //   bonus points: also with the CSS!
-        $encl = [
-            1 => new Enclosure(1, 5, 1),
-            2 => new Enclosure(2, 4, 2),
-            3 => new Enclosure(3, 6, 1),
-            4 => new Enclosure(4, 5, 1),
-        ];
-        if (count($this->getPlayers()) == 2) {
-            $encl[5] = new Enclosure(5, 5, 1);
-        }
-
-        $rows = $this->db->getObjectList("SELECT e.enclosure_id, e.pos, e.tile_id, t.type
-                                          FROM enclosure_contents e
-                                          INNER JOIN tiles t
-                                          ON e.tile_id = t.id
-                                          WHERE e.player_id = {$player_id}
-                                          ORDER BY e.enclosure_id, e.pos");
-        foreach ($rows as $row) {
-            $eid = intval($row['enclosure_id']);
-            $pos = intval($row['pos']);
-            $tileid = intval($row['tile_id']);
-            $type = TileType::from($row["type"]);
-            if (!$type->isEmpty()) {
-                $encl[$eid]->placeTile(new Tile($tileid, $type), $pos);
-            }
-        }
-        return $encl;
+        return $this->ps->getEnclosuresForPlayer($player_id);
     }
 
     private function updateEnclosure(Enclosure $enclosure): void {
-        $player_id = $this->getActivePlayer()->id;
-        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
-        $values = [];
-        foreach ($enclosure->allContents() as $pos => $t) {
-            $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
-        }
-        $sql = 'INSERT INTO enclosure_contents (player_id, enclosure_id, pos, tile_id) VALUES '
-             . implode(',', $values);
-        $this->db->execute($sql);
+        $this->ps->updateEnclosure($this->getActivePlayer()->id, $enclosure);
     }
 
     /** @return int the position in the enclosure it was plased in */
@@ -368,8 +238,9 @@ class Model {
 
         $truck = $this->getTruck($truck_id);
         $amt = $truck->takeCoins();
+
         $player->receiveMoney($amt);
-        $this->playerMoney->inc($player->id, $amt);
+        $this->ps->updatePlayer($player);
 
         $truck->taken_by = $player_id;
         $this->updateTruck($truck);

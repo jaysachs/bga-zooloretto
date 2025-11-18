@@ -36,7 +36,7 @@ class Enclosure {
      * @param Tile[] $animals
      * @param Tile[] $stalls
      */
-    public function __construct(public readonly int $id, readonly int $animal_capacity, int $stall_capacity , public array $animals = [], public array $stalls = []) {
+    public function __construct(public readonly int $id, readonly int $animal_capacity, readonly int $stall_capacity , public array $animals = [], public array $stalls = []) {
         while (count($this->animals) < $animal_capacity) {
             $this->animals[] = Tile::empty();
         }
