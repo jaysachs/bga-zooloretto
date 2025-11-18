@@ -362,11 +362,17 @@ class Model {
                 $placement->enclosure_pos = $epos;
             }
         }
+        $player = $this->getPlayer($player_id);
+        $player->takeTruck($truck_id);
 
-        $this->getPlayer($player_id)->takeTruck($truck_id);
         $truck = $this->getTruck($truck_id);
+        $amt = $truck->takeCoins();
+        $player->receiveMoney($amt);
+        $this->playerMoney->inc($player->id, $amt);
+
         $truck->taken_by = $player_id;
         $this->updateTruck($truck);
+        // $this->updatePlayer($player);
 
         foreach ($this->getEnclosuresForPlayer($player_id) as $enclosure) {
             $this->updateEnclosure($enclosure);

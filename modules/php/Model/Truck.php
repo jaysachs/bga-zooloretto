@@ -61,6 +61,17 @@ class Truck {
         return $result;
     }
 
+    public function takeCoins(): int {
+        $amt = 0;
+        foreach ($this->tiles as $i => $tile) {
+            if ($tile->type == TileType::COIN) {
+                $amt++;
+                $this->tiles[$i] = Tile::empty();
+            }
+        }
+        return $amt;
+    }
+
     public function dumpTiles(): void {
         if ($this->taken_by != 0) {
             throw new ModelException("Cannot dump a non-taken truck");
