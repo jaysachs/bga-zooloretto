@@ -30,7 +30,7 @@ body.mobile_version {
     --zoo-tile-size: calc(0.454 * 100vw * 0.09);
 }
 
-#zoo-game-container {
+#zoo-game {
     display : flex;
     flex-direction: column;
 

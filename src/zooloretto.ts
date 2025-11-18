@@ -199,10 +199,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           this.div({id: 'zoo-other-playerboards'},
             ... otherplayers.map((p) => this.otherPlayerDiv(p)
           )
-        ),
-        this.div({id: 'playeraid' })
         )
-      );
+      ),
+      // this.div({id: 'zoo-playeraid' })
+    );
   }
 
   private setSpanToTile(elem: HTMLElement, tile_type?: string) {
