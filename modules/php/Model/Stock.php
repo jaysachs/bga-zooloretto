@@ -36,7 +36,7 @@ class Stock {
      * @param $tiles Tile[]
      * @param $lastset Tile[]
      */
-    public function __construct(private array $primary, private array $endgame, public private(set) ?Tile $drawn) {
+    public function __construct(private array $primary, private array $endgame, public private(set) Tile $drawn) {
     }
 
     public function primaryCount(): int {
@@ -58,11 +58,11 @@ class Stock {
     }
 
     public function removeDrawnTile(): Tile {
-        if ($this->drawn == null) {
+        if ($this->drawn->isEmpty()) {
             throw new ModelException("Attmpt to remove a drawn tile but none drawn");
         }
         $tile = $this->drawn;
-        $this->drawn = null;
+        $this->drawn = Tile::empty();
         return $tile;
     }
 
@@ -71,7 +71,7 @@ class Stock {
     }
 
     public function drawTile(): Tile {
-        if ($this->drawn != null) {
+        if (!$this->drawn->isEmpty()) {
             throw new ModelException("Attmpt to draw a 2nd tile");
         }
         $tile = array_shift($this->primary);
@@ -109,7 +109,7 @@ class Stock {
         Utils::shuffle($values);
         $lastset = array_splice($values, 0, self::LASTSET_SIZE);
 
-        return new Stock($values, $lastset, null);
+        return new Stock($values, $lastset, Tile::empty());
     }
 }
 

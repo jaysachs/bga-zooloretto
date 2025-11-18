@@ -143,14 +143,6 @@ class PersistentStore {
     }
 
     public function updateStock(Stock $stock): void {
-        // FIXME: Come back and re-evaulate this.
-        // As long as all mutations go through model-owned objects, we can handle this.
-        // For now, we only handle newly-drawn tile updates.
-        if ($stock->drawn == null) {
-            // $this->setDrawn($stock->drawn);
-            // $this->globals->set('drawn', 0);
-            return;
-        }
         $id = $stock->drawn->id;
         $this->updateDrawn($stock->drawn);
         $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");

@@ -68,7 +68,7 @@ class PlayerTurn extends AbstractState
 		}
 
 		return [
-			'can_draw' => $model->getStock()->drawn == null && $model->spacesOnTrucks() > 0,
+			'can_draw' => $model->getStock()->drawn->isEmpty() && $model->spacesOnTrucks() > 0,
 			'can_purchase' => $player->canPurchaseExtension(),
 			'can_move' => false,
 			'can_buy' => false,
