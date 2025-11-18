@@ -356,7 +356,6 @@ class Model {
      * @return Placement[]
     */
     public function placeTilesInZooAndTakeTruck(int $player_id, int $truck_id, array $placements): array {
-        $truck_id = $placements[0]->truck_id;
         foreach ($placements as $placement) {
             $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
             if ($epos <> $placement->enclosure_pos) {
