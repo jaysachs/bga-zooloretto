@@ -188,9 +188,11 @@ class PersistentStore {
                                           FROM enclosures e
                                           WHERE player_id = {$player_id}");
         /** @var Enclosure[] */
-        $encl = array_map(function (array $row): Enclosure {
-            return new Enclosure(intval($row['enclosure_id']), intval($row['animal_capacity']), intval($row['stall_capacity']));
-        }, $rows);
+        $encl = [];
+        foreach ($rows as $row) {
+            $eid = intval($row['enclosure_id']);
+            $encl[$eid] = new Enclosure($eid, intval($row['animal_capacity']), intval($row['stall_capacity']));
+        }
 
         $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, t.type
                                           FROM enclosure_contents ec
