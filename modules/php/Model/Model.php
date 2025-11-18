@@ -311,7 +311,7 @@ class Model {
                                           FROM enclosure_contents e
                                           INNER JOIN tiles t
                                           ON e.tile_id = t.id
-                                          WHERE e.player_id = $player_id
+                                          WHERE e.player_id = {$player_id}
                                           ORDER BY e.enclosure_id, e.pos");
         foreach ($rows as $row) {
             $eid = intval($row['enclosure_id']);
@@ -381,7 +381,9 @@ class Model {
     }
 
     public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {
-        return PossiblePlacement::possiblePlacementFor($this->getTruck($truck_id), $this->getEnclosuresForPlayer($player_id));
+        $purchased = $this->getPlayer($player_id)->purchased_extensions;
+        $enclosures = array_slice($this->getEnclosuresForPlayer($player_id), 0, 3 + $purchased);
+        return PossiblePlacement::possiblePlacementFor($this->getTruck($truck_id), $enclosures);
     }
 
     /** @return int[] IDs of trucks returning to depot */
