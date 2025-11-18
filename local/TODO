@@ -1,0 +1,14 @@
+* Change from counters to db columns and globals for player/bank money
+
+* Taking the 2nd of 3 trucks in 2p doesn't clear the remaining truck
+
+* Choosing a truck with a coin doesn't animate the coin leaving the truck.
+
+* Need to handle (near) empty primary stock pile rendering.
+
+* Player boards are compressed because of playeraid div in flex layout.
+  - just remove the player aid
+  - also set flex: 65 flex: 35 for the actual divs
+  - generally move away from %ages for flex children.
+
+* Rendering of player card extensions: need to spread things out

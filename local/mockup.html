@@ -778,12 +778,21 @@
                               s.remove('desktop_version');
                           }
                       }
+                      function changeExtensions() {
+                          let s = document.getElementById('zoo-main-board');
+                          console.log(s);
+                          let x = Number(s.getAttribute('zoo-extensions'));
+                          console.log(x);
+                          if (x) { s.setAttribute('zoo-extensions', '0'); }
+                          else { s.setAttribute('zoo-extensions', '1'); }
+                      }
                       </script>
                     <div style="display: flex;">
                       <span>tile size</span>
                       <button class="bgabutton bgabutton_blue" type="button" onclick="togglePlayerBoards()">Flip playerboards</button>
                       <button class="bgabutton bgabutton_blue" type="button" onclick="changeSize(0.5)">Increase</button>
                       <button class="bgabutton bgabutton_blue" type="button" onclick="changeSize(-0.5)">Decrease</button>
+                      <button class="bgabutton bgabutton_blue" type="button" onclick="changeExtensions()">Extensions</button>
                       <br></br>
                     </div>
 

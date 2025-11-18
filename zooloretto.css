@@ -143,6 +143,7 @@ body.mobile_version {
 
 .zoo-board[zoo-extensions="1"] {
     background-image: url('img/Board1.png');
+    transition: background 1.5s ease-in-out;
 }
 
 #zoo-game.zoo-2p .zoo-board {
@@ -155,10 +156,12 @@ body.mobile_version {
 
 #zoo-game.zoo-2p .zoo-board[zoo-extensions="1"] {
     background-image: url('img/Board21.png');
+    transition: background 1.5s ease-in-out;
 }
 
 #zoo-game.zoo-2p .zoo-board[zoo-extensions="2"] {
     background-image: url('img/Board22.png')
+    transition: background 1.5s ease-in-out;
 }
 
 .moved {
