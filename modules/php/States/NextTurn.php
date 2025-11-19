@@ -48,12 +48,25 @@ class NextTurn extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel();
-        $truck_ids_returned = $model->prepareNextTurn();
+        $truck_stuff = $model->prepareNextTurn();
+        $dumped = [];
+        $returned = [];
+        foreach ($truck_stuff as $tid => $x) {
+            if ($x == null) {
+                $returned[] = $tid;
+            } else {
+                $dumped[] = [
+                    'truck_id' => $tid,
+                    'dumped_pos' => $x,
+                ];
+            }
+        }
         $this->notify->all(
             "EndTurn",
             clienttranslate('Turn is over... starting another turn.'),
             [
-                'truck_ids_returned' => $truck_ids_returned,
+                'truck_dumped_pos' => $dumped,
+                'truck_ids_returned' => $returned,
                 'last_round' => $model->getStock()->inLastRound(),
             ]
         );

@@ -53,6 +53,15 @@ class Player {
         $this->receiveMoney(self::DISCARD_COST);
     }
 
+    public function returnTruck(): int {
+        if (!$this->truck_taken) {
+            throw new ModelException("No truck taken by player $this->id");
+        }
+        $t = $this->truck_taken;
+        $this->truck_taken = 0;
+        return $t;
+    }
+
     public function takeTruck(int $truck_id): void {
         if ($this->truck_taken) {
             throw new ModelException("Truck already taken by player $this->id");

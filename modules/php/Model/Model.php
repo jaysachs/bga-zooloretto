@@ -119,7 +119,7 @@ class Model {
     /** @var Player[] */
     private ?array $_players = [];
 
-    /** @returns Player[] */
+    /** @return Player[] */
     public function getPlayers(): array {
         if ($this->_players == null) {
             $this->_players = $this->ps->retrievePlayers();
@@ -261,31 +261,28 @@ class Model {
         );
     }
 
-    /** @return int[] IDs of trucks returning to depot */
+    /** @return array<int,array<int>> keyed by truck ID; if null, truck is returned, otherwise it's the positions dumped. */
     public function prepareNextTurn(): array {
-        $returning_truck_ids = [];
-        foreach ($this->getPlayers() as $player_id => $player) {
-            $tid = $player->truck_taken;
-            if ($tid > 0) {
-                $returning_truck_ids[] = $tid;
-                $pid = $this->getTruck($tid)->returnTruck();
-                if ($pid <> $player_id) {
-                    throw new ModelException("Truck {$tid} owned by {$pid} but {$player_id} owned it too");
-                }
-            }
-        }
+        $players = $this->getPlayers();
+        $result = [];
         foreach ($this->getTrucks() as $truck) {
-            if ($truck->taken_by > 0) {
-                throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
+            $pid = $truck->taken_by;
+            if ($pid > 0) {
+                $truck->returnTruck();
+                $taken = $players[$pid]->returnTruck();
+                if ($taken != $truck->id) {
+                    throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
+                }
+                $result[$truck->id] = null;
             }
-            foreach ($truck->getAllTiles() as $tile) {
-                $truck->dumpTiles();
+            else {
+                $result[$truck->id] = $truck->dumpTiles();
             }
         }
         foreach ($this->getTrucks() as $truck) {
             $this->updateTruck($truck);
         }
-        return $returning_truck_ids;
+        return $result;
     }
 
     public function purchaseExtension(int $player_id): Player {

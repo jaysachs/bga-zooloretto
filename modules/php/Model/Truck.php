@@ -83,15 +83,19 @@ class Truck {
         return $amt;
     }
 
-    public function dumpTiles(): void {
+    /** @return int[] the positions emptied. */
+    public function dumpTiles(): array {
         if ($this->taken_by != 0) {
             throw new ModelException("Cannot dump a non-taken truck");
         }
-        foreach ($this->tiles as $tile) {
-            if (!$tile->type->isEmpty() && !$tile->type->isBlock()) {
-                $tile = Tile::empty();
+        $p = [];
+        for ($i = 0; $i < count($this->tiles); $i++) {
+            if (!$this->tiles[$i]->type->isEmpty() && !$this->tiles[$i]->type->isBlock()) {
+                $this->tiles[$i] = Tile::empty();
+                $p[] = $i + 1;
             }
         }
+        return $p;
     }
 
     public function returnTruck(): int {

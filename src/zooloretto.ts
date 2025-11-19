@@ -700,12 +700,28 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.animationManager.playSequentially(anims);
   }
 
-  private async notif_EndTurn(args: { truck_ids_returned: number[], last_round: boolean }) {
-    this.animationManager.playParallel(
-      args.truck_ids_returned.map((tid) => () =>
-        this.animationManager.slideAndAttach(this.truckElem(tid), $(IDS.depotSpace(tid)), {})
+  private async notif_EndTurn(args: {
+    truck_ids_returned: number[], l
+    truck_dumped_pos: { truck_id: number, dumped_pos: number[] }[],
+    last_round: boolean }) {
+
+    let anims: (() => Promise<any>)[] =
+        args.truck_ids_returned.map(tid => () =>
+          this.animationManager.slideAndAttach(this.truckElem(tid), $(IDS.depotSpace(tid)), {})
+    );
+    args.truck_dumped_pos.forEach(t =>
+      t.dumped_pos.forEach(p =>
+        anims.push(() =>
+          this.animationManager.slideOutAndDestroy(
+            this.truckSpaceTile({truck_id: t.truck_id, truck_pos: p})!,
+            undefined,
+            {}
+            // $('overall_footer')
+          )
+        )
       )
     );
+    this.animationManager.playSequentially(anims);
     if (args.last_round) {
       (this as any).addLastTurnBanner(_('This is the last turn!'));
     }
