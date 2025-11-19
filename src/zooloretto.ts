@@ -621,7 +621,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             this.game.bgaPerformAction('actTakeTruckAndPlaceTiles', {
               truck_id: truck_id,
               placed_tiles: JSON.stringify(this.placedTiles),
-            }).then(() => this.game.animationManager.slideAndAttach(
+            }).then(() => this.cleanup())
+              .then(() => this.game.animationManager.slideAndAttach(
                 this.game.truckElem(truck_id),
                 $(IDS.takenTruck(this.game.player_id)), {}))
               .then(() => this.cleanup())
