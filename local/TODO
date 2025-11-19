@@ -1,14 +1,21 @@
-* Change from counters to db columns and globals for player/bank money
+* Choosing a truck with a coin doesn't animate the coin leaving the
+  truck.
 
-* Taking the 2nd of 3 trucks in 2p doesn't clear the remaining truck
-
-* Choosing a truck with a coin doesn't animate the coin leaving the truck.
+* Need to empty (and animate emptying) unchosen truck (2p).
 
 * Need to handle (near) empty primary stock pile rendering.
 
 * Player boards are compressed because of playeraid div in flex layout.
   - just remove the player aid
   - also set flex: 65 flex: 35 for the actual divs
-  - generally move away from %ages for flex children.
+* generally move away from %ages for flex children.
 
-* Rendering of player card extensions: need to spread things out
+* How to represent barns -- as an "infinite supply" extension with
+  animals/stalls mixed, or as its own object? If it's its own thing,
+  then need a way to specify it as a target in the "moves" -- either
+  enclosure_id 0 means "barn" in at the ajax call boundary, or we have
+  an explicit "in barn" option.
+
+* Don't insert enclosures until they're purchased. Remove the column
+  from the player table for purchased extensions, do this by what is
+  in the extensions table.
