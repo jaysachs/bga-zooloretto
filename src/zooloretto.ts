@@ -714,9 +714,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         anims.push(() =>
           this.animationManager.slideOutAndDestroy(
             this.truckSpaceTile({truck_id: t.truck_id, truck_pos: p})!,
-            undefined,
+            $('overall-footer'),
             {}
-            // $('overall_footer')
           )
         )
       )
