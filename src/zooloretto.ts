@@ -7,6 +7,16 @@ interface ZPlayer extends Player {
   purchased_extensions: number;
 }
 
+interface Placement {
+  truck_pos: number;
+  placement: EnclosurePlacement | 'coin';
+}
+
+interface EnclosurePlacement {
+  enclosure_id: number;
+  enclosure_pos: number;
+}
+
 interface TruckLocation{ truck_id: number, truck_pos: number };
 interface PlaceDrawnTileArgs { available_spaces: TruckLocation[] };
 
@@ -622,10 +632,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
               truck_id: truck_id,
               placed_tiles: JSON.stringify(this.placedTiles),
             }).then(() => this.cleanup())
-              .then(() => this.game.animationManager.slideAndAttach(
-                this.game.truckElem(truck_id),
-                $(IDS.takenTruck(this.game.player_id)), {}))
-              .then(() => this.cleanup())
+              // // FIXME:
+              // // .then(() => slide coins off )
+              // .then(() => this.game.animationManager.slideAndAttach(
+              //   this.game.truckElem(truck_id),
+              //   $(IDS.takenTruck(this.game.player_id)), {}))
+              // .then(() => this.cleanup())
           }
         )
       }
@@ -660,22 +672,32 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }(this);
 
-  private async notif_TakeTruckAndPlaceTiles(args: { player_id: number, truck_id: number, placements: {
-    truck_pos: number;
-    enclosure_id: number;
-    enclosure_pos: number;
-  }[] }) {
-    // FIXME: need to handle coins in truck
-    this.animationManager.playParallel(
-      args.placements.map((p) => () => this.animationManager.slideAndAttach(
-        this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
-        this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: p.enclosure_id, enclosure_pos: p.enclosure_pos }),
-        {}),
-        args.placements))
-        .then(() => this.animationManager.slideAndAttach(
-          this.truckElem(args.truck_id),
-          $(IDS.takenTruck(args.player_id)), {}))
-
+  private async notif_TakeTruckAndPlaceTiles(args: {
+    player_id: number,
+    truck_id: number,
+    placements: Placement[]
+  }) {
+    let anims : (() => Promise<any>)[] = [];
+    args.placements.forEach( (p) => {
+      let pl = p.placement;
+      if (pl == 'coin') {
+        anims.push(() => this.animationManager.slideOutAndDestroy(
+          this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+          this.getPlayerPanelElement(args.player_id),
+          {}
+        ));
+      } else if (args.player_id != this.player_id) {
+        anims.push(() => this.animationManager.slideAndAttach(
+          this.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+          this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: pl.enclosure_id, enclosure_pos: pl.enclosure_pos }),
+          {})
+        );
+      }
+    });
+    anims.push(() => this.animationManager.slideAndAttach(
+        this.truckElem(args.truck_id),
+        $(IDS.takenTruck(args.player_id)), {}));
+    this.animationManager.playSequentially(anims);
   }
 
   private async notif_EndTurn(args: { truck_ids_returned: number[], last_round: boolean }) {

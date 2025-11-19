@@ -61,6 +61,17 @@ class Truck {
         return $result;
     }
 
+    /** return int[] */
+    public function coinPositions(): array {
+        $result = [];
+        for ($pos = 0; $pos < count($this->tiles); $pos++) {
+            if ($this->tiles[$pos]->type == TileType::COIN) {
+                $result[] = $pos + 1;
+            }
+        }
+        return $result;
+    }
+
     public function takeCoins(): int {
         $amt = 0;
         foreach ($this->tiles as $i => $tile) {

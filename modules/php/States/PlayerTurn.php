@@ -84,6 +84,11 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
 		$model = $this->createModel();
+		$truck = $model->getTruck($truck_id);
+
+		// FIXME: this should be returned as a structure from the model method. Or as a kind of Placement.
+		$coins = $truck->coinPositions();
+
 		$placements = $model->placeTilesInZooAndTakeTruck($active_player_id, $truck_id,
 			array_map(fn ($pt) => new Placement(
 				$truck_id,
@@ -91,15 +96,27 @@ class PlayerTurn extends AbstractState
 				intval($pt['enclosure_id']),
 				intval($pt['enclosure_pos'])),
 			$placed_tiles));
-
+		$p = [];
+		foreach ($coins as $coin) {
+			$p[$coin] = [
+				'truck_pos' => $coin,
+				'placement' => 'coin',
+			];
+		}
+		foreach ($placements as $pl) {
+			$p[$pl->truck_pos] = [
+			'truck_pos' => $pl->truck_pos,
+			'placement' => [
+				'enclosure_id' => $pl-> enclosure_id,
+				'enclosure_pos' => $pl->enclosure_pos,
+			],
+		];
+		}
+		$p = array_values($p);
 		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} place tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
-		  'placements' => array_map(fn ($p) => [
-			'truck_pos' => $p->truck_pos,
-			'enclosure_id' => $p-> enclosure_id,
-			'enclosure_pos' => $p->enclosure_pos,
-		  ], $placements),
+		  'placements' => $p,
 		]);
 		return NextPlayer::class;
 	}
