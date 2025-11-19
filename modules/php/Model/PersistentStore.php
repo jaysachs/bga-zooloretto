@@ -97,19 +97,21 @@ class PersistentStore {
     /** @returns Player[] */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, e.purchased_extensions, t.id AS truck_taken
+        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, e.enclosure_count, t.id AS truck_taken
                                           FROM player AS p
                                           LEFT OUTER JOIN
-                                            (SELECT COUNT(*) as purchased_extensions, player_id FROM enclosures GROUP BY player_id) AS e
+                                            (SELECT COUNT(*) as enclosure_count, player_id FROM enclosures GROUP BY player_id) AS e
                                           ON p.player_id = e.player_id
                                           LEFT OUTER JOIN trucks AS t
                                           ON p.player_id = t.taken_by");
         $numPlayers = count($data);
+        // FIXME: this logic doesn't belong here
         $extensionLimit = $numPlayers == 2 ? 2 : 1;
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
             $taken = intval($row["truck_taken"]);
-            $purchasedExtensions = intval($row["purchased_extensions"]);
+            // FIXME: this logic doesn't belong here
+            $purchasedExtensions = intval($row["enclosure_count"]) - 3;
             $players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $extensionLimit, $purchasedExtensions, $taken);
         }
         return $players;

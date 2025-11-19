@@ -30,36 +30,19 @@ namespace Bga\Games\zooloretto\Model;
 use \Bga\Games\zooloretto\Utils;
 
 class Enclosure {
+    /** @var Tile[] */
+    private array $contents = [];
+    private int $total_capacity;
+
     /**
      * @param int $id
-     * @param int $capacity
-     * @param Tile[] $animals
-     * @param Tile[] $stalls
+     * @param int $animal_capacity
+     * @param int $stall_capacity
      */
-    public function __construct(public readonly int $id, readonly int $animal_capacity, readonly int $stall_capacity , public array $animals = [], public array $stalls = []) {
-        while (count($this->animals) < $animal_capacity) {
-            $this->animals[] = Tile::empty();
-        }
-        while (count($this->stalls) < $stall_capacity) {
-            $this->stalls[] = Tile::empty();
-        }
-        foreach ($this->stalls as $spot) {
-            if ($spot == null) {
-                throw new ModelException("null tiles not allowed in Enclosure stalls");
-            }
-            if (!$spot->isEmpty() && !$spot->type->isStall()) {
-                $t = $spot->type->value;
-                throw new ModelException("Enclosure $id should not contain non-stall tile id $spot->id of type $t");
-            }
-        }
-        foreach ($this->animals as $spot) {
-            if ($spot == null) {
-                throw new ModelException("null tiles not allowed in Enclosure animals");
-            }
-            if (!$spot->isEmpty() && !$spot->type->isAnimal()) {
-                $t = $spot->type->value;
-                throw new ModelException("Enclosure $id should not contain non-animal tile id $spot->id of type $t");
-            }
+    public function __construct(public readonly int $id, readonly int $animal_capacity, readonly int $stall_capacity) {
+        $this->total_capacity = $animal_capacity + $stall_capacity;
+        for ($pos = 1; $pos <= $this->total_capacity; $pos++) {
+            $this->contents[$pos] = Tile::empty();
         }
     }
 
@@ -74,62 +57,42 @@ class Enclosure {
     }
 
     private function availableStallPos(): int {
-        // FIXME: this doesn't work for the barn.
-        foreach ($this->stalls as $i => $t) {
-            if ($t->isEmpty()) {
-                return count($this->animals) + $i+1;
+        for ($pos = $this->animal_capacity + 1; $pos <= $this->total_capacity; $pos++) {
+            if ($this->contents[$pos]->isEmpty()) {
+                return $pos;
             }
         }
         return 0;
     }
 
     private function availableAnimalPos(TileType $type): int {
-        foreach ($this->animals as $i => $t) {
-            if ($t->isEmpty()) {
-                return $i+1;
-            } else if (!$t->type->isSameSpecies(($type))) {
-                // FIXME: unless we're the barn.
-                return 0;
+        for ($pos = 1; $pos <= $this->animal_capacity; $pos++) {
+            if ($this->contents[$pos]->isEmpty()) {
+                return $pos;
             }
         }
         return 0;
     }
 
-    public function takeTileAt($pos): Tile {
-        if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
-            if ($pos <= count($this->animals)) {
-                $t = $this->animals[$pos-1];
-                $this->animals[$pos-1] = Tile::empty();
-                return $t;
-            }
-            $t = $this->stalls[$pos - 1 - count($this->animals)];
-            $this->stalls[$pos - 1 - count($this->animals)] = Tile::empty();
+    public function takeTileAt(int $pos): Tile {
+        if ($pos > 0 && $pos <= $this->total_capacity) {
+            $t = $this->contents[$pos];
+            $this->contents[$pos] = Tile::empty();
             return $t;
         }
-        throw new ModelException("No position $pos in encluse $this->id");
+        throw new ModelException("No position $pos in enclosure $this->id");
     }
 
     public function tileAt(int $pos) {
-        if ($pos > 0 && $pos <= count($this->animals) + count($this->stalls)) {
-            if ($pos <= count($this->animals)) {
-                return $this->animals[$pos-1];
-            }
-            return $this->stalls[$pos - 1 - count($this->animals)];
+        if ($pos > 0 && $pos <= $this->total_capacity) {
+            return $this->contents[$pos];
         }
         throw new ModelException("No position $pos in encluse $this->id");
     }
 
     /** @return Tile[]  where key is position */
     public function allContents(): array {
-        $result = [];
-        $pos = 1;
-        foreach ($this->animals as $t) {
-            $result[$pos++] = $t;
-        }
-        foreach ($this->stalls as $t) {
-            $result[$pos++] = $t;
-        }
-        return $result;
+        return $this->contents;
     }
 
     /**
@@ -144,35 +107,32 @@ class Enclosure {
         $t = $tile->type->value;
         if ($tile->type->isAnimal()) {
             if ($pos == 0) {
-                while ($pos < count($this->animals) && !$this->animals[$pos]->isEmpty()) {
+                $pos = 1;
+                while ($pos <= $this->animal_capacity && !$this->contents[$pos]->isEmpty()) {
                     $pos++;
                 }
-                $pos++;
             }
-            if ($pos < 1 || $pos > count($this->animals)) {
+            if ($pos > $this->animal_capacity) {
                 throw new ModelException("Not position $pos for animals in encluse $this->id");
             }
-            $p1 = $pos - 1;
-            if ($this->animals[$p1]->isEmpty()) {
-                $this->animals[$p1] = $tile;
+            if ($this->contents[$pos]->isEmpty()) {
+                $this->contents[$pos] = $tile;
                 return $pos;
             }
             throw new ModelException("Position $pos is not open in enclosure $this->id for animal $t");
         }
         if ($tile->type->isStall()) {
             if ($pos == 0) {
-                while ($pos < count($this->stalls) && !$this->stalls[$pos]->isEmpty()) {
+                $pos = $this->animal_capacity + 1;
+                while ($pos <= count($this->contents) && !$this->contents[$pos]->isEmpty()) {
                     $pos++;
                 }
-                $pos++;
-                $pos += count($this->animals);
             }
-            $p2 = $pos - count($this->animals) - 1;
-            if ($p2 < 0 || $p2 >= count($this->stalls)) {
-                throw new ModelException("Not position $pos ($p2) for stalls in encluse $this->id");
+            if ($pos > $this->total_capacity) {
+                throw new ModelException("Not position $pos for stalls in encluse $this->id");
             }
-            if ($this->stalls[$p2]->isEmpty()) {
-                $this->stalls[$p2] = $tile;
+            if ($this->contents[$pos]->isEmpty()) {
+                $this->contents[$pos] = $tile;
                 return $pos;
             }
             throw new ModelException("Position $pos is not open in enclosure $this->id for stall $t");
@@ -182,8 +142,7 @@ class Enclosure {
 
     public function __toString(): string
     {
-        $anims = Utils::arrayToString($this->animals);
-        $stalls = Utils::arrayToString($this->stalls);;
-        return "Enclosure(id=$this->id,animals=$anims,stalls=$stalls)";
+        $contents = Utils::arrayToString($this->contents);
+        return "Enclosure(id=$this->id,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
     }
 }
