@@ -119,7 +119,7 @@ class PersistentStore {
         $row = $this->db->getObjectList("SELECT t.id AS tile_id, t.type AS type, drawn_tile
                                          FROM tiles t
                                          INNER JOIN zglobals g ON t.id = g.drawn_tile");
-        $drawn = null;
+        $drawn = Tile::empty();
         if ($row <> null && count($row) > 0) {
             $drawn = $tileFromRow($row[0]);
         }
