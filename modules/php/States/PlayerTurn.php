@@ -113,6 +113,7 @@ class PlayerTurn extends AbstractState
 		];
 		}
 		$p = array_values($p);
+		// FIXME: give more details about placements in log
 		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} place tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
