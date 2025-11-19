@@ -174,7 +174,7 @@ class Model {
 
     public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {
         $stock = $this->getStock();
-        if ($stock->drawn == null) {
+        if ($stock->drawn->isEmpty()) {
             throw new ModelException("No tile drawn");
         }
         $truck = $this->getTruck($truck_id);
@@ -285,7 +285,6 @@ class Model {
         return $returning_truck_ids;
     }
 
-    /** @return Player total number of purchased extensions  */
     public function purchaseExtension(int $player_id): Player {
         $player = $this->getPlayer($player_id);
         $player->purchaseExtension();
