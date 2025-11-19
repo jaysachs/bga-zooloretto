@@ -32,7 +32,7 @@ class Player {
         public readonly int $id,
         public readonly int $no,
         public private(set) int $money,
-        public private(set) int $available_extensions,
+        private int $extension_limit,
         public private(set) int $purchased_extensions,
         public private(set) int $truck_taken) {}
 
@@ -42,7 +42,7 @@ class Player {
     private const DISCARD_COST = 2;
 
     public function canPurchaseExtension(): bool {
-        return $this->available_extensions > 0 && $this->money >= SELF::ENCLOSURE_COST;
+        return $this->purchased_extensions < $this->extension_limit && $this->money >= SELF::ENCLOSURE_COST;
     }
 
     public function moneySpent(): int {
@@ -80,11 +80,10 @@ class Player {
 		if ($this->money < self::ENCLOSURE_COST) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}
-		if ($this->available_extensions <= 0) {
+		if ($this->purchased_extensions >= $this->extension_limit) {
 			throw new ModelException("No space for new enclosures");
 		}
         $this->payMoney(self::ENCLOSURE_COST);
-        $this->available_extensions--;
         $this->purchased_extensions++;
     }
 }

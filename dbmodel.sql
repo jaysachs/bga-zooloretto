@@ -84,5 +84,3 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
 
 -- For players, we need (a) money and (b) how many extensions were bought
 ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
--- FIXME: instead of a column here, just count enclosures in that table
-ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;

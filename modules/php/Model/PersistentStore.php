@@ -87,7 +87,7 @@ class PersistentStore {
     }
 
     public function updatePlayer(Player $player): void {
-        $this->db->execute("UPDATE player SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions} WHERE player_id = {$player->id}");
+        $this->db->execute("UPDATE player SET money = {$player->money} WHERE player_id = {$player->id}");
     }
 
     public function updateBankMoney(int $money): void {
@@ -96,20 +96,22 @@ class PersistentStore {
 
     /** @returns Player[] */
     public function retrievePlayers(): array {
-            $players = [];
-            $data = $this->db->getObjectList("SELECT player_id, player_no, money, purchased_extensions, t.id AS taken_by
-                                              FROM player AS p
-                                              LEFT OUTER JOIN trucks AS t
-                                              ON p.player_id = t.taken_by");
-            $numPlayers = count($data);
-            $potentialExtensions = $numPlayers == 2 ? 2 : 1;
-            foreach ($data as $row) {
-                $id = intval($row["player_id"]);
-                $taken = intval($row["taken_by"]);
-                $purchasedExtensions = intval($row["purchased_extensions"]);
-                $availableExtensions = $potentialExtensions - $purchasedExtensions;
-                $players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $availableExtensions, $purchasedExtensions, $taken);
-            }
+        $players = [];
+        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, e.purchased_extensions, t.id AS truck_taken
+                                          FROM player AS p
+                                          LEFT OUTER JOIN
+                                            (SELECT COUNT(*) as purchased_extensions, player_id FROM enclosures GROUP BY player_id) AS e
+                                          ON p.player_id = e.player_id
+                                          LEFT OUTER JOIN trucks AS t
+                                          ON p.player_id = t.taken_by");
+        $numPlayers = count($data);
+        $extensionLimit = $numPlayers == 2 ? 2 : 1;
+        foreach ($data as $row) {
+            $id = intval($row["player_id"]);
+            $taken = intval($row["truck_taken"]);
+            $purchasedExtensions = intval($row["purchased_extensions"]);
+            $players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $extensionLimit, $purchasedExtensions, $taken);
+        }
         return $players;
     }
 

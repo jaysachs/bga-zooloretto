@@ -86,11 +86,13 @@ class Model {
             1 => new Enclosure(1, 5, 1),
             2 => new Enclosure(2, 4, 2),
             3 => new Enclosure(3, 6, 1),
-            4 => new Enclosure(4, 5, 1),
         ];
-        if ($player_count == 2) {
-            $encl[5] = new Enclosure(5, 5, 1);
-        }
+        // FIXME: these need to get inserted only when purchased.
+        //     4 => new Enclosure(4, 5, 1),
+        // ];
+        // if ($player_count == 2) {
+        //     $encl[5] = new Enclosure(5, 5, 1);
+        // }
         foreach ($player_ids as $player_id) {
             $this->ps->insertEnclosures($player_id, $encl);
         }
@@ -253,9 +255,10 @@ class Model {
     }
 
     public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {
-        $purchased = $this->getPlayer($player_id)->purchased_extensions;
-        $enclosures = array_slice($this->getEnclosuresForPlayer($player_id), 0, 3 + $purchased);
-        return PossiblePlacement::possiblePlacementFor($this->getTruck($truck_id), $enclosures);
+        return PossiblePlacement::possiblePlacementFor(
+            $this->getTruck($truck_id),
+            $this->getEnclosuresForPlayer($player_id)
+        );
     }
 
     /** @return int[] IDs of trucks returning to depot */
