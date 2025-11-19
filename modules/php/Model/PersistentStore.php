@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-use  Bga\GameFramework\Db\Globals;
+use \Bga\GameFramework\Db\Globals;
 use \Bga\GameFramework\Table;
 
 
@@ -39,7 +39,6 @@ use \Bga\GameFramework\Table;
 class PersistentStore {
 
     public function __construct(private Db $db = new DefaultDb()) {}
-    // public function __construct(private Db $db, private Globals $globals) {}
 
     /** @param Enclosure[] $enclosures */
     public function insertEnclosures(int $player_id, array $enclosures): void {
@@ -48,7 +47,9 @@ class PersistentStore {
         };
         $this->db->execute("INSERT INTO enclosures (player_id, enclosure_id, animal_capacity, stall_capacity) VALUES "
                             . implode(',', array_map($make, $enclosures)));
-        // FIXME: insert "empty" contents for all stalls as well. that will facilite updates like swaps
+        // See note blow. We could insert "empty" contents for all stalls, which would facilite updates like swaps.
+        // However, barns are a kind of enclosure and don't have a fixed capacity so that's not possible.
+        // Better to be consistent.
     }
 
     /** @param $tilepool Tile[] */
@@ -86,23 +87,11 @@ class PersistentStore {
     }
 
     public function updatePlayer(Player $player): void {
-        // Extra player info
         $this->db->execute("UPDATE player SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions} WHERE player_id = {$player->id}");
     }
 
     public function updateBankMoney(int $money): void {
         $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
-        // $this->globals->set('drawn', $tile->id);
-    }
-
-    public function updateDrawn(Tile $tile): void {
-        $this->db->execute("UPDATE zglobals SET drawn_tile = {$tile->id}");
-        // $this->globals->set('drawn', $tile->id);
-    }
-
-    public function setBankMoney(int $money): void {
-        $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
-        // $this->globals->set('bank_money', $money);
     }
 
     /** @returns Player[] */
@@ -144,7 +133,7 @@ class PersistentStore {
 
     public function updateStock(Stock $stock): void {
         $id = $stock->drawn->id;
-        $this->updateDrawn($stock->drawn);
+        $this->db->execute("UPDATE zglobals SET drawn_tile = {$id}");
         $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");
     }
 
@@ -213,6 +202,9 @@ class PersistentStore {
     }
 
     public function updateEnclosure(int $player_id, Enclosure $enclosure): void {
+        // This two-step seems inefficient, when we could pre-seed the contents with "empty".
+        // However, we'd still need more complexity to handle the barns, which don't have a fixed
+        // capacity.
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
         $values = [];
         foreach ($enclosure->allContents() as $pos => $t) {
