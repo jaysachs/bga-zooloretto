@@ -160,7 +160,7 @@ body.mobile_version {
 }
 
 #zoo-game.zoo-2p .zoo-board[zoo-extensions="2"] {
-    background-image: url('img/Board22.png')
+    background-image: url('img/Board22.png');
     transition: background 1.5s ease-in-out;
 }
 
@@ -671,6 +671,29 @@ playerboard widths (non-mobile): 1174
 #zoo-game.zoo-debug [zoo-enclosure="3"] .zoo-cell {  background-color: yellow; }
 #zoo-game.zoo-debug [zoo-enclosure="4"] .zoo-cell {  background-color: purple; }
 #zoo-game.zoo-debug [zoo-enclosure="5"] .zoo-cell {  background-color: red; }
+
+
+#zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] {
+    position: relative;
+    width: 30%;
+    height: 50%;
+    top: 50%;
+    left: 37%;
+    display : grid;
+    column-gap: 4px;
+    row-gap: 4px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+#zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] .zoo-cell {
+    display: inline-block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    background-color: lightblue;
+    opacity: 60%;
+    position: static;
+}
 
 /* FIXME: these depend on tile size! */
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
