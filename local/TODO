@@ -2,12 +2,4 @@
 
 * generally move away from %ages for flex children.
 
-* How to represent barns -- as an "infinite supply" extension with
-  animals/stalls mixed, or as its own object? If it's its own thing,
-  then need a way to specify it as a target in the "moves" -- either
-  enclosure_id 0 means "barn" in at the ajax call boundary, or we have
-  an explicit "in barn" option.
-
-* Don't insert enclosures until they're purchased. Remove the column
-  from the player table for purchased extensions, do this by what is
-  in the extensions table.
+* Fix up the "selected" ::after CSS styling. Doesn't work in all cases
