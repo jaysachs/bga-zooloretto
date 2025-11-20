@@ -537,7 +537,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     endgame_stock_size: number }) {
     // FIXME: need to handle stock refresh -- need to send pile sizes in the notif args
     if (this.player_id != args.player_id) {
-      return this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {})
+      await this.animationManager.slideAndAttach(this.topPileElem()!, this.truckSpaceElem(args), {})
         .then(() => this.addStockTile());
     } else {
       this.addStockTile();
@@ -697,7 +697,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     anims.push(() => this.animationManager.slideAndAttach(
         this.truckElem(args.truck_id),
         $(IDS.takenTruck(args.player_id)), {}));
-    this.animationManager.playSequentially(anims);
+    await this.animationManager.playSequentially(anims);
   }
 
   private async notif_EndTurn(args: {
@@ -718,10 +718,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       anims.push(() => this.animationManager.slideAndAttach(this.truckElem(tid), $(IDS.depotSpace(tid)), {}))
     );
 
-    this.animationManager.playSequentially(anims);
-    if (args.last_round) {
-      (this as any).addLastTurnBanner(_('This is the last turn!'));
-    }
+    await this.animationManager.playSequentially(anims).then( () => {
+      if (args.last_round) {
+        (this as any).addLastTurnBanner(_('This is the last turn!'));
+      }
+    })
   }
 
   private async notif_debugReset(): Promise<void> {
