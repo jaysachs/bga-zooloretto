@@ -40,18 +40,18 @@ function a2s(string $nesting, mixed $a): string {
     }
 }
 
-$t = new Truck(1, [new Tile(1, TileType::CAMEL), new Tile(2, TileType::BARROW), new Tile(0, TileType::CAMEL_FEMALE)]);
+// $t = new Truck(1, [new Tile(1, TileType::CAMEL), new Tile(2, TileType::BARROW), new Tile(0, TileType::CAMEL_FEMALE)]);
+$t = new Truck(1, [new Tile(1, TileType::CAMEL), new Tile(2, TileType::KIOSK), Tile::empty()]);
 
 $e = [];
-$e[] = new Enclosure(99, 99, 99); // the barn
-$e[] = new Enclosure(10, 2, 2);
-$e[] = new Enclosure(11, 1, 1);
+$e[] = Enclosure::barn();
+$e[] = Enclosure::create(1, 2, 2);
 
 $pp = PossiblePlacement::possiblePlacementFor($t, $e);
 echo a2s('', $pp->serialize()), "\n";
 
-$t = new Truck(1, [new Tile(1, TileType::COIN), new Tile(2, TileType::COIN), new Tile(0, TileType::BLOCK)]);
+// $t = new Truck(1, [new Tile(1, TileType::COIN), new Tile(2, TileType::COIN), new Tile(0, TileType::BLOCK)]);
 
-$pp = PossiblePlacement::possiblePlacementFor($t, $e);
-var_dump($pp->serialize());
-echo a2s('', $pp->serialize()), "\n";
+// $pp = PossiblePlacement::possiblePlacementFor($t, $e);
+// var_dump($pp->serialize());
+// echo a2s('', $pp->serialize()), "\n";

@@ -83,9 +83,11 @@ class Model {
 
         /** @var Enclosure[] */
         $encl = [
-            1 => new Enclosure(1, 5, 1),
-            2 => new Enclosure(2, 4, 2),
-            3 => new Enclosure(3, 6, 1),
+            // FIXME: rework so IDs are not repeated.
+            0 => Enclosure::barn(),
+            1 => Enclosure::create(1, 5, 1),
+            2 => Enclosure::create(2, 4, 2),
+            3 => Enclosure::create(3, 6, 1),
         ];
         // FIXME: these need to get inserted only when purchased.
         //     4 => new Enclosure(4, 5, 1),

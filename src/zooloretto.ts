@@ -172,6 +172,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let elem = this
       .div({ id: board_id, classes: [ 'zoo-board', zoomClass ]},
         this.div({ id: `zoo-barn-${pno}`, classes: 'zoo-barn' }),
+        enclosure(0, 20),
         enclosure(1, 6),
         enclosure(2, 6),
         enclosure(3, 7),
@@ -311,7 +312,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     for (let penc of this.gamedatas.player_enclosures) {
       penc.player_id;
       for (let enc of penc.enclosures) {
-        enc.enclosure_id;
         for (let es of enc.spaces) {
           let span = this.makeTileSpan(es.tile_type);
           if (span) {

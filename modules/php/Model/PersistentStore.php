@@ -184,7 +184,11 @@ class PersistentStore {
         $encl = [];
         foreach ($rows as $row) {
             $eid = intval($row['enclosure_id']);
-            $encl[$eid] = new Enclosure($eid, intval($row['animal_capacity']), intval($row['stall_capacity']));
+            if ($eid == 0) {
+                $encl[$eid] = Enclosure::barn();
+            } else {
+                $encl[$eid] = Enclosure::create($eid, intval($row['animal_capacity']), intval($row['stall_capacity']));
+            }
         }
 
         $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, t.type
@@ -212,7 +216,12 @@ class PersistentStore {
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
         $values = [];
         foreach ($enclosure->allContents() as $pos => $t) {
-            $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
+            if (! $t->isEmpty()) {
+                $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
+            }
+        }
+        if (count($values) == 0) {
+            return;
         }
         $sql = 'INSERT INTO enclosure_contents (player_id, enclosure_id, pos, tile_id) VALUES '
              . implode(',', $values);
