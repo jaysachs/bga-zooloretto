@@ -111,7 +111,8 @@ class PersistentStore {
             $id = intval($row["player_id"]);
             $taken = intval($row["truck_taken"]);
             // FIXME: this logic doesn't belong here
-            $purchasedExtensions = intval($row["enclosure_count"]) - 3;
+            // 4 because the barn is an enclosure
+            $purchasedExtensions = intval($row["enclosure_count"]) - 4;
             $players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $extensionLimit, $purchasedExtensions, $taken);
         }
         return $players;

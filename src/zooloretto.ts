@@ -46,6 +46,8 @@ class IDS {
   static enclosure(player_no: number, enclosure_id: number): string { return `enclosure-${player_no}-${enclosure_id}`; }
   static enclosureSpace(player_no: number, enclosure_id: number, pos: number): string { return `enclosure-${player_no}-${enclosure_id}-${pos}`; }
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
+  static moneyCounter(player_id: number): string { return `playermoney-counter-${player_id}` };
+
 }
 
 class CSS {
@@ -274,13 +276,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private setupPlayerPanel(player: ZPlayer): void {
     const playerId = player.player_id;
     console.log('Setting up panel for player ' + player.player_id);
-    const moneyid = `playermoney-counter-${playerId}`;
     this.getPlayerPanelElement(playerId).append(
       this.div({ classes: 'zoo-player-panel-ext'},
         this.span({ classes: 'zoo-money'},
           this.span({classes: 'zoo-money-label'}),
           this.span({text: ': '}),
-          this.span({id:moneyid})),
+          this.span({id: IDS.moneyCounter(playerId), text: `${player.money}`})),
         this.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
       )
     );
@@ -562,11 +563,22 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.statusBar.removeActionButtons();
     let current = this.getCurrentExtensions();
     this.renderExtensions(current + 1);
-    this.gamedatas.players[0]?.purchased_extensions;
     this.statusBar.addActionButton(_('Confirm purchase'), () => this.bgaPerformAction('actPurchaseExtension'), { autoclick: true });
     this.addCancelButton(() => { this.renderExtensions(current); });
   }
 
+  private updateMoney(player_id: number, money: number): void {
+    $(IDS.moneyCounter(player_id)).innerText = `${money}`;
+  }
+
+  private async notif_PurchaseExtension(args: {
+      player_id: number, purchased_extensions: number, money: number
+    }) {
+    if (this.player_id != args.player_id) {
+      this.renderExtensions(args.purchased_extensions, args.player_id);
+    }
+    this.updateMoney(args.player_id, args.money);
+  }
 
   //
   // Take a truck

@@ -158,12 +158,12 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actPurchaseEnclosure(int $active_player_id): mixed
+	public function actPurchaseExtension(int $active_player_id): mixed
 	{
         $model = $this->createModel();
 		$player = $model->purchaseExtension($active_player_id);
 		$this->notify->all(
-			"PurchaseEnclosure",
+			"PurchaseExtension",
 			clienttranslate('${player_name} bought an extra enclosure.'),
 			[
 				'player_id' => $active_player_id,
