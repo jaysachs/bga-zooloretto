@@ -48,7 +48,7 @@ class PlaceDrawnTile extends AbstractState
 
     public function getArgs(int $active_player_id): array
     {
-        $model = new Model($this->game);
+        $model = new Model($this->game, $active_player_id);
         $available = [];
         foreach ($model->getTrucks() as $truck) {
             foreach ($truck->getAllTiles() as $pos => $tile) {

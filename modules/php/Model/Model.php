@@ -40,7 +40,7 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 
 class Model {
 
-    public function __construct(private Table $game, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
+    public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
 
     /** @param $player_ids int[] */
     public function createNewGame(array $player_ids): void {
@@ -229,7 +229,7 @@ class Model {
      *
      * @return Placement[]
     */
-    public function placeTilesInZooAndTakeTruck(int $player_id, int $truck_id, array $placements): array {
+    public function placeTilesInZooAndTakeTruck(int $truck_id, array $placements): array {
         foreach ($placements as $placement) {
             $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
             if ($epos <> $placement->enclosure_pos) {
@@ -237,7 +237,7 @@ class Model {
                 $placement->enclosure_pos = $epos;
             }
         }
-        $player = $this->getPlayer($player_id);
+        $player = $this->getPlayer($this->player_id);
         $player->takeTruck($truck_id);
 
         $truck = $this->getTruck($truck_id);
@@ -246,20 +246,20 @@ class Model {
         $player->receiveMoney($amt);
         $this->ps->updatePlayer($player);
 
-        $truck->taken_by = $player_id;
+        $truck->taken_by = $this->player_id;
         $this->updateTruck($truck);
         // $this->updatePlayer($player);
 
-        foreach ($this->getEnclosuresForPlayer($player_id) as $enclosure) {
+        foreach ($this->getEnclosuresForPlayer($this->player_id) as $enclosure) {
             $this->updateEnclosure($enclosure);
         }
         return $placements;
     }
 
-    public function getPossiblePlacements(int $player_id, int $truck_id): PossiblePlacement {
+    public function getPossiblePlacements(int $truck_id): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
             $this->getTruck($truck_id),
-            $this->getEnclosuresForPlayer($player_id)
+            $this->getEnclosuresForPlayer($this->player_id)
         );
     }
 
@@ -287,9 +287,27 @@ class Model {
         return $result;
     }
 
-    public function purchaseExtension(int $player_id): Player {
-        $player = $this->getPlayer($player_id);
+    public function canPurchaseExtension(): bool {
+        return $this->getActivePlayer()->canPurchaseExtension();
+    }
+
+    public function purchaseExtension(): Player {
+        $player = $this->getPlayer($this->player_id);
         $player->purchaseExtension();
         return $player;
+    }
+
+    public function canDraw(): bool {
+        return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
+    }
+
+    public function canDiscard(): bool {
+		$enclosures = $this->getEnclosuresForPlayer($this->player_id);
+		$barnContents = array_filter($enclosures[0]->allContents(), fn ($t) => !$t->isEmpty());
+        return count($barnContents) > 0 && $this->getPlayer($this->player_id)->money >= 2;
+    }
+
+    public function canMoveTile(): bool {
+        return $this->getPlayer($this->player_id)->money >= 1;
     }
 }

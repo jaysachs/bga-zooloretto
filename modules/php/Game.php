@@ -83,7 +83,7 @@ class Game extends \Bga\GameFramework\Table
     */
 	protected function getAllDatas(): array
 	{
-		$model = new Model($this);
+		$model = new Model($this, intval($this->getActivePlayerId()));
 		$stock = $model->getStock();
 		$datas = [
             'trucks' => array_map(function (Truck $truck): array {
@@ -245,7 +245,7 @@ class Game extends \Bga\GameFramework\Table
 
 	/** @param $player_ids int[] */
 	private function doCreateGame(array $player_ids) {
-		$model = new Model($this);
+		$model = new Model($this, 0);
 		$model->createNewGame($player_ids);
 	}
 
@@ -281,7 +281,7 @@ class Game extends \Bga\GameFramework\Table
 	}
 
 	public function debug_placeTile(int $truck_id, int $pos): void {
-		$model = new Model($this);
+		$model = new Model($this, 0);
 		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);
 		$this->notify->all(
 			"PlaceTile",

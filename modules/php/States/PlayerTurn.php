@@ -47,7 +47,6 @@ class PlayerTurn extends AbstractState
 	}
 
 	public function onEnteringState(int $active_player_id): void {
-		$this->game->undoSavepoint();
 	}
 
 	public function getArgs(int $active_player_id): array
@@ -61,23 +60,20 @@ class PlayerTurn extends AbstractState
 				if ($truck->canBeTaken()) {
 					$trucks_available[] = [
 						'truck_id' => $truck->id,
-						'playable' => $model->getPossiblePlacements($active_player_id, $truck->id)->serialize(),
+						'playable' => $model->getPossiblePlacements($truck->id)->serialize(),
 					];
 				}
 			}
 		}
-
 		return [
-			'can_draw' => $model->getStock()->drawn->isEmpty() && $model->spacesOnTrucks() > 0,
-			'can_purchase' => $player->canPurchaseExtension(),
-			'can_move' => false,
+			'can_draw' => $model->canDraw(),
+			'can_purchase' => $model->canPurchaseExtension(),
+			'can_move' => $model->canMoveTile(),
 			'can_buy' => false,
 			'can_swap' => false,
-			'can_discard' => false,
+			'can_discard' => $model->canDiscard(),
 			'available_trucks' => $trucks_available,
 			// 'money' => $player->money,
-			'unblockedzoo' => $player->purchased_extensions,
-			// 'wagons' =>  $wagondata,
 		];
 	}
 
@@ -89,7 +85,7 @@ class PlayerTurn extends AbstractState
 		// FIXME: this should be returned as a structure from the model method. Or as a kind of Placement.
 		$coins = $truck->coinPositions();
 
-		$placements = $model->placeTilesInZooAndTakeTruck($active_player_id, $truck_id,
+		$placements = $model->placeTilesInZooAndTakeTruck($truck_id,
 			array_map(fn ($pt) => new Placement(
 				$truck_id,
 				intval($pt['truck_pos']),
@@ -129,7 +125,6 @@ class PlayerTurn extends AbstractState
 
 		$stock = $model->drawTile();
 		$tile = $stock->drawn;
-		$this->game->undoSavepoint();
 
 		if ($stock->waslastRoundTriggered()) {
 			$this->notify->all("LastRound", clienttranslate('This is the last round...'), []);
