@@ -1,13 +1,5 @@
-* Choosing a truck with a coin doesn't animate the coin leaving the
-  truck.
-
-* Need to empty (and animate emptying) unchosen truck (2p).
-
 * Need to handle (near) empty primary stock pile rendering.
 
-* Player boards are compressed because of playeraid div in flex layout.
-  - just remove the player aid
-  - also set flex: 65 flex: 35 for the actual divs
 * generally move away from %ages for flex children.
 
 * How to represent barns -- as an "infinite supply" extension with
