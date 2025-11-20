@@ -171,8 +171,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
     let elem = this
       .div({ id: board_id, classes: [ 'zoo-board', zoomClass ]},
-        this.div({ id: `zoo-barn-${pno}`, classes: 'zoo-barn' }),
-        enclosure(0, 20),
+        enclosure(0, 20), // the barn
         enclosure(1, 6),
         enclosure(2, 6),
         enclosure(3, 7),
@@ -659,6 +658,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.game.statusBar.setTitle(_('Choose a destination for the selected tile'));
       this.addCancelButton();
       pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
+        console.log("adding ", pep.enclosure_id, pep.enclosure_pos);
         let encElem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
         encElem.classList.add(CSS.TARGETABLE);
         this.game.addSelectableOnclick(encElem, (evt:MouseEvent) => {
