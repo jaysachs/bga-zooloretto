@@ -87,12 +87,17 @@ class Enclosure {
         if ($this->isBarn()) {
             return $this->availableBarnPos();
         }
+        $firstEmpty = 0;
         for ($pos = 1; $pos <= $this->animal_capacity; $pos++) {
-            if ($this->contents[$pos]->isEmpty()) {
-                return $pos;
+            $t = $this->contents[$pos]->type;
+            if ($t->isEmpty() && !$firstEmpty) {
+                $firstEmpty = $pos;
+            }
+            if (!$t->isEmpty() && !$type->isSameSpecies($t)) {
+                return 0;
             }
         }
-        return 0;
+        return $firstEmpty;
     }
 
     private function availableBarnPos(): int {
