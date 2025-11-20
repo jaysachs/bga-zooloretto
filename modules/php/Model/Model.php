@@ -43,7 +43,7 @@ class Model {
     public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
 
     /** @param $player_ids int[] */
-    public function createNewGame(array $player_ids): void {
+    public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
         $tilepool = Tile::createInitialPool($player_count);
 		$stock = Stock::create($tilepool);
@@ -55,8 +55,8 @@ class Model {
         $tilepool[] = $block;
         $tilepool[] = Tile::empty();
 
-        $this->ps->insertTiles($tilepool);
-        $this->ps->insertStock($stock);
+        $ps->insertTiles($tilepool);
+        $ps->insertStock($stock);
         // Trucks
         $trucks = [];
         if ($player_count == 2) {
@@ -69,7 +69,7 @@ class Model {
                 $trucks[] = new Truck($x);
             }
         }
-        $this->ps->insertTrucks($trucks);
+        $ps->insertTrucks($trucks);
 
         /* FIXME: find some way to have this auto-sync with the FE?
            bonus points: also sync with the CSS!
@@ -96,13 +96,13 @@ class Model {
         //     $encl[5] = new Enclosure(5, 5, 1);
         // }
         foreach ($player_ids as $player_id) {
-            $this->ps->insertEnclosures($player_id, $encl);
+            $ps->insertEnclosures($player_id, $encl);
         }
 
-        $this->ps->updateBankMoney(30 - 2 * $player_count);
+        $ps->updateBankMoney(30 - 2 * $player_count);
         $available = $player_count == 2 ? 2 : 1;
         foreach ($player_ids as $player_id) {
-            $this->ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
+            $ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
         }
     }
 
@@ -214,7 +214,7 @@ class Model {
     }
 
     /** @return int the position in the enclosure it was plased in */
-    public function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
+    private function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
         $truck = $this->getTruck($truck_id);
         $encl = $this->getEnclosuresForPlayer($this->getActivePlayer()->id)[$enclosure_id];
         $tile = $truck->removeTileAt($truck_pos);

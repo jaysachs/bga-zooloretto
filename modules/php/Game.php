@@ -245,8 +245,7 @@ class Game extends \Bga\GameFramework\Table
 
 	/** @param $player_ids int[] */
 	private function doCreateGame(array $player_ids) {
-		$model = new Model($this, 0);
-		$model->createNewGame($player_ids);
+		Model::createNewGame($player_ids);
 	}
 
 	/*
@@ -304,6 +303,8 @@ class Game extends \Bga\GameFramework\Table
 		$player_ids = $db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
 		$db->execute('DELETE FROM tiles');
 		$db->execute('DELETE FROM trucks');
+		$db->execute('DELETE FROM enclosures');
+		$db->execute('DELETE FROM enclosure_contents');
 		$db->execute('DELETE FROM primary_stock');
 		$db->execute('DELETE FROM endgame_stock');
 		$this->doCreateGame($player_ids);
