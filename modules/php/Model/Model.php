@@ -71,30 +71,8 @@ class Model {
         }
         $ps->insertTrucks($trucks);
 
-        /* FIXME: find some way to have this auto-sync with the FE?
-           bonus points: also sync with the CSS!
-          from frontend:
-                      + enclosure(1, 6)
-                      + enclosure(2, 6)
-                      + enclosure(3, 7)
-                      + enclosure(4, 6)
-                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
-        */
-
         /** @var Enclosure[] */
-        $encl = [
-            // FIXME: rework so IDs are not repeated.
-            0 => Enclosure::barn(),
-            1 => Enclosure::create(1, 5, 1),
-            2 => Enclosure::create(2, 4, 2),
-            3 => Enclosure::create(3, 6, 1),
-        ];
-        // FIXME: these need to get inserted only when purchased.
-        //     4 => new Enclosure(4, 5, 1),
-        // ];
-        // if ($player_count == 2) {
-        //     $encl[5] = new Enclosure(5, 5, 1);
-        // }
+        $encl = array_map(fn ($eid) => Model::makeEnclosure($eid), [ 0, 1, 2, 3 ] );
         foreach ($player_ids as $player_id) {
             $ps->insertEnclosures($player_id, $encl);
         }
@@ -104,10 +82,6 @@ class Model {
         foreach ($player_ids as $player_id) {
             $ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
         }
-    }
-
-    public function getActivePlayer(): Player {
-        return $this->getPlayer(intval($this->game->getActivePlayerId()));
     }
 
     private function getPlayer(int $id): Player {
@@ -138,18 +112,10 @@ class Model {
         return $this->_stock;
     }
 
-    private function updateStock(): void {
-        $stock = $this->_stock;
-        if ($stock == null) {
-            throw new ModelException("Stock updaate before retrieval");
-        }
-        $this->ps->updateStock($this->_stock);
-    }
-
     public function drawTile(): Stock {
         $stock = $this->getStock();
         $stock->drawTile();
-        $this->updateStock();
+        $this->ps->updateStock($stock);
         return $stock;
     }
 
@@ -172,10 +138,6 @@ class Model {
         throw new ModelException("No truck $truck_id found");
     }
 
-    private function updateTruck(Truck $truck): void {
-        $this->ps->updateTruck($truck);
-    }
-
     public function placeDrawnTileOnTruck(int $truck_id, int $pos): Tile {
         $stock = $this->getStock();
         if ($stock->drawn->isEmpty()) {
@@ -183,10 +145,10 @@ class Model {
         }
         $truck = $this->getTruck($truck_id);
         $tile = $stock->removeDrawnTile();
-
         $truck->placeTileAt($tile, $pos);
-        $this->updateStock();
-        $this->updateTruck($truck);
+
+        $this->ps->updateStock($stock);
+        $this->ps->updateTruck($truck);
 
         return $tile;
     }
@@ -209,18 +171,14 @@ class Model {
         return $this->ps->getEnclosuresForPlayer($player_id);
     }
 
-    private function updateEnclosure(Enclosure $enclosure): void {
-        $this->ps->updateEnclosure($this->getActivePlayer()->id, $enclosure);
-    }
-
     /** @return int the position in the enclosure it was plased in */
     private function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
         $truck = $this->getTruck($truck_id);
-        $encl = $this->getEnclosuresForPlayer($this->getActivePlayer()->id)[$enclosure_id];
+        $encl = $this->getEnclosuresForPlayer($this->player_id)[$enclosure_id];
         $tile = $truck->removeTileAt($truck_pos);
         $pos = $encl->placeTile($tile);
-        $this->updateTruck($truck);
-        $this->updateEnclosure($encl);
+        $this->ps->updateTruck($truck);
+        $this->ps->updateEnclosure($this->player_id, $encl);
         return $pos;
     }
 
@@ -247,20 +205,32 @@ class Model {
         $this->ps->updatePlayer($player);
 
         $truck->taken_by = $this->player_id;
-        $this->updateTruck($truck);
-        // $this->updatePlayer($player);
+        $this->ps->updateTruck($truck);
 
         foreach ($this->getEnclosuresForPlayer($this->player_id) as $enclosure) {
-            $this->updateEnclosure($enclosure);
+        $this->ps->updateEnclosure($this->player_id, $enclosure);
         }
         return $placements;
     }
 
-    public function getPossiblePlacements(int $truck_id): PossiblePlacement {
+    private function getPossiblePlacements(Truck $truck): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
-            $this->getTruck($truck_id),
-            $this->getEnclosuresForPlayer($this->player_id)
+            $truck, $this->getEnclosuresForPlayer($this->player_id)
         );
+    }
+
+    public function getTrucksWithPossiblePlacements(): array {
+		$player = $this->getPlayer($this->player_id);
+
+		$trucks_available = [];
+		if (!$player->truck_taken) {
+			foreach ($this->getTrucks() as $truck) {
+				if ($truck->canBeTaken()) {
+					$trucks_available[$truck->id] = $this->getPossiblePlacements($truck);
+				}
+			}
+		}
+        return $trucks_available;
     }
 
     /** @return array<int,array<int>> keyed by truck ID; if null, truck is returned, otherwise it's the positions dumped. */
@@ -282,18 +252,48 @@ class Model {
             }
         }
         foreach ($this->getTrucks() as $truck) {
-            $this->updateTruck($truck);
+            $this->ps->updateTruck($truck);
         }
         return $result;
     }
 
     public function canPurchaseExtension(): bool {
-        return $this->getActivePlayer()->canPurchaseExtension();
+        return $this->getPlayer($this->player_id)->canPurchaseExtension();
+    }
+
+    private static function makeEnclosure(int $id): Enclosure {
+        /* FIXME: find some way to have this auto-sync with the FE?
+           bonus points: also sync with the CSS!
+          from frontend:
+                      + enclosure(0, 20)
+                      + enclosure(1, 6)
+                      + enclosure(2, 6)
+                      + enclosure(3, 7)
+                      + enclosure(4, 6)
+                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
+        */
+
+        $e = match ($id) {
+            0 => Enclosure::barn(),
+            1 => Enclosure::create(1, 5, 1),
+            2 => Enclosure::create(2, 4, 2),
+            3 => Enclosure::create(3, 6, 1),
+            4 => Enclosure::create(4, 5, 1),
+            5 => Enclosure::create(5, 5, 1),
+            default => throw new ModelException("Unexpected enclosure ID: {$id}"),
+        };
+        if ($id != $e->id) {
+            throw new ModelException("Created enclosure for {$id} has id {$e->id}");
+        }
+        return $e;
     }
 
     public function purchaseExtension(): Player {
         $player = $this->getPlayer($this->player_id);
-        $player->purchaseExtension();
+        $eid = $player->purchaseExtension() + 3;
+        $e = Model::makeEnclosure($eid);
+        $this->ps->updatePlayer($player);
+        $this->ps->insertEnclosures($this->player_id, [$e]);
         return $player;
     }
 

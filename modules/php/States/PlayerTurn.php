@@ -52,19 +52,13 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel();
-		$player = $model->getActivePlayer();
 
-		$trucks_available = [];
-		if (!$player->truck_taken) {
-			foreach ($model->getTrucks() as $truck) {
-				if ($truck->canBeTaken()) {
-					$trucks_available[] = [
-						'truck_id' => $truck->id,
-						'playable' => $model->getPossiblePlacements($truck->id)->serialize(),
-					];
-				}
-			}
-		}
+		$tpp = $model->getTrucksWithPossiblePlacements();
+		$trucks_available = array_map(fn ($id, $pp) => [
+			'truck_id' => $id,
+			'playable' => $pp->serialize(),
+		], array_keys($tpp), array_values($tpp));
+
 		return [
 			'can_draw' => $model->canDraw(),
 			'can_purchase' => $model->canPurchaseExtension(),

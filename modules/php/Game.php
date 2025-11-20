@@ -128,6 +128,7 @@ class Game extends \Bga\GameFramework\Table
 		foreach ($model->getPlayers() as $player) {
 			$datas['players'][$player->id]['player_no'] = $player->no;
 			$datas['players'][$player->id]['player_id'] = $player->id;
+			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 		}
         return $datas;
