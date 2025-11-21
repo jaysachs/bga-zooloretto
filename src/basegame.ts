@@ -11,7 +11,7 @@ GameGui = /** @class */ (function () {
 abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   protected currentState: string | null;
   protected currentStateArgs: any;
-  protected animationManager: AnimationManager;
+  animationManager: AnimationManager;
   private pendingUpdate: boolean;
   private currentPlayerWasActive: boolean;
   private readonly clientStateNames: string[];

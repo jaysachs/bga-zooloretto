@@ -149,6 +149,60 @@ interface PlayState {
   possible_moves: PossibleMove[];
 }
 
+abstract class PlayFlow {
+    protected game: ZoolorettoGame;
+    constructor(g : ZoolorettoGame) { this.game = g; }
+    private onClickAbortController : AbortController = new AbortController();
+
+
+    // FIXME: note the moves/slide/rollback here -- that's reusable!
+    protected moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
+
+    protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
+      this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
+      return this.game.animationManager.slideAndAttach(elem, newParent, {});
+    }
+
+    protected async rollback(): Promise<any> {
+      let anims: (() => Promise<any>)[] = [];
+      while (this.moves.length > 0) {
+        let move = this.moves.pop()!;
+        anims.push(() =>
+          this.game.animationManager.slideAndAttach(move.elem, move.origin, {}));
+      }
+      await this.game.animationManager.playSequentially(anims);
+    }
+
+    protected initStatusBar(title: string) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(title);
+    }
+
+    protected addCancelButton(onCancel?: CallableFunction): void {
+      this.game.statusBar.addActionButton(_('Restart turn'),
+          () => {
+            this.rollback();
+            this.game.statusBar.removeActionButtons();
+            onCancel && onCancel();
+            this.game.restoreServerGameState();
+          },
+        { color: "secondary"});
+    }
+    private clearOnclicks(): void {
+      this.onClickAbortController.abort();
+      this.onClickAbortController = new AbortController();
+      document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
+    }
+
+    protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
+      elem.classList.add(CSS.TARGETABLE);
+      elem.addEventListener(
+        "click",
+        (ev: MouseEvent) => { this.clearOnclicks(); onclick(ev); },
+        { signal: this.onClickAbortController.signal });
+    }
+  }
+
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   constructor() {
@@ -238,7 +292,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private   makeTileSpan(tile_type?: string): HTMLElement | undefined {
+  private makeTileSpan(tile_type?: string): HTMLElement | undefined {
     return tile_type ? this.span({ attrs: Attrs.tile(tile_type) }) : undefined;
   }
 
@@ -280,7 +334,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   }
 
-    private setupGameHtml(): void {
+  private setupGameHtml(): void {
     this.getGameAreaElement().appendChild(this.baseHtml());
     this.pileElem = $(IDS.PILE);
     this.depotElem = $(IDS.DEPOT);
@@ -423,7 +477,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
   }
 
-  private addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
+  addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
     elem.classList.add(CSS.TARGETABLE);
     elem.addEventListener(
       "click",
@@ -432,7 +486,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   // FIXME: separate "cancel" from "restart turn"
-  private addCancelButton(onCancel?: CallableFunction): void {
+  addCancelButton(onCancel?: CallableFunction): void {
       this.statusBar.addActionButton(_('Restart turn'),
           () => {
             this.statusBar.removeActionButtons();
@@ -734,34 +788,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
-  private MoveTile = new class {
-    private game: ZoolorettoGame;
-    constructor(g : ZoolorettoGame) { this.game = g; }
-
-    // FIXME: note the moves/slide/rollback here -- that's reusable!
-    private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
-
-    private slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
-      this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
-      return this.game.animationManager.slideAndAttach(elem, newParent, {});
-    }
-
-    private rollback(): Promise<any> {
-      let anims: (() => Promise<any>)[] = [];
-      while (this.moves.length > 0) {
-        let move = this.moves.pop()!;
-        anims.push(() =>
-          this.game.animationManager.slideAndAttach(move.elem, move.origin, {}));
-      }
-      return this.game.animationManager.playSequentially(anims);
-    }
+  private MoveTile = new class extends PlayFlow {
+    constructor(g : ZoolorettoGame) { super(g); }
 
     public moveTile(possibleMoves: PossibleMove[]) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Select a tile to move'));
-      this.game.addCancelButton();
+      this.initStatusBar(_('Select a tile to move'));
+      this.addCancelButton();
       possibleMoves.forEach((m: PossibleMove) => {
-        this.game.addSelectableOnclick(
+        this.addSelectableOnclick(
           this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: m.src.enclosure_id, enclosure_pos: m.src.pos}),
           (evt) => this.chooseDest(m)
         )
@@ -769,13 +803,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
 
     private chooseDest(pm: PossibleMove) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Select a destination space'));
-      this.game.addCancelButton();
+      this.initStatusBar(_('Select a destination space'));
+      this.addCancelButton();
       pm.dests.forEach((dest: Space) => {
         let elem = this.game.enclosureSpaceTileElem({player_id: this.game.player_id, enclosure_id: pm.src.enclosure_id, enclosure_pos: pm.src.pos});
         let destElem = this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos})
-        this.game.addSelectableOnclick(destElem,
+        this.addSelectableOnclick(destElem,
           (evt) => this.slide(elem, destElem)
             .then(() => this.confirmMove(pm.src, dest))
         )
@@ -783,12 +816,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
 
     private confirmMove(src: Space, dest: Space) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Confirm move'));
-      this.game.addCancelButton(() => this.rollback());
+      this.initStatusBar(_('Confirm move'));
       this.game.statusBar.addActionButton(_('Confirm'), () => {
         this.game.bgaPerformAction('actMoveTile', { src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos });
       }, {});
+      this.addCancelButton();
     }
   }(this);
 
@@ -802,41 +834,29 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoney(args.player_id, args.money);
   }
 
-  private DiscardTile = new class {
-    private game: ZoolorettoGame;
-    private placedTiles : PlacedTile[] = [];
-    private truck_id: number;
-    constructor(g : ZoolorettoGame) {
-      this.game = g;
-    }
+  private DiscardTile = new class extends PlayFlow {
+    constructor(g : ZoolorettoGame) { super(g); }
+
     public discardTile(discardables: number[]) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Select a truck'));
-      this.game.addCancelButton();
+      this.initStatusBar(_('Select a truck'));
+      this.addCancelButton();
 
       discardables.forEach((pos: number) => {
-        this.game.addSelectableOnclick(
+        this.addSelectableOnclick(
           this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: 0, enclosure_pos: pos }),
+          // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
           (evt) => this.confirmDiscard(pos));
       });
     }
 
     private confirmDiscard(pos: number) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Confirm discard'));
+      this.initStatusBar(_('Confirm discard'));
       this.game.statusBar.addActionButton(
         _('Confirm'),
         () => this.game.bgaPerformAction('actDiscardTile', { barn_pos: pos }),
         { autoclick: false }
       );
-      this.game.statusBar.addActionButton(
-        _('Cancel'),
-        () => {
-          this.game.statusBar.removeActionButtons();
-          this.game.restoreServerGameState();
-        },
-        { color: "secondary"}
-      );
+      this.addCancelButton();
     }
   }(this);
 
