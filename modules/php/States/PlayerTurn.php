@@ -181,9 +181,22 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actMoveTile(): mixed
+	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
 	{
-		return Move::class;
+		$model = $this->createModel();
+		// $model->moveTile($src_id, $src_pos, $dest_id, $dest_pos);
+		$this->notify->all(
+			"MoveTile",
+			clienttranslate('${player_name} moved a tile'),
+			[
+				'player_id' => $active_player_id,
+				'src_id' => $src_id,
+				'src_pos' => $src_pos,
+				'dest_id' => $dest_id,
+				'dest_pos' => $dest_pos,
+			]
+		);
+		return NextPlayer::class;
 	}
 
 	#[PossibleAction]
