@@ -94,7 +94,7 @@ class PersistentStore {
         $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
     }
 
-    /** @returns Player[] */
+    /** @return Player[] */
     public function retrievePlayers(): array {
         $players = [];
         $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, e.enclosure_count, t.id AS truck_taken

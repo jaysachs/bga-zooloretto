@@ -51,13 +51,16 @@ class PlayerTurn extends AbstractState
 	public function onEnteringState(int $active_player_id): void {
 	}
 
-	public function getArgs(int $active_player_id): array
-	{
-        $model = $this->createModel();
-		$serializeSpace = fn (Space $s) => [
+	private function serializeSpace(Space $s): mixed {
+		return [
 			'enclosure_id' => $s->enclosure_id,
 			'pos' => $s->pos,
 		];
+	}
+
+	public function getArgs(int $active_player_id): array
+	{
+        $model = $this->createModel();
 		$tpp = $model->getTrucksWithPossiblePlacements();
 		$trucks_available = array_map(fn ($id, $pp) => [
 			'truck_id' => $id,
@@ -65,8 +68,8 @@ class PlayerTurn extends AbstractState
 		], array_keys($tpp), array_values($tpp));
 
 		$pm = array_map(fn (PossibleMove $pm) => [
-			'src' => $serializeSpace($pm->src),
-			'dests' => array_map($serializeSpace, $pm->dests),
+			'src' => $this->serializeSpace($pm->src),
+			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $pm->dests),
 		], $model->getPossibleMoves());
 
 		return [
@@ -184,16 +187,17 @@ class PlayerTurn extends AbstractState
 	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
 	{
 		$model = $this->createModel();
-		// $model->moveTile($src_id, $src_pos, $dest_id, $dest_pos);
+		$src = new Space($src_id, $src_pos);
+		$dest = new Space($dest_id, $dest_pos);
+		$player = $model->moveTile($src, $dest);
 		$this->notify->all(
 			"MoveTile",
 			clienttranslate('${player_name} moved a tile'),
 			[
 				'player_id' => $active_player_id,
-				'src_id' => $src_id,
-				'src_pos' => $src_pos,
-				'dest_id' => $dest_id,
-				'dest_pos' => $dest_pos,
+				'src' => $this->serializeSpace($src),
+				'dest' => $this->serializeSpace($dest),
+				'money' => $player->money,
 			]
 		);
 		return NextPlayer::class;

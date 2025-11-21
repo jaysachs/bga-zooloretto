@@ -792,6 +792,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }(this);
 
+  private async notif_MoveTile(args: {player_id: number, src: Space, dest: Space, money: number}) {
+    if (args.player_id != this.player_id) {
+      this.animationManager.slideAndAttach(
+        this.enclosureSpaceTileElem({player_id: args.player_id, enclosure_id: args.src.enclosure_id, enclosure_pos: args.src.pos}),
+        this.enclosureSpaceElem({player_id: args.player_id, enclosure_id: args.dest.enclosure_id, enclosure_pos: args.dest.pos}),
+        {});
+    }
+    this.updateMoney(args.player_id, args.money);
+  }
+
   private DiscardTile = new class {
     private game: ZoolorettoGame;
     private placedTiles : PlacedTile[] = [];

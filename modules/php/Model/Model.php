@@ -329,6 +329,9 @@ class Model {
 
     /** @return PossibleMove[] */
     public function getPossibleMoves(): array {
+        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
+            return [];
+        }
         $result = [];
         $enclosures = $this->getEnclosuresForPlayer($this->player_id);
         $barn = $enclosures[0];
@@ -373,5 +376,30 @@ class Model {
             }
         }
         return $result;
+    }
+
+    public function moveTile(Space $src, Space $dest): Player {
+        $pms = $this->getPossibleMoves();
+        foreach ($pms as $pm) {
+            if ($pm->src == $src) {
+                foreach ($pm->dests as $d) {
+                    if ($d == $dest) {
+                        $encs = $this->getEnclosuresForPlayer($this->player_id);
+                        $srcenc = $encs[$src->enclosure_id];
+                        $destenc = $encs[$dest->enclosure_id];
+                        $tile = $srcenc->takeTileAt($src->pos);
+                        $destenc->placeTile($tile, $dest->pos);
+                        $player = $this->ps->retrievePlayers()[$this->player_id];
+                        $player->payMoney(1);
+
+                        $this->ps->updateEnclosure($this->player_id, $srcenc);
+                        $this->ps->updateEnclosure($this->player_id, $destenc);
+                        $this->ps->updatePlayer($player);
+                        return $player;
+                    }
+                }
+            }
+        }
+        throw new ModelException("illegal move {$src} {$dest}");
     }
 }

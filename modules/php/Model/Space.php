@@ -31,4 +31,15 @@ class Space {
     public function __construct(
         public readonly int $enclosure_id,
         public readonly int $pos) { }
+
+    public function __toString(): string
+    {
+        return "es{encid:{$this->enclosure_id},encpos:{$this->pos}}";
+    }
+
+    public function equals(Space $other): bool
+    {
+        return $this->enclosure_id == $other->enclosure_id && $this->pos == $other->pos;
+    }
+
 }
