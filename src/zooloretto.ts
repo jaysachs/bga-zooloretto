@@ -127,6 +127,16 @@ interface AvailableTruck {
   playable: PossiblePlacement[];
 }
 
+interface Space {
+  enclosure_id: number;
+  pos: number;
+}
+
+interface PossibleMove {
+  src: Space;
+  dests: Space[];
+}
+
 interface PlayState {
   can_draw: boolean;
   can_purchase: boolean;
@@ -136,6 +146,7 @@ interface PlayState {
   can_move: boolean;
   available_trucks: AvailableTruck[];
   discardables: number[];
+  possible_moves: PossibleMove[];
 }
 
 /** Game class */
@@ -227,7 +238,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private makeTileSpan(tile_type?: string): HTMLElement | undefined {
+  private   makeTileSpan(tile_type?: string): HTMLElement | undefined {
     return tile_type ? this.span({ attrs: Attrs.tile(tile_type) }) : undefined;
   }
 
@@ -448,6 +459,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     if (playState.discardables.length > 0) {
       this.statusBar.addActionButton(_('Discard a tile'), () => this.DiscardTile.discardTile(playState.discardables));
+    }
+    if (playState.possible_moves.length > 0) {
+      this.statusBar.addActionButton(_('Move a tile'), () => this.MoveTile.moveTile(playState.possible_moves));
     }
   }
 
@@ -720,6 +734,63 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
+  private MoveTile = new class {
+    private game: ZoolorettoGame;
+    constructor(g : ZoolorettoGame) { this.game = g; }
+
+    // FIXME: note the moves/slide/rollback here -- that's reusable!
+    private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
+
+    private slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
+      this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
+      return this.game.animationManager.slideAndAttach(elem, newParent, {});
+    }
+
+    private rollback(): Promise<any> {
+      let anims: (() => Promise<any>)[] = [];
+      while (this.moves.length > 0) {
+        let move = this.moves.pop()!;
+        anims.push(() =>
+          this.game.animationManager.slideAndAttach(move.elem, move.origin, {}));
+      }
+      return this.game.animationManager.playSequentially(anims);
+    }
+
+    public moveTile(possibleMoves: PossibleMove[]) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(_('Select a tile to move'));
+      this.game.addCancelButton();
+      possibleMoves.forEach((m: PossibleMove) => {
+        this.game.addSelectableOnclick(
+          this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: m.src.enclosure_id, enclosure_pos: m.src.pos}),
+          (evt) => this.chooseDest(m)
+        )
+      });
+    }
+
+    private chooseDest(pm: PossibleMove) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(_('Select a destination space'));
+      this.game.addCancelButton();
+      pm.dests.forEach((dest: Space) => {
+        let elem = this.game.enclosureSpaceTileElem({player_id: this.game.player_id, enclosure_id: pm.src.enclosure_id, enclosure_pos: pm.src.pos});
+        let destElem = this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos})
+        this.game.addSelectableOnclick(destElem,
+          (evt) => this.slide(elem, destElem)
+            .then(() => this.confirmMove(pm.src, dest))
+        )
+      });
+    }
+
+    private confirmMove(src: Space, dest: Space) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(_('Confirm move'));
+      this.game.addCancelButton(() => this.rollback());
+      this.game.statusBar.addActionButton(_('Confirm'), () => {
+        this.game.bgaPerformAction('actMoveTile', { src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos });
+      }, {});
+    }
+  }(this);
 
   private DiscardTile = new class {
     private game: ZoolorettoGame;
