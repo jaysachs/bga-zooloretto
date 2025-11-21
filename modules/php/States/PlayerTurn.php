@@ -32,6 +32,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Placement;
+use Bga\Games\zooloretto\Model\PossibleMove;
+use Bga\Games\zooloretto\Model\Space;
 
 class PlayerTurn extends AbstractState
 {
@@ -52,12 +54,20 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel();
-
+		$serializeSpace = fn (Space $s) => [
+			'enclosure_id' => $s->enclosure_id,
+			'pos' => $s->pos,
+		];
 		$tpp = $model->getTrucksWithPossiblePlacements();
 		$trucks_available = array_map(fn ($id, $pp) => [
 			'truck_id' => $id,
 			'playable' => $pp->serialize(),
 		], array_keys($tpp), array_values($tpp));
+
+		$pm = array_map(fn (PossibleMove $pm) => [
+			'src' => $serializeSpace($pm->src),
+			'dests' => array_map($serializeSpace, $pm->dests),
+		], $model->getPossibleMoves());
 
 		return [
 			'can_draw' => $model->canDraw(),
@@ -68,6 +78,7 @@ class PlayerTurn extends AbstractState
 			'can_discard' => $model->canDiscard(),
 			'available_trucks' => $trucks_available,
 			'discardables' => $model->getDiscardbleBarnPos(),
+			'possible_moves' => $pm,
 			// 'money' => $player->money,
 		];
 	}

@@ -326,4 +326,52 @@ class Model {
         $this->ps->updateEnclosure($this->player_id, $barn);
         return $tile;
     }
+
+    /** @return PossibleMove[] */
+    public function getPossibleMoves(): array {
+        $result = [];
+        $enclosures = $this->getEnclosuresForPlayer($this->player_id);
+        $barn = $enclosures[0];
+        array_splice($enclosures, 0, 1);
+        // moves a single animal tile from the barn to an empty enclosure space or he
+        //  moves any one vending stall tile from it's current location to any eligible space in his zoo
+
+        // animal or stall from barn
+        foreach ($barn->nonEmptyContents() as $pos => $tile) {
+            $src = new Space($barn->id, $pos);
+            /** @var Space[] */
+            $dests = [];
+            foreach ($enclosures as $enc) {
+                $ap = $enc->availablePos($tile->type);
+                if ($ap > 0) {
+                    $dests[] = new Space($enc->id, $ap);
+                }
+            }
+            if (count($dests) > 0) {
+                $result[] = new PossibleMove($src, $dests);
+            }
+        }
+        // or stall from one (non-barn) enclosure to another
+        foreach ($enclosures as $enc) {
+            foreach ($enc->nonEmptyContents() as $pos => $tile) {
+                /** @var Space[] */
+                $dests = [];
+                if ($tile->type->isStall()) {
+                    $src = new Space($enc->id, $pos);
+                    foreach ($enclosures as $other) {
+                        if ($other <> $enc) {
+                            $sp = $other->availablePos($tile->type);
+                            if ($sp > 0) {
+                                $dests[] = new Space($other->id, $sp);
+                            }
+                        }
+                    }
+                }
+                if (count($dests) > 0) {
+                    $result[] = new PossibleMove($src, $dests);
+                }
+            }
+        }
+        return $result;
+    }
 }
