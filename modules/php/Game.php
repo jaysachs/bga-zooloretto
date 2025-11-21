@@ -105,7 +105,7 @@ class Game extends \Bga\GameFramework\Table
 					'enclosures' => array_merge(array_map(
 						function (Enclosure $e) : array {
 							$contents = [];
-							foreach ($e->allContents() as $pos => $tile) {
+							foreach ($e->nonEmptyContents() as $pos => $tile) {
 								$contents[] = [
 									'pos' => $pos,
 									'tile_type' => $tile->type->value,

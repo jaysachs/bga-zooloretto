@@ -122,8 +122,8 @@ class Enclosure {
     }
 
     /** @return Tile[]  where key is position */
-    public function allContents(): array {
-        return $this->contents;
+    public function nonEmptyContents(): array {
+        return array_filter($this->contents, fn ($t) => !$t->isEmpty());
     }
 
     private function doPlaceTile(Tile $tile, int $pos, int $start, int $end): int {

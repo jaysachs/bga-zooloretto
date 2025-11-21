@@ -216,10 +216,8 @@ class PersistentStore {
         // capacity.
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
         $values = [];
-        foreach ($enclosure->allContents() as $pos => $t) {
-            if (! $t->isEmpty()) {
-                $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
-            }
+        foreach ($enclosure->nonEmptyContents() as $pos => $t) {
+            $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
         }
         if (count($values) == 0) {
             return;

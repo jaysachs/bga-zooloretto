@@ -303,8 +303,8 @@ class Model {
 
     public function canDiscard(): bool {
 		$enclosures = $this->getEnclosuresForPlayer($this->player_id);
-		$barnContents = array_filter($enclosures[0]->allContents(), fn ($t) => !$t->isEmpty());
-        return count($barnContents) > 0 && $this->getPlayer($this->player_id)->money >= 2;
+        return count($enclosures[0]->nonEmptyContents()) > 0
+            && $this->getPlayer($this->player_id)->money >= 2;
     }
 
     public function canMoveTile(): bool {
@@ -317,7 +317,7 @@ class Model {
             return [];
         }
         $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
-        return array_keys(array_filter($barn->allContents(), fn ($t) => !$t->isEmpty()));
+        return array_keys($barn->nonEmptyContents());
     }
 
     public function discardBarnTile(int $pos): Tile {

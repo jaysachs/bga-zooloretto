@@ -13,7 +13,7 @@ final class EnclosureTest extends TestCase
         $barn = Enclosure::barn();
 
         // nothing in it
-        $this->assertEquals([], array_filter($barn->allContents(), fn($t) => !$t->isEmpty()));
+        $this->assertEquals([], $barn->nonEmptyContents());
 
         // animals can go in
         $this->assertEquals(1, $barn->availablePos(TileType::CAMEL));
@@ -76,10 +76,10 @@ final class EnclosureTest extends TestCase
         $this->assertEquals(4, $enc->placeTile($t3));
 
         $this->assertEquals($t2, $enc->takeTileAt(2));
-        $this->assertEquals([1 => $t1, 4 => $t3], array_filter($enc->allContents(), fn ($t) => !$t->isEmpty()));
+        $this->assertEquals([1 => $t1, 4 => $t3], $enc->nonEmptyContents());
 
         $this->assertEquals($t1, $enc->takeTileAt(1));
-        $this->assertEquals([4 => $t3], array_filter($enc->allContents(), fn ($t) => !$t->isEmpty()));
+        $this->assertEquals([4 => $t3], $enc->nonEmptyContents());
 
         // no species so we can now place other species.
         $this->assertEquals(1, $enc->placeTile(new Tile(4, TileType::ELEPHANT)));
