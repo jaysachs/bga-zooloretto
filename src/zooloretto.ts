@@ -1,5 +1,3 @@
-type AnimationList = (() => Promise<any>)[];
-
 interface ZPlayer extends Player {
   player_id: number;
   player_no: number;
@@ -18,7 +16,7 @@ interface EnclosurePlacement {
 }
 
 interface TruckLocation{ truck_id: number, truck_pos: number };
-interface PlaceDrawnTileArgs { available_spaces: TruckLocation[] };
+interface PlaceDrawnTileArgs { tile: string, available_spaces: TruckLocation[] };
 
 class Attrs {
   // FIXME: rename value to have zoo- prefix.
@@ -148,93 +146,6 @@ interface PlayState {
   discardables: number[];
   possible_moves: PossibleMove[];
 }
-
-abstract class PlayFlow<T> {
-    protected game: ZoolorettoGame;
-    private onClickAbortController : AbortController = new AbortController();
-    private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
-
-    constructor(g : ZoolorettoGame) { this.game = g; }
-
-    start(args?: T) {
-      console.debug("Starting", this, args);
-      this.moves = [];
-      this.onClickAbortController = new AbortController();
-      this.doStart(args);
-    }
-
-    protected abstract doStart(args?: T);
-
-    protected markMoved(elem?: HTMLElement): void {
-      elem?.classList.add(CSS.MOVED);
-    }
-
-    protected unmarkMoved(elem?: HTMLElement): void {
-      elem?.classList.remove(CSS.MOVED);
-    }
-
-    protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
-      this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
-      return this.game.animationManager.slideAndAttach(elem, newParent, {})
-        .then(() => this.markMoved(newParent));
-    }
-
-    protected async rollback(): Promise<any> {
-      let anims: (() => Promise<any>)[] = [];
-      while (this.moves.length > 0) {
-        let move = this.moves.pop()!;
-        anims.push(() => {
-          this.unmarkMoved(move.dest);
-          return this.game.animationManager.slideAndAttach(move.elem, move.origin, {});
-        });
-      }
-      await this.game.animationManager.playSequentially(anims);
-    }
-
-    protected initStatusBar(title: string, args?: any) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(title, args);
-    }
-
-    protected addConfirmActionButton(bgaAction: string, args?: any, autoclick? : boolean) {
-      this.game.statusBar.addActionButton(
-        _('Confirm'),
-        () => {
-          this.unmarkMoved(this.moves.at(this.moves.length-1)?.dest);
-          this.game.statusBar.removeActionButtons();
-          this.game.bgaPerformAction(bgaAction, args);
-        },
-        { autoclick: autoclick || false });
-    }
-
-    protected addCancelButton(onCancel?: CallableFunction): void {
-      this.game.statusBar.addActionButton(_('Restart turn'),
-          () => {
-            this.rollback();
-            document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
-            document.querySelectorAll(`#${IDS.GAME} .${CSS.MOVED}`).forEach((elem) => elem.classList.remove(CSS.MOVED));
-            document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTED}`).forEach((elem) => elem.classList.remove(CSS.SELECTED));
-            document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTABLE}`).forEach((elem) => elem.classList.remove(CSS.SELECTABLE));
-            this.game.statusBar.removeActionButtons();
-            onCancel && onCancel();
-            this.game.restoreServerGameState();
-          },
-        { color: "secondary"});
-    }
-    private clearOnclicks(): void {
-      this.onClickAbortController.abort();
-      this.onClickAbortController = new AbortController();
-      document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
-    }
-
-    protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
-      elem.classList.add(CSS.TARGETABLE);
-      elem.addEventListener(
-        "click",
-        (ev: MouseEvent) => { this.clearOnclicks(); onclick(ev); },
-        { signal: this.onClickAbortController.signal });
-    }
-  }
 
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
@@ -538,7 +449,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.PlaceDrawnTile.start(args.available_spaces);
   }
 
-  private PlaceDrawnTile = new class extends PlayFlow<TruckLocation[]> {
+  private PlaceDrawnTile = new class extends PlayFlow<TruckLocation[], ZGamedatas, ZoolorettoGame> {
     constructor(g: ZoolorettoGame) { super(g); }
 
     override doStart(available_spaces: TruckLocation[]) {
@@ -553,22 +464,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let space = this.game.truckSpaceElem(truckLoc);
       this.slide(tile, space)
         .then(() => {
-          this.confirmPlaceDrawnTile(space, tile);
+          // FIXME: can't we thread the tile into here from the args?
+          this.confirmPlaceDrawnTile(tile.getAttribute(Attrs.TILE)!, truckLoc);
         });
     }
 
-    private confirmPlaceDrawnTile(space: HTMLElement, tile: HTMLElement) {
-      let tl = this.game.truckLocFromId(space.id);
+    private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
       this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
-      { tile: tile.getAttribute(Attrs.TILE), truck_id: tl.truck_id, truck_pos: tl.truck_pos });
-      this.game.statusBar.addActionButton(
-        _('Confirm'),
-        () => {
-          this.game.statusBar.removeActionButtons();
-          this.game.bgaPerformAction('actPlaceDrawnTileInTruck', this.game.truckLocFromId(space.id))
-        },
-        { autoclick: true }
-      );
+          { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+      this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
       this.addCancelButton();
     }
   }(this);
@@ -608,7 +512,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
   }
 
-  private PurchaseExtension = new class extends PlayFlow<undefined> {
+  private PurchaseExtension = new class extends PlayFlow<undefined, ZGamedatas, ZoolorettoGame> {
     constructor(g: ZoolorettoGame) { super(g); }
 
     override doStart() {
@@ -633,7 +537,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   // Take a truck
   //
 
-  private TakeTruck = new class extends PlayFlow<AvailableTruck[]> {
+  private TakeTruck = new class extends PlayFlow<AvailableTruck[], ZGamedatas, ZoolorettoGame> {
     private placedTiles : PlacedTile[] = [];
     private truck_id: number;
     constructor(g : ZoolorettoGame) { super(g); }
@@ -698,7 +602,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     truck_id: number,
     placements: Placement[]
   }) {
-    let anims : (() => Promise<any>)[] = [];
+    let anims : AnimationList = [];
     args.placements.forEach( (p) => {
       let pl = p.placement;
       if (pl == 'coin') {
@@ -721,7 +625,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
-  private MoveTile = new class extends PlayFlow<PossibleMove[]> {
+  private MoveTile = new class extends PlayFlow<PossibleMove[], ZGamedatas, ZoolorettoGame> {
     constructor(g : ZoolorettoGame) { super(g); }
 
     override doStart(possibleMoves: PossibleMove[]) {
@@ -767,7 +671,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoney(args.player_id, args.money);
   }
 
-  private DiscardTile = new class extends PlayFlow<number[]> {
+  private DiscardTile = new class extends PlayFlow<number[], ZGamedatas, ZoolorettoGame> {
     constructor(g : ZoolorettoGame) { super(g); }
 
     override doStart(discardables: number[]) {
@@ -802,7 +706,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     truck_dumped_pos: { truck_id: number, dumped_pos: number[] }[],
     last_round: boolean }) {
 
-    let anims: (() => Promise<any>)[] = [];
+    let anims: AnimationList = [];
     args.truck_dumped_pos.forEach(t =>
       t.dumped_pos.forEach(p =>
         anims.push(() =>
