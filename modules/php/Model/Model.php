@@ -93,7 +93,7 @@ class Model {
     }
 
     /** @var Player[] */
-    private ?array $_players = [];
+    private ?array $_players = null;
 
     /** @return Player[] */
     public function getPlayers(): array {
@@ -309,5 +309,21 @@ class Model {
 
     public function canMoveTile(): bool {
         return $this->getPlayer($this->player_id)->money >= 1;
+    }
+
+    /** return int[] positions in barn that are discardable */
+    public function getDiscardbleBarnPos(): array {
+        if ($this->getPlayer($this->player_id)->money < 1) {
+            return [];
+        }
+        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        return array_keys(array_filter($barn->allContents(), fn ($t) => !$t->isEmpty()));
+    }
+
+    public function discardBarnTile(int $pos): Tile {
+        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        $tile = $barn->takeTileAt($pos);
+        $this->ps->updateEnclosure($this->player_id, $barn);
+        return $tile;
     }
 }

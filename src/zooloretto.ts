@@ -38,6 +38,7 @@ class IDS {
   static readonly DEPOT = 'zoo-depot';
   static readonly PILE = 'zoo-pile';
   static readonly STOCK = 'zoo-stock';
+  static readonly OFF_BOARD = 'overall-footer';
 
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
@@ -134,6 +135,7 @@ interface PlayState {
   can_swap: boolean;
   can_move: boolean;
   available_trucks: AvailableTruck[];
+  discardables: number[];
 }
 
 /** Game class */
@@ -392,6 +394,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return $(IDS.enclosureSpace(this.playerNumber(args.player_id), args.enclosure_id, args.enclosure_pos));
   }
 
+  private enclosureSpaceTileElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
+    return this.enclosureSpaceElem(args).firstElementChild as HTMLElement;
+  }
+
   private truckLocFromId(id: string): TruckLocation {
     let parts = id.split('-');
     return {
@@ -439,6 +445,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     if (playState.available_trucks.length > 0) {
       this.statusBar.addActionButton(_('Take truck'), () => this.TakeTruck.takeTruck(playState));
+    }
+    if (playState.discardables.length > 0) {
+      this.statusBar.addActionButton(_('Discard a tile'), () => this.DiscardTile.discardTile(playState.discardables));
     }
   }
 
@@ -670,7 +679,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.game.statusBar.setTitle(_('Choose a destination for the selected tile'));
       this.addCancelButton();
       pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-        console.log("adding ", pep.enclosure_id, pep.enclosure_pos);
         let encElem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
         encElem.classList.add(CSS.TARGETABLE);
         this.game.addSelectableOnclick(encElem, (evt:MouseEvent) => {
@@ -712,6 +720,53 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
+
+  private DiscardTile = new class {
+    private game: ZoolorettoGame;
+    private placedTiles : PlacedTile[] = [];
+    private truck_id: number;
+    constructor(g : ZoolorettoGame) {
+      this.game = g;
+    }
+    public discardTile(discardables: number[]) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(_('Select a truck'));
+      this.game.addCancelButton();
+
+      discardables.forEach((pos: number) => {
+        this.game.addSelectableOnclick(
+          this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: 0, enclosure_pos: pos }),
+          (evt) => this.confirmDiscard(pos));
+      });
+    }
+
+    private confirmDiscard(pos: number) {
+      this.game.statusBar.removeActionButtons();
+      this.game.statusBar.setTitle(_('Confirm discard'));
+      this.game.statusBar.addActionButton(
+        _('Confirm'),
+        () => this.game.bgaPerformAction('actDiscardTile', { barn_pos: pos }),
+        { autoclick: false }
+      );
+      this.game.statusBar.addActionButton(
+        _('Cancel'),
+        () => {
+          this.game.statusBar.removeActionButtons();
+          this.game.restoreServerGameState();
+        },
+        { color: "secondary"}
+      );
+    }
+  }(this);
+
+  private async notif_DiscardTile(args: { player_id: number, money: number, barn_pos: number }) {
+    await this.animationManager.slideOutAndDestroy(
+      this.enclosureSpaceTileElem({player_id: args.player_id, enclosure_id: 0, enclosure_pos: args.barn_pos}),
+      $(IDS.OFF_BOARD),
+      {});
+    this.updateMoney(args.player_id, args.money);
+  }
+
   private async notif_EndTurn(args: {
     truck_ids_returned: number[],
     truck_dumped_pos: { truck_id: number, dumped_pos: number[] }[],
@@ -722,7 +777,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       t.dumped_pos.forEach(p =>
         anims.push(() =>
           this.animationManager.slideOutAndDestroy(
-            this.truckSpaceTile({truck_id: t.truck_id, truck_pos: p})!, $('overall-footer'), {} )
+            this.truckSpaceTile({truck_id: t.truck_id, truck_pos: p})!, $(IDS.OFF_BOARD), {} )
         )
       )
     );

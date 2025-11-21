@@ -67,6 +67,7 @@ class PlayerTurn extends AbstractState
 			'can_swap' => false,
 			'can_discard' => $model->canDiscard(),
 			'available_trucks' => $trucks_available,
+			'discardables' => $model->getDiscardbleBarnPos(),
 			// 'money' => $player->money,
 		];
 	}
@@ -187,9 +188,18 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actDiscardTile(): mixed
+	public function actDiscardTile(int $active_player_id, int $barn_pos): mixed
 	{
-		return Discard::class;
+		$model = $this->createModel();
+		$tile = $model->discardBarnTile($barn_pos);
+		$this->notify->all('DiscardTile', 'player ${player_name} discarded tile ${tile}',[
+			'player_id' => $active_player_id,
+			'tile' => $tile->type->value,
+			'money' => $model->getPlayers()[$active_player_id]->money,
+			'barn_pos' => $barn_pos,
+		]
+		);
+		return NextPlayer::class;
 	}
 
 	function zombie(int $playerId): mixed
