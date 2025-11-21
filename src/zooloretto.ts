@@ -189,6 +189,9 @@ abstract class PlayFlow<T> {
       this.game.statusBar.addActionButton(_('Restart turn'),
           () => {
             this.rollback();
+            document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
+            document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTED}`).forEach((elem) => elem.classList.remove(CSS.SELECTED));
+            document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTABLE}`).forEach((elem) => elem.classList.remove(CSS.SELECTABLE));
             this.game.statusBar.removeActionButtons();
             onCancel && onCancel();
             this.game.restoreServerGameState();
@@ -516,7 +519,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.statusBar.addActionButton(_('Purchase extension'), () => this.PurchaseExtension.start());
     }
     if (playState.available_trucks.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'), () => this.TakeTruck.start(playState));
+      this.statusBar.addActionButton(_('Take truck'), () => this.TakeTruck.start(playState.available_trucks));
     }
     if (playState.discardables.length > 0) {
       this.statusBar.addActionButton(_('Discard a tile'), () => this.DiscardTile.start(playState.discardables));
@@ -664,99 +667,63 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   // Take a truck
   //
 
-  private TakeTruck = new class {
-    private game: ZoolorettoGame;
+  private TakeTruck = new class extends PlayFlow<AvailableTruck[]> {
     private placedTiles : PlacedTile[] = [];
     private truck_id: number;
-    constructor(g : ZoolorettoGame) {
-      this.game = g;
-    }
+    constructor(g : ZoolorettoGame) { super(g); }
 
-    cleanup() {
+    // addCancelButton() {
+    //   this.game.addCancelButton(() => { this.cleanup() });
+    // }
+
+    override doStart(availableTrucks: AvailableTruck[]) {
+      this.initStatusBar(_('Select a truck'));
+      this.addCancelButton(/* () => this.cleanup() */);
+      this.placedTiles = [];
       this.truck_id = 0;
-      this.placedTiles = [];
-      document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
-      document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTED}`).forEach((elem) => elem.classList.remove(CSS.SELECTED));
-      document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTABLE}`).forEach((elem) => elem.classList.remove(CSS.SELECTABLE));
-    }
-
-    addCancelButton() {
-      this.game.addCancelButton(() => {
-        if (this.truck_id == 0) {
-          this.cleanup();
-          return;
-        }
-        this.game.animationManager.playParallel(
-          this.placedTiles.map((pt:PlacedTile) => () => {
-              let tileElem = this.game.enclosureSpaceElem({
-                player_id: this.game.player_id,
-                enclosure_id: pt.enclosure_id,
-                enclosure_pos: pt.enclosure_pos,
-              } ).firstElementChild as HTMLElement;
-              let truckSpaceElem = this.game.truckSpaceElem({truck_id: this.truck_id, truck_pos: pt.truck_pos});
-              return this.game.animationManager.slideAndAttach(tileElem, truckSpaceElem);
-            }
-          )
-        ).then(() => this.cleanup())
+      availableTrucks.forEach((truck: AvailableTruck) => {
+        this.game.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks));
       });
     }
 
-    start(playState: PlayState) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Select a truck'));
-      this.addCancelButton();
-      this.placedTiles = [];
-      playState.available_trucks.forEach((truck: AvailableTruck) => {
-        this.game.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, playState));
-      });
-    }
-
-    private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], playState: PlayState) {
+    private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
       this.truck_id = truck_id;
-      this.game.statusBar.removeActionButtons();
       if (pps.length == 0) {
-        this.game.statusBar.setTitle(_('Confirm your truck tile placements'));
+        this.initStatusBar(_('Confirm your truck tile placements'));
         this.game.statusBar.addActionButton(
           _('Confirm'),
           () => {
             this.game.bgaPerformAction('actTakeTruckAndPlaceTiles', {
               truck_id: truck_id,
               placed_tiles: JSON.stringify(this.placedTiles),
-            }).then(() => this.cleanup())
-              // // FIXME:
-              // // .then(() => slide coins off )
-              // .then(() => this.game.animationManager.slideAndAttach(
-              //   this.game.truckElem(truck_id),
-              //   $(IDS.takenTruck(this.game.player_id)), {}))
-              // .then(() => this.cleanup())
+            });
           }
         )
       }
       else {
-        this.game.statusBar.setTitle(_('Choose a tile to place from the selected truck'));
+        this.initStatusBar(_('Choose a tile to place from the selected truck'));
         pps.forEach((pp: PossiblePlacement) => {
           let elem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos});
-          this.game.addSelectableOnclick(elem, (evt) => {
+          this.addSelectableOnclick(elem, (evt) => {
             elem.classList.add(CSS.SELECTED);
-            this.client_PlaceTruckTile(truck_id, pp, playState);
+            this.chooseDestination(truck_id, pp, availabeTrucks);
           });
         });
       }
       this.addCancelButton();
     }
 
-    private client_PlaceTruckTile(truck_id: number, pp: PossiblePlacement, playState: PlayState) {
-      this.game.statusBar.removeActionButtons();
-      this.game.statusBar.setTitle(_('Choose a destination for the selected tile'));
+    private chooseDestination(truck_id: number, pp: PossiblePlacement, availabeTrucks: AvailableTruck[]) {
+      this.initStatusBar(_('Choose a destination for the selected tile'));
       this.addCancelButton();
       pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
         let encElem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
         encElem.classList.add(CSS.TARGETABLE);
-        this.game.addSelectableOnclick(encElem, (evt:MouseEvent) => {
+        this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
           let tileElem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos}).firstElementChild as HTMLElement;
-          this.game.animationManager.slideAndAttach(tileElem,encElem, {}).then( () => {
+          this.slide(tileElem,encElem).then( () => {
             this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
-            this.chooseTruckTileToPlace(truck_id, pep.next, playState);
+            this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
           });
         });
       });
