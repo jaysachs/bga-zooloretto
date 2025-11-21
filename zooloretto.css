@@ -241,7 +241,7 @@ playerboard widths (non-mobile): 1174
 
 .zoo-truck.zoo-selected {
     transform: translate(0, 3.0vw);
-    transition: 1s;
+    transition: transform 1s;
 }
 
 .zoo-truck:not(.zoo-selected) {
@@ -800,24 +800,24 @@ playerboard widths (non-mobile): 1174
   Zoom other player boards.
 */
 
-#zoo-boards:not(:has(.zoo-zoom:hover)) #zoo-main-board {
-    transition: 1s;
+#zoo-boards:not(:has(.zoo-zoom:hover)) .zoo-main-board {
+    transition: transform 1s ease-in-out !important;
 }
 
-#zoo-boards:has(.zoo-zoom:hover) #zoo-main-board {
+#zoo-boards:has(.zoo-zoom:hover) .zoo-main-board {
     transform: scale(0.5) translate(-50%,-50%);
-    transition: 1s;
+    transition: transform 1s ease-in-out !important;
 }
 
 .zoo-zoom:not(:hover) {
-    transition: 1s;
+    transition: transform 1s ease-in-out !important;
 }
 
 .zoo-zoom:hover {
     /* FIXME: the translate here relates to the % given to the active player board */
     /* for 65% it's kinda but not exactly: */
     transform: scale(2.4) translate(-19%,20%);
-    transition: 1s;
+    transition: transform 1s ease-in-out !important;
 
     /* transform: scale(2.3) translate(0 ,0); */
     z-index: 100;

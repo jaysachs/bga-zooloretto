@@ -238,11 +238,15 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
 }
 
 abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
-  protected game: G;
+  protected readonly game: G;
+  protected readonly player_id: number;
   private onClickAbortController : AbortController = new AbortController();
   private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
 
-  constructor(g : G) { this.game = g; }
+  constructor(g : G) {
+    this.game = g;
+    this.player_id = g.player_id;
+  }
 
   start(args?: T) {
     console.debug("Starting", this, args);

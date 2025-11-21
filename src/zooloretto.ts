@@ -18,54 +18,12 @@ interface EnclosurePlacement {
 interface TruckLocation{ truck_id: number, truck_pos: number };
 interface PlaceDrawnTileArgs { tile: string, available_spaces: TruckLocation[] };
 
-class Attrs {
-  // FIXME: rename value to have zoo- prefix.
-  static readonly ENCLOSURE : string = 'zoo-enclosure';
-  static readonly EXTENSIONS : string = 'zoo-extensions';
-  static readonly TILE : string = 'zoo-tile';
-
-  static tile(tile_type: string): Record<string, string> {
-    let a = {};
-    a[Attrs.TILE] = tile_type;
-    return a;
-  }
-}
-
-class IDS {
-  static readonly GAME = 'zoo-game'; // top-level element
-  static readonly DEPOT = 'zoo-depot';
-  static readonly PILE = 'zoo-pile';
-  static readonly STOCK = 'zoo-stock';
-  static readonly OFF_BOARD = 'overall-footer';
-
-
-  static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
-  static truck(id : number) { return `truck-${id}`; }
-  static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
-  static enclosure(player_id: number, enclosure_id: number): string { return `enclosure-${player_id}-${enclosure_id}`; }
-  static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `enclosure-${player_id}-${enclosure_id}-${pos}`; }
-  static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
-  static moneyCounter(player_id: number): string { return `playermoney-counter-${player_id}` };
-
-}
-
-class CSS {
-  static readonly TRUCK = 'zoo-truck';
-  static readonly TARGETABLE = 'zoo-targetable';
-  static readonly SELECTABLE = 'zoo-selectable';
-  static readonly SELECTED = 'zoo-selected';
-  static readonly MOVED = 'moved';
-  static readonly DEPOT_SPACE = 'zoo-depot-space';
-  static readonly DISK = 'zoo-disk';
-}
-
 type PlacedTile = {
   // truck_id is implicit
   truck_pos: number;
   enclosure_id: number;
   enclosure_pos: number;
 };
-
 
 interface TruckSpace {
   pos: number;
@@ -106,7 +64,6 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   // Should always be 3.
   trucks: Truck[];
   player_enclosures: PlayerEnclosure[];
-  // Needs to include enclosure contents, including barns.
 }
 
 interface PossibleEnclosurePlacement {
@@ -147,6 +104,214 @@ interface PlayState {
   possible_moves: PossibleMove[];
 }
 
+class Attrs {
+  // FIXME: rename value to have zoo- prefix.
+  static readonly ENCLOSURE : string = 'zoo-enclosure';
+  static readonly EXTENSIONS : string = 'zoo-extensions';
+  static readonly TILE : string = 'zoo-tile';
+
+  static tile(tile_type: string): Record<string, string> {
+    let a = {};
+    a[Attrs.TILE] = tile_type;
+    return a;
+  }
+}
+
+class IDS {
+  static readonly GAME = 'zoo-game'; // top-level element
+  static readonly DEPOT = 'zoo-depot';
+  static readonly PILE = 'zoo-pile';
+  static readonly STOCK = 'zoo-stock';
+  static readonly OFF_BOARD = 'overall-footer';
+
+  static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
+  static truck(id : number) { return `truck-${id}`; }
+  static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
+  static enclosure(player_id: number, enclosure_id: number): string { return `enclosure-${player_id}-${enclosure_id}`; }
+  static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `enclosure-${player_id}-${enclosure_id}-${pos}`; }
+  static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
+  static moneyCounter(player_id: number): string { return `playermoney-counter-${player_id}` };
+  static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
+}
+
+class CSS {
+  static readonly TRUCK = 'zoo-truck';
+  static readonly TARGETABLE = 'zoo-targetable';
+  static readonly SELECTABLE = 'zoo-selectable';
+  static readonly SELECTED = 'zoo-selected';
+  static readonly MOVED = 'moved';
+  static readonly DEPOT_SPACE = 'zoo-depot-space';
+  static readonly DISK = 'zoo-disk';
+}
+
+class PurchaseExtensionFlow extends PlayFlow<undefined, ZGamedatas, ZoolorettoGame> {
+  constructor(g: ZoolorettoGame) { super(g); }
+
+  override doStart() {
+    this.initStatusBar(_('Purchase extension?'));
+    let current = this.game.getCurrentExtensions(this.player_id);
+    this.game.renderExtensions(this.player_id, current + 1);
+    this.addConfirmActionButton('actPurchaseExtension', {}, true);
+    this.addCancelButton(() => { this.game.renderExtensions(this.player_id, current); });
+  }
+};
+
+class DrawTileFlow extends PlayFlow<undefined> {
+  constructor(g: ZoolorettoGame) { super(g); }
+
+  override doStart() {
+    this.initStatusBar(_('Draw a tile? (cannot undo)'));
+    this.addConfirmActionButton('actDrawTile');
+    this.addCancelButton();
+  }
+};
+
+class PlaceDrawnTile extends PlayFlow<TruckLocation[], ZGamedatas, ZoolorettoGame> {
+  constructor(g: ZoolorettoGame) { super(g); }
+
+  override doStart(available_spaces: TruckLocation[]) {
+    this.initStatusBar(_('Place the drawn tile'));
+    available_spaces.forEach(
+      (truckLoc: TruckLocation) =>
+        this.addSelectableOnclick(this.game.truckSpaceElem(truckLoc), (evt) => this.placeDrawnTile(truckLoc)));
+  }
+
+  private placeDrawnTile(truckLoc: TruckLocation) {
+    let tile = this.game.topPileElem()!;
+    let space = this.game.truckSpaceElem(truckLoc);
+    this.slide(tile, space)
+      .then(() => {
+        // FIXME: can't we thread the tile into here from the args?
+        this.confirmPlaceDrawnTile(tile.getAttribute(Attrs.TILE)!, truckLoc);
+      });
+  }
+
+  private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
+    this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
+        { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+    this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
+    this.addCancelButton();
+  }
+};
+
+class TakeTruckFlow extends PlayFlow<AvailableTruck[], ZGamedatas, ZoolorettoGame> {
+  private placedTiles : PlacedTile[] = [];
+  private truck_id: number;
+  constructor(g : ZoolorettoGame) { super(g); }
+
+  // addCancelButton() {
+  //   this.game.addCancelButton(() => { this.cleanup() });
+  // }
+
+  override doStart(availableTrucks: AvailableTruck[]) {
+    this.initStatusBar(_('Select a truck'));
+    this.addCancelButton(/* () => this.cleanup() */);
+    this.placedTiles = [];
+    this.truck_id = 0;
+    availableTrucks.forEach((truck: AvailableTruck) => {
+      this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks));
+    });
+  }
+
+  private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
+    this.truck_id = truck_id;
+    if (pps.length == 0) {
+      this.initStatusBar(_('Confirm your truck tile placements'));
+      this.addConfirmActionButton(
+        'actTakeTruckAndPlaceTiles', {
+          truck_id: truck_id,
+          placed_tiles: JSON.stringify(this.placedTiles),
+        }
+      );
+    }
+    else {
+      this.initStatusBar(_('Choose a tile to place from the selected truck'));
+      pps.forEach((pp: PossiblePlacement) => {
+        let elem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos});
+        this.addSelectableOnclick(elem, (evt) => {
+          elem.classList.add(CSS.SELECTED);
+          this.chooseDestination(truck_id, pp, availabeTrucks);
+        });
+      });
+    }
+    this.addCancelButton();
+  }
+
+  private chooseDestination(truck_id: number, pp: PossiblePlacement, availabeTrucks: AvailableTruck[]) {
+    this.initStatusBar(_('Choose a destination for the selected tile'));
+    this.addCancelButton();
+    pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
+      let encElem = this.game.enclosureSpaceElem({ player_id: this.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
+      encElem.classList.add(CSS.TARGETABLE);
+      this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
+        let tileElem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos}).firstElementChild as HTMLElement;
+        this.slide(tileElem,encElem).then( () => {
+          this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
+          this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
+        });
+      });
+    });
+  }
+};
+
+class DiscardTileFlow extends PlayFlow<number[], ZGamedatas, ZoolorettoGame> {
+  constructor(g : ZoolorettoGame) { super(g); }
+
+  override doStart(discardables: number[]) {
+    this.initStatusBar(_('Select a truck'));
+    this.addCancelButton();
+
+    discardables.forEach((pos: number) => {
+      this.addSelectableOnclick(
+        this.game.enclosureSpaceElem({player_id: this.player_id, enclosure_id: 0, enclosure_pos: pos }),
+        // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
+        (evt) => this.confirmDiscard(pos));
+    });
+  }
+
+  private confirmDiscard(pos: number) {
+    this.initStatusBar(_('Confirm discard'));
+    this.addConfirmActionButton('actDiscardTile', { barn_pos: pos });
+    this.addCancelButton();
+  }
+}
+
+class MoveTileFlow extends PlayFlow<PossibleMove[], ZGamedatas, ZoolorettoGame> {
+  constructor(g : ZoolorettoGame) { super(g); }
+
+  override doStart(possibleMoves: PossibleMove[]) {
+    this.initStatusBar(_('Select a tile to move'));
+    this.addCancelButton();
+    possibleMoves.forEach((m: PossibleMove) => {
+      this.addSelectableOnclick(
+        this.game.enclosureSpaceElem({player_id: this.player_id, enclosure_id: m.src.enclosure_id, enclosure_pos: m.src.pos}),
+        (evt) => this.chooseDest(m)
+      )
+    });
+  }
+
+  private chooseDest(pm: PossibleMove) {
+    this.initStatusBar(_('Select a destination space'));
+    this.addCancelButton();
+    pm.dests.forEach((dest: Space) => {
+      let elem = this.game.enclosureSpaceTileElem({player_id: this.player_id, enclosure_id: pm.src.enclosure_id, enclosure_pos: pm.src.pos});
+      let destElem = this.game.enclosureSpaceElem({player_id: this.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos})
+      this.addSelectableOnclick(destElem,
+        (evt) => this.slide(elem, destElem)
+          .then(() => this.confirmMove(pm.src, dest))
+      )
+    });
+  }
+
+  private confirmMove(src: Space, dest: Space) {
+    this.initStatusBar(_('Confirm move'));
+    this.addConfirmActionButton('actMoveTile', {
+      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos
+    });
+    this.addCancelButton();
+  }
+}
+
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
   constructor() {
@@ -163,10 +328,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       */
   }
 
-  private boardId(player_id?: number): string {
-    return (!player_id || player_id == this.player_id) ? "zoo-main-board" : ("zoo-board-" + player_id);
-  }
-
   private playerDiv(player?: ZPlayer): HTMLElement | undefined {
     if (!player) { return undefined; }
 
@@ -178,9 +339,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       return elem;
     };
 
-    const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "";
+    // FIXME: probably don't need "zoo-main-board" -- absence of "zoo-zoom" is enough
+    const zoomClass = player.player_id != this.player_id ? "zoo-zoom" : "zoo-main-board";
     let elem = this
-      .div({ id: this.boardId(player.player_id), classes: [ 'zoo-board', zoomClass ]},
+      .div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board', zoomClass ]},
         enclosure(0, 20), // the barn
         enclosure(1, 6),
         enclosure(2, 6),
@@ -333,6 +495,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   override setup(gamedatas: ZGamedatas) {
     super.setup(gamedatas);
+
     this.twoPlayer = Object.keys(gamedatas.players).length == 2;
     this.setupGameHtml();
 
@@ -357,36 +520,42 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     console.log('Game setup done');
   }
 
-  private topPileElem(): HTMLElement | undefined {
+  topPileElem(): HTMLElement | undefined {
       return this.pileElem.lastElementChild as (HTMLElement | undefined);
   }
 
-  private truckElem(truck_id: number) : HTMLElement {
+  truckElem(truck_id: number) : HTMLElement {
     return $(IDS.truck(truck_id));
   }
 
-  private truckSpaceElem(args: { truck_id: number, truck_pos: number }) : HTMLElement{
+  truckSpaceElem(args: { truck_id: number, truck_pos: number }) : HTMLElement{
     return $(IDS.truckSpace(args.truck_id, args.truck_pos))
   }
 
-  private truckSpaceTile(args: { truck_id: number, truck_pos: number }) : (HTMLElement | undefined) {
+  truckSpaceTile(args: { truck_id: number, truck_pos: number }) : (HTMLElement | undefined) {
     return this.truckSpaceElem(args).firstChild as (HTMLElement | undefined);
   }
 
-  private enclosureSpaceElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
+  enclosureSpaceElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
     return $(IDS.enclosureSpace(args.player_id, args.enclosure_id, args.enclosure_pos));
   }
 
-  private enclosureSpaceTileElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
+  enclosureSpaceTileElem(args: { player_id: number, enclosure_id: number, enclosure_pos: number }) : HTMLElement {
     return this.enclosureSpaceElem(args).firstElementChild as HTMLElement;
   }
 
-  private truckLocFromId(id: string): TruckLocation {
-    let parts = id.split('-');
-    return {
-      truck_id: Number(parts[1]),
-      truck_pos: Number(parts[2]),
-    }
+  private updateMoney(player_id: number, money: number): void {
+    $(IDS.moneyCounter(player_id)).innerText = `${money}`;
+  }
+
+  renderExtensions(player_id : number, extensions: number): void {
+    let elem = $(IDS.boardId(player_id));
+    elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
+  }
+
+  getCurrentExtensions(player_id : number): number {
+    let elem = $(IDS.boardId(player_id));
+    return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
   }
 
   //
@@ -394,37 +563,26 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   //
 
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
-    this.statusBar.removeActionButtons();
     if (playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'), () => this.DrawTile.start());
+      this.statusBar.addActionButton(_('Draw tile'), () => new DrawTileFlow(this).start());
     }
     if (playState.can_purchase) {
-      this.statusBar.addActionButton(_('Purchase extension'), () => this.PurchaseExtension.start());
+      this.statusBar.addActionButton(_('Purchase extension'), () => new PurchaseExtensionFlow(this).start());
     }
     if (playState.available_trucks.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'), () => this.TakeTruck.start(playState.available_trucks));
+      this.statusBar.addActionButton(_('Take truck'), () => new TakeTruckFlow(this).start(playState.available_trucks));
     }
     if (playState.discardables.length > 0) {
-      this.statusBar.addActionButton(_('Discard a tile'), () => this.DiscardTile.start(playState.discardables));
+      this.statusBar.addActionButton(_('Discard a tile'), () => new DiscardTileFlow(this).start(playState.discardables));
     }
     if (playState.possible_moves.length > 0) {
-      this.statusBar.addActionButton(_('Move a tile'), () => this.MoveTile.start(playState.possible_moves));
+      this.statusBar.addActionButton(_('Move a tile'), () => new MoveTileFlow(this).start(playState.possible_moves));
     }
   }
 
-  //
-  // Draw a tile
-  //
-
-  private DrawTile = new class extends PlayFlow<undefined> {
-    constructor(g: ZoolorettoGame) { super(g); }
-
-    override doStart() {
-      this.initStatusBar(_('Draw a tile? (cannot undo)'));
-      this.addConfirmActionButton('actDrawTile');
-      this.addCancelButton();
-    }
-  }(this);
+  private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
+    new PlaceDrawnTile(this).start(args.available_spaces);
+  }
 
   private async notif_DrawTile(
     args: {
@@ -438,44 +596,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     // FIXME: animate "flip" the top tile?
     this.setSpanToTile(this.topPileElem()!, args.tile_type);
   }
-
-  //
-  // Place a drawn tile
-  //    note this is a separate server state
-  //
-
-  private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    this.statusBar.removeActionButtons();
-    this.PlaceDrawnTile.start(args.available_spaces);
-  }
-
-  private PlaceDrawnTile = new class extends PlayFlow<TruckLocation[], ZGamedatas, ZoolorettoGame> {
-    constructor(g: ZoolorettoGame) { super(g); }
-
-    override doStart(available_spaces: TruckLocation[]) {
-      this.initStatusBar(_('Place the drawn tile'));
-      available_spaces.forEach(
-        (truckLoc: TruckLocation) =>
-          this.addSelectableOnclick(this.game.truckSpaceElem(truckLoc), (evt) => this.placeDrawnTile(truckLoc)));
-    }
-
-    private placeDrawnTile(truckLoc: TruckLocation) {
-      let tile = this.game.topPileElem()!;
-      let space = this.game.truckSpaceElem(truckLoc);
-      this.slide(tile, space)
-        .then(() => {
-          // FIXME: can't we thread the tile into here from the args?
-          this.confirmPlaceDrawnTile(tile.getAttribute(Attrs.TILE)!, truckLoc);
-        });
-    }
-
-    private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
-      this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
-          { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
-      this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
-      this.addCancelButton();
-    }
-  }(this);
 
   private async notif_PlaceDrawnTileInTruck(args: {
     player_id: number,
@@ -494,36 +614,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  //
-  // Purchase an extension
-  //
-
-  private updateMoney(player_id: number, money: number): void {
-    $(IDS.moneyCounter(player_id)).innerText = `${money}`;
-  }
-
-  private renderExtensions(extensions: number, player_id? : number): void {
-    let elem = $(this.boardId(player_id));
-    elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
-  }
-
-  private getCurrentExtensions(player_id? : number): number {
-    let elem = $(this.boardId(player_id));
-    return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
-  }
-
-  private PurchaseExtension = new class extends PlayFlow<undefined, ZGamedatas, ZoolorettoGame> {
-    constructor(g: ZoolorettoGame) { super(g); }
-
-    override doStart() {
-      this.initStatusBar(_('Purchase extension?'));
-      let current = this.game.getCurrentExtensions();
-      this.game.renderExtensions(current + 1);
-      this.addConfirmActionButton('actPurchaseExtension', {}, true);
-      this.addCancelButton(() => { this.game.renderExtensions(current); });
-    }
-  }(this);
-
   private async notif_PurchaseExtension(args: {
       player_id: number, purchased_extensions: number, money: number
     }) {
@@ -532,70 +622,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     this.updateMoney(args.player_id, args.money);
   }
-
-  //
-  // Take a truck
-  //
-
-  private TakeTruck = new class extends PlayFlow<AvailableTruck[], ZGamedatas, ZoolorettoGame> {
-    private placedTiles : PlacedTile[] = [];
-    private truck_id: number;
-    constructor(g : ZoolorettoGame) { super(g); }
-
-    // addCancelButton() {
-    //   this.game.addCancelButton(() => { this.cleanup() });
-    // }
-
-    override doStart(availableTrucks: AvailableTruck[]) {
-      this.initStatusBar(_('Select a truck'));
-      this.addCancelButton(/* () => this.cleanup() */);
-      this.placedTiles = [];
-      this.truck_id = 0;
-      availableTrucks.forEach((truck: AvailableTruck) => {
-        this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks));
-      });
-    }
-
-    private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
-      this.truck_id = truck_id;
-      if (pps.length == 0) {
-        this.initStatusBar(_('Confirm your truck tile placements'));
-        this.addConfirmActionButton(
-          'actTakeTruckAndPlaceTiles', {
-            truck_id: truck_id,
-            placed_tiles: JSON.stringify(this.placedTiles),
-          }
-        );
-      }
-      else {
-        this.initStatusBar(_('Choose a tile to place from the selected truck'));
-        pps.forEach((pp: PossiblePlacement) => {
-          let elem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos});
-          this.addSelectableOnclick(elem, (evt) => {
-            elem.classList.add(CSS.SELECTED);
-            this.chooseDestination(truck_id, pp, availabeTrucks);
-          });
-        });
-      }
-      this.addCancelButton();
-    }
-
-    private chooseDestination(truck_id: number, pp: PossiblePlacement, availabeTrucks: AvailableTruck[]) {
-      this.initStatusBar(_('Choose a destination for the selected tile'));
-      this.addCancelButton();
-      pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-        let encElem = this.game.enclosureSpaceElem({ player_id: this.game.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
-        encElem.classList.add(CSS.TARGETABLE);
-        this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
-          let tileElem = this.game.truckSpaceElem({ truck_id: truck_id, truck_pos: pp.truck_pos}).firstElementChild as HTMLElement;
-          this.slide(tileElem,encElem).then( () => {
-            this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
-            this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
-          });
-        });
-      });
-    }
-  }(this);
 
   private async notif_TakeTruckAndPlaceTiles(args: {
     player_id: number,
@@ -625,42 +651,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
-  private MoveTile = new class extends PlayFlow<PossibleMove[], ZGamedatas, ZoolorettoGame> {
-    constructor(g : ZoolorettoGame) { super(g); }
-
-    override doStart(possibleMoves: PossibleMove[]) {
-      this.initStatusBar(_('Select a tile to move'));
-      this.addCancelButton();
-      possibleMoves.forEach((m: PossibleMove) => {
-        this.addSelectableOnclick(
-          this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: m.src.enclosure_id, enclosure_pos: m.src.pos}),
-          (evt) => this.chooseDest(m)
-        )
-      });
-    }
-
-    private chooseDest(pm: PossibleMove) {
-      this.initStatusBar(_('Select a destination space'));
-      this.addCancelButton();
-      pm.dests.forEach((dest: Space) => {
-        let elem = this.game.enclosureSpaceTileElem({player_id: this.game.player_id, enclosure_id: pm.src.enclosure_id, enclosure_pos: pm.src.pos});
-        let destElem = this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos})
-        this.addSelectableOnclick(destElem,
-          (evt) => this.slide(elem, destElem)
-            .then(() => this.confirmMove(pm.src, dest))
-        )
-      });
-    }
-
-    private confirmMove(src: Space, dest: Space) {
-      this.initStatusBar(_('Confirm move'));
-      this.addConfirmActionButton('actMoveTile', {
-        src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos
-      });
-      this.addCancelButton();
-    }
-  }(this);
-
   private async notif_MoveTile(args: {player_id: number, src: Space, dest: Space, money: number}) {
     if (args.player_id != this.player_id) {
       this.animationManager.slideAndAttach(
@@ -670,28 +660,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     this.updateMoney(args.player_id, args.money);
   }
-
-  private DiscardTile = new class extends PlayFlow<number[], ZGamedatas, ZoolorettoGame> {
-    constructor(g : ZoolorettoGame) { super(g); }
-
-    override doStart(discardables: number[]) {
-      this.initStatusBar(_('Select a truck'));
-      this.addCancelButton();
-
-      discardables.forEach((pos: number) => {
-        this.addSelectableOnclick(
-          this.game.enclosureSpaceElem({player_id: this.game.player_id, enclosure_id: 0, enclosure_pos: pos }),
-          // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
-          (evt) => this.confirmDiscard(pos));
-      });
-    }
-
-    private confirmDiscard(pos: number) {
-      this.initStatusBar(_('Confirm discard'));
-      this.addConfirmActionButton('actDiscardTile', { barn_pos: pos });
-      this.addCancelButton();
-    }
-  }(this);
 
   private async notif_DiscardTile(args: { player_id: number, money: number, barn_pos: number }) {
     await this.animationManager.slideOutAndDestroy(
