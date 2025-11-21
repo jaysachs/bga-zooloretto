@@ -149,14 +149,21 @@ interface PlayState {
   possible_moves: PossibleMove[];
 }
 
-abstract class PlayFlow {
+abstract class PlayFlow<T> {
     protected game: ZoolorettoGame;
-    constructor(g : ZoolorettoGame) { this.game = g; }
     private onClickAbortController : AbortController = new AbortController();
+    private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
 
+    constructor(g : ZoolorettoGame) { this.game = g; }
 
-    // FIXME: note the moves/slide/rollback here -- that's reusable!
-    protected moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
+    start(args?: T) {
+      console.debug("Starting", this, args);
+      this.moves = [];
+      this.onClickAbortController = new AbortController();
+      this.doStart(args);
+    }
+
+    protected abstract doStart(args?: T);
 
     protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
       this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
@@ -523,10 +530,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   // Draw a tile
   //
 
-  private DrawTile = new class extends PlayFlow {
+  private DrawTile = new class extends PlayFlow<undefined> {
     constructor(g: ZoolorettoGame) { super(g); }
 
-    start() {
+    override doStart() {
       this.initStatusBar(_('Draw a tile? (cannot undo)'));
       this.game.statusBar.addActionButton(
         _('Confirm'),
@@ -560,10 +567,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.PlaceDrawnTile.start(args.available_spaces);
   }
 
-  private PlaceDrawnTile = new class extends PlayFlow {
+  private PlaceDrawnTile = new class extends PlayFlow<TruckLocation[]> {
     constructor(g: ZoolorettoGame) { super(g); }
 
-    start(available_spaces: TruckLocation[]) {
+    override doStart(available_spaces: TruckLocation[]) {
       this.initStatusBar(_('Place the drawn tile'));
       available_spaces.forEach(
         (truckLoc: TruckLocation) =>
@@ -632,10 +639,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
   }
 
-  private PurchaseExtension = new class extends PlayFlow {
+  private PurchaseExtension = new class extends PlayFlow<undefined> {
     constructor(g: ZoolorettoGame) { super(g); }
 
-    start() {
+    override doStart() {
     this.initStatusBar(_('Purchase extension?'));
     let current = this.game.getCurrentExtensions();
     this.game.renderExtensions(current + 1);
@@ -784,10 +791,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
-  private MoveTile = new class extends PlayFlow {
+  private MoveTile = new class extends PlayFlow<PossibleMove[]> {
     constructor(g : ZoolorettoGame) { super(g); }
 
-    public start(possibleMoves: PossibleMove[]) {
+    override doStart(possibleMoves: PossibleMove[]) {
       this.initStatusBar(_('Select a tile to move'));
       this.addCancelButton();
       possibleMoves.forEach((m: PossibleMove) => {
@@ -830,10 +837,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoney(args.player_id, args.money);
   }
 
-  private DiscardTile = new class extends PlayFlow {
+  private DiscardTile = new class extends PlayFlow<number[]> {
     constructor(g : ZoolorettoGame) { super(g); }
 
-    public start(discardables: number[]) {
+    override doStart(discardables: number[]) {
       this.initStatusBar(_('Select a truck'));
       this.addCancelButton();
 
