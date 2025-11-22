@@ -202,7 +202,14 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     throw new Error("element not found among its parent's children: ${el}");
   }
 
-  private makeElem(ty: string, args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
+  protected async notif_debug(args: any) {
+    console.log("debug", args);
+  }
+
+}
+
+class Html {
+  public static makeElem(ty: string, args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
     let e = document.createElement(ty);
     if (args.id) { e.id = args.id; }
     if (args.classes) {
@@ -219,20 +226,12 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return e;
   }
 
-  protected div(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static div(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('div', args, ...children);
   }
 
-  protected span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('span', args, ...children);
-  }
-
-  protected range(start: number, end: number) {
-    return Array.from({length: (end - start + 1)}, (v, k) => k + start);
-  }
-
-  protected async notif_debug(args: any) {
-    console.log("debug", args);
   }
 
 }
