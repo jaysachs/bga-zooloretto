@@ -191,7 +191,7 @@ class Model {
         foreach ($placements as $placement) {
             $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
             if ($epos <> $placement->enclosure_pos) {
-                throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$epos}");
+                // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$epos}");
                 $placement->enclosure_pos = $epos;
             }
         }
@@ -245,7 +245,7 @@ class Model {
                 if ($taken != $truck->id) {
                     throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
                 }
-                $result[$truck->id] = null;
+                $result[$truck->id] = [];
             }
             else {
                 $result[$truck->id] = $truck->dumpTiles();
@@ -359,8 +359,8 @@ class Model {
             foreach ($enc->nonEmptyContents() as $pos => $tile) {
                 /** @var Space[] */
                 $dests = [];
+                $src = new Space($enc->id, $pos);
                 if ($tile->type->isStall()) {
-                    $src = new Space($enc->id, $pos);
                     foreach ($enclosures as $other) {
                         if ($other <> $enc) {
                             $sp = $other->availablePos($tile->type);
@@ -415,7 +415,6 @@ class Model {
             if ($player->id == $this->player_id) {
                 continue;
             }
-            $result[$player->id] = [];
             $barn = $this->ps->getEnclosuresForPlayer($player->id)[0];
             foreach ($barn->nonEmptyContents() as $pos => $tile) {
                 $dests = [];

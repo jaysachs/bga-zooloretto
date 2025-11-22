@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto;
 
 use Bga\Games\zooloretto\Model\TileType;
+use ValueError;
 
 class Decoder
 {
@@ -51,7 +52,10 @@ class Decoder
 	 */
     public static function Animal(string $val): string
 	{
-		$tt = TileType::from($val);
-		return $tt == null ? "" : $tt->translated();
+		try {
+			return TileType::from($val)->translated();
+		} catch (ValueError) {
+			return "";
+		}
 	}
 }

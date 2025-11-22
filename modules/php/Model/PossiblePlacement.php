@@ -59,10 +59,10 @@ class PlacementsForTruckPos {
     public int $truck_pos = 0;
     public TileType $tile_type = TileType::EMPTY;
 
-    /** @var PP2[] */
+    /** @var PlacementForEnclosure[] */
     private array $next = [];
 
-    public function addNext(PlacementForEnclosure $p2) {
+    public function addNext(PlacementForEnclosure $p2): void {
         $this->next[] = $p2;
     }
 
@@ -81,7 +81,7 @@ class PossiblePlacement {
     /** var PlacementsForTruckPos[] */
     private array $placements = [];
 
-    public function add(PlacementsForTruckPos $p1) {
+    public function add(PlacementsForTruckPos $p1): void {
         $this->placements[] = $p1;
     }
 

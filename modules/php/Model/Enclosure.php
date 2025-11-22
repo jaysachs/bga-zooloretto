@@ -39,7 +39,7 @@ class Enclosure {
         return new Enclosure(Enclosure::BARN_ID, 0, 0, 100);
     }
 
-    private function isBarn() {
+    private function isBarn() : bool {
         return $this->id == Enclosure::BARN_ID;
     }
 

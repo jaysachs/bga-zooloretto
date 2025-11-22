@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 use Bga\Games\zooloretto\Utils;
 
 class Stock {
+
     /**
      * The available tiles. Both arrays are keyed by the tile ID.
      *
@@ -85,10 +86,10 @@ class Stock {
         return $tile;
     }
 
-    private const LASTSET_SIZE = 15;
+    private const int LASTSET_SIZE = 15;
 
     public function waslastRoundTriggered(): bool {
-        return $this->drawn != null && count($this->endgame) == self::LASTSET_SIZE - 1;
+        return !$this->drawn->isEmpty() && count($this->endgame) == self::LASTSET_SIZE - 1;
     }
 
     public function inLastRound(): bool {

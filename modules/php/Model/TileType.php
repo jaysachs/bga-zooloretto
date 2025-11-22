@@ -88,7 +88,7 @@ enum TileType: string {
     public function isSameSpecies(TileType $other): bool {
         return $this->isAnimal()
             && $other->isAnimal()
-            && $this->value[0] == $other->value[0];
+            && strval($this->value)[0] == strval($other->value)[0];
     }
 
     public function isPlaceable(): bool {

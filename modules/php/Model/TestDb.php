@@ -27,19 +27,24 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Override;
+
 class TestDb implements Db {
+    #[Override]
     /** @return string[][] */
     public function getObjectList(string $sql): array {
         echo "getObjectList : $sql\n";
         return [];
     }
 
+    #[Override]
     /** @return string[] */
     public function getSingleFieldList(string $sql): array {
         echo "getSingleFieldList : $sql\n";
         return [];
     }
 
+    #[Override]
     public function execute(string $sql): void {
         echo "execute : $sql\n";
     }

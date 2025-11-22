@@ -30,15 +30,20 @@ namespace Bga\Games\zooloretto\Model;
 use \Bga\Games\zooloretto\Utils;
 
 class Truck {
-    public const CAPACITY = 3;
+    public const int CAPACITY = 3;
+
+    /** @var Tile[] */
+    private array $tiles;
 
     /** @param $tiles Tile[] */
     public function __construct(
         public readonly int $id,
-        private ?array $tiles = null,
+        ?array $tiles = null,
         public int $taken_by = 0) {
-        if ($this->tiles == null) {
+        if ($tiles == null) {
             $this->tiles = [Tile::empty(), Tile::empty(), Tile::empty()];
+        } else {
+            $this->tiles = $tiles;
         }
         $c = count($this->tiles);
         if ($c != self::CAPACITY) {
@@ -155,16 +160,13 @@ class Truck {
     }
 
     public function freeSpaces(): int {
-        return array_reduce($this->tiles, fn ($s, Tile $t) => ($s + ($t->isEmpty() ? 1 : 0)), 0);
+        return array_reduce($this->tiles, fn ($s, Tile $t): int => ($s + ($t->isEmpty() ? 1 : 0)), 0);
     }
 
     /**
      * @param $pos 1-based position on the truck
      */
     public function placeTileAt(Tile $tile, int $pos): void {
-        if ($tile == null) {
-            throw new ModelException("Cannot place null tile into truck");
-        }
         if ($tile->isEmpty()) {
             throw new ModelException("Cannot place empty tile into truck");
         }
