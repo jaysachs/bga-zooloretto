@@ -81,15 +81,12 @@ class PlayerTurn extends AbstractState
 
 		return [
 			'can_draw' => $model->canDraw(),
-			'can_purchase' => $model->canPurchaseExtension(),
-			'can_move' => $model->canMoveTile(),
-			'can_buy' => false,
-			'can_swap' => false,
-			'can_discard' => $model->canDiscard(),
 			'available_trucks' => $trucks_available,
-			'discardables' => $model->getDiscardbleBarnPos(),
 			'possible_moves' => $pm,
-			'possible_buys' => $pb,
+			'possible_exchanges' => [],
+			'possible_purchases' => $pb,
+			'possible_discards' => $model->getDiscardbleBarnPos(),
+			'can_expand' => $model->canExpand(),
 			// 'money' => $player->money,
 		];
 	}
@@ -175,12 +172,12 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actPurchaseExtension(int $active_player_id): mixed
+	public function actExpandZoo(int $active_player_id): mixed
 	{
         $model = $this->createModel();
-		$player = $model->purchaseExtension($active_player_id);
+		$player = $model->expandZoo($active_player_id);
 		$this->notify->all(
-			"PurchaseExtension",
+			"ExpandZoo",
 			clienttranslate('${player_name} bought an extra enclosure.'),
 			[
 				'player_id' => $active_player_id,

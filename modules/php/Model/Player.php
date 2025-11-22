@@ -41,7 +41,7 @@ class Player {
     private const ENCLOSURE_COST = 3;
     private const DISCARD_COST = 2;
 
-    public function canPurchaseExtension(): bool {
+    public function canExpand(): bool {
         return $this->purchased_extensions < $this->extension_limit && $this->money >= SELF::ENCLOSURE_COST;
     }
 

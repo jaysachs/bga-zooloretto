@@ -257,8 +257,8 @@ class Model {
         return $result;
     }
 
-    public function canPurchaseExtension(): bool {
-        return $this->getPlayer($this->player_id)->canPurchaseExtension();
+    public function canExpand(): bool {
+        return $this->getPlayer($this->player_id)->canExpand();
     }
 
     private static function makeEnclosure(int $id): Enclosure {
@@ -288,7 +288,7 @@ class Model {
         return $e;
     }
 
-    public function purchaseExtension(): Player {
+    public function expandZoo(): Player {
         $player = $this->getPlayer($this->player_id);
         $eid = $player->purchaseExtension() + 3;
         $e = Model::makeEnclosure($eid);
@@ -299,16 +299,6 @@ class Model {
 
     public function canDraw(): bool {
         return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
-    }
-
-    public function canDiscard(): bool {
-		$enclosures = $this->getEnclosuresForPlayer($this->player_id);
-        return count($enclosures[0]->nonEmptyContents()) > 0
-            && $this->getPlayer($this->player_id)->money >= 2;
-    }
-
-    public function canMoveTile(): bool {
-        return $this->getPlayer($this->player_id)->money >= 1;
     }
 
     /** return int[] positions in barn that are discardable */

@@ -92,17 +92,29 @@ interface PossibleMove {
   dests: Space[];
 }
 
+interface PossiblePurchase {
+  player_id: number;
+  barn_pos: number;
+  dests: PossibleMove[];
+}
+
+interface PossibleExchange {
+
+}
+
 interface PlayState {
   can_draw: boolean;
-  can_purchase: boolean;
-  can_take_truck: boolean;
-  can_buy: boolean;
-  can_swap: boolean;
-  can_move: boolean;
+  can_expand: boolean;
   available_trucks: AvailableTruck[];
-  discardables: number[];
+  possible_discards: number[];
   possible_moves: PossibleMove[];
+  possible_exchanges: PossibleExchange[];
+  possible_purchases: PossiblePurchase[];
 }
+
+//
+// HTML structures
+//
 
 class Attrs {
   // FIXME: rename value to have zoo- prefix.
@@ -170,6 +182,10 @@ class Elements {
   }
 
 }
+
+//
+// UI flows
+//
 
 abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
   protected readonly game: G;
@@ -266,14 +282,30 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
 
 }
 
-class PurchaseExtensionFlow extends ZooFlow {
+class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
+  constructor(g: ZoolorettoGame) { super(g); }
+
+  protected override doStart(possible_exchanges: PossibleExchange[]) {
+
+  }
+}
+
+class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
+  constructor(g: ZoolorettoGame) { super(g); }
+
+  protected override doStart(possible_purchases: PossiblePurchase[]) {
+
+  }
+}
+
+class ExpandZooFlow extends ZooFlow {
   constructor(g: ZoolorettoGame) { super(g); }
 
   override doStart() {
-    this.initStatusBar(_('Purchase extension?'));
+    this.initStatusBar(_('Expand zoo?'));
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
-    this.addConfirmActionButton('actPurchaseExtension', {}, true);
+    this.addConfirmActionButton('actExpandZoo', {}, true);
     this.addCancelButton(() => { this.game.renderExtensions(this.player_id, current); });
   }
 };
@@ -668,17 +700,23 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (playState.can_draw) {
       this.statusBar.addActionButton(_('Draw tile'), () => new DrawTileFlow(this).start());
     }
-    if (playState.can_purchase) {
-      this.statusBar.addActionButton(_('Purchase extension'), () => new PurchaseExtensionFlow(this).start());
-    }
     if (playState.available_trucks.length > 0) {
       this.statusBar.addActionButton(_('Take truck'), () => new TakeTruckFlow(this).start(playState.available_trucks));
     }
-    if (playState.discardables.length > 0) {
-      this.statusBar.addActionButton(_('Discard a tile'), () => new DiscardTileFlow(this).start(playState.discardables));
-    }
     if (playState.possible_moves.length > 0) {
-      this.statusBar.addActionButton(_('Move a tile'), () => new MoveTileFlow(this).start(playState.possible_moves));
+      this.statusBar.addActionButton(_('Move tile'), () => new MoveTileFlow(this).start(playState.possible_moves));
+    }
+    if (playState.possible_exchanges.length > 0) {
+      this.statusBar.addActionButton(_('Exchange animals'), () => new ExchangeFlow(this).start(playState.possible_exchanges));
+    }
+    if (playState.possible_purchases.length > 0) {
+      this.statusBar.addActionButton(_('Purchase tile'), () => new PurchaseTileFlow(this).start(playState.possible_purchases));
+    }
+    if (playState.possible_discards.length > 0) {
+      this.statusBar.addActionButton(_('Discard tile'), () => new DiscardTileFlow(this).start(playState.possible_discards));
+    }
+    if (playState.can_expand) {
+      this.statusBar.addActionButton(_('Expand zoo'), () => new ExpandZooFlow(this).start());
     }
   }
 
@@ -716,7 +754,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private async notif_PurchaseExtension(args: {
+  private async notif_ExpandZoo(args: {
       player_id: number,
       purchased_extensions: number,
       money: number
