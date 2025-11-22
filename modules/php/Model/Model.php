@@ -402,4 +402,34 @@ class Model {
         }
         throw new ModelException("illegal move {$src} {$dest}");
     }
+
+    /** @return PossibleBuy[] */
+    public function getPurchaseableTiles(): array {
+        if ($this->getPlayer($this->player_id)->money < 2) {
+            return [];
+        }
+        $enclosures = $this->getEnclosuresForPlayer($this->player_id);
+        /** @var PossibleBuy[] */
+        $result = [];
+        foreach ($this->getPlayers() as $player) {
+            if ($player->id == $this->player_id) {
+                continue;
+            }
+            $result[$player->id] = [];
+            $barn = $this->ps->getEnclosuresForPlayer($player->id)[0];
+            foreach ($barn->nonEmptyContents() as $pos => $tile) {
+                $dests = [];
+                foreach ($enclosures as $enclosure) {
+                    $p = $enclosure->availablePos($tile->type);
+                    if ($p > 0) {
+                        $dests[] = new Space($enclosure->id, $p);
+                    }
+                }
+                if (count($dests) > 0) {
+                    $result[] = new PossibleBuy($player->id, new PossibleMove(new Space($barn->id, $pos), $dests));
+                }
+            }
+        }
+        return $result;
+    }
 }

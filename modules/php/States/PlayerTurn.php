@@ -32,6 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Placement;
+use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
 
@@ -72,6 +73,12 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $pm->dests),
 		], $model->getPossibleMoves());
 
+		$pb = array_map(fn (PossibleBuy $b) => [
+			'player_id' => $b->player_id,
+			'barn_pos' => $b->move->src->pos,
+			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $b->move->dests),
+		], $model->getPurchaseableTiles());
+
 		return [
 			'can_draw' => $model->canDraw(),
 			'can_purchase' => $model->canPurchaseExtension(),
@@ -82,6 +89,7 @@ class PlayerTurn extends AbstractState
 			'available_trucks' => $trucks_available,
 			'discardables' => $model->getDiscardbleBarnPos(),
 			'possible_moves' => $pm,
+			'possible_buys' => $pb,
 			// 'money' => $player->money,
 		];
 	}
