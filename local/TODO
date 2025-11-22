@@ -9,3 +9,17 @@
 * Implement offspring for: purchase, take truck, move
 
 * Implement scoring
+
+* Implement money limits
+
+* Implement money updating
+
+* Implement enclosure completion bonuses
+
+* Maybe don't have zooming boards, just lay them out vertically (or maybe horizontally?)
+
+* Get rules clarifications on
+  * limited coin (should online implementation use that?)
+  * if pay with coin tiles, can those be handed out again (e.g. for enclosure bonus)
+  * do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
+    * if we do, can we still give e.g. approx percentage left (like T&E)?
