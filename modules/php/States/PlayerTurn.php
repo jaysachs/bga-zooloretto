@@ -215,9 +215,21 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actBuyTile(): mixed
+	public function actPurchaseTile(int $active_player_id, int $from_player_id, int $barn_pos, int $enclosure_id, int $enclosure_pos): mixed
 	{
-		return Buy::class;
+		$model = $this->createModel();
+		$tile = $model->purchaseTile($from_player_id, $barn_pos, new Space($enclosure_id, $enclosure_pos));
+		$player = $model->getPlayers()[$active_player_id];
+		$this->notify->all('PurchaseTile', 'player ${player_name} purchased tile ${tile}', [
+			'player_id' => $active_player_id,
+			'from_player_id' => $from_player_id,
+			'barn_pos' => $barn_pos,
+			'enclosure_id' => $enclosure_id,
+			'enclosure_pos' => $enclosure_pos,
+			'tile' => $tile->type->value,
+			'money' => $player->money,
+		]);
+		return NextPlayer::class;
 	}
 
 	#[PossibleAction]

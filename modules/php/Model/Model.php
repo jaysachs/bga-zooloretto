@@ -393,6 +393,31 @@ class Model {
         throw new ModelException("illegal move {$src} {$dest}");
     }
 
+    public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
+        $player = $this->ps->retrievePlayers()[$this->player_id];
+        $src = new Space(0, $barn_pos);
+        foreach ($this->getPurchaseableTiles() as $pt) {
+            if ($pt->player_id == $from_player_id && $pt->move->src == $src) {
+                foreach ($pt->move->dests as $dest) {
+                    if ($dest == $target) {
+                        $player->payMoney(2);
+
+                        $barn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
+                        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];
+                        $tile = $barn->takeTileAt($src->pos);
+                        $enc->placeTile($tile, $dest->pos);
+
+                        $this->ps->updatePlayer($player);
+                        $this->ps->updateEnclosure($from_player_id, $barn);
+                        $this->ps->updateEnclosure($this->player_id, $enc);
+                        return $tile;
+                    }
+                }
+            }
+        }
+        throw new ModelException("Illegal purchase {$from_player_id} {$barn_pos} {$target}");
+    }
+
     /** @return PossibleBuy[] */
     public function getPurchaseableTiles(): array {
         if ($this->getPlayer($this->player_id)->money < 2) {

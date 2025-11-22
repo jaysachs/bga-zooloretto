@@ -95,7 +95,7 @@ interface PossibleMove {
 interface PossiblePurchase {
   player_id: number;
   barn_pos: number;
-  dests: PossibleMove[];
+  dests: Space[];
 }
 
 interface PossibleExchange {
@@ -294,7 +294,39 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   protected override doStart(possible_purchases: PossiblePurchase[]) {
+    this.initStatusBar(_("Select a tile to purchase from another player's barn"));
+    possible_purchases.forEach((pp: PossiblePurchase) =>
+      this.addSelectableOnclick(
+        Elements.enclosureSpace({player_id: pp.player_id, enclosure_id: 0, enclosure_pos: pp.barn_pos}),
+        (evt) => this.selectDestinationForPurchase(pp)
+    ));
+    this.addCancelButton();
+  }
 
+  private selectDestinationForPurchase(pp: PossiblePurchase) {
+    this.initStatusBar(_("Select a destination for the purchased tile"));
+    pp.dests.forEach((dest: Space) =>
+      this.addSelectableOnclick(
+        Elements.enclosureSpace({player_id: this.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos}),
+        (evt) => {
+          this.slide(
+            Elements.enclosureSpaceTile({player_id: pp.player_id, enclosure_id: 0, enclosure_pos: pp.barn_pos}),
+            Elements.enclosureSpace({player_id: this.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos}));
+          this.confirmPurchase(pp, dest)
+        }
+      ));
+    this.addCancelButton();
+  }
+
+  private confirmPurchase(pp: PossiblePurchase, dest: Space) {
+    this.initStatusBar(_("Confirm purchase"));
+    this.addConfirmActionButton('actPurchaseTile', {
+      from_player_id: pp.player_id,
+      barn_pos: pp.barn_pos,
+      enclosure_id: dest.enclosure_id,
+      enclosure_pos: dest.pos
+    });
+    this.addCancelButton();
   }
 }
 
@@ -809,6 +841,24 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       $(IDS.OFF_BOARD),
       {});
     this.updateMoney(args.player_id, args.money);
+  }
+
+  private async notif_PurchaseTile(args: {
+			player_id: number,
+			from_player_id: number,
+			barn_pos: number,
+			enclosure_id: number,
+			enclosure_pos: number,
+			tile: string,
+			money: number
+    }) {
+      if (this.player_id != args.player_id) {
+        await this.animationManager.slideAndAttach(
+          Elements.enclosureSpaceTile({player_id: args.from_player_id, enclosure_id: 0, enclosure_pos: args.barn_pos}),
+          Elements.enclosureSpace({player_id: args.player_id, enclosure_id: args.enclosure_id, enclosure_pos: args.enclosure_pos}),
+          {})
+          .then(() => this.updateMoney(args.player_id, args.money));
+      }
   }
 
   private async notif_EndTurn(args: {
