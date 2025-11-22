@@ -211,7 +211,7 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actSwapEnclosureContents(): mixed
 	{
-		return Swap::class;
+		return NextPlayer::class;
 	}
 
 	#[PossibleAction]
