@@ -3,3 +3,9 @@
 * generally move away from %ages for flex children.
 
 * Fix up the "selected" ::after CSS styling. Doesn't work in all cases
+
+* Implement exchange.
+
+* Implement offspring for: purchase, take truck, move
+
+* Implement scoring
