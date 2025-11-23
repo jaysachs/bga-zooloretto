@@ -44,7 +44,7 @@ class SwapGroup {
 
     public function __toString(): string
     {
-        return "SwapGroup{{$this->enclosure_id}," . Utils::arrayToString($this->positions) . "}";
+        return "SwapGroup({$this->enclosure_id}," . Utils::arrayToString($this->positions) . ")";
     }
 
     public function equals(SwapGroup $other): bool {

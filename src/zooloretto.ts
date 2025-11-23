@@ -98,8 +98,14 @@ interface PossiblePurchase {
   dests: Space[];
 }
 
-interface PossibleExchange {
 
+interface ExchangeGroup {
+	enclosure_id: number;
+  positions: number[];
+}
+
+interface PossibleExchange extends ExchangeGroup {
+  dests: ExchangeGroup[];
 }
 
 interface PlayState {
@@ -286,7 +292,40 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   protected override doStart(possible_exchanges: PossibleExchange[]) {
+    this.initStatusBar(_("Select the first enclosure to exchange"));
+    possible_exchanges.forEach((pe: PossibleExchange) =>
+      pe.positions.forEach((p) =>
+        this.addSelectableOnclick(
+          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: pe.enclosure_id, enclosure_pos: p}),
+          (evt) => this.selectDestinationForExchange(pe)
+        )
+      )
+    );
+    this.addCancelButton();
+  }
 
+  private selectDestinationForExchange(pe: PossibleExchange) {
+    this.initStatusBar(_("Select the destingation enclosure for the exchange"));
+    pe.dests.forEach((eg : ExchangeGroup) =>
+      eg.positions.forEach(d =>
+        this.addSelectableOnclick(
+          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: eg.enclosure_id, enclosure_pos: d}),
+          (evt) => this.confirmExchange(pe, eg)
+        )
+      )
+    );
+    this.addCancelButton();
+  }
+
+  private confirmExchange(pe: PossibleExchange, eg: ExchangeGroup) {
+    this.initStatusBar(_("Confirm exchange"));
+    this.addConfirmActionButton("actExchangeEnclosureAnimals", {
+  		src_enclosure_id : pe.enclosure_id,
+		  src_positions: JSON.stringify(pe.positions),
+		  dest_enclosure_id: eg.enclosure_id,
+      dest_positions: JSON.stringify(eg.positions),
+    });
+    this.addCancelButton();
   }
 }
 
@@ -884,6 +923,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         (this as any).addLastTurnBanner(_('This is the last turn!'));
       }
     })
+  }
+
+  private notif_ExchangeEnclosureAnimals(args: {
+    player_id: number,
+    player_name: number
+		src_enclosure_id: number,
+		src_positions: number[],
+		dest_enclosure_id: number,
+		dest_positions: number,
+		src_animal_type: string,
+		dest_animal_type: string
+  }) {
+    console.log(`player ${args.player_name} exchanged ${args.src_enclosure_id} (${args.src_animal_type}) and ${args.dest_enclosure_id}(${args.dest_animal_type})`);
   }
 
   private async notif_debugReset(): Promise<void> {

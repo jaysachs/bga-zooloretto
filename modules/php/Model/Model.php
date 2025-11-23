@@ -508,10 +508,11 @@ class Model {
         return $result;
     }
 
-    public function exchange(SwapGroup $src, SwapGroup $dest): void {
+    /** @return TileType[]  length 2 of the form [srctype, desttype] */
+    public function exchange(SwapGroup $src, SwapGroup $dest): array {
         $found = false;
         foreach ($this->getPossibleSwaps() as $ps) {
-            if ($src == $ps) {
+            if ($src == $ps->src) {
                 foreach ($ps->dests as $d) {
                     if ($dest == $d) {
                         $found = true;
@@ -530,22 +531,27 @@ class Model {
         $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
         $se = $encs[$src->enclosure_id];
         $de = $encs[$dest->enclosure_id];
+
         $srctiles = [];
         foreach ($src->positions as $pos) {
             $srctiles[] = $se->takeTileAt($pos);
         }
-        $dp = 0;
+        $desttiles = [];
         foreach ($dest->positions as $pos) {
-            $tile = $de->takeTileAt($pos);
-            $se->placeTile($tile, $dest->positions[$dp++]);
+            $desttiles[] = $de->takeTileAt($pos);
         }
-        $sp = 0;
-        foreach ($src->positions as $pos) {
-            $de->placeTile($srctiles[$pos], $dest->positions[$sp++]);
+
+        foreach ($srctiles as $tile) {
+            $de->placeTile($tile);
+        }
+        foreach ($desttiles as $tile) {
+            $se->placeTile($tile);
         }
 
         $this->ps->updatePlayer($player);
         $this->ps->updateEnclosure($this->player_id, $se);
         $this->ps->updateEnclosure($this->player_id, $de);
+
+        return [$srctiles[0]->type, $desttiles[0]->type];
     }
 }

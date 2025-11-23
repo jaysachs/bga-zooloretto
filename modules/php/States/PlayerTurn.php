@@ -137,7 +137,7 @@ class PlayerTurn extends AbstractState
 		}
 		$p = array_values($p);
 		// FIXME: give more details about placements in log
-		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} place tiles from truck ${truck_id}', [
+		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} placed tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'placements' => $p,
@@ -191,7 +191,7 @@ class PlayerTurn extends AbstractState
 		$player = $model->expandZoo($active_player_id);
 		$this->notify->all(
 			"ExpandZoo",
-			clienttranslate('${player_name} bought an extra enclosure.'),
+			clienttranslate('${player_name} expanded their zoo.'),
 			[
 				'player_id' => $active_player_id,
 				'purchased_extensions' => $player->purchased_extensions,
@@ -222,8 +222,26 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actSwapEnclosureContents(): mixed
+	public function actExchangeEnclosureAnimals(
+		int $active_player_id,
+		int $src_enclosure_id,
+		#[JsonParam] array $src_positions,
+		int $dest_enclosure_id,
+		#[JsonParam] array $dest_positions): mixed
 	{
+		$model = $this->createModel();
+		$animal_types = $model->exchange(new SwapGroup($src_enclosure_id, $src_positions), new SwapGroup($dest_enclosure_id, $dest_positions));
+
+		$this->notify->all('ExchangeEnclosureAnimals',
+		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
+			'player_id' => $active_player_id,
+			'src_enclosure_id' => $src_enclosure_id,
+			'src_positions' => $src_positions,
+			'dest_enclosure_id' => $dest_enclosure_id,
+			'dest_positions' => $dest_positions,
+			'src_animal_type' => $animal_types[0]->value,
+			'dest_animal_type' => $animal_types[1]->value,
+		]);
 		return NextPlayer::class;
 	}
 
@@ -233,7 +251,7 @@ class PlayerTurn extends AbstractState
 		$model = $this->createModel();
 		$tile = $model->purchaseTile($from_player_id, $barn_pos, new Space($enclosure_id, $enclosure_pos));
 		$player = $model->getPlayers()[$active_player_id];
-		$this->notify->all('PurchaseTile', 'player ${player_name} purchased tile ${tile}', [
+		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile}', [
 			'player_id' => $active_player_id,
 			'from_player_id' => $from_player_id,
 			'barn_pos' => $barn_pos,
@@ -250,7 +268,7 @@ class PlayerTurn extends AbstractState
 	{
 		$model = $this->createModel();
 		$tile = $model->discardBarnTile($barn_pos);
-		$this->notify->all('DiscardTile', 'player ${player_name} discarded tile ${tile}',[
+		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile}',[
 			'player_id' => $active_player_id,
 			'tile' => $tile->type->value,
 			'money' => $model->getPlayers()[$active_player_id]->money,

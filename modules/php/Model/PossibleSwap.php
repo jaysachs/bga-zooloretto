@@ -34,4 +34,9 @@ class PossibleSwap {
     public function __construct(
         public readonly SwapGroup $src,
         public readonly array $dests) { }
+
+    public function equals(PossibleSwap $other): bool {
+        return $this->src == $other->src
+            && count(array_diff($this->dests, $other->dests)) == 0;
+    }
 }

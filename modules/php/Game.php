@@ -32,6 +32,7 @@ use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\Player;
 use Bga\Games\zooloretto\Model\Tile;
+use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
 
@@ -124,6 +125,10 @@ class Game extends \Bga\GameFramework\Table
             'endgame_stocksize' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
             'lastround' => $stock->inLastRound(),
+			'tile_translations' => array_map(fn ($t) => [
+				'type' => $t->value,
+				'name' => $t->translated(),
+			], TileType::cases()),
 		];
 		foreach ($model->getPlayers() as $player) {
 			$datas['players'][$player->id]['player_no'] = $player->no;
