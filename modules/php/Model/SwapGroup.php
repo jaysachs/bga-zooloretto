@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Utils;
+
 class SwapGroup {
     /**
      * @param int[] $positions
@@ -38,5 +40,10 @@ class SwapGroup {
         }
         // FIXME: could construct w/ an Enclosure and then assert that all positions
         //  contain animals of the same species (and capture that type).
+    }
+
+    public function __toString(): string
+    {
+        return "SwapGroup{{$this->enclosure_id}," . Utils::arrayToString($this->positions) . "}";
     }
 }

@@ -447,37 +447,61 @@ class Model {
         return $result;
     }
 
+    private function possibleSwapsFor(SwapGroup $src, TileType $animalType) : array {
+        if (count($src->positions) == 0) {
+            return [];
+        }
+        $result = [];
+
+        $dests = [];
+        foreach ($this->getEnclosuresForPlayer($this->player_id) as $e2) {
+            if ($e2->id == $src->enclosure_id) {
+                continue;
+            }
+            if ($e2->isBarn()) {
+                foreach (TileType::allCanonicalAnimals() as $anim) {
+                    if ($anim == $animalType) {
+                        continue;
+                    }
+                    $pss = $e2->filledAnimalPositions($anim);
+                    if (count($pss) > 0) {
+                        $dests[] = new SwapGroup($e2->id, $pss);
+                    }
+                }
+            }
+            else {
+                if ($e2->animalType() != $animalType && !$e2->animalType()->isEmpty() && $e2->animal_capacity >= count($src->positions)) {
+                    $dests[] = new SwapGroup($e2->id, $e2->filledAnimalPositions());
+                }
+            }
+        }
+        if (count($dests) > 0) {
+            $result[] = new PossibleSwap($src, $dests);
+        }
+
+        return $result;
+    }
+
     /** @return PossibleSwap[] */
     public function getPossibleSwaps() : array {
         $result = [];
+        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
+            return $result;
+        }
 
         $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
-        $barn = $encs[0];
         foreach ($encs as $enc) {
             if ($enc->isBarn()) {
-                foreach (TileType::allCanonicalAnimals() as $animal) {
-                    $pss = $enc->filledAnimalPositions($animal);
+                foreach (TileType::allCanonicalAnimals() as $animalType) {
+                    $pss = $enc->filledAnimalPositions($animalType);
                     if (count($pss) > 0) {
-                        //...
+                        $result = array_merge($result, $this->possibleSwapsFor(new SwapGroup($enc->id, $pss), $animalType));
                     }
                 }
-
             } else {
-                $animal = $enc->animalType();
-                if (!$animal->isEmpty()) {
-                    $src = new SwapGroup($enc->id, $enc->filledAnimalPositions());
-                    $dests = [];
-                    foreach ($encs as $e2) {
-                        if ($e2->isBarn()) {
-
-                        }
-                        else if ($e2->animalType() != $animal && $e2->animal_capacity >= count($src->positions)) {
-                            $dests[] = new SwapGroup($e2->id, $e2->filledAnimalPositions());
-                        }
-                    }
-                    if (count($dests) > 0) {
-                        $result[] = new PossibleSwap($src, $dests);
-                    }
+                $animalType = $enc->animalType();
+                if (!$animalType->isEmpty()) {
+                    $result = array_merge($result, $this->possibleSwapsFor(new SwapGroup($enc->id, $enc->filledAnimalPositions()), $animalType));
                 }
             }
         }

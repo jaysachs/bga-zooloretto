@@ -34,7 +34,9 @@ use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Placement;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleMove;
+use Bga\Games\zooloretto\Model\PossibleSwap;
 use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\SwapGroup;
 
 class PlayerTurn extends AbstractState
 {
@@ -79,15 +81,24 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
-		$possible_swaps = [];
+		$pe = array_map(fn (PossibleSwap $ps) => [
+			'enclosure_id' => $ps->src->enclosure_id,
+			'positions' => $ps->src->positions,
+			'dests' =>
+				array_map(fn (SwapGroup $sg) => [
+					'enclosure_id' => $sg->enclosure_id,
+					'positions' => $sg->positions,
+				], $ps->dests)
+		], $model->getPossibleSwaps());
+
 		return [
 			'can_draw' => $model->canDraw(),
 			'available_trucks' => $trucks_available,
 			'possible_moves' => $pm,
-			'possible_exchanges' => [],
+			'possible_exchanges' => $pe,
 			'possible_purchases' => $pb,
 			'possible_discards' => $model->getDiscardbleBarnPos(),
-			'possible_exchanges' => $possible_swaps,
+			'possible_exchanges' => $pe,
 			'can_expand' => $model->canExpand(),
 			// 'money' => $player->money,
 		];
