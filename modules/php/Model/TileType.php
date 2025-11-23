@@ -117,6 +117,65 @@ enum TileType: string {
         };
     }
 
+    public static function allCanonicalAnimals() : array {
+        return [
+            TileType::CAMEL,
+            TileType::ELEPHANT,
+            TileType::FLAMINGO,
+            TileType::KANGAROO,
+            TileType::LEOPARD,
+            TileType::MONKEY,
+            TileType::PANDA,
+            TileType::ZEBRA
+        ];
+    }
+
+    public function canonicalType(): TileType {
+        return match ($this) {
+            TileType::CAMEL_MALE,
+            TileType::CAMEL_FEMALE,
+            TileType::CAMEL_KID,
+            TileType::CAMEL => TileType::CAMEL,
+
+            TileType::ELEPHANT_MALE,
+            TileType::ELEPHANT_FEMALE,
+            TileType::ELEPHANT_KID,
+            TileType::ELEPHANT => TileType::ELEPHANT,
+
+            TileType::FLAMINGO_MALE,
+            TileType::FLAMINGO_FEMALE,
+            TileType::FLAMINGO_KID,
+            TileType::FLAMINGO => TileType::FLAMINGO,
+
+            TileType::KANGAROO_MALE,
+            TileType::KANGAROO_FEMALE,
+            TileType::KANGAROO_KID,
+            TileType::KANGAROO => TileType::KANGAROO,
+
+            TileType::LEOPARD_MALE,
+            TileType::LEOPARD_FEMALE,
+            TileType::LEOPARD_KID,
+            TileType::LEOPARD => TileType::LEOPARD,
+
+            TileType::MONKEY_MALE,
+            TileType::MONKEY_FEMALE,
+            TileType::MONKEY_KID,
+            TileType::MONKEY => TileType::MONKEY,
+
+            TileType::PANDA_MALE,
+            TileType::PANDA_FEMALE,
+            TileType::PANDA_KID,
+            TileType::PANDA => TileType::PANDA,
+
+            TileType::ZEBRA_MALE,
+            TileType::ZEBRA_FEMALE,
+            TileType::ZEBRA_KID,
+            TileType::ZEBRA => TileType::ZEBRA,
+
+            default => $this,
+        };
+    }
+
     public function isMale(): bool {
         return match ($this) {
             TileType::CAMEL_MALE,

@@ -39,7 +39,7 @@ class Enclosure {
         return new Enclosure(Enclosure::BARN_ID, 0, 0, 100);
     }
 
-    private function isBarn() : bool {
+    public function isBarn() : bool {
         return $this->id == Enclosure::BARN_ID;
     }
 
@@ -109,6 +109,15 @@ class Enclosure {
         return 0;
     }
 
+    public function animalType(): TileType {
+        foreach ($this->contents as $pos => $tile) {
+            if ($tile->type->isAnimal()) {
+                return $tile->type->canonicalType();
+            }
+        }
+        return TileType::EMPTY;
+    }
+
     public function takeTileAt(int $pos): Tile {
         if ($pos > 0 && $pos <= $this->total_capacity) {
             $t = $this->contents[$pos];
@@ -124,6 +133,19 @@ class Enclosure {
     /** @return Tile[]  where key is position */
     public function nonEmptyContents(): array {
         return array_filter($this->contents, fn ($t) => !$t->isEmpty());
+    }
+
+    /** @return int[] positions of animals */
+    public function filledAnimalPositions(?TileType $animal = null): array {
+        if ($animal) {
+            if (!$animal->isAnimal() || $animal->canonicalType() != $animal) {
+                throw new ModelException("Can only get filled animal positions of an animal type");
+            }
+            $animal = $animal->canonicalType();
+        }
+        return array_keys(array_filter(
+            $this->contents,
+            fn ($t) => $t->type->isAnimal() && (! $animal || $t->type->canonicalType() == $animal)));
     }
 
     private function doPlaceTile(Tile $tile, int $pos, int $start, int $end): int {

@@ -79,6 +79,7 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
+		$possible_swaps = [];
 		return [
 			'can_draw' => $model->canDraw(),
 			'available_trucks' => $trucks_available,
@@ -86,6 +87,7 @@ class PlayerTurn extends AbstractState
 			'possible_exchanges' => [],
 			'possible_purchases' => $pb,
 			'possible_discards' => $model->getDiscardbleBarnPos(),
+			'possible_exchanges' => $possible_swaps,
 			'can_expand' => $model->canExpand(),
 			// 'money' => $player->money,
 		];

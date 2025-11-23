@@ -446,4 +446,41 @@ class Model {
         }
         return $result;
     }
+
+    /** @return PossibleSwap[] */
+    public function getPossibleSwaps() : array {
+        $result = [];
+
+        $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
+        $barn = $encs[0];
+        foreach ($encs as $enc) {
+            if ($enc->isBarn()) {
+                foreach (TileType::allCanonicalAnimals() as $animal) {
+                    $pss = $enc->filledAnimalPositions($animal);
+                    if (count($pss) > 0) {
+                        //...
+                    }
+                }
+
+            } else {
+                $animal = $enc->animalType();
+                if (!$animal->isEmpty()) {
+                    $src = new SwapGroup($enc->id, $enc->filledAnimalPositions());
+                    $dests = [];
+                    foreach ($encs as $e2) {
+                        if ($e2->isBarn()) {
+
+                        }
+                        else if ($e2->animalType() != $animal && $e2->animal_capacity >= count($src->positions)) {
+                            $dests[] = new SwapGroup($e2->id, $e2->filledAnimalPositions());
+                        }
+                    }
+                    if (count($dests) > 0) {
+                        $result[] = new PossibleSwap($src, $dests);
+                    }
+                }
+            }
+        }
+        return $result;
+    }
 }
