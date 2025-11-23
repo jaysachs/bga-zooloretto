@@ -507,4 +507,45 @@ class Model {
         }
         return $result;
     }
+
+    public function exchange(SwapGroup $src, SwapGroup $dest): void {
+        $found = false;
+        foreach ($this->getPossibleSwaps() as $ps) {
+            if ($src == $ps) {
+                foreach ($ps->dests as $d) {
+                    if ($dest == $d) {
+                        $found = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+        if (! $found) {
+            throw new ModelException("Illegal exchange of {$src} and {$dest}");
+        }
+
+        $player = $this->ps->retrievePlayers()[$this->player_id];
+        $player->payMoney(1);
+
+        $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
+        $se = $encs[$src->enclosure_id];
+        $de = $encs[$dest->enclosure_id];
+        $srctiles = [];
+        foreach ($src->positions as $pos) {
+            $srctiles[] = $se->takeTileAt($pos);
+        }
+        $dp = 0;
+        foreach ($dest->positions as $pos) {
+            $tile = $de->takeTileAt($pos);
+            $se->placeTile($tile, $dest->positions[$dp++]);
+        }
+        $sp = 0;
+        foreach ($src->positions as $pos) {
+            $de->placeTile($srctiles[$pos], $dest->positions[$sp++]);
+        }
+
+        $this->ps->updatePlayer($player);
+        $this->ps->updateEnclosure($this->player_id, $se);
+        $this->ps->updateEnclosure($this->player_id, $de);
+    }
 }
