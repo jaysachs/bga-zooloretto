@@ -55,6 +55,7 @@ class PossibleExchange {
      * @return PossibleExchange[]
      */
     public static function getPossibleExchanges(array $encs) : array {
+        $result = [];
         foreach ($encs as $enc) {
             // we can skip the barn, since every exchange must involve a "real" enclosure,
             //   only let "real" enclosures be the source.

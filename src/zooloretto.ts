@@ -104,8 +104,9 @@ interface ExchangeGroup {
   positions: number[];
 }
 
-interface PossibleExchange extends ExchangeGroup {
-  dests: ExchangeGroup[];
+interface PossibleExchange {
+  src: ExchangeGroup;
+  dest: ExchangeGroup;
 }
 
 interface PlayState {
@@ -292,38 +293,48 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   protected override doStart(possible_exchanges: PossibleExchange[]) {
+    let exchangesBySrc : PossibleExchange[][] = [];
+    for (let pe of possible_exchanges) {
+      let p = exchangesBySrc[pe.src.enclosure_id];
+      if (!p) {
+        exchangesBySrc[pe.src.enclosure_id] = [];
+      }
+      exchangesBySrc[pe.src.enclosure_id]?.push(pe);
+    }
+
     this.initStatusBar(_("Select the first enclosure to exchange"));
-    possible_exchanges.forEach((pe: PossibleExchange) =>
-      pe.positions.forEach((p) =>
+    exchangesBySrc.forEach((pes: PossibleExchange[]) => {
+      let src = pes[0]!.src;
+      src.positions.forEach((p) =>
         this.addSelectableOnclick(
-          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: pe.enclosure_id, enclosure_pos: p}),
-          (evt) => this.selectDestinationForExchange(pe)
+          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: src.enclosure_id, enclosure_pos: p}),
+          (evt) => this.selectDestinationForExchange(pes)
         )
       )
-    );
+    });
     this.addCancelButton();
   }
 
-  private selectDestinationForExchange(pe: PossibleExchange) {
+  private selectDestinationForExchange(pes: PossibleExchange[]) {
     this.initStatusBar(_("Select the destingation enclosure for the exchange"));
-    pe.dests.forEach((eg : ExchangeGroup) =>
-      eg.positions.forEach(d =>
+    pes.forEach((pe : PossibleExchange) =>
+      pe.dest.positions.forEach(d =>
         this.addSelectableOnclick(
-          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: eg.enclosure_id, enclosure_pos: d}),
-          (evt) => this.confirmExchange(pe, eg)
+          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: pe.dest.enclosure_id, enclosure_pos: d}),
+          (evt) =>  this.confirmExchange(pe)
         )
       )
     );
     this.addCancelButton();
   }
 
-  private confirmExchange(pe: PossibleExchange, eg: ExchangeGroup) {
+  private confirmExchange(pe: PossibleExchange) {
     this.initStatusBar(_("Confirm exchange"));
     this.addConfirmActionButton("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : pe.enclosure_id,
-		  src_positions: JSON.stringify(pe.positions),
-		  dest_enclosure_id: eg.enclosure_id,
-      dest_positions: JSON.stringify(eg.positions),
+  		src_enclosure_id : pe.src.enclosure_id,
+		  src_positions: JSON.stringify(pe.src.positions),
+		  dest_enclosure_id: pe.dest.enclosure_id,
+      dest_positions: JSON.stringify(pe.dest.positions),
     });
     this.addCancelButton();
   }
@@ -931,11 +942,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 		src_enclosure_id: number,
 		src_positions: number[],
 		dest_enclosure_id: number,
-		dest_positions: number,
+		dest_positions: number[],
 		src_animal_type: string,
 		dest_animal_type: string
   }) {
     console.log(`player ${args.player_name} exchanged ${args.src_enclosure_id} (${args.src_animal_type}) and ${args.dest_enclosure_id}(${args.dest_animal_type})`);
+    let anims: AnimationList[] = [];
+
   }
 
   private async notif_debugReset(): Promise<void> {

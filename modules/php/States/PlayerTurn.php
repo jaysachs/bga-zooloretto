@@ -83,10 +83,14 @@ class PlayerTurn extends AbstractState
 		], $model->getPurchaseableTiles());
 
 		$px = array_map(fn (PossibleExchange $px) => [
-			'src_enclosure_id' => $px->src->enclosure_id,
-			'src_positions' => $px->src->positions,
-			'dest_enclosure_id' => $px->dest->enclosure_id,
-			'dest_positions' => $px->dest->positions,
+			'src' => [
+				'enclosure_id' => $px->src->enclosure_id,
+				'positions' => $px->src->positions,
+			],
+			'dest' => [
+				'enclosure_id' => $px->dest->enclosure_id,
+				'positions' => $px->dest->positions,
+			],
 		], $model->getPossibleExchanges());
 
 		return [
