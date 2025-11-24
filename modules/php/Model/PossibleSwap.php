@@ -27,6 +27,33 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+
+/* FIXME:
+
+This representation needs to change to be
+
+PossibleExchangeDetails {
+  dest_enclsoure_id: number
+  src_positions: number[]
+  dest_positions: number[]
+}
+
+ PossibleExchange {
+    src_enclosure_id: number
+    dests: PossibleExchangeDetails[]
+}
+
+Better yet:
+
+  PossibleExchange: {
+    src_enclosure_id: number
+    dest_enclsoure_id: number
+    src_positions: number[]
+    dest_positions: number[]
+  }
+and just send the whole array to the FE; let it group/filter it.
+    */
+
 class PossibleSwap {
     /**
      * @param SwapGroup[] $dests

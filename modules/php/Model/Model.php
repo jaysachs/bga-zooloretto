@@ -454,7 +454,9 @@ class Model {
         $result = [];
 
         $dests = [];
-        foreach ($this->getEnclosuresForPlayer($this->player_id) as $e2) {
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $srcenc = $encs[$src->enclosure_id];
+        foreach ($encs as $e2) {
             if ($e2->id == $src->enclosure_id) {
                 continue;
             }
@@ -470,8 +472,14 @@ class Model {
                 }
             }
             else {
-                if ($e2->animalType() != $animalType && !$e2->animalType()->isEmpty() && $e2->animal_capacity >= count($src->positions)) {
-                    $dests[] = new SwapGroup($e2->id, $e2->filledAnimalPositions());
+                $animal_pos = $e2->filledAnimalPositions();
+                if ($e2->animalType() != $animalType
+                    && !$e2->animalType()->isEmpty()
+                    && $e2->animal_capacity >= count($src->positions)
+                    && $srcenc->animal_capacity >= count($animal_pos)) {
+                    // FIXME: need to pad either src or dest positions to hold them.
+                    // Or else send the "empty positions"?
+                    $dests[] = new SwapGroup($e2->id, $animal_pos);
                 }
             }
         }
@@ -506,6 +514,15 @@ class Model {
             }
         }
         return $result;
+    }
+
+    /** @return PossibleExchange[] */
+    public function getPossibleExchanges() : array {
+        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
+            // can't afford it.
+            return [];
+        }
+        return PossibleExchange::getPossibleExchanges($this->ps->getEnclosuresForPlayer($this->player_id));
     }
 
     /** @return TileType[]  length 2 of the form [srctype, desttype] */

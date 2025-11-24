@@ -50,6 +50,12 @@ class Enclosure {
         return new Enclosure($id, $animal_capacity, $stall_capacity, $animal_capacity + $stall_capacity);
     }
 
+    public function clone(): Enclosure {
+        $e = new Enclosure($this->id, $this->animal_capacity, $this->stall_capacity, $this->total_capacity);
+        $e->contents = $this->contents;
+        return $e;
+    }
+
     /**
      * @param int $id
      * @param int $animal_capacity
@@ -116,6 +122,13 @@ class Enclosure {
             }
         }
         return TileType::EMPTY;
+    }
+
+    public function tileAt(int $pos): Tile {
+        if ($pos > 0 && $pos <= $this->total_capacity) {
+            return $this->contents[$pos];
+        }
+        throw new ModelException("No position $pos in enclosure $this->id");
     }
 
     public function takeTileAt(int $pos): Tile {
