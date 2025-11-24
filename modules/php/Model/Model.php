@@ -447,75 +447,6 @@ class Model {
         return $result;
     }
 
-    private function possibleSwapsFor(SwapGroup $src, TileType $animalType) : array {
-        if (count($src->positions) == 0) {
-            return [];
-        }
-        $result = [];
-
-        $dests = [];
-        $encs = $this->getEnclosuresForPlayer($this->player_id);
-        $srcenc = $encs[$src->enclosure_id];
-        foreach ($encs as $e2) {
-            if ($e2->id == $src->enclosure_id) {
-                continue;
-            }
-            if ($e2->isBarn()) {
-                foreach (TileType::allCanonicalAnimals() as $anim) {
-                    if ($anim == $animalType) {
-                        continue;
-                    }
-                    $pss = $e2->filledAnimalPositions($anim);
-                    if (count($pss) > 0) {
-                        $dests[] = new SwapGroup($e2->id, $pss);
-                    }
-                }
-            }
-            else {
-                $animal_pos = $e2->filledAnimalPositions();
-                if ($e2->animalType() != $animalType
-                    && !$e2->animalType()->isEmpty()
-                    && $e2->animal_capacity >= count($src->positions)
-                    && $srcenc->animal_capacity >= count($animal_pos)) {
-                    // FIXME: need to pad either src or dest positions to hold them.
-                    // Or else send the "empty positions"?
-                    $dests[] = new SwapGroup($e2->id, $animal_pos);
-                }
-            }
-        }
-        if (count($dests) > 0) {
-            $result[] = new PossibleSwap($src, $dests);
-        }
-
-        return $result;
-    }
-
-    /** @return PossibleSwap[] */
-    public function getPossibleSwaps() : array {
-        $result = [];
-        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
-            return $result;
-        }
-
-        $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
-        foreach ($encs as $enc) {
-            if ($enc->isBarn()) {
-                foreach (TileType::allCanonicalAnimals() as $animalType) {
-                    $pss = $enc->filledAnimalPositions($animalType);
-                    if (count($pss) > 0) {
-                        $result = array_merge($result, $this->possibleSwapsFor(new SwapGroup($enc->id, $pss), $animalType));
-                    }
-                }
-            } else {
-                $animalType = $enc->animalType();
-                if (!$animalType->isEmpty()) {
-                    $result = array_merge($result, $this->possibleSwapsFor(new SwapGroup($enc->id, $enc->filledAnimalPositions()), $animalType));
-                }
-            }
-        }
-        return $result;
-    }
-
     /** @return PossibleExchange[] */
     public function getPossibleExchanges() : array {
         if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
@@ -526,16 +457,12 @@ class Model {
     }
 
     /** @return TileType[]  length 2 of the form [srctype, desttype] */
-    public function exchange(SwapGroup $src, SwapGroup $dest): array {
+    public function exchange(PositionSet $src, PositionSet $dest): array {
         $found = false;
-        foreach ($this->getPossibleSwaps() as $ps) {
-            if ($src == $ps->src) {
-                foreach ($ps->dests as $d) {
-                    if ($dest == $d) {
-                        $found = true;
-                        break 2;
-                    }
-                }
+        foreach ($this->getPossibleExchanges() as $px) {
+            if ($src == $px->src && $dest == $px->dest) {
+                $found = true;
+                break;
             }
         }
         if (! $found) {

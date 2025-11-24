@@ -33,23 +33,20 @@ class PossibleExchange {
      * @param int[] $dest_positions
      */
     public function __construct(
-        public readonly int $src_enclosure_id,
-        public readonly array $src_positions,
-        public readonly int $dest_enclosure_id,
-        public readonly array $dest_positions) {
-        if (count($src_positions) <> count($dest_positions)) {
+        public readonly PositionSet $src,
+        public readonly PositionSet $dest
+) {
+        if (count($src->positions) <> count($dest->positions)) {
             throw new ModelException("Size of src positions and dest positions must be the same");
         }
-        if ($src_enclosure_id == $dest_enclosure_id) {
+        if ($src->enclosure_id == $dest->enclosure_id) {
             throw new ModelException("src and dest enclosure_id must be different");
         }
     }
 
     public function equals(PossibleExchange $other): bool {
-        return $this->src_enclosure_id == $other->src_enclosure_id
-            && $this->dest_enclosure_id == $other->dest_enclosure_id
-            && count(array_diff($this->src_positions, $other->src_positions)) == 0
-            && count(array_diff($this->dest_positions, $other->dest_positions)) == 0
+        return $this->src == $other->src
+            && $this->dest == $other->dest
             ;
     }
 
@@ -74,7 +71,7 @@ class PossibleExchange {
      * @return PossibleExchange[]
      */
     private static function possibleExchangesFor(Enclosure $src_enc, array $encs) : array {
-        if ($$src_enc->isBarn()) {
+        if ($src_enc->isBarn()) {
             throw new ModelException("barns cannot be exchange sources");
         }
         $result = [];
@@ -105,7 +102,7 @@ class PossibleExchange {
 
      private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType): PossibleExchange | null {
         $src_pos = $src_enc->filledAnimalPositions($animalType);
-        if (count($src_pos) > $$dest_enc->animal_capacity) {
+        if (count($src_pos) > $dest_enc->animal_capacity) {
             // no room in the destination enclosure
             return null;
         }
@@ -129,7 +126,7 @@ class PossibleExchange {
         } else if (count($src_pos) < count($dest_pos)) {
             $src_pos = self::normalizeExchangePositions($src_enc, $src_pos, $dest_enc, $dest_pos);
         }
-        return new PossibleExchange($src_enc->id, $src_pos, $$dest_enc->id, $dest_pos);
+        return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos));
     }
 
     /**

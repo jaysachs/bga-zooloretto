@@ -27,43 +27,28 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Utils;
 
-/* FIXME:
-
-This representation needs to change to be
-
-PossibleExchangeDetails {
-  dest_enclsoure_id: number
-  src_positions: number[]
-  dest_positions: number[]
-}
-
- PossibleExchange {
-    src_enclosure_id: number
-    dests: PossibleExchangeDetails[]
-}
-
-Better yet:
-
-  PossibleExchange: {
-    src_enclosure_id: number
-    dest_enclsoure_id: number
-    src_positions: number[]
-    dest_positions: number[]
-  }
-and just send the whole array to the FE; let it group/filter it.
-    */
-
-class PossibleSwap {
+class PositionSet {
     /**
-     * @param SwapGroup[] $dests
+     * @param int[] $positions
      */
-    public function __construct(
-        public readonly SwapGroup $src,
-        public readonly array $dests) { }
+    public function __construct(public readonly int $enclosure_id,
+                                public readonly array $positions) {
+        if (count($positions) == 0) {
+            throw new ModelException("A swap group must contain at least one position");
+        }
+        // FIXME: could construct w/ an Enclosure and then assert that all positions
+        //  contain animals of the same species (and capture that type).
+    }
 
-    public function equals(PossibleSwap $other): bool {
-        return $this->src == $other->src
-            && count(array_diff($this->dests, $other->dests)) == 0;
+    public function __toString(): string
+    {
+        return "PositionSet({$this->enclosure_id}," . Utils::arrayToString($this->positions) . ")";
+    }
+
+    public function equals(PositionSet $other): bool {
+        return $this->enclosure_id == $other->enclosure_id
+            && count(array_diff($this->positions, $other->positions)) == 0;
     }
 }

@@ -32,9 +32,10 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Placement;
+use Bga\Games\zooloretto\Model\PositionSet;
 use Bga\Games\zooloretto\Model\PossibleBuy;
+use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
-use Bga\Games\zooloretto\Model\PossibleSwap;
 use Bga\Games\zooloretto\Model\Space;
 use Bga\Games\zooloretto\Model\SwapGroup;
 
@@ -81,24 +82,20 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
-		$pe = array_map(fn (PossibleSwap $ps) => [
-			'enclosure_id' => $ps->src->enclosure_id,
-			'positions' => $ps->src->positions,
-			'dests' =>
-				array_map(fn (SwapGroup $sg) => [
-					'enclosure_id' => $sg->enclosure_id,
-					'positions' => $sg->positions,
-				], $ps->dests)
-		], $model->getPossibleSwaps());
+		$px = array_map(fn (PossibleExchange $px) => [
+			'src_enclosure_id' => $px->src->enclosure_id,
+			'src_positions' => $px->src->positions,
+			'dest_enclosure_id' => $px->dest->enclosure_id,
+			'dest_positions' => $px->dest->positions,
+		], $model->getPossibleExchanges());
 
 		return [
 			'can_draw' => $model->canDraw(),
 			'available_trucks' => $trucks_available,
 			'possible_moves' => $pm,
-			'possible_exchanges' => $pe,
 			'possible_purchases' => $pb,
 			'possible_discards' => $model->getDiscardbleBarnPos(),
-			'possible_exchanges' => $pe,
+			'possible_exchanges' => $px,
 			'can_expand' => $model->canExpand(),
 			// 'money' => $player->money,
 		];
@@ -230,7 +227,7 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
 		$model = $this->createModel();
-		$animal_types = $model->exchange(new SwapGroup($src_enclosure_id, $src_positions), new SwapGroup($dest_enclosure_id, $dest_positions));
+		$animal_types = $model->exchange(new PositionSet($src_enclosure_id, $src_positions), new PositionSet($dest_enclosure_id, $dest_positions));
 
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
