@@ -476,26 +476,21 @@ class Model {
         $se = $encs[$src->enclosure_id];
         $de = $encs[$dest->enclosure_id];
 
-        $srctiles = [];
-        foreach ($src->positions as $pos) {
-            $srctiles[] = $se->takeTileAt($pos);
-        }
-        $desttiles = [];
-        foreach ($dest->positions as $pos) {
-            $desttiles[] = $de->takeTileAt($pos);
-        }
-
-        foreach ($srctiles as $tile) {
-            $de->placeTile($tile);
-        }
-        foreach ($desttiles as $tile) {
-            $se->placeTile($tile);
+        for ($p = 0; $p < count($src->positions); $p++) {
+            $srctile = $se->takeTileAt($src->positions[$p]);
+            $desttile = $de->takeTileAt($dest->positions[$p]);
+            if (!$srctile->isEmpty()) {
+                $se->placeTile($desttile, $src->positions[$p]);
+            }
+            if ($desttile->isEmpty()) {
+                $de->placeTile($srctile, $dest->positions[$p]);
+            }
         }
 
         $this->ps->updatePlayer($player);
         $this->ps->updateEnclosure($this->player_id, $se);
         $this->ps->updateEnclosure($this->player_id, $de);
 
-        return [$srctiles[0]->type, $desttiles[0]->type];
+        return [$se->tileAt($src->positions[0])->type, $de->tileAt($dest->positions[0])->type];
     }
 }
