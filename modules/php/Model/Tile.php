@@ -151,7 +151,7 @@ class Tile {
 
 	public function __toString()
 	{
-		return "Tile(id={$this->id},type={$this->type->value})";
+		return "Tile({$this->id},{$this->type->value})";
 	}
 
 	public function equals(Tile $other): bool {

@@ -29,7 +29,17 @@ namespace Bga\Games\zooloretto;
 
 class Utils
 {
-    public static function arrayToString(array $arr): string {
+    public static function arrayToString(array $arr, ?bool $keys = false): string {
+        if ($keys) {
+            $arr = array_map(
+                function ($k,$v) use (&$keys) {
+                    $ks = is_array($k) ? Utils::arrayToString($k, $keys) : "{$k}";
+                    $vs = is_array($v) ? Utils::arrayToString($v, $keys) : "{$v}";
+                    return "{$ks}=>{$vs}" ;
+                },
+                array_keys($arr),
+                array_values($arr));
+        }
         return "[" . implode(',', $arr) . "]";
     }
 
