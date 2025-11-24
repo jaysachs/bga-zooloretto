@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Utils;
+
 class PossibleExchange {
     /**
      * @param int[] $src_positions
@@ -48,6 +50,11 @@ class PossibleExchange {
         return $this->src == $other->src
             && $this->dest == $other->dest
             ;
+    }
+
+    public function __toString(): string
+    {
+        return "PossibleExchange(" . $this->src . ',' . $this->dest . ")";
     }
 
     /**
@@ -77,23 +84,22 @@ class PossibleExchange {
         }
         $result = [];
         $animalType = $src_enc->animalType();
-        // FIXME: this check might be redundant with the one immediately following.
         if ($animalType->isEmpty()) {
             return $result;
         }
 
-        foreach ($encs as $enc) {
-            if ($enc->id == $src_enc->id) {
+        foreach ($encs as $dest_enc) {
+            if ($dest_enc->id == $src_enc->id) {
                 continue;
             }
-            if ($enc->isBarn()) {
+            if ($dest_enc->isBarn()) {
                 foreach (TileType::allCanonicalAnimals() as $anim) {
-                    if ($x = self::possibleExchange($src_enc, $enc, $anim)) {
+                    if ($x = self::possibleExchange($src_enc, $dest_enc, $anim)) {
                         $result[] = $x;
                     }
                 }
             }
-            else if ($x = self::possibleExchange($src_enc, $enc, $anim)) {
+            else if ($x = self::possibleExchange($src_enc, $dest_enc, $dest_enc->animalType())) {
                 $result[] = $x;
             }
         }
@@ -102,18 +108,24 @@ class PossibleExchange {
     }
 
      private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType): PossibleExchange | null {
-        $src_pos = $src_enc->filledAnimalPositions($animalType);
+        if ($animalType->isEmpty()) {
+            // no animals of that type at destination
+            return null;
+        }
+        if (!$animalType->isAnimal()) {
+            throw new ModelException("tile type {$animalType->value} is not an animal");
+        }
+        if ($src_enc->animalType()->isSameSpecies($animalType)) {
+            return null;
+        }
+        $src_pos = $src_enc->filledAnimalPositions();
+        $dest_pos = $dest_enc->filledAnimalPositions($animalType);
         if (count($src_pos) > $dest_enc->animal_capacity) {
             // no room in the destination enclosure
             return null;
         }
-        $dest_pos = $dest_enc->filledAnimalPositions();
         if (count($dest_pos) == 0) {
             // no animals in destination
-            return null;
-        }
-        if ($dest_enc->animalType()->isSameSpecies($animalType)) {
-            // no animals, or the same animal, in this enclosure.
             return null;
         }
         if (count($dest_pos) > $src_enc->animal_capacity) {
@@ -142,10 +154,31 @@ class PossibleExchange {
             $tiles[] = $copy->takeTileAt($pos);
         }
         $newpos = [];
-        foreach ($larger_pos as $pos) {
-            $newpos[] = $copy->placeTile($larger->tileAt($pos));
+        $i = 0;
+        foreach ($larger_pos as $lpos) {
+            $pos = 0;
+            if ($i < count($smaller_pos)) {
+                $pos = $smaller_pos[$i];
+                $i++;
+            }
+            $newpos[] = $copy->placeTile($larger->tileAt($lpos), $pos);
         }
-        // FIXME: verify that $smaller_pos is a "prefix" of $newpos
+
+        // verify that $smaller_pos is a "subset" of $newpos
+        if (count($smaller_pos) >= count($newpos)) {
+            throw new ModelException("should be bigger");
+        }
+        if (count($newpos) <> count($larger_pos)) {
+            throw new ModelException("should be same size as larger");
+        }
+        $d = array_intersect($smaller_pos, $newpos);
+        if (count($d) <> count($smaller_pos)) {
+            throw new ModelException("not a subset: " . Utils::arrayToString($smaller_pos)
+                                        . " " . Utils::arrayToString($newpos));
+        }
+        //     throw new ModelException("not a prefix: " . Utils::arrayToString($smaller_pos)
+        //                                 . " " . Utils::arrayToString($newpos));
+
         return $newpos;
     }
 }

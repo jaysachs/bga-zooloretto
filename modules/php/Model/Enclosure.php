@@ -36,7 +36,7 @@ class Enclosure {
     private const BARN_ID = 0;
 
     public static function barn(): Enclosure {
-        return new Enclosure(Enclosure::BARN_ID, 0, 0, 100);
+        return new Enclosure(Enclosure::BARN_ID, 100, 100, 100);
     }
 
     public function isBarn() : bool {
@@ -207,7 +207,7 @@ class Enclosure {
 
     public function __toString(): string
     {
-        $contents = Utils::arrayToString($this->contents);
+        $contents = Utils::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);
         return "Enclosure(id=$this->id,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
     }
 }
