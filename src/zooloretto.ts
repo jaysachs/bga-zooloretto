@@ -222,6 +222,10 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     elem?.classList.remove(CSS.MOVED);
   }
 
+  protected playParallel(anims: AnimationList): Promise<any> {
+    return this.game.animationManager.playParallel(anims);
+  }
+
   protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
     this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
     return this.game.animationManager.slideAndAttach(elem, newParent, {})
@@ -237,7 +241,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
         return this.game.animationManager.slideAndAttach(move.elem, move.origin, {});
       });
     }
-    await this.game.animationManager.playSequentially(anims);
+    await this.game.animationManager.playParallel(anims);
   }
 
   protected initStatusBar(title: string, args?: any) {
@@ -321,7 +325,25 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       pe.dest.positions.forEach(d =>
         this.addSelectableOnclick(
           Elements.enclosureSpace({player_id: this.player_id, enclosure_id: pe.dest.enclosure_id, enclosure_pos: d}),
-          (evt) =>  this.confirmExchange(pe)
+          (evt) =>  {
+            let anims: AnimationList = [];
+            for (let i = 0; i < pe.src.positions.length; ++i) {
+              let srcArg = {player_id: this.player_id, enclosure_id: pe.src.enclosure_id, enclosure_pos: pe.src.positions[i]!};
+              let destArg = {player_id: this.player_id, enclosure_id: pe.dest.enclosure_id, enclosure_pos: pe.dest.positions[i]!};
+              let srcElem = Elements.enclosureSpaceTile(srcArg);
+              if (srcElem) {
+                anims.push(() => this.slide(
+                  srcElem,
+                  Elements.enclosureSpace(destArg)
+                ));
+              }
+              let destElem = Elements.enclosureSpaceTile(destArg);
+              if (destElem) {
+                anims.push(() => this.slide(destElem, Elements.enclosureSpace(srcArg)));
+              }
+            }
+            this.playParallel(anims).then(() => this.confirmExchange(pe));
+          }
         )
       )
     );
@@ -946,9 +968,25 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 		src_animal_type: string,
 		dest_animal_type: string
   }) {
-    console.log(`player ${args.player_name} exchanged ${args.src_enclosure_id} (${args.src_animal_type}) and ${args.dest_enclosure_id}(${args.dest_animal_type})`);
-    let anims: AnimationList[] = [];
-
+    // FIXME: unify this with the body of ExchangeFlow::confirm
+    let anims: AnimationList = [];
+    for (let i = 0; i < args.src_positions.length; ++i) {
+      let srcArg = {player_id: args.player_id, enclosure_id: args.src_enclosure_id, enclosure_pos: args.src_positions[i]!};
+      let destArg = {player_id: args.player_id, enclosure_id: args.dest_enclosure_id, enclosure_pos: args.dest_positions[i]!};
+      let srcElem = Elements.enclosureSpaceTile(srcArg);
+      if (srcElem) {
+        anims.push(() => this.animationManager.slideAndAttach(
+          srcElem,
+          Elements.enclosureSpace(destArg),
+          {}
+        ));
+      }
+      let destElem = Elements.enclosureSpaceTile(destArg);
+      if (destElem) {
+        anims.push(() => this.animationManager.slideAndAttach(destElem, Elements.enclosureSpace(srcArg),{}));
+      }
+    }
+    this.animationManager.playParallel(anims);
   }
 
   private async notif_debugReset(): Promise<void> {
