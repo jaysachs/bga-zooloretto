@@ -48,7 +48,7 @@ psalm-info: build $(STUBS) $(PSALM_CONFIG)
 	psalm --show-info=true -c $(PSALM_CONFIG) modules/php
 
 deploy: test
-	lftp -e 'cd $(GAME); mirror -R --exclude .git/ --exclude work/ --exclude local/; exit' $(SFTP)
+	lftp -e 'cd $(GAME); mirror -R --exclude .vscode/ --exclude .git/ --exclude work/ --exclude local/; exit' $(SFTP)
 
 # TODO: should this remove colormap and stats as well?
 clean:
