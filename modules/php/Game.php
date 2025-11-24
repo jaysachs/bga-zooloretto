@@ -303,6 +303,21 @@ class Game extends \Bga\GameFramework\Table
 		);
 	}
 
+	public function debug_fillTrucks(): void {
+		$model = new Model($this, intval($this->getActivePlayerId()));
+		$trucks = $model->getTrucks();
+		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
+			$drawn = $model->drawTile()->drawn;
+			foreach ($trucks as $truck) {
+				$p = $truck->firstFreePosition();
+				if ($p > 0) {
+					$model->placeDrawnTileOnTruck($truck->id, $p);
+					break;
+				}
+			}
+		}
+	}
+
 	public function debug_resetGame(): void {
 		// FIXME: do more tables including resetting money.
 		$db = new DefaultDb();

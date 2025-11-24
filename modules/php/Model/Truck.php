@@ -56,6 +56,15 @@ class Truck {
         }
     }
 
+    public function firstFreePosition(): int {
+        foreach ($this->getAllTiles() as $pos => $tile) {
+            if ($tile->isEmpty()) {
+                return $pos;
+            }
+        }
+        return 0;
+    }
+
     /** @return Tile[] indexed by position */
     public function getAllTiles(): array {
         $result = [];
