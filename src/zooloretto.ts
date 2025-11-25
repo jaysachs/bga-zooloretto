@@ -229,10 +229,10 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     while (this.moves.length > 0) {
       let move = this.moves.pop()!;
       anims.push(() => {
-        this.unmarkMoved(move.dest);
         return this.game.animationManager.slideAndAttach(move.elem, move.origin, {});
       });
     }
+    this.clearMarked();
     await this.game.animationManager.playParallel(anims);
   }
 
@@ -245,7 +245,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.game.statusBar.addActionButton(
       _('Confirm'),
       () => {
-        this.unmarkMoved(this.moves.at(this.moves.length-1)?.dest);
+        this.clearMarked();
         this.game.statusBar.removeActionButtons();
         this.game.bgaPerformAction(bgaAction, args);
       },
@@ -255,11 +255,11 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   protected addRestartTurnButton(onCancel?: CallableFunction): void {
     this.game.statusBar.addActionButton(_('Restart turn'),
         () => {
-          this.rollback();
-          this.clearMarked();
-          this.game.statusBar.removeActionButtons();
-          onCancel && onCancel();
-          this.game.restoreServerGameState();
+          this.rollback().then(() => {
+            this.game.statusBar.removeActionButtons();
+            onCancel && onCancel();
+            this.game.restoreServerGameState();
+          })
         },
       { color: "secondary"});
   }
@@ -272,13 +272,13 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   private marked: HTMLElement[] = [];
 
-  protected markSelected(elem: HTMLElement) {
+  protected markSelected(elem?: HTMLElement) {
+    if (!elem) {
+      return;
+    }
+    console.log("marking selected", elem);
     this.marked.push(elem);
     elem.classList.add(CSS.SELECTED);
-  }
-
-  protected unmarkMoved(elem?: HTMLElement): void {
-    elem?.classList.remove(CSS.MOVED);
   }
 
   protected markMoved(elem: HTMLElement) {
@@ -291,12 +291,17 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     elem.classList.add(CSS.TARGETABLE);
   }
 
-  protected markSelectable(elem: HTMLElement) {
+  protected markSelectable(elem?: HTMLElement) {
+    if (!elem) {
+      return;
+    }
+    console.log("marking selectable", elem);
     this.marked.push(elem);
     elem.classList.add(CSS.SELECTABLE);
   }
 
   protected clearMarked() {
+    console.log("clearing marked", this.marked);
     this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED));
   }
 
@@ -440,6 +445,7 @@ class DrawTileFlow extends PlayFlow<undefined> {
 
   override doStart() {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
+    this.markSelectable(Elements.topPile());
     this.addConfirmActionButton('actDrawTile');
     this.addRestartTurnButton();
   }
@@ -449,7 +455,9 @@ class PlaceDrawnTile extends ZooFlow<TruckLocation[]> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   override doStart(available_spaces: TruckLocation[]) {
+    console.log("starting PlaceDrawnTile flow", this);
     this.initStatusBar(_('Place the drawn tile'));
+    this.markSelected(Elements.topPile());
     available_spaces.forEach(
       (truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc), (evt) => this.placeDrawnTile(truckLoc)));
