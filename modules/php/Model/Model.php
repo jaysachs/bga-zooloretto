@@ -433,7 +433,12 @@ class Model {
             throw new ModelException("Illegal purchase {$from_player_id} {$barn_pos} {$target}");
         }
 
-        $this->pay($player, self::COST_PURCHASE);
+        $from_player = $this->getPlayer($from_player_id);
+        $player->payMoney(self::COST_PURCHASE);
+        $this->ps->updatePlayer($player);
+        $this->ps->incBankMoney(1);
+        $from_player->receiveMoney(1);
+        $this->ps->updatePlayer($from_player);
 
         $barn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
         $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];

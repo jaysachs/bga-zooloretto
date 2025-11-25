@@ -949,7 +949,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 			enclosure_id: number,
 			enclosure_pos: number,
 			tile: string,
-			money: number
+			money: number,
+      from_player_money: number,
     }) {
       if (this.player_id != args.player_id) {
         await this.animationManager.slideAndAttach(
@@ -958,6 +959,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           {});
       }
       this.updateMoney(args.player_id, args.money);
+      this.updateMoney(args.from_player_id, args.from_player_money);
   }
 
   private async notif_EndTurn(args: {

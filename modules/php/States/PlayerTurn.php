@@ -256,12 +256,13 @@ class PlayerTurn extends AbstractState
 		$player = $model->getPlayers()[$active_player_id];
 		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile}', [
 			'player_id' => $active_player_id,
-			'from_player_id' => $from_player_id,
 			'barn_pos' => $barn_pos,
 			'enclosure_id' => $enclosure_id,
 			'enclosure_pos' => $enclosure_pos,
 			'tile' => $tile->type->value,
 			'money' => $player->money,
+			'from_player_id' => $from_player_id,
+			'from_player_money' => $model->getPlayers()[$from_player_id]->money,
 		]);
 		return NextPlayer::class;
 	}
