@@ -479,8 +479,14 @@ class Model {
         $stype = TileType::EMPTY;
         $dtype = TileType::EMPTY;
         for ($p = 0; $p < count($src->positions); $p++) {
-            $srctile = $se->takeTileAt($src->positions[$p]);
-            $desttile = $de->takeTileAt($dest->positions[$p]);
+            $srctile = Tile::empty();
+            $desttile = Tile::empty();
+            if (!$se->tileAt($src->positions[$p])->isEmpty()) {
+                $srctile = $se->takeTileAt($src->positions[$p]);
+            }
+            if (!$de->tileAt($dest->positions[$p])->isEmpty()) {
+                $desttile = $de->takeTileAt($dest->positions[$p]);
+            }
             if (!$desttile->isEmpty()) {
                 $dtype = $desttile->type;
                 $se->placeTile($desttile, $src->positions[$p]);

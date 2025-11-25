@@ -304,14 +304,44 @@ class Game extends \Bga\GameFramework\Table
 	}
 
 	public function debug_fillTrucks(): void {
-		$model = new Model($this, intval($this->getActivePlayerId()));
+		$player_id = intval($this->getActivePlayerId());
+		$model = new Model($this, $player_id);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
+			$this->notify->all(
+			"DrawTile",
+			// FIXME: render the tile image in the log (in addition? instead?)
+			'debug drew a ${translatedval} tile.',
+			[
+				'player_id' => $player_id,
+				'tile_type' => $drawn->type->value,
+				'drawn_from_endgame_pile' => false, // FIXME
+				// 'primary_left' => $amt($stock->primaryCount()),
+				// 'endgame_left' => $amt($stock->endgameCount()),
+				'translatedval' => $drawn->type->translated(),
+				'i18n' => ['translatedval']
+			]);
 			foreach ($trucks as $truck) {
 				$p = $truck->firstFreePosition();
 				if ($p > 0) {
 					$model->placeDrawnTileOnTruck($truck->id, $p);
+					$this->notify->all(
+						"PlaceDrawnTileInTruck",
+						'debug placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.',
+						[
+							'player_id' => $player_id,
+							'tile_id' => $drawn->id,
+							'val' => $drawn->type->value,
+							'truck_id' => $truck->id,
+							'truck_pos' => $p,
+							'translatedval' => $drawn->type->translated(),
+							// 'primary_stock_size' => $stock->primaryCount(),
+							// 'endgame_stock_size' => $stock->endgameCount(),
+							'i18n' => [ 'translatedval' ],
+						]
+
+					);
 					break;
 				}
 			}

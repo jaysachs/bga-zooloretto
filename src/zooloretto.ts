@@ -309,12 +309,13 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
     this.initStatusBar(_("Select the first enclosure to exchange"));
     exchangesBySrc.forEach((pes: PossibleExchange[]) => {
       let src = pes[0]!.src;
-      src.positions.forEach((p) =>
-        this.addSelectableOnclick(
-          Elements.enclosureSpace({player_id: this.player_id, enclosure_id: src.enclosure_id, enclosure_pos: p}),
-          (evt) => this.selectDestinationForExchange(pes)
-        )
-      )
+      src.positions.forEach((p) => {
+        let esArg = {player_id: this.player_id, enclosure_id: src.enclosure_id, enclosure_pos: p};
+        if (Elements.enclosureSpaceTile(esArg)) {
+          this.addSelectableOnclick(Elements.enclosureSpace(esArg),
+                                    (evt) => this.selectDestinationForExchange(pes));
+        }
+      });
     });
     this.addCancelButton();
   }
@@ -968,6 +969,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 		src_animal_type: string,
 		dest_animal_type: string
   }) {
+    if (args.player_id == this.player_id) {
+      return;
+    }
     // FIXME: unify this with the body of ExchangeFlow::confirm
     let anims: AnimationList = [];
     for (let i = 0; i < args.src_positions.length; ++i) {
