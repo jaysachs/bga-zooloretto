@@ -149,7 +149,7 @@ class IDS {
   static enclosure(player_id: number, enclosure_id: number): string { return `enclosure-${player_id}-${enclosure_id}`; }
   static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `enclosure-${player_id}-${enclosure_id}-${pos}`; }
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
-  static moneyCounter(player_id: number): string { return `playermoney-counter-${player_id}` };
+  static money(player_id: number): string { return `playermoney-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
 }
 
@@ -685,17 +685,9 @@ class ZoolorettoHtml {
         Html.span({ classes: 'zoo-money'},
           Html.span({classes: 'zoo-money-label'}),
           Html.span({text: ': '}),
-          Html.span({id: IDS.moneyCounter(playerId), text: `${player.money}`})),
+          Html.span({id: IDS.money(playerId)})),
         Html.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
       );
-    /*
-      FIXME: need to manually update money, and thread changes in notifs.
-    const counter = new ebg.counter();
-    counter.create(
-        moneyid,
-        { value: player.money, playerCounter: 'playermoney', playerId: playerId }
-    );
-    */
   }
 }
 
@@ -772,11 +764,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
+  private moneyCounter: Counter[] = [];
+
   private setupHtml(twoPlayer: boolean): void {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
     this.getGameAreaElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(this.gamedatas.players)) {
       this.getPlayerPanelElement(player.player_id).appendChild(zhtml.playerPanel(player));
+      let counter = new ebg.counter();
+      counter.create(IDS.money(player.player_id), { value: player.money });
+      this.moneyCounter[player.player_id] = counter;
     }
     this.renderStock();
     this.renderTrucks();
@@ -812,7 +809,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private updateMoney(player_id: number, money: number): void {
-    $(IDS.moneyCounter(player_id)).innerText = `${money}`;
+    this.moneyCounter[player_id]!.toValue(money);
   }
 
   renderExtensions(player_id : number, extensions: number): void {
@@ -901,6 +898,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async notif_TakeTruckAndPlaceTiles(args: {
     player_id: number,
     truck_id: number,
+    money: number,
     placements: Placement[]
   }) {
     let anims : AnimationList = [];
@@ -957,9 +955,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         await this.animationManager.slideAndAttach(
           Elements.enclosureSpaceTile({player_id: args.from_player_id, enclosure_id: 0, enclosure_pos: args.barn_pos}),
           Elements.enclosureSpace({player_id: args.player_id, enclosure_id: args.enclosure_id, enclosure_pos: args.enclosure_pos}),
-          {})
-          .then(() => this.updateMoney(args.player_id, args.money));
+          {});
       }
+      this.updateMoney(args.player_id, args.money);
   }
 
   private async notif_EndTurn(args: {
@@ -995,9 +993,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 		dest_enclosure_id: number,
 		dest_positions: number[],
 		src_animal_type: string,
-		dest_animal_type: string
+		dest_animal_type: string,
+    money: number,
   }) {
     if (args.player_id == this.player_id) {
+      this.updateMoney(args.player_id, args.money);
       return;
     }
     // FIXME: unify this with the body of ExchangeFlow::confirm
@@ -1018,7 +1018,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         anims.push(() => this.animationManager.slideAndAttach(destElem, Elements.enclosureSpace(srcArg),{}));
       }
     }
-    this.animationManager.playParallel(anims);
+    this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
   }
 
   private async notif_debugReset(): Promise<void> {

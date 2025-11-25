@@ -40,6 +40,12 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 
 class Model {
 
+    public const int COST_MOVE = 1;
+    public const int COST_EXCHANGE = 1;
+    public const int COST_PURCHASE = 2;
+    public const int COST_DISCARD = 2;
+    public const int COST_EXPAND = 3;
+
     public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
 
     /** @param $player_ids int[] */
@@ -77,7 +83,7 @@ class Model {
             $ps->insertEnclosures($player_id, $encl);
         }
 
-        $ps->updateBankMoney(30 - 2 * $player_count);
+        $ps->setBankMoney(30 - 2 * $player_count);
         $available = $player_count == 2 ? 2 : 1;
         foreach ($player_ids as $player_id) {
             $ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
@@ -153,7 +159,7 @@ class Model {
         return $tile;
     }
 
-    public function spacesOnTrucks() : int {
+    private function spacesOnTrucks() : int {
         return array_sum(
             array_map(
                 function (Truck $t): int { return $t->freeSpaces(); },
@@ -290,10 +296,13 @@ class Model {
 
     public function expandZoo(): Player {
         $player = $this->getPlayer($this->player_id);
+
         $eid = $player->purchaseExtension() + 3;
+        $this->pay($player, self::COST_EXCHANGE);
         $e = Model::makeEnclosure($eid);
-        $this->ps->updatePlayer($player);
+
         $this->ps->insertEnclosures($this->player_id, [$e]);
+
         return $player;
     }
 
@@ -311,9 +320,14 @@ class Model {
     }
 
     public function discardBarnTile(int $pos): Tile {
+        $player = $this->getPlayer($this->player_id);
         $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+
+        $this->pay($player, self::COST_DISCARD);
         $tile = $barn->takeTileAt($pos);
+
         $this->ps->updateEnclosure($this->player_id, $barn);
+
         return $tile;
     }
 
@@ -370,52 +384,65 @@ class Model {
 
     public function moveTile(Space $src, Space $dest): Player {
         $pms = $this->getPossibleMoves();
+        $found = false;
         foreach ($pms as $pm) {
             if ($pm->src == $src) {
                 foreach ($pm->dests as $d) {
                     if ($d == $dest) {
-                        $encs = $this->getEnclosuresForPlayer($this->player_id);
-                        $srcenc = $encs[$src->enclosure_id];
-                        $destenc = $encs[$dest->enclosure_id];
-                        $tile = $srcenc->takeTileAt($src->pos);
-                        $destenc->placeTile($tile, $dest->pos);
-                        $player = $this->ps->retrievePlayers()[$this->player_id];
-                        $player->payMoney(1);
-
-                        $this->ps->updateEnclosure($this->player_id, $srcenc);
-                        $this->ps->updateEnclosure($this->player_id, $destenc);
-                        $this->ps->updatePlayer($player);
-                        return $player;
+                        $found = true;
+                        break 2;
                     }
                 }
             }
         }
-        throw new ModelException("illegal move {$src} {$dest}");
+        if (!$found) {
+            throw new ModelException("illegal move {$src} {$dest}");
+        }
+
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $player = $this->ps->retrievePlayers()[$this->player_id];
+
+        $srcenc = $encs[$src->enclosure_id];
+        $destenc = $encs[$dest->enclosure_id];
+        $tile = $srcenc->takeTileAt($src->pos);
+        $destenc->placeTile($tile, $dest->pos);
+        $this->pay($player, self::COST_MOVE);
+
+        $this->ps->updateEnclosure($this->player_id, $srcenc);
+        $this->ps->updateEnclosure($this->player_id, $destenc);
+
+        return $player;
     }
 
     public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
         $player = $this->ps->retrievePlayers()[$this->player_id];
         $src = new Space(0, $barn_pos);
+
+        $found = false;
         foreach ($this->getPurchaseableTiles() as $pt) {
             if ($pt->player_id == $from_player_id && $pt->move->src == $src) {
                 foreach ($pt->move->dests as $dest) {
                     if ($dest == $target) {
-                        $player->payMoney(2);
-
-                        $barn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
-                        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];
-                        $tile = $barn->takeTileAt($src->pos);
-                        $enc->placeTile($tile, $dest->pos);
-
-                        $this->ps->updatePlayer($player);
-                        $this->ps->updateEnclosure($from_player_id, $barn);
-                        $this->ps->updateEnclosure($this->player_id, $enc);
-                        return $tile;
+                        $found = true;
+                        break 2;
                     }
                 }
             }
         }
-        throw new ModelException("Illegal purchase {$from_player_id} {$barn_pos} {$target}");
+        if (!$found) {
+            throw new ModelException("Illegal purchase {$from_player_id} {$barn_pos} {$target}");
+        }
+
+        $this->pay($player, self::COST_PURCHASE);
+
+        $barn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
+        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];
+        $tile = $barn->takeTileAt($src->pos);
+        $enc->placeTile($tile, $dest->pos);
+
+        $this->ps->updateEnclosure($from_player_id, $barn);
+        $this->ps->updateEnclosure($this->player_id, $enc);
+        return $tile;
     }
 
     /** @return PossibleBuy[] */
@@ -470,7 +497,7 @@ class Model {
         }
 
         $player = $this->ps->retrievePlayers()[$this->player_id];
-        $player->payMoney(1);
+        $this->pay($player, self::COST_EXCHANGE);
 
         $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
         $se = $encs[$src->enclosure_id];
@@ -497,10 +524,15 @@ class Model {
             }
         }
 
-        $this->ps->updatePlayer($player);
         $this->ps->updateEnclosure($this->player_id, $se);
         $this->ps->updateEnclosure($this->player_id, $de);
 
         return [$stype, $dtype];
+    }
+
+    private function pay(Player $player, int $amount) : void {
+        $player->payMoney($amount);
+        $this->ps->updatePlayer($player);
+        $this->ps->incBankMoney($amount);
     }
 }

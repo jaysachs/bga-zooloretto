@@ -142,6 +142,7 @@ class PlayerTurn extends AbstractState
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'placements' => $p,
+		  'money' => $model->getPlayers()[$active_player_id]->money,
 		]);
 		return NextPlayer::class;
 	}
@@ -232,7 +233,7 @@ class PlayerTurn extends AbstractState
 	{
 		$model = $this->createModel();
 		$animal_types = $model->exchange(new PositionSet($src_enclosure_id, $src_positions), new PositionSet($dest_enclosure_id, $dest_positions));
-
+		$player = $model->getPlayers()[$active_player_id];
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
 			'player_id' => $active_player_id,
@@ -242,6 +243,7 @@ class PlayerTurn extends AbstractState
 			'dest_positions' => $dest_positions,
 			'src_animal_type' => $animal_types[0]->value,
 			'dest_animal_type' => $animal_types[1]->value,
+			'money' => $player->money,
 		]);
 		return NextPlayer::class;
 	}

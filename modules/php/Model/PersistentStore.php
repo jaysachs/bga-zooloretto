@@ -90,8 +90,12 @@ class PersistentStore {
         $this->db->execute("UPDATE player SET money = {$player->money} WHERE player_id = {$player->id}");
     }
 
-    public function updateBankMoney(int $money): void {
+    public function setBankMoney(int $money): void {
         $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
+    }
+
+    public function incBankMoney(int $delta): void {
+        $this->db->execute("UPDATE zglobals SET bank_money = bank_money + {$delta}");
     }
 
     /** @return Player[] */
