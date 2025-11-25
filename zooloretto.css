@@ -33,6 +33,7 @@ body.mobile_version {
 #zoo-game {
     display : flex;
     flex-direction: column;
+    --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
 
     background-color: yellow;
 }
@@ -164,10 +165,6 @@ body.mobile_version {
     transition: background 1.5s ease-in-out;
 }
 
-.zoo-moved {
-    box-shadow: 0px 0px 10px 10px #A022A5;
-}
-
 .zoo-playerboard {
     display : flex;
     flex-direction: column;
@@ -226,6 +223,7 @@ playerboard widths (non-mobile): 1174
     width: auto;
     aspect-ratio: 2.83333;
     margin: 0.5vw;
+    flex: 1;
 }
 
 .zoo-truck {
@@ -268,16 +266,20 @@ playerboard widths (non-mobile): 1174
     left: 13.0%;
 }
 
+.zoo-moved {
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #A022A5;
+}
+
 .zoo-selected {
-    box-shadow: 0px 0px 10px 10px #ffbb44;
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #ffbb44;
 }
 
 .zoo-selectable {
-    box-shadow: 0px 0px 10px 10px yellow;
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) yellow;
 }
 
 .zoo-targetable {
-    box-shadow: 0px 0px 10px 10px blue;
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) blue;
 }
 
 
@@ -642,8 +644,8 @@ playerboard widths (non-mobile): 1174
     top: 50%;
     left: 37%;
     display : grid;
-    column-gap: 4px;
-    row-gap: 4px;
+    column-gap: calc(var(--zoo-highlight-width) * 2);
+    row-gap: calc(var(--zoo-highlight-width) * 2);
     grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 

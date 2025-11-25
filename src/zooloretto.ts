@@ -214,14 +214,6 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   protected abstract doStart(args?: T);
 
-  protected markMoved(elem?: HTMLElement): void {
-    elem?.classList.add(CSS.MOVED);
-  }
-
-  protected unmarkMoved(elem?: HTMLElement): void {
-    elem?.classList.remove(CSS.MOVED);
-  }
-
   protected playParallel(anims: AnimationList): Promise<any> {
     return this.game.animationManager.playParallel(anims);
   }
@@ -260,31 +252,59 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
       { autoclick: autoclick || false });
   }
 
-  protected addCancelButton(onCancel?: CallableFunction): void {
+  protected addRestartTurnButton(onCancel?: CallableFunction): void {
     this.game.statusBar.addActionButton(_('Restart turn'),
         () => {
           this.rollback();
-          document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
-          document.querySelectorAll(`#${IDS.GAME} .${CSS.MOVED}`).forEach((elem) => elem.classList.remove(CSS.MOVED));
-          document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTED}`).forEach((elem) => elem.classList.remove(CSS.SELECTED));
-          document.querySelectorAll(`#${IDS.GAME} .${CSS.SELECTABLE}`).forEach((elem) => elem.classList.remove(CSS.SELECTABLE));
+          this.clearMarked();
           this.game.statusBar.removeActionButtons();
           onCancel && onCancel();
           this.game.restoreServerGameState();
         },
       { color: "secondary"});
   }
+
   private clearOnclicks(): void {
     this.onClickAbortController.abort();
     this.onClickAbortController = new AbortController();
-    document.querySelectorAll(`#${IDS.GAME} .${CSS.TARGETABLE}`).forEach((elem) => elem.classList.remove(CSS.TARGETABLE));
+    this.clearMarked();
+  }
+
+  private marked: HTMLElement[] = [];
+
+  protected markSelected(elem: HTMLElement) {
+    this.marked.push(elem);
+    elem.classList.add(CSS.SELECTED);
+  }
+
+  protected unmarkMoved(elem?: HTMLElement): void {
+    elem?.classList.remove(CSS.MOVED);
+  }
+
+  protected markMoved(elem: HTMLElement) {
+    this.marked.push(elem);
+    elem.classList.add(CSS.MOVED);
+  }
+
+  protected markTargetable(elem: HTMLElement) {
+    this.marked.push(elem);
+    elem.classList.add(CSS.TARGETABLE);
+  }
+
+  protected markSelectable(elem: HTMLElement) {
+    this.marked.push(elem);
+    elem.classList.add(CSS.SELECTABLE);
+  }
+
+  protected clearMarked() {
+    this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED));
   }
 
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
-    elem.classList.add(CSS.TARGETABLE);
+    this.markSelectable(elem);
     elem.addEventListener(
       "click",
-      (ev: MouseEvent) => { this.clearOnclicks(); onclick(ev); },
+      (ev: MouseEvent) => { this.clearOnclicks(); this.markSelected(elem); onclick(ev); },
       { signal: this.onClickAbortController.signal });
   }
 }
@@ -317,7 +337,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         }
       });
     });
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
@@ -348,7 +368,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         )
       )
     );
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 
   private confirmExchange(pe: PossibleExchange) {
@@ -359,7 +379,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 		  dest_enclosure_id: pe.dest.enclosure_id,
       dest_positions: JSON.stringify(pe.dest.positions),
     });
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 }
 
@@ -373,7 +393,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
         Elements.enclosureSpace({player_id: pp.player_id, enclosure_id: 0, enclosure_pos: pp.barn_pos}),
         (evt) => this.selectDestinationForPurchase(pp)
     ));
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 
   private selectDestinationForPurchase(pp: PossiblePurchase) {
@@ -388,7 +408,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
           this.confirmPurchase(pp, dest)
         }
       ));
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 
   private confirmPurchase(pp: PossiblePurchase, dest: Space) {
@@ -399,7 +419,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
       enclosure_id: dest.enclosure_id,
       enclosure_pos: dest.pos
     });
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 }
 
@@ -411,7 +431,7 @@ class ExpandZooFlow extends ZooFlow {
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
     this.addConfirmActionButton('actExpandZoo', {}, true);
-    this.addCancelButton(() => { this.game.renderExtensions(this.player_id, current); });
+    this.addRestartTurnButton(() => { this.game.renderExtensions(this.player_id, current); });
   }
 };
 
@@ -421,7 +441,7 @@ class DrawTileFlow extends PlayFlow<undefined> {
   override doStart() {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
     this.addConfirmActionButton('actDrawTile');
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 };
 
@@ -449,7 +469,7 @@ class PlaceDrawnTile extends ZooFlow<TruckLocation[]> {
     this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
         { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
     this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 };
 
@@ -460,7 +480,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
   override doStart(availableTrucks: AvailableTruck[]) {
     this.initStatusBar(_('Select a truck'));
-    this.addCancelButton(/* () => this.cleanup() */);
+    this.addRestartTurnButton(/* () => this.cleanup() */);
     this.placedTiles = [];
     this.truck_id = 0;
     availableTrucks.forEach((truck: AvailableTruck) => {
@@ -489,12 +509,12 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
         });
       });
     }
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 
   private chooseDestination(truck_id: number, pp: PossiblePlacement, availabeTrucks: AvailableTruck[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
-    this.addCancelButton();
+    this.addRestartTurnButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
       let encElem = Elements.enclosureSpace({ player_id: this.player_id, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
       encElem.classList.add(CSS.TARGETABLE);
@@ -513,8 +533,8 @@ class DiscardTileFlow extends ZooFlow<number[]> {
   constructor(g : ZoolorettoGame) { super(g); }
 
   override doStart(discardables: number[]) {
-    this.initStatusBar(_('Select a truck'));
-    this.addCancelButton();
+    this.initStatusBar(_('Select a tile in your barn to discard'));
+    this.addRestartTurnButton();
 
     discardables.forEach((pos: number) => {
       this.addSelectableOnclick(
@@ -527,7 +547,7 @@ class DiscardTileFlow extends ZooFlow<number[]> {
   private confirmDiscard(pos: number) {
     this.initStatusBar(_('Confirm discard'));
     this.addConfirmActionButton('actDiscardTile', { barn_pos: pos });
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 }
 
@@ -536,7 +556,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
 
   override doStart(possibleMoves: PossibleMove[]) {
     this.initStatusBar(_('Select a tile to move'));
-    this.addCancelButton();
+    this.addRestartTurnButton();
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace({player_id: this.player_id, enclosure_id: m.src.enclosure_id, enclosure_pos: m.src.pos}),
@@ -547,13 +567,13 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
 
   private chooseDest(pm: PossibleMove) {
     this.initStatusBar(_('Select a destination space'));
-    this.addCancelButton();
+    this.addRestartTurnButton();
     pm.dests.forEach((dest: Space) => {
       let elem = Elements.enclosureSpaceTile({player_id: this.player_id, enclosure_id: pm.src.enclosure_id, enclosure_pos: pm.src.pos});
       let destElem = Elements.enclosureSpace({player_id: this.player_id, enclosure_id: dest.enclosure_id, enclosure_pos: dest.pos})
       this.addSelectableOnclick(destElem,
         (evt) => this.slide(elem, destElem)
-          .then(() => this.confirmMove(pm.src, dest))
+          .then(() => { destElem.classList.remove(CSS.SELECTED); destElem.classList.add(CSS.MOVED); this.confirmMove(pm.src, dest); })
       )
     });
   }
@@ -563,7 +583,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.addConfirmActionButton('actMoveTile', {
       src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos
     });
-    this.addCancelButton();
+    this.addRestartTurnButton();
   }
 }
 
