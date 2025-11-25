@@ -590,6 +590,7 @@ body.mobile_version {
 .zoo-player-panel-ext .zoo-depot-space {
     flex: 1;
     height: 1.5em;
+    min-width: inherit;
     margin: 0vw;
 }
 
