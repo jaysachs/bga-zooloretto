@@ -158,7 +158,7 @@ class CSS {
   static readonly TARGETABLE = 'zoo-targetable';
   static readonly SELECTABLE = 'zoo-selectable';
   static readonly SELECTED = 'zoo-selected';
-  static readonly MOVED = 'moved';
+  static readonly MOVED = 'zoo-moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
   static readonly DISK = 'zoo-disk';
 }
