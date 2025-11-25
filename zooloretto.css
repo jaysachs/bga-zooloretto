@@ -14,19 +14,16 @@
  */
 
 body {
-/*    --zoo-tile-size: 3.28vw; */
-    /* right-side-width: 240px */
     /*
-This should be right but isn't quite.
-55.4% * (100vw - 240px) is width of board
-9% of that is width of tile
-   */
+      The right-side panel is a fixed 240px in width (yecch).
+      45.4% * (100vw - 240px) is width of board
+      9% of that is width of tile
+     */
     --zoo-tile-size: calc(0.454 * (100vw - 240px) * 0.09);
 }
 
 body.mobile_version {
-/*    --zoo-tile-size: 3.28vw; */
-    /* right-side-width: 0px (effectively) */
+    /* right-side-width is 0px (effectively) */
     --zoo-tile-size: calc(0.454 * 100vw * 0.09);
 }
 
@@ -34,7 +31,7 @@ body.mobile_version {
     display : flex;
     flex-direction: column;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
-
+    --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.025);
     background-color: yellow;
 }
 
@@ -59,14 +56,16 @@ body.mobile_version {
 
 #zoo-pile {
     position: relative;
+    aspect-ratio: 1.0;
     width: calc(var(--zoo-tile-size) * 1.5);
-    height: calc(var(--zoo-tile-size) * 1.5);
+    height: auto;
 }
 
 #zoo-pile > span {
     position: absolute;
+    aspect-ratio: 1.0;
     width: calc(var(--zoo-tile-size));
-    height: calc(var(--zoo-tile-size));
+    height: auto;
 }
 
 #zoo-pile > span:nth-child(1) { left: 0; top: 0; }
@@ -180,7 +179,7 @@ body.mobile_version {
    /* background-color: red;  */
 }
 
-.zoo-playername{
+.zoo-playername {
     display : flex;
     flex-direction: row;
     width: 80%;
@@ -201,23 +200,7 @@ body.mobile_version {
     /* position:relative;*/
 }
 
-/*
-wagon image: 527x186
-tile to fit that: 140x140
-*/
-
-/*
-active player board: 650.3
-  or 807.6
-  Is 55.4% of non-mobile width (so excluding panels of 240px)
-playerboard widths (non-mobile): 1174
-  or 1458
-
-55.4% * (100vw - 240px) is width of board
-9% of that is width of tile
-*/
 .zoo-depot-space {
-/*    width: calc(3.764 * (var(--zoo-tile-size))); */
     height: calc(1.4 * (var(--zoo-tile-size)));
     min-width: calc(4 * (var(--zoo-tile-size)));
     width: auto;
@@ -249,7 +232,8 @@ playerboard widths (non-mobile): 1174
 /* truck cells */
 .zoo-truck > div {
     position: relative;
-    width: /* 25%; */ calc(var(--zoo-tile-size));
+    width: calc(var(--zoo-tile-size));
+    /* FIXME: auto doesn't work here?? takes up height of the truck, not match aspect-ratio */
     height: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
     aspect-ratio: 1.0 !important;
     top: 14%;
@@ -283,7 +267,6 @@ playerboard widths (non-mobile): 1174
 }
 
 
-
 .backtransition
 {
     transition: background-image 1s;
@@ -300,8 +283,11 @@ playerboard widths (non-mobile): 1174
     width: 100%;
     height: 100%;
 
-    /*    filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
-    filter: drop-shadow(1px 2px #573404) drop-shadow(1px 1px #573404) drop-shadow(1px 1px #573404);
+    filter:
+        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width)) #573404)
+        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width))  #573404)
+        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width))  #573404)
+    ;
 
     background-image: url('img/Tiles.png');
     /* basically corresponds to number of columns in the sprite */
