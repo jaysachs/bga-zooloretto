@@ -2,17 +2,13 @@
 
 * generally move away from %ages for flex children.
 
-* Fix up the "selected" ::after CSS styling. Doesn't work in all cases
-
-* Implement exchange.
-
-* Implement offspring for: purchase, take truck, move
+* Implement offspring for: purchase, take truck, move, exchange
 
 * Implement scoring
 
-* Implement money limits
+* Implement money limits; where (if anywhere) to display bank money?
 
-* Implement money updating
+* Should client-side "pre-confirm" update money?
 
 * Implement enclosure completion bonuses
 
@@ -23,3 +19,35 @@
   * if pay with coin tiles, can those be handed out again (e.g. for enclosure bonus)
   * do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
     * if we do, can we still give e.g. approx percentage left (like T&E)?
+
+Not sure if this error still exists but want to retain it for now:
+
+actExchangeEnclosureAnimals.html?src_enclosure_id=1&src_positions=%5B1%2C2%2C3%5D&dest_enclosure_id=0&dest_positions=%5B1%2C3%2C4%5D&table=800723&
+
+actExchangeEnclosureAnimals
+  src_enclosure_id=1
+  src_positions=[1,2,3]
+  dest_enclosure_id=0
+  dest_positions=[1,2,4]
+
+
+Uncaught Bga\Games\zooloretto\Model\ModelException: Attempt to take
+empty tile in enclosure 0 position 4 in
+/var/tournoi/release/games/zooloretto/999999-9999/modules/php/Model/Enclosure.php:138
+Stack trace: #0
+/var/tournoi/release/games/zooloretto/999999-9999/modules/php/Model/Model.php(483):
+Bga\Games\zooloretto\Model\Enclosure->takeTileAt(4) #1
+/var/tournoi/release/games/zooloretto/999999-9999/modules/php/States/PlayerTurn.php(234):
+Bga\Games\zooloretto\Model\Model->exchange(Object(Bga\Games\zooloretto\Model\PositionSet),
+Object(Bga\Games\zooloretto\Model\PositionSet)) #2
+/var/tournoi/release/tournoi-251120-0900-gs/www/Bga/GameFramework/GameAction.php(169):
+Bga\Games\zooloretto\States\PlayerTurn->actExchangeEnclosureAnimals(2405406,
+1, Array, 0, Array) #3
+/var/tournoi/release/tournoi-251120-0900-gs/www/Bga/GameFramework/GamePageAction.php(332):
+Bga\GameFramework\GameAction->performServerAction('...') #4
+/var/tournoi/release/tournoi-251120-0900-gs/www/include/webActionCore.inc.php(175):
+Bga\GameFramework\GamePageAction->performServerAction('...') #5
+/var/tournoi/release/tournoi-251120-0900-gs/www/index.php(262):
+launchWebAction('...', '...', '...', false, false, NULL, true, false)
+#6 {main} thrown in
+/var/tournoi/release/games/zooloretto/999999-9999/modules/php/Mod
