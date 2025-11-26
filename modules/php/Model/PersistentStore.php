@@ -77,7 +77,7 @@ class PersistentStore {
     public function insertTrucks(array $trucks): void {
         $values = [];
         foreach ($trucks as $truck) {
-            $ts = array_map(fn (Tile $t): string => "$t->id", $truck->getAllTiles());
+            $ts = array_map(fn (Tile $t) => "$t->id", $truck->getAllTiles());
             $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[1], $ts[2], $ts[3]);
         }
         $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
@@ -164,12 +164,10 @@ class PersistentStore {
 
     public function updateTruck(Truck $truck): void {
         $tiles = $truck->getAllTiles();
-        $this->db->execute("UPDATE trucks
-                            SET tile_id1=" . $tiles[1]->id . ", "
-                             . "tile_id2=" . $tiles[2]->id . ", "
-                             . "tile_id3=" . $tiles[3]->id . ", "
-                             . "taken_by=" . $truck->taken_by
-                             . " WHERE id = {$truck->id}");
+        $this->db->execute(
+            "UPDATE trucks
+             SET tile_id1={$tiles[1]->id}, tile_id2={$tiles[2]->id}, tile_id3={$tiles[3]->id}, taken_by={$truck->taken_by}
+             WHERE id = {$truck->id}");
     }
 
     /**
