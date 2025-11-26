@@ -188,6 +188,10 @@ class Model {
         return $pos;
     }
 
+    private function checkForOffspring(Enclosure $enclosure): void {
+
+    }
+
     /**
      * @param Placement[] $placements
      *
@@ -200,6 +204,8 @@ class Model {
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$epos}");
                 $placement->enclosure_pos = $epos;
             }
+            // FIXME: check for offspring
+            // FIXME: then check fo completion bonus
         }
         $player = $this->getPlayer($this->player_id);
         $player->takeTruck($truck_id);
@@ -382,7 +388,7 @@ class Model {
         return $result;
     }
 
-    public function moveTile(Space $src, Space $dest): Player {
+    public function moveTile(Space $src, Space $dest): void {
         $pms = $this->getPossibleMoves();
         $found = false;
         foreach ($pms as $pm) {
@@ -402,16 +408,17 @@ class Model {
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $player = $this->ps->retrievePlayers()[$this->player_id];
 
+        $this->pay($player, self::COST_MOVE);
         $srcenc = $encs[$src->enclosure_id];
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
         $destenc->placeTile($tile, $dest->pos);
-        $this->pay($player, self::COST_MOVE);
+
+        // FIXME: need to check for offspring
+        // FIXME: then check fo completion bonus
 
         $this->ps->updateEnclosure($this->player_id, $srcenc);
         $this->ps->updateEnclosure($this->player_id, $destenc);
-
-        return $player;
     }
 
     public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
@@ -444,6 +451,9 @@ class Model {
         $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];
         $tile = $barn->takeTileAt($src->pos);
         $enc->placeTile($tile, $dest->pos);
+
+        // FIXME: check for offspring
+        // FIXME: then check fo completion bonus
 
         $this->ps->updateEnclosure($from_player_id, $barn);
         $this->ps->updateEnclosure($this->player_id, $enc);
@@ -528,6 +538,9 @@ class Model {
                 $de->placeTile($srctile, $dest->positions[$p]);
             }
         }
+
+        // NO check fo completion bonus
+        // FIXME: check for offspring
 
         $this->ps->updateEnclosure($this->player_id, $se);
         $this->ps->updateEnclosure($this->player_id, $de);

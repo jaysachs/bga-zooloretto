@@ -209,7 +209,7 @@ class PlayerTurn extends AbstractState
 		$model = $this->createModel();
 		$src = new Space($src_id, $src_pos);
 		$dest = new Space($dest_id, $dest_pos);
-		$player = $model->moveTile($src, $dest);
+		$model->moveTile($src, $dest);
 		$this->notify->all(
 			"MoveTile",
 			clienttranslate('${player_name} moved a tile'),
@@ -217,7 +217,7 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'src' => $this->serializeSpace($src),
 				'dest' => $this->serializeSpace($dest),
-				'money' => $player->money,
+				'money' => $model->getPlayers()[$active_player_id]->money,
 			]
 		);
 		return NextPlayer::class;
