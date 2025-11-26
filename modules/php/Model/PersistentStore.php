@@ -52,17 +52,16 @@ class PersistentStore {
         // Better to be consistent.
     }
 
+    public function updateTile(Tile $tile): void {
+        $this->db->Execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
+    }
+
     /** @param $tilepool Tile[] */
     public function insertTiles(array $tilepool): void {
-		$make = function (Tile $tile): string {
-			$id = $tile->id;
-			$ty = $tile->type->value;
-			return "($id,'$ty')";
-		};
-
         // Insert overall tile -> type map.
         $this->db->execute("INSERT INTO tiles (id, type) VALUES "
-                           . implode(',', array_map($make, $tilepool)));
+                           . implode(',', array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')",
+                                                    $tilepool)));
     }
 
     public function insertStock(Stock $stock): void {
