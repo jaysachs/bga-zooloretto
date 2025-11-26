@@ -298,7 +298,7 @@ class Model {
         $player = $this->getPlayer($this->player_id);
 
         $eid = $player->purchaseExtension() + 3;
-        $this->pay($player, self::COST_EXCHANGE);
+        $this->pay($player, self::COST_EXPAND);
         $e = Model::makeEnclosure($eid);
 
         $this->ps->insertEnclosures($this->player_id, [$e]);
