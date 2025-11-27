@@ -39,13 +39,6 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 */
 
 class Model {
-
-    public const int COST_MOVE = 1;
-    public const int COST_EXCHANGE = 1;
-    public const int COST_PURCHASE = 2;
-    public const int COST_DISCARD = 2;
-    public const int COST_EXPAND = 3;
-
     public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
 
     /** @param $player_ids int[] */
@@ -335,11 +328,14 @@ class Model {
         return $e;
     }
 
-    public function expandZoo(): Player {
+    public function expandZoo(int $pid): Player {
+        $this->game->warn("expandZoo {$this->player_id} ({$pid})");
         $player = $this->getPlayer($this->player_id);
+        $this->game->warn("player {$player}");
 
-        $eid = $player->purchaseExtension() + 3;
-        $this->pay($player, self::COST_EXPAND);
+        $eid = $player->addExtension();
+        $this->game->warn("eid {$eid} player {$player}");
+        $this->pay($player, Cost::EXPAND);
         $e = Model::makeEnclosure($eid);
 
         $this->ps->insertEnclosures($this->player_id, [$e]);
@@ -364,7 +360,7 @@ class Model {
         $player = $this->getPlayer($this->player_id);
         $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
 
-        $this->pay($player, self::COST_DISCARD);
+        $this->pay($player, Cost::DISCARD);
         $tile = $barn->takeTileAt($pos);
 
         $this->ps->updateEnclosure($this->player_id, $barn);
@@ -443,7 +439,7 @@ class Model {
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $player = $this->ps->retrievePlayers()[$this->player_id];
 
-        $this->pay($player, self::COST_MOVE);
+        $this->pay($player, Cost::MOVE);
         $srcenc = $encs[$src->enclosure_id];
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
@@ -481,7 +477,7 @@ class Model {
         }
 
         $from_player = $this->getPlayer($from_player_id);
-        $player->payMoney(self::COST_PURCHASE);
+        $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
         $this->ps->incBankMoney(1);
         $from_player->receiveMoney(1);
@@ -559,7 +555,7 @@ class Model {
         }
 
         $player = $this->ps->retrievePlayers()[$this->player_id];
-        $this->pay($player, self::COST_EXCHANGE);
+        $this->pay($player, Cost::EXCHANGE);
 
         $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
         $se = $encs[$src->enclosure_id];
@@ -611,9 +607,9 @@ class Model {
         return [$stype, $dtype];
     }
 
-    private function pay(Player $player, int $amount) : void {
-        $player->payMoney($amount);
+    private function pay(Player $player, Cost $cost) : void {
+        $player->payMoney($cost);
         $this->ps->updatePlayer($player);
-        $this->ps->incBankMoney($amount);
+        $this->ps->incBankMoney($cost->amount());
     }
 }

@@ -38,19 +38,20 @@ class Player {
 
     private int $spent = 0;
     private int $received = 0;
-    private const ENCLOSURE_COST = 3;
-    private const DISCARD_COST = 2;
+
+    public function __toString(): string
+    {
+        return "P(id={$this->id},no={$this->no},money={$this->money},el={$this->extension_limit},"
+             . "pe={$this->purchased_extensions},truck={$this->truck_taken},spent={$this->spent},rec={$this->received})";
+    }
 
     public function canExpand(): bool {
-        return $this->purchased_extensions < $this->extension_limit && $this->money >= SELF::ENCLOSURE_COST;
+        return $this->purchased_extensions < $this->extension_limit
+            && $this->money >= Cost::EXPAND->amount();
     }
 
     public function moneySpent(): int {
         return $this->spent;
-    }
-
-    public function discardBarnTile(): void {
-        $this->receiveMoney(self::DISCARD_COST);
     }
 
     public function returnTruck(): int {
@@ -77,23 +78,28 @@ class Player {
         $this->received += $amount;
     }
 
-    public function payMoney(int $amount): void {
+    /** @param $amount int | Cost */
+    public function payMoney(mixed $val): void {
+        $amount = is_int($val) ? intval($val) : $val->amount();
+
         if ($amount < 0) {
             throw new ModelException("must pay nonnegative money not $amount");
+        }
+        if ($amount > $this->money) {
+            throw new ModelException("player with {$this->money} cannot affort {$amount}");
         }
         $this->money -= $amount;
         $this->spent += $amount;
     }
 
-    public function purchaseExtension(): int {
-		if ($this->money < self::ENCLOSURE_COST) {
+    public function addExtension(): int {
+        if ($this->money < COST::EXPAND->amount()) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}
-		if ($this->purchased_extensions >= $this->extension_limit) {
+        if ($this->purchased_extensions >= $this->extension_limit) {
 			throw new ModelException("No space for new enclosures");
 		}
-        $this->payMoney(self::ENCLOSURE_COST);
         $this->purchased_extensions++;
-        return $this->purchased_extensions;
+        return $this->purchased_extensions + 3;
     }
 }
