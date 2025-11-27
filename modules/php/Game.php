@@ -314,7 +314,7 @@ class Game extends \Bga\GameFramework\Table
 			// FIXME: render the tile image in the log (in addition? instead?)
 			'debug drew a ${translatedval} tile.',
 			[
-				'player_id' => $player_id,
+				// 'player_id' => 0,
 				'tile_type' => $drawn->type->value,
 				'drawn_from_endgame_pile' => false, // FIXME
 				// 'primary_left' => $amt($stock->primaryCount()),
@@ -330,7 +330,7 @@ class Game extends \Bga\GameFramework\Table
 						"PlaceDrawnTileInTruck",
 						'debug placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.',
 						[
-							'player_id' => $player_id,
+							// 'player_id' => 0,
 							'tile_id' => $drawn->id,
 							'val' => $drawn->type->value,
 							'truck_id' => $truck->id,
