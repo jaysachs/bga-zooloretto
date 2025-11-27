@@ -890,7 +890,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       money: number
     }) {
     if (this.player_id != args.player_id) {
-      this.renderExtensions(args.purchased_extensions, args.player_id);
+      this.renderExtensions(args.player_id, args.purchased_extensions);
     }
     this.updateMoney(args.player_id, args.money);
   }
