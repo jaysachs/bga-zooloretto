@@ -37,6 +37,7 @@ class PossibleExchange {
     public function __construct(
         public readonly PositionSet $src,
         public readonly PositionSet $dest
+        // FIXME: needs to handle possible children. Add to PositionSet? (and maybe rename that?)
 ) {
         if (count($src->positions) <> count($dest->positions)) {
             throw new ModelException("Size of src positions and dest positions must be the same");

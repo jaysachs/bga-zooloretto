@@ -205,7 +205,7 @@ class Enclosure {
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
 
-    public function checkForOffspring(): ?OffspringResult {
+    public function checkForOffspring(): ?ParentPositions {
         if ($this->isBarn()) {
             return null;
         }
@@ -219,7 +219,7 @@ class Enclosure {
             }
         }
         if ($malepos && $femalepos) {
-            return new OffspringResult($this->contents[$malepos]->type->canonicalType(), $malepos, $femalepos);
+            return new ParentPositions($malepos, $femalepos);
         }
         return null;
     }

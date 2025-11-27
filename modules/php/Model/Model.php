@@ -388,7 +388,16 @@ class Model {
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
-                    $dests[] = new Destination(new Space($enc->id, $ap));
+                    $updatedTiles = $this->checkForOffspring($enc, $barn);
+                    $childSpace = null;
+                    $childTile = null;
+                    if ($updatedTiles) {
+                        $childSpace = new Space(
+                            $enc->id, /* FIXME: it may go to barn! */
+                            0, /* FIXME: need position of new tile */);
+                        $childTile = $updatedTiles[0];
+                    }
+                    $dests[] = new Destination(new Space($enc->id, $ap), $childSpace, $childTile);
                 }
             }
             if (count($dests) > 0) {

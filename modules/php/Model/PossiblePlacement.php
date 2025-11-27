@@ -31,7 +31,7 @@ class PlacementForEnclosure {
     public int $enclosure_id;
     public int $enclosure_pos; // not clear if needed
 
-    // TODO: put these in a class?
+    // FIXME: put these in a class?
     public int $offspring_pos = 0;
     public TileType $offspring_type = TileType::EMPTY;
 
