@@ -37,7 +37,7 @@ class Tile {
 		return self::$EMPTY;
 	}
 
-    public function __construct(public readonly int $id, public readonly TileType $type) {}
+    public function __construct(public readonly int $id, public private(set) TileType $type) {}
 
 	/** @return Tile[] */
     public static function createInitialPool(int $player_count): array {
@@ -147,6 +147,14 @@ class Tile {
 
 	public function isEmpty(): bool {
 		return $this->type->isEmpty();
+	}
+
+	public function markReproduced() {
+		if ($this->type->isFertileFemale() || $this->type->isFertileMale()) {
+			$this->type = $this->type->reproducedType();
+			return;
+		}
+		throw new ModelException("Cannot mark tile of type {$this->type} as reproduced");
 	}
 
 	public function __toString()

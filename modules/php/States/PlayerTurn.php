@@ -31,13 +31,13 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Destination;
 use Bga\Games\zooloretto\Model\Placement;
 use Bga\Games\zooloretto\Model\PositionSet;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
-use Bga\Games\zooloretto\Model\SwapGroup;
 
 class PlayerTurn extends AbstractState
 {
@@ -62,6 +62,19 @@ class PlayerTurn extends AbstractState
 		];
 	}
 
+	private function serializeDestination(Destination $s): mixed {
+		$result = [
+			'enclosure_id' => $s->space->enclosure_id,
+			'pos' => $s->space->pos,
+		];
+		if ($s->childSpace !== null) {
+			$result['child_enclosure_id'] = $s->childSpace->enclosure_id;
+			$result['child_pos'] = $s->childSpace->pos;
+			$result['child_tile'] = $s->tile->type->value;
+		}
+		return $result;
+	}
+
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel();
@@ -73,13 +86,13 @@ class PlayerTurn extends AbstractState
 
 		$pm = array_map(fn (PossibleMove $pm) => [
 			'src' => $this->serializeSpace($pm->src),
-			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $pm->dests),
+			'dests' => array_map(fn ($d) => $this->serializeDestination($d), $pm->dests),
 		], $model->getPossibleMoves());
 
 		$pb = array_map(fn (PossibleBuy $b) => [
 			'player_id' => $b->player_id,
 			'barn_pos' => $b->move->src->pos,
-			'dests' => array_map(fn ($s) => $this->serializeSpace($s), $b->move->dests),
+			'dests' => array_map(fn ($d) => $this->serializeDestination($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
 		$px = array_map(fn (PossibleExchange $px) => [
@@ -129,12 +142,12 @@ class PlayerTurn extends AbstractState
 		}
 		foreach ($placements as $pl) {
 			$p[$pl->truck_pos] = [
-			'truck_pos' => $pl->truck_pos,
-			'placement' => [
-				'enclosure_id' => $pl-> enclosure_id,
-				'enclosure_pos' => $pl->enclosure_pos,
-			],
-		];
+				'truck_pos' => $pl->truck_pos,
+				'placement' => [
+					'enclosure_id' => $pl-> enclosure_id,
+					'enclosure_pos' => $pl->enclosure_pos,
+				],
+			];
 		}
 		$p = array_values($p);
 		// FIXME: give more details about placements in log

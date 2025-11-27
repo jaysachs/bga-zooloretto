@@ -168,28 +168,48 @@ class Model {
         );
     }
 
+
+    /** @var array<int,Enclosure[]> keyed by player_id */
+    private $_enclosures = [];
+
     /**
      * Returns enclosure mapped by enclosure_id.
      *
      * @return Enclosure[]
      */
     public function getEnclosuresForPlayer(int $player_id) : array {
-        return $this->ps->getEnclosuresForPlayer($player_id);
+        if (isset($this->_enclosures[$player_id])) {
+            return $this->_enclosures[$player_id];
+        }
+        $encs = $this->ps->getEnclosuresForPlayer($player_id);
+        $this->_enclosures[$player_id] = $encs;
+        return $encs;
     }
 
-    /** @return int the position in the enclosure it was plased in */
-    private function placeTileInZoo(int $truck_id, int $truck_pos, int $enclosure_id): int {
-        $truck = $this->getTruck($truck_id);
-        $encl = $this->getEnclosuresForPlayer($this->player_id)[$enclosure_id];
-        $tile = $truck->removeTileAt($truck_pos);
-        $pos = $encl->placeTile($tile);
-        $this->ps->updateTruck($truck);
-        $this->ps->updateEnclosure($this->player_id, $encl);
-        return $pos;
-    }
+    // need to return updated tiles
+    /** @return Tile[] */
+    private function checkForOffspring(Enclosure $encl, Enclosure $barn): array {
+        $or = $encl->checkForOffspring();
+        if (!$or) {
+            return [];
+        }
 
-    private function checkForOffspring(Enclosure $enclosure): void {
+        // update male and female tiles to "already reproduced"
+        $mother = $encl->tileAt($or->female_pos);
+        $father = $encl->tileAt($or->male_pos);
 
+        // this will work: baby ID is 300 more than parent ID
+        $child = new Tile($mother->id + 300, $mother->type->childType());
+        $mother->markReproduced();
+        $father->markReproduced();
+        $pos = $encl->availablePos($child->type);
+        if ($pos == 0) {
+            $barn->placeTile($child);
+        } else {
+            $encl->placeTile($child);
+        }
+
+        return [$child, $mother, $father];
     }
 
     /**
@@ -198,14 +218,29 @@ class Model {
      * @return Placement[]
     */
     public function placeTilesInZooAndTakeTruck(int $truck_id, array $placements): array {
+        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
         foreach ($placements as $placement) {
-            $epos = $this->placeTileInZoo($placement->truck_id, $placement->truck_pos, $placement->enclosure_id);
-            if ($epos <> $placement->enclosure_pos) {
-                // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$epos}");
-                $placement->enclosure_pos = $epos;
+            $truck = $this->getTruck($truck_id);
+            $encl = $this->getEnclosuresForPlayer($this->player_id)[$placement->enclosure_id];
+            $tile = $truck->removeTileAt($placement->truck_pos);
+            $pos = $encl->placeTile($tile);
+            if ($pos <> $placement->enclosure_pos) {
+                // FIXME: this exception should be correct but it isn't.
+                // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
+                $placement->enclosure_pos = $pos;
             }
-            // FIXME: check for offspring
-            // FIXME: then check fo completion bonus
+            $updatedTiles = $this->checkForOffspring($encl, $barn);
+            // FIXME: check fo completion bonus
+
+            if ($updatedTiles) {
+                // new child inserted
+                $this->ps->insertTiles([$updatedTiles[0]]);
+                // parents updated, marked reproduced.
+                $this->ps->updateTile($updatedTiles[1]);
+                $this->ps->updateTile($updatedTiles[2]);
+
+                // FIXME: return info on new child -- add to placements
+            }
         }
         $player = $this->getPlayer($this->player_id);
         $player->takeTruck($truck_id);
@@ -220,7 +255,7 @@ class Model {
         $this->ps->updateTruck($truck);
 
         foreach ($this->getEnclosuresForPlayer($this->player_id) as $enclosure) {
-        $this->ps->updateEnclosure($this->player_id, $enclosure);
+            $this->ps->updateEnclosure($this->player_id, $enclosure);
         }
         return $placements;
     }
@@ -357,7 +392,7 @@ class Model {
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
-                    $dests[] = new Space($enc->id, $ap);
+                    $dests[] = new Destination(new Space($enc->id, $ap));
                 }
             }
             if (count($dests) > 0) {
@@ -375,7 +410,7 @@ class Model {
                         if ($other <> $enc) {
                             $sp = $other->availablePos($tile->type);
                             if ($sp > 0) {
-                                $dests[] = new Space($other->id, $sp);
+                                $dests[] = new Destination(new Space($other->id, $sp));
                             }
                         }
                     }
@@ -414,7 +449,12 @@ class Model {
         $tile = $srcenc->takeTileAt($src->pos);
         $destenc->placeTile($tile, $dest->pos);
 
-        // FIXME: need to check for offspring
+        $updatedTiles = $this->checkForOffspring($destenc, $encs[0]);
+        if ($updatedTiles) {
+            $this->ps->insertTiles([$updatedTiles[0]]);
+            $this->ps->updateTile($updatedTiles[1]);
+            $this->ps->updateTile($updatedTiles[2]);
+        }
         // FIXME: then check fo completion bonus
 
         $this->ps->updateEnclosure($this->player_id, $srcenc);
@@ -447,15 +487,22 @@ class Model {
         $from_player->receiveMoney(1);
         $this->ps->updatePlayer($from_player);
 
-        $barn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
-        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->enclosure_id];
-        $tile = $barn->takeTileAt($src->pos);
-        $enc->placeTile($tile, $dest->pos);
+        $frombarn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
+        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->space->enclosure_id];
+        $barn = $this->ps->getEnclosuresForPlayer($this->player_id)[0];
+        $tile = $frombarn->takeTileAt($src->pos);
+        $enc->placeTile($tile, $dest->space->pos);
 
-        // FIXME: check for offspring
+        $updatedTiles = $this->checkForOffspring($enc, $barn);
+        if ($updatedTiles) {
+            $this->ps->insertTiles([$updatedTiles[0]]);
+            $this->ps->updateTile($updatedTiles[1]);
+            $this->ps->updateTile($updatedTiles[2]);
+            $this->ps->updateEnclosure($this->player_id, $barn);
+        }
         // FIXME: then check fo completion bonus
 
-        $this->ps->updateEnclosure($from_player_id, $barn);
+        $this->ps->updateEnclosure($from_player_id, $frombarn);
         $this->ps->updateEnclosure($this->player_id, $enc);
         return $tile;
     }
@@ -478,7 +525,7 @@ class Model {
                 foreach ($enclosures as $enclosure) {
                     $p = $enclosure->availablePos($tile->type);
                     if ($p > 0) {
-                        $dests[] = new Space($enclosure->id, $p);
+                        $dests[] = new Destination(new Space($enclosure->id, $p));
                     }
                 }
                 if (count($dests) > 0) {
@@ -539,9 +586,25 @@ class Model {
             }
         }
 
-        // NO check fo completion bonus
-        // FIXME: check for offspring
+        $barn = $encs[0];
+        $updatedTiles = $this->checkForOffspring($se, $barn);
+        if ($updatedTiles) {
+            $this->ps->insertTiles([$updatedTiles[0]]);
+            $this->ps->updateTile($updatedTiles[1]);
+            $this->ps->updateTile($updatedTiles[2]);
+        }
+        $updatedTiles = $this->checkForOffspring($de, $barn);
+        if ($updatedTiles) {
+            $this->ps->insertTiles([$updatedTiles[0]]);
+            $this->ps->updateTile($updatedTiles[1]);
+            $this->ps->updateTile($updatedTiles[2]);
+        }
 
+        // no check fo completion bonus in enclosures
+
+        if ($barn !== $se && $barn !== $de) {
+            $this->ps->updateEnclosure($this->player_id, $barn);
+        }
         $this->ps->updateEnclosure($this->player_id, $se);
         $this->ps->updateEnclosure($this->player_id, $de);
 

@@ -96,6 +96,7 @@ class PossiblePlacement {
         $p2->enclosure_id = $enclosure->id;
         $p2->enclosure_pos = $enclosure_pos;
         $enclosure->placeTile($tile, $enclosure_pos);
+        // FIXME: check for offspring here
         $p2->next = self::possiblePlacementFor($truck, $enclosures);
         $enclosure->takeTileAt($enclosure_pos);
         return $p2;

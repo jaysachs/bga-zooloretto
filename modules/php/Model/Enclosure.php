@@ -205,6 +205,25 @@ class Enclosure {
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
 
+    public function checkForOffspring(): ?OffspringResult {
+        if ($this->isBarn()) {
+            return null;
+        }
+        $malepos = 0;
+        $femalepos = 0;
+        foreach ($this->contents as $pos => $tile) {
+            if ($tile->type->isFertileMale()) {
+                $malepos = $pos;
+            } else if ($tile->type->isFertileFemale()) {
+                $femalepos = $pos;
+            }
+        }
+        if ($malepos && $femalepos) {
+            return new OffspringResult($this->contents[$malepos]->type->canonicalType(), $malepos, $femalepos);
+        }
+        return null;
+    }
+
     public function __toString(): string
     {
         $contents = Utils::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);

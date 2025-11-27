@@ -27,12 +27,20 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class PossibleMove {
-    /**
-     * @param Space $src
-     * @param Destination[] $dests
-     */
+class OffspringResult {
     public function __construct(
-        public readonly Space $src,
-        public readonly array $dests) { }
+        public readonly TileType $type,
+        public readonly int $male_pos,
+        public readonly int $female_pos) { }
+
+    public function __toString(): string
+    {
+        return "or{type:{$this->type->value},malepos:{$this->male_pos},femalepos:{$this->female_pos}}";
+    }
+
+    public function equals(OffspringResult $other): bool
+    {
+        return $this->type == $other->type && $this->male_pos == $other->male_pos && $this->female_pos == $other->female_pos;
+    }
+
 }

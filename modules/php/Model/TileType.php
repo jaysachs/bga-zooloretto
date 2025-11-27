@@ -208,7 +208,7 @@ enum TileType: string {
         };
     }
 
-    public function isMale(): bool {
+    public function isFertileMale(): bool {
         return match ($this) {
             TileType::CAMEL_MALE,
             TileType::ELEPHANT_MALE,
@@ -222,7 +222,43 @@ enum TileType: string {
         };
     }
 
-    public function isFemale(): bool {
+    public function reproducedType(): TileType {
+        return match ($this) {
+            self::CAMEL_FEMALE => self::CAMEL_FEMALE_R,
+            self::ELEPHANT_FEMALE => self::ELEPHANT_FEMALE_R,
+            self::FLAMINGO_FEMALE => self::FLAMINGO_FEMALE_R,
+            self::KANGAROO_FEMALE => self::KANGAROO_FEMALE_R,
+            self::LEOPARD_FEMALE => self::LEOPARD_FEMALE_R,
+            self::MONKEY_FEMALE => self::MONKEY_FEMALE_R,
+            self::PANDA_FEMALE => self::PANDA_FEMALE_R,
+            self::ZEBRA_FEMALE => self::ZEBRA_FEMALE_R,
+            self::CAMEL_MALE => self::CAMEL_MALE_R,
+            self::ELEPHANT_MALE => self::ELEPHANT_MALE_R,
+            self::FLAMINGO_MALE => self::FLAMINGO_MALE_R,
+            self::KANGAROO_MALE => self::KANGAROO_MALE_R,
+            self::LEOPARD_MALE => self::LEOPARD_MALE_R,
+            self::MONKEY_MALE => self::MONKEY_MALE_R,
+            self::PANDA_MALE => self::PANDA_MALE_R,
+            self::ZEBRA_MALE => self::ZEBRA_MALE_R,
+            default => self::EMPTY,
+        };
+    }
+
+    public function childType(): TileType {
+        return match ($this) {
+            self::CAMEL_FEMALE,    self::CAMEL_MALE    => self::CAMEL_KID,
+            self::ELEPHANT_FEMALE, self::ELEPHANT_MALE => self::ELEPHANT_KID,
+            self::FLAMINGO_FEMALE, self::FLAMINGO_MALE => self::FLAMINGO_KID,
+            self::KANGAROO_FEMALE, self::KANGAROO_MALE => self::KANGAROO_KID,
+            self::LEOPARD_FEMALE,  self::LEOPARD_MALE  => self::LEOPARD_KID,
+            self::MONKEY_FEMALE,   self::MONKEY_MALE   => self::MONKEY_KID,
+            self::PANDA_FEMALE,    self::PANDA_MALE    => self::PANDA_KID,
+            self::ZEBRA_FEMALE,    self::ZEBRA_MALE    => self::ZEBRA_KID,
+            default => self::EMPTY,
+        };
+    }
+
+    public function isFertileFemale(): bool {
         return match ($this) {
             TileType::CAMEL_FEMALE,
             TileType::ELEPHANT_FEMALE,

@@ -27,12 +27,25 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class PossibleMove {
-    /**
-     * @param Space $src
-     * @param Destination[] $dests
-     */
+class Destination {
     public function __construct(
-        public readonly Space $src,
-        public readonly array $dests) { }
+        public readonly Space $space,
+        public readonly ?Space $childSpace = null,
+        public private(set) ?Tile $tile = null) {
+            if ($this->tile == null) {
+                $this->tile = Tile::empty();
+            }
+        }
+
+    public function __toString(): string
+    {
+        return "es{encid:{$this->space},childspace:{$this->childSpace},childtile:{$this->tile->type->value}";
+    }
+
+    public function equals(Destination $other): bool
+    {
+        return $this->space == $other->space && $this->childSpace == $other->childSpace
+          && $this->tile == $other->tile;
+    }
+
 }
