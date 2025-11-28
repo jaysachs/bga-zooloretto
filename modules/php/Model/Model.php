@@ -185,10 +185,11 @@ class Model {
      * @return Placement[]
     */
     public function placeTilesInZooAndTakeTruck(int $truck_id, array $placements): array {
-        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $barn = $encs[0];
         foreach ($placements as $placement) {
             $truck = $this->getTruck($truck_id);
-            $encl = $this->getEnclosuresForPlayer($this->player_id)[$placement->enclosure_id];
+            $encl = $encs[$placement->enclosure_id];
             $tile = $truck->removeTileAt($placement->truck_pos);
             $pos = $encl->placeTile($tile);
             if ($pos <> $placement->enclosure_pos) {
@@ -200,9 +201,13 @@ class Model {
             // FIXME: check fo completion bonus
 
             if ($offspring) {
+                $this->game->warn("\n\nOffspring for {$encl->id}: {$offspring}\n\n");
+                $placement->offspring = $offspring;
                 $this->saveOffspring($offspring);
 
                 // FIXME: return info on new child -- add to return value
+            } else {
+                $this->game->warn("\n\nNo offspriing for {$encl->id}\n\n");
             }
         }
         $player = $this->getPlayer($this->player_id);
@@ -217,7 +222,7 @@ class Model {
         $truck->taken_by = $this->player_id;
         $this->ps->updateTruck($truck);
 
-        foreach ($this->getEnclosuresForPlayer($this->player_id) as $enclosure) {
+        foreach ($encs as $enclosure) {
             $this->ps->updateEnclosure($this->player_id, $enclosure);
         }
         return $placements;

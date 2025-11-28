@@ -254,7 +254,7 @@ enum TileType: string {
             self::MONKEY_FEMALE,   self::MONKEY_MALE   => self::MONKEY_KID,
             self::PANDA_FEMALE,    self::PANDA_MALE    => self::PANDA_KID,
             self::ZEBRA_FEMALE,    self::ZEBRA_MALE    => self::ZEBRA_KID,
-            default => self::EMPTY,
+            default => throw new ModelException("No child type for {$this->value}"),
         };
     }
 

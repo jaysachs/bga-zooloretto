@@ -33,4 +33,9 @@ class Offspring {
         public readonly Tile $mother,
         public readonly Tile $father,
         public readonly Space $childSpace) {}
+
+    public function __toString()
+    {
+        return "Offspring(child={$this->child},mother={$this->mother},father={$this->father},space={$this->childSpace})";
+    }
 }

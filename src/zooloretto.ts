@@ -13,6 +13,9 @@ interface Placement {
 interface EnclosurePlacement {
   enclosure_id: number;
   enclosure_pos: number;
+  child_enclosure_id: number;
+  child_enclosure_pos: number;
+  child_type: string | undefined;
 }
 
 interface TruckLocation{ truck_id: number, truck_pos: number };
@@ -812,6 +815,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.moneyCounter[player_id]!.toValue(money);
   }
 
+  private addMoney(player_id: number, delta: number): void {
+    this.moneyCounter[player_id]!.incValue(delta);
+  }
+
   renderExtensions(player_id : number, extensions: number): void {
     let elem = $(IDS.boardId(player_id));
     elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
@@ -909,13 +916,27 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
           this.getPlayerPanelElement(args.player_id),
           {}
-        ));
-      } else if (args.player_id != this.player_id) {
-        anims.push(() => this.animationManager.slideAndAttach(
-          Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
-          Elements.enclosureSpace({player_id: args.player_id, enclosure_id: pl.enclosure_id, enclosure_pos: pl.enclosure_pos }),
-          {})
-        );
+        ).then(() => this.addMoney(args.player_id, 1)));
+      } else {
+        // FIXME: figure out a more elegant way to not replay what the active player did.
+        // Possibly do all of it (including money increase, offspring, etc) during
+        //   the turn? Would need to send all of that forward in "possible moves".
+        if (args.player_id != this.player_id) {
+          anims.push(() => this.animationManager.slideAndAttach(
+            Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+            Elements.enclosureSpace({player_id: args.player_id, enclosure_id: pl.enclosure_id, enclosure_pos: pl.enclosure_pos }),
+            {})
+          );
+        }
+        // for now, we don't animate offspring appearing until committed.
+        if (pl.child_type) {
+          anims.push(() => {
+            let elem = this.makeTileSpan(pl.child_type)!;
+            let parent = Elements.enclosureSpace({player_id: args.player_id, enclosure_id: pl.child_enclosure_id, enclosure_pos: pl.child_enclosure_pos});
+            parent.appendChild(elem);
+            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+          });
+        }
       }
     });
     anims.push(() => this.animationManager.slideAndAttach(

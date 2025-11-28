@@ -143,12 +143,18 @@ class PlayerTurn extends AbstractState
 			];
 		}
 		foreach ($placements as $pl) {
+			$opl = [
+				'enclosure_id' => $pl-> enclosure_id,
+				'enclosure_pos' => $pl->enclosure_pos,
+			];
+			if ($pl->offspring) {
+				$opl['child_enclosure_id'] = $pl->offspring->childSpace->enclosure_id;
+				$opl['child_enclosure_pos'] = $pl->offspring->childSpace->pos;
+				$opl['child_type'] = $pl->offspring->child->type->value;
+			}
 			$p[$pl->truck_pos] = [
 				'truck_pos' => $pl->truck_pos,
-				'placement' => [
-					'enclosure_id' => $pl-> enclosure_id,
-					'enclosure_pos' => $pl->enclosure_pos,
-				],
+				'placement' => $opl,
 			];
 		}
 		$p = array_values($p);

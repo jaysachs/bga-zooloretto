@@ -27,11 +27,15 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+// FIXME: this is only used in the conversation between PlayerTurn and Model.
+//   That's not necessarily bad, but it's used as input and output, and the
+//   output needs more info (e.g. offspring). So maybe we need two separate classes?
 class Placement {
     public function __construct(
         public int $truck_id,
         public int $truck_pos,
         public int $enclosure_id,
-        public int $enclosure_pos // not clear if needed
+        public int $enclosure_pos, // not clear if needed
+        public ?Offspring $offspring = null,
     ) {}
 }

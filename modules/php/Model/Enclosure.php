@@ -211,28 +211,31 @@ class Enclosure {
         if ($this->isBarn()) {
             return null;
         }
-        $mother = null;
-        $father = null;
         $mp = 0;
         $fp = 0;
         // FIXME: this only checks for one pair
         foreach ($this->contents as $pos => $tile) {
-            if ($tile->type->isFertileMale() && !$father) {
+            if ($tile->type->isFertileMale() && $fp == 0) {
                 $fp = $pos;
-                $father = $tile;
-            } else if ($tile->type->isFertileFemale() && !$mother) {
+            } else if ($tile->type->isFertileFemale() && $mp == 0) {
                 $mp = $pos;
-                $mother = $tile;
             }
         }
-        if (!$mother || !$father) {
+        if ($mp == 0 || $fp == 0) {
             return null;
         }
 
+
+        $mother = $this->contents[$mp];
+        $father = $this->contents[$fp];
         // this will work: baby ID is 300 more than parent ID
         $child = new Tile($mother->id + 300, $mother->type->childType());
-        $this->contents[$fp] = $father->clone()->markReproduced();
-        $this->contents[$mp] = $mother->clone()->markReproduced();
+        $mother = $mother->clone()->markReproduced();
+        $father = $father->clone()->markReproduced();
+        $this->contents[$fp] = $father;
+        $this->contents[$mp] = $mother;
+
+        error_log("Child is {$child} mother is {$mother}");
 
         /** @var Space | null */
         $space = null;
