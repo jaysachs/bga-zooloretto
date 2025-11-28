@@ -104,7 +104,7 @@ final class PossibleExchangeTest extends TestCase
             $this->pe(1, [1,2,3], 0, [3,4,6]),
             $this->pe(1, [1,2,3], 0, [7,4,6]),
             $this->pe(1, [1,2,3], 2, [1,2,3], [new Space(2, 4)]),
-            $this->pe(2, [1,2], 0, [1,5]),
+            $this->pe(2, [1,2], 0, [1,5], [new Space(2, 3)]),
             $this->pe(2, [1], 0, [3]),
             $this->pe(2, [1], 0, [7]),
             $this->pe(2, [1,2,3], 1, [1,2,3]),

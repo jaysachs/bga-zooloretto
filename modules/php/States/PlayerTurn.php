@@ -37,6 +37,7 @@ use Bga\Games\zooloretto\Model\PositionSet;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
+use Bga\Games\zooloretto\Model\PossiblePlacement;
 use Bga\Games\zooloretto\Model\Space;
 
 class PlayerTurn extends AbstractState
@@ -79,7 +80,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel();
 		$tpp = $model->getTrucksWithPossiblePlacements();
-		$trucks_available = array_map(fn ($id, $pp) => [
+		$trucks_available = array_map(fn (int $id, PossiblePlacement $pp) => [
 			'truck_id' => $id,
 			'playable' => $pp->serialize(),
 		], array_keys($tpp), array_values($tpp));

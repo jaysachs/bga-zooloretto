@@ -97,12 +97,12 @@ class PossibleExchange {
             }
             if ($dest_enc->isBarn()) {
                 foreach (TileType::allCanonicalAnimals() as $anim) {
-                    if ($x = self::possibleExchange($src_enc->clone(), $dest_enc->clone(), $anim, $encs[0]->clone())) {
+                    if ($x = self::possibleExchange($src_enc, $dest_enc, $anim, $encs[0])) {
                         $result[] = $x;
                     }
                 }
             }
-            else if ($x = self::possibleExchange($src_enc->clone(), $dest_enc->clone(), $dest_enc->animalType(), $encs[0]->clone())) {
+            else if ($x = self::possibleExchange($src_enc, $dest_enc, $dest_enc->animalType(), $encs[0])) {
                 $result[] = $x;
             }
         }
@@ -136,18 +136,30 @@ class PossibleExchange {
             return null;
         }
 
-        // FIXME: to properly check for offspring, we actually need to do the exchange.
-        //   (This will possibly simplify by avoiding the need to normalize.)
+        $src_enc = $src_enc->clone();
+        $dest_enc = $dest_enc->clone();
+        $barn = $barn->clone();
 
-        // now we have src and dest positions.
-        // now "pad" the smaller one with the "right" positions.
-        if (count($src_pos) > count($dest_pos)) {
-            $dest_pos = self::normalizeExchangePositions($dest_enc, $dest_pos, $src_enc, $src_pos);
-        } else if (count($src_pos) < count($dest_pos)) {
-            $src_pos = self::normalizeExchangePositions($src_enc, $src_pos, $dest_enc, $dest_pos);
+        $srcTiles = [];
+        foreach ($src_pos as $pos) {
+            $srcTiles[] = $src_enc->takeTileAt($pos);
         }
-        // FIXME: check for offspring in both enclosures (which should only happen if one is a barn
-        //        otherwise the offspring would've already happened)
+        $destTiles = [];
+        foreach ($dest_pos as $pos) {
+            $destTiles[] = $dest_enc->takeTileAt($pos);
+        }
+
+        $i = 0;
+        foreach ($srcTiles as $tile) {
+            $p = $i < count($dest_pos) ? $dest_pos[$i] : 0;
+            $dest_pos[$i++] = $dest_enc->placeTile($tile, $p);
+        }
+        $i = 0;
+        foreach ($destTiles as $tile) {
+            $p = $i < count($src_pos) ? $src_pos[$i] : 0;
+            $src_pos[$i++] = $src_enc->placeTile($tile, $p);
+        }
+
         $spaces = [];
         $offspring = $src_enc->checkForOffspring($barn);
         if ($offspring && $offspring->childSpace) {
@@ -158,45 +170,5 @@ class PossibleExchange {
             $spaces[] = $offspring->childSpace;
         }
         return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos), $spaces);
-    }
-
-    /**
-     * @param int[] $smaller_pos
-     * @param int[] $larger_pos
-     * @return int[]
-     */
-    private static function normalizeExchangePositions(Enclosure $smaller, array $smaller_pos, Enclosure $larger, array $larger_pos): array {
-        $copy = $smaller->clone();
-        $tiles = [];
-        foreach ($smaller_pos as $pos) {
-            $tiles[] = $copy->takeTileAt($pos);
-        }
-        $newpos = [];
-        $i = 0;
-        foreach ($larger_pos as $lpos) {
-            $pos = 0;
-            if ($i < count($smaller_pos)) {
-                $pos = $smaller_pos[$i];
-                $i++;
-            }
-            $newpos[] = $copy->placeTile($larger->tileAt($lpos), $pos);
-        }
-
-        // verify that $smaller_pos is a "subset" of $newpos
-        if (count($smaller_pos) >= count($newpos)) {
-            throw new ModelException("should be bigger");
-        }
-        if (count($newpos) <> count($larger_pos)) {
-            throw new ModelException("should be same size as larger");
-        }
-        $d = array_intersect($smaller_pos, $newpos);
-        if (count($d) <> count($smaller_pos)) {
-            throw new ModelException("not a subset: " . Utils::arrayToString($smaller_pos)
-                                        . " " . Utils::arrayToString($newpos));
-        }
-        //     throw new ModelException("not a prefix: " . Utils::arrayToString($smaller_pos)
-        //                                 . " " . Utils::arrayToString($newpos));
-
-        return $newpos;
     }
 }
