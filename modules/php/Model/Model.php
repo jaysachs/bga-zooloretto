@@ -402,7 +402,7 @@ class Model {
         foreach ($pms as $pm) {
             if ($pm->src == $src) {
                 foreach ($pm->dests as $d) {
-                    if ($d == $dest) {
+                    if ($d->space == $dest) {
                         $found = true;
                         break 2;
                     }

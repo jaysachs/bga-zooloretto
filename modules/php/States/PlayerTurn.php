@@ -104,6 +104,7 @@ class PlayerTurn extends AbstractState
 				'enclosure_id' => $px->dest->enclosure_id,
 				'positions' => $px->dest->positions,
 			],
+			'children' => array_map(fn (Space $s) => $this->serializeSpace($s), $px->children),
 		], $model->getPossibleExchanges());
 
 		return [

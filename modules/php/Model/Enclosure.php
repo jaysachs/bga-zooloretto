@@ -52,7 +52,9 @@ class Enclosure {
 
     public function clone(): Enclosure {
         $e = new Enclosure($this->id, $this->animal_capacity, $this->stall_capacity, $this->total_capacity);
-        $e->contents = $this->contents;
+        foreach ($this->contents as $p => $c) {
+            $e->contents[$p] = $c;
+        }
         return $e;
     }
 
@@ -211,10 +213,11 @@ class Enclosure {
         }
         $mother = null;
         $father = null;
+        // FIXME: this only checks for one pair
         foreach ($this->contents as $pos => $tile) {
-            if ($tile->type->isFertileMale()) {
+            if ($tile->type->isFertileMale() && !$father) {
                 $father = $tile;
-            } else if ($tile->type->isFertileFemale()) {
+            } else if ($tile->type->isFertileFemale() && !$mother) {
                 $mother = $tile;
             }
         }

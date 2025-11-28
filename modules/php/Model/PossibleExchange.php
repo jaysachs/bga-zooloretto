@@ -33,10 +33,12 @@ class PossibleExchange {
     /**
      * @param int[] $src_positions
      * @param int[] $dest_positions
+     * @param Space[] $children
      */
     public function __construct(
         public readonly PositionSet $src,
-        public readonly PositionSet $dest
+        public readonly PositionSet $dest,
+        public readonly array $children,
         // FIXME: needs to handle possible children. Add to PositionSet? (and maybe rename that?)
 ) {
         if (count($src->positions) <> count($dest->positions)) {
@@ -95,12 +97,12 @@ class PossibleExchange {
             }
             if ($dest_enc->isBarn()) {
                 foreach (TileType::allCanonicalAnimals() as $anim) {
-                    if ($x = self::possibleExchange($src_enc, $dest_enc, $anim)) {
+                    if ($x = self::possibleExchange($src_enc->clone(), $dest_enc->clone(), $anim, $encs[0]->clone())) {
                         $result[] = $x;
                     }
                 }
             }
-            else if ($x = self::possibleExchange($src_enc, $dest_enc, $dest_enc->animalType())) {
+            else if ($x = self::possibleExchange($src_enc->clone(), $dest_enc->clone(), $dest_enc->animalType(), $encs[0]->clone())) {
                 $result[] = $x;
             }
         }
@@ -108,7 +110,7 @@ class PossibleExchange {
         return $result;
     }
 
-     private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType): PossibleExchange | null {
+     private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType, Enclosure $barn): PossibleExchange | null {
         if ($animalType->isEmpty()) {
             // no animals of that type at destination
             return null;
@@ -133,6 +135,10 @@ class PossibleExchange {
             // not enough room in src enc for all the dest animals
             return null;
         }
+
+        // FIXME: to properly check for offspring, we actually need to do the exchange.
+        //   (This will possibly simplify by avoiding the need to normalize.)
+
         // now we have src and dest positions.
         // now "pad" the smaller one with the "right" positions.
         if (count($src_pos) > count($dest_pos)) {
@@ -142,7 +148,16 @@ class PossibleExchange {
         }
         // FIXME: check for offspring in both enclosures (which should only happen if one is a barn
         //        otherwise the offspring would've already happened)
-        return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos));
+        $spaces = [];
+        $offspring = $src_enc->checkForOffspring($barn);
+        if ($offspring && $offspring->childSpace) {
+            $spaces[] = $offspring->childSpace;
+        }
+        $offspring = $dest_enc->checkForOffspring($barn);
+        if ($offspring && $offspring->childSpace) {
+            $spaces[] = $offspring->childSpace;
+        }
+        return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos), $spaces);
     }
 
     /**
