@@ -498,7 +498,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
   private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
     this.truck_id = truck_id;
-    if (pps.length == 0) {
+    if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
       this.addConfirmActionButton(
         'actTakeTruckAndPlaceTiles', {
