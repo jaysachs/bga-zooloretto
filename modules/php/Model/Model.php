@@ -179,12 +179,10 @@ class Model {
         return $encs;
     }
 
-    // need to return updated tiles
-    /** @return Tile[] */
-    private function checkForOffspring(Enclosure $encl, Enclosure $barn): array {
+    private function checkForOffspring(Enclosure $encl, Enclosure $barn): ?Offspring {
         $or = $encl->checkForOffspring();
         if (!$or) {
-            return [];
+            return null;
         }
 
         // update male and female tiles to "already reproduced"
@@ -202,7 +200,7 @@ class Model {
             $encl->placeTile($child);
         }
 
-        return [$child, $mother, $father];
+        return new Offspring($child, $mother, $father);
     }
 
     /**
@@ -222,15 +220,15 @@ class Model {
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
                 $placement->enclosure_pos = $pos;
             }
-            $updatedTiles = $this->checkForOffspring($encl, $barn);
+            $offspring = $this->checkForOffspring($encl, $barn);
             // FIXME: check fo completion bonus
 
-            if ($updatedTiles) {
+            if ($offspring) {
                 // new child inserted
-                $this->ps->insertTiles([$updatedTiles[0]]);
+                $this->ps->insertTiles([$offspring->child]);
                 // parents updated, marked reproduced.
-                $this->ps->updateTile($updatedTiles[1]);
-                $this->ps->updateTile($updatedTiles[2]);
+                $this->ps->updateTile($offspring->mother);
+                $this->ps->updateTile($offspring->father);
 
                 // FIXME: return info on new child -- add to placements
             }
@@ -388,14 +386,17 @@ class Model {
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
-                    $updatedTiles = $this->checkForOffspring($enc, $barn);
+                    $offspring = $this->checkForOffspring($enc, $barn);
                     $childSpace = null;
                     $childTile = null;
-                    if ($updatedTiles) {
-                        $childSpace = new Space(
-                            $enc->id, /* FIXME: it may go to barn! */
-                            0, /* FIXME: need position of new tile */);
-                        $childTile = $updatedTiles[0];
+                    if ($offspring) {
+                        $childTile = $offspring->child;
+                        $pos = $enc->availablePos($childTile->type);
+                        if ($pos == 0) {
+                            $childSpace = new Space($barn->id, $barn->availablePos($childTile->type));
+                        } else {
+                            $childSpace = new Space($enc->id, $pos);
+                        }
                     }
                     $dests[] = new Destination(new Space($enc->id, $ap), $childSpace, $childTile);
                 }
@@ -454,11 +455,13 @@ class Model {
         $tile = $srcenc->takeTileAt($src->pos);
         $destenc->placeTile($tile, $dest->pos);
 
-        $updatedTiles = $this->checkForOffspring($destenc, $encs[0]);
-        if ($updatedTiles) {
-            $this->ps->insertTiles([$updatedTiles[0]]);
-            $this->ps->updateTile($updatedTiles[1]);
-            $this->ps->updateTile($updatedTiles[2]);
+        $offspring = $this->checkForOffspring($destenc, $encs[0]);
+        if ($offspring) {
+            // new child inserted
+            $this->ps->insertTiles([$offspring->child]);
+            // parents updated, marked reproduced.
+            $this->ps->updateTile($offspring->mother);
+            $this->ps->updateTile($offspring->father);
         }
         // FIXME: then check fo completion bonus
 
@@ -498,11 +501,14 @@ class Model {
         $tile = $frombarn->takeTileAt($src->pos);
         $enc->placeTile($tile, $dest->space->pos);
 
-        $updatedTiles = $this->checkForOffspring($enc, $barn);
-        if ($updatedTiles) {
-            $this->ps->insertTiles([$updatedTiles[0]]);
-            $this->ps->updateTile($updatedTiles[1]);
-            $this->ps->updateTile($updatedTiles[2]);
+        $offspring = $this->checkForOffspring($enc, $barn);
+        if ($offspring) {
+            // new child inserted
+            $this->ps->insertTiles([$offspring->child]);
+            // parents updated, marked reproduced.
+            $this->ps->updateTile($offspring->mother);
+            $this->ps->updateTile($offspring->father);
+
             $this->ps->updateEnclosure($this->player_id, $barn);
         }
         // FIXME: then check fo completion bonus
@@ -592,17 +598,21 @@ class Model {
         }
 
         $barn = $encs[0];
-        $updatedTiles = $this->checkForOffspring($se, $barn);
-        if ($updatedTiles) {
-            $this->ps->insertTiles([$updatedTiles[0]]);
-            $this->ps->updateTile($updatedTiles[1]);
-            $this->ps->updateTile($updatedTiles[2]);
+        $offspring = $this->checkForOffspring($se, $barn);
+        if ($offspring) {
+            // new child inserted
+            $this->ps->insertTiles([$offspring->child]);
+            // parents updated, marked reproduced.
+            $this->ps->updateTile($offspring->mother);
+            $this->ps->updateTile($offspring->father);
         }
-        $updatedTiles = $this->checkForOffspring($de, $barn);
-        if ($updatedTiles) {
-            $this->ps->insertTiles([$updatedTiles[0]]);
-            $this->ps->updateTile($updatedTiles[1]);
-            $this->ps->updateTile($updatedTiles[2]);
+        $offspring = $this->checkForOffspring($de, $barn);
+        if ($offspring) {
+            // new child inserted
+            $this->ps->insertTiles([$offspring->child]);
+            // parents updated, marked reproduced.
+            $this->ps->updateTile($offspring->mother);
+            $this->ps->updateTile($offspring->father);
         }
 
         // no check fo completion bonus in enclosures
