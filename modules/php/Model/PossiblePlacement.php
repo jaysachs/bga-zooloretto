@@ -28,14 +28,15 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class PlacementForEnclosure {
-    public int $enclosure_id;
-    public int $enclosure_pos; // not clear if needed
 
-    // FIXME: put these in a class?
-    public int $offspring_pos = 0;
-    public TileType $offspring_type = TileType::EMPTY;
-
-    public ?PossiblePlacement $next = null;
+    public function __construct(
+        public int $enclosure_id,
+        public int $enclosure_pos, // not clear if needed
+        // FIXME: allowed to be null, but we never make it null. Allow that.
+        public ?PossiblePlacement $next = null,
+        // FIXME: put these in a class?
+        public int $offspring_pos = 0,
+        public TileType $offspring_type = TileType::EMPTY) {}
 
     public function serialize(): array {
         $data = [
@@ -56,11 +57,11 @@ class PlacementForEnclosure {
 }
 
 class PlacementsForTruckPos {
-    public int $truck_pos = 0;
-    public TileType $tile_type = TileType::EMPTY;
-
-    /** @var PlacementForEnclosure[] */
-    private array $next = [];
+    /** @param $next PlacementForEnclosure[] */
+    public function __construct(
+        public int $truck_pos = 0,
+        public TileType $tile_type = TileType::EMPTY,
+        private array $next = []) {}
 
     public function addNext(PlacementForEnclosure $p2): void {
         $this->next[] = $p2;
@@ -76,10 +77,9 @@ class PlacementsForTruckPos {
 }
 
 class PossiblePlacement {
-    public function __construct() {}
+    /** @param PlacementsForTruckPos[] */
+    public function __construct(private array $placements = []) {}
 
-    /** var PlacementsForTruckPos[] */
-    private array $placements = [];
 
     public function add(PlacementsForTruckPos $p1): void {
         $this->placements[] = $p1;
@@ -92,28 +92,30 @@ class PossiblePlacement {
 
     /** @param Enclosure[] $enclosures */
     private static function getPlacementsForEnclosure(Truck $truck, Tile $tile, array $enclosures, Enclosure $enclosure, int $enclosure_pos): PlacementForEnclosure {
-        $p2 = new PlacementForEnclosure();
-        $p2->enclosure_id = $enclosure->id;
-        $p2->enclosure_pos = $enclosure_pos;
+        $pfe = new PlacementForEnclosure($enclosure->id,$enclosure_pos);
         $enclosure->placeTile($tile, $enclosure_pos);
+
         // FIXME: check for offspring here
-        $p2->next = self::possiblePlacementFor($truck, $enclosures);
+
+        if (!$truck->isEmpty()) {
+            $pfe->next = self::possiblePlacementFor($truck, $enclosures);
+        }
         $enclosure->takeTileAt($enclosure_pos);
-        return $p2;
+        return $pfe;
     }
 
     /** @param Enclosure[] $enclosures */
     private static function getPlacementForTruckPos(Truck $truck, int $truck_pos, Tile $tile, array $enclosures): PlacementsForTruckPos {
-        $p1 = new PlacementsForTruckPos();
-        $p1->truck_pos = $truck_pos;
-        $p1->tile_type = $tile->type;
+        $pftp = new PlacementsForTruckPos();
+        $pftp->truck_pos = $truck_pos;
+        $pftp->tile_type = $tile->type;
         foreach ($enclosures as $enclosure) {
-            $ep = $enclosure->availablePos($tile->type);
-            if ($ep > 0) {
-                $p1->addNext(self::getPlacementsForEnclosure($truck, $tile, $enclosures, $enclosure, $ep));
+            $epos = $enclosure->availablePos($tile->type);
+            if ($epos > 0) {
+                $pftp->addNext(self::getPlacementsForEnclosure($truck, $tile, $enclosures, $enclosure, $epos));
             }
         }
-        return $p1;
+        return $pftp;
     }
 
     /** @param Enclosure[] $enclosures */

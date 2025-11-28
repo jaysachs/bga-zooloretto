@@ -56,6 +56,13 @@ class Truck {
         }
     }
 
+    public function isEmpty(): bool {
+        foreach ($this->getAllTiles() as $pos => $tile) {
+            if (!$tile->isEmpty()) { return false; }
+        }
+        return true;
+    }
+
     public function firstFreePosition(): int {
         foreach ($this->getAllTiles() as $pos => $tile) {
             if ($tile->isEmpty()) {
