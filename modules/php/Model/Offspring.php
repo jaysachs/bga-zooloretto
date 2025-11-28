@@ -31,5 +31,6 @@ class Offspring {
     public function __construct(
         public readonly Tile $child,
         public readonly Tile $mother,
-        public readonly Tile $father) {}
+        public readonly Tile $father,
+        public readonly Space $childSpace) {}
 }

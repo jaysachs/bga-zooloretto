@@ -205,23 +205,39 @@ class Enclosure {
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
 
-    public function checkForOffspring(): ?ParentPositions {
+    public function checkForOffspring(Enclosure $barn): ?Offspring {
         if ($this->isBarn()) {
             return null;
         }
-        $malepos = 0;
-        $femalepos = 0;
+        $mother = null;
+        $father = null;
         foreach ($this->contents as $pos => $tile) {
             if ($tile->type->isFertileMale()) {
-                $malepos = $pos;
+                $father = $tile;
             } else if ($tile->type->isFertileFemale()) {
-                $femalepos = $pos;
+                $mother = $tile;
             }
         }
-        if ($malepos && $femalepos) {
-            return new ParentPositions($malepos, $femalepos);
+        if (!$mother || !$father) {
+            return null;
         }
-        return null;
+
+        // this will work: baby ID is 300 more than parent ID
+        $child = new Tile($mother->id + 300, $mother->type->childType());
+        $mother->markReproduced();
+        $father->markReproduced();
+        /** @var Space | null */
+        $space = null;
+        $pos = $this->availablePos($child->type);
+        if ($pos == 0) {
+            $pos = $barn->placeTile($child);
+            $space = new Space($barn->id, $pos);
+        } else {
+            $pos = $this->placeTile($child);
+            $space = new Space($this->id, $pos);
+        }
+
+        return new Offspring($child, $mother, $father, $space);
     }
 
     public function __toString(): string

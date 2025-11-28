@@ -140,6 +140,8 @@ class PossibleExchange {
         } else if (count($src_pos) < count($dest_pos)) {
             $src_pos = self::normalizeExchangePositions($src_enc, $src_pos, $dest_enc, $dest_pos);
         }
+        // FIXME: check for offspring in both enclosures (which should only happen if one is a barn
+        //        otherwise the offspring would've already happened)
         return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos));
     }
 

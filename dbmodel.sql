@@ -77,9 +77,11 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
   `player_id` int(10) unsigned NOT NULL,
   -- 0 is barn
   `enclosure_id` int(10) unsigned NOT NULL,
-  `pos` int(10) NOT NULL,
-  `tile_id` int(10) unsigned NOT NULL DEFAULT 0,
-  PRIMARY KEY (`player_id`, `enclosure_id`, `pos`)
+  `pos` int(10) unsigned NOT NULL,
+  `tile_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`player_id`, `enclosure_id`, `pos`),
+  -- this means we can't insert EMPTY, which is fine.
+  UNIQUE (`tile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- For players, we need (a) money and (b) how many extensions were bought

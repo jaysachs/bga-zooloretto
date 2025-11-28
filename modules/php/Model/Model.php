@@ -179,30 +179,6 @@ class Model {
         return $encs;
     }
 
-    private function checkForOffspring(Enclosure $encl, Enclosure $barn): ?Offspring {
-        $or = $encl->checkForOffspring();
-        if (!$or) {
-            return null;
-        }
-
-        // update male and female tiles to "already reproduced"
-        $mother = $encl->tileAt($or->female_pos);
-        $father = $encl->tileAt($or->male_pos);
-
-        // this will work: baby ID is 300 more than parent ID
-        $child = new Tile($mother->id + 300, $mother->type->childType());
-        $mother->markReproduced();
-        $father->markReproduced();
-        $pos = $encl->availablePos($child->type);
-        if ($pos == 0) {
-            $barn->placeTile($child);
-        } else {
-            $encl->placeTile($child);
-        }
-
-        return new Offspring($child, $mother, $father);
-    }
-
     /**
      * @param Placement[] $placements
      *
@@ -220,17 +196,13 @@ class Model {
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
                 $placement->enclosure_pos = $pos;
             }
-            $offspring = $this->checkForOffspring($encl, $barn);
+            $offspring = $encl->checkForOffspring($barn);
             // FIXME: check fo completion bonus
 
             if ($offspring) {
-                // new child inserted
-                $this->ps->insertTiles([$offspring->child]);
-                // parents updated, marked reproduced.
-                $this->ps->updateTile($offspring->mother);
-                $this->ps->updateTile($offspring->father);
+                $this->saveOffspring($offspring);
 
-                // FIXME: return info on new child -- add to placements
+                // FIXME: return info on new child -- add to return value
             }
         }
         $player = $this->getPlayer($this->player_id);
@@ -386,17 +358,12 @@ class Model {
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
-                    $offspring = $this->checkForOffspring($enc, $barn);
+                    $offspring = $enc->checkForOffspring($barn);
                     $childSpace = null;
                     $childTile = null;
                     if ($offspring) {
                         $childTile = $offspring->child;
-                        $pos = $enc->availablePos($childTile->type);
-                        if ($pos == 0) {
-                            $childSpace = new Space($barn->id, $barn->availablePos($childTile->type));
-                        } else {
-                            $childSpace = new Space($enc->id, $pos);
-                        }
+                        $childSpace = $offspring->childSpace;
                     }
                     $dests[] = new Destination(new Space($enc->id, $ap), $childSpace, $childTile);
                 }
@@ -455,16 +422,13 @@ class Model {
         $tile = $srcenc->takeTileAt($src->pos);
         $destenc->placeTile($tile, $dest->pos);
 
-        $offspring = $this->checkForOffspring($destenc, $encs[0]);
+        $offspring = $destenc->checkForOffspring($encs[0]);
         if ($offspring) {
-            // new child inserted
-            $this->ps->insertTiles([$offspring->child]);
-            // parents updated, marked reproduced.
-            $this->ps->updateTile($offspring->mother);
-            $this->ps->updateTile($offspring->father);
+            $this->saveOffspring($offspring);
         }
         // FIXME: then check fo completion bonus
 
+        $this->ps->updateEnclosure($this->player_id, $encs[0]);
         $this->ps->updateEnclosure($this->player_id, $srcenc);
         $this->ps->updateEnclosure($this->player_id, $destenc);
     }
@@ -501,14 +465,9 @@ class Model {
         $tile = $frombarn->takeTileAt($src->pos);
         $enc->placeTile($tile, $dest->space->pos);
 
-        $offspring = $this->checkForOffspring($enc, $barn);
+        $offspring = $enc->checkForOffspring($barn);
         if ($offspring) {
-            // new child inserted
-            $this->ps->insertTiles([$offspring->child]);
-            // parents updated, marked reproduced.
-            $this->ps->updateTile($offspring->mother);
-            $this->ps->updateTile($offspring->father);
-
+            $this->saveOffspring($offspring);
             $this->ps->updateEnclosure($this->player_id, $barn);
         }
         // FIXME: then check fo completion bonus
@@ -556,6 +515,14 @@ class Model {
         return PossibleExchange::getPossibleExchanges($this->ps->getEnclosuresForPlayer($this->player_id));
     }
 
+    private function saveOffspring(Offspring $offspring): void {
+        // new child inserted
+        $this->ps->insertTiles([$offspring->child]);
+        // update parents, marked reproduced.
+        $this->ps->updateTile($offspring->mother);
+        $this->ps->updateTile($offspring->father);
+    }
+
     /** @return TileType[]  length 2 of the form [srctype, desttype] */
     public function exchange(PositionSet $src, PositionSet $dest): array {
         $found = false;
@@ -598,21 +565,13 @@ class Model {
         }
 
         $barn = $encs[0];
-        $offspring = $this->checkForOffspring($se, $barn);
+        $offspring = $se->checkForOffspring($barn);
         if ($offspring) {
-            // new child inserted
-            $this->ps->insertTiles([$offspring->child]);
-            // parents updated, marked reproduced.
-            $this->ps->updateTile($offspring->mother);
-            $this->ps->updateTile($offspring->father);
+            $this->saveOffspring($offspring);
         }
-        $offspring = $this->checkForOffspring($de, $barn);
+        $offspring = $de->checkForOffspring($barn);
         if ($offspring) {
-            // new child inserted
-            $this->ps->insertTiles([$offspring->child]);
-            // parents updated, marked reproduced.
-            $this->ps->updateTile($offspring->mother);
-            $this->ps->updateTile($offspring->father);
+            $this->saveOffspring($offspring);
         }
 
         // no check fo completion bonus in enclosures
