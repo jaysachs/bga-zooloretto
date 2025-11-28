@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-use Bga\Games\zooloretto\Model\{Enclosure,Tile,TileType};
+use Bga\Games\zooloretto\Model\{Enclosure, Offspring, Space, Tile, TileType};
 
 final class EnclosureTest extends TestCase
 {
@@ -83,5 +83,36 @@ final class EnclosureTest extends TestCase
 
         // no species so we can now place other species.
         $this->assertEquals(1, $enc->placeTile(new Tile(4, TileType::ELEPHANT)));
+    }
+
+    public function testCheckForOffspring(): void {
+        $barn = Enclosure::barn();
+        $e = Enclosure::create(1, 5, 2);
+        $this->assertNull($e->checkForOffspring($barn));
+        $barn->placeTile(new Tile(1, TileType::CAMEL_FEMALE));
+        $barn->placeTile(new Tile(2, TileType::CAMEL_MALE));
+        $this->assertNull($barn->checkForOffspring($barn));
+
+        $e->placeTile(new Tile(3, TileType::CAMEL_FEMALE));
+        $e->placeTile(new Tile(4, TileType::CAMEL_MALE));
+        $this->assertEquals(
+            new Offspring(
+                new Tile(303, TileType::CAMEL_KID),
+                new Tile(3, TileType::CAMEL_FEMALE_R),
+                new Tile(4, TileType::CAMEL_MALE_R),
+                new Space(1, 3)),
+            $e->checkForOffspring($barn));
+        $this->assertNull($e->checkForOffspring($barn));
+
+        $e->placeTile(new Tile(5, TileType::ELEPHANT_MALE));
+        $e->placeTile(new Tile(6, TileType::ELEPHANT_FEMALE));
+        $this->assertEquals(
+            new Offspring(
+                new Tile(306, TileType::ELEPHANT_KID),
+                new Tile(6, TileType::ELEPHANT_FEMALE_R),
+                new Tile(5, TileType::ELEPHANT_MALE_R),
+                new Space(0, 3)),
+            $e->checkForOffspring($barn));
+        $this->assertEquals(new Tile(306, TileType::ELEPHANT_KID), $barn->tileAt(3));
     }
 }
