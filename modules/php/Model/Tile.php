@@ -149,10 +149,10 @@ class Tile {
 		return $this->type->isEmpty();
 	}
 
-	public function markReproduced() {
+	public function markReproduced(): Tile {
 		if ($this->type->isFertileFemale() || $this->type->isFertileMale()) {
 			$this->type = $this->type->reproducedType();
-			return;
+			return $this;
 		}
 		throw new ModelException("Cannot mark tile of type {$this->type} as reproduced");
 	}
@@ -160,6 +160,10 @@ class Tile {
 	public function __toString()
 	{
 		return "Tile({$this->id},{$this->type->value})";
+	}
+
+	public function clone(): Tile {
+		return new Tile($this->id, $this->type);
 	}
 
 	public function equals(Tile $other): bool {

@@ -91,30 +91,39 @@ class PossiblePlacement {
 
 
     /** @param Enclosure[] $enclosures */
-    private static function getPlacementsForEnclosure(Truck $truck, Tile $tile, array $enclosures, Enclosure $enclosure, int $enclosure_pos): PlacementForEnclosure {
-        $pfe = new PlacementForEnclosure($enclosure->id,$enclosure_pos);
-        $enclosure->placeTile($tile, $enclosure_pos);
+    private static function getPlacementsForEnclosure(Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): PlacementForEnclosure {
+        $pfe = new PlacementForEnclosure($eid,$enclosure_pos);
 
-        // FIXME: check for offspring here
+        $clones = array_map(fn ($e) => $e->clone(), $enclosures);
+        $enc = $clones[$eid];
+        $enc->placeTile($tile, $enclosure_pos);
+
+        $offspring = $enc->checkForOffspring($clones[0]);
+        if ($offspring) {
+            // FIXME: child may end up in barn
+            $pfe->offspring_pos = $offspring->childSpace->pos;
+            $pfe->offspring_type = $offspring->child->type;
+        }
 
         if (!$truck->isEmpty()) {
-            $pfe->next = self::possiblePlacementFor($truck, $enclosures);
+            $pfe->next = self::possiblePlacementFor($truck, $clones);
         }
-        $enclosure->takeTileAt($enclosure_pos);
         return $pfe;
     }
 
     /** @param Enclosure[] $enclosures */
-    private static function getPlacementForTruckPos(Truck $truck, int $truck_pos, Tile $tile, array $enclosures): PlacementsForTruckPos {
+    private static function getPlacementForTruckPos(Truck $truck, int $truck_pos, array $enclosures): PlacementsForTruckPos {
+        $tile = $truck->removeTileAt($truck_pos);
         $pftp = new PlacementsForTruckPos();
         $pftp->truck_pos = $truck_pos;
         $pftp->tile_type = $tile->type;
-        foreach ($enclosures as $enclosure) {
+        foreach ($enclosures as $eid => $enclosure) {
             $epos = $enclosure->availablePos($tile->type);
             if ($epos > 0) {
-                $pftp->addNext(self::getPlacementsForEnclosure($truck, $tile, $enclosures, $enclosure, $epos));
+                $pftp->addNext(self::getPlacementsForEnclosure($truck, $tile, $enclosures, $eid, $epos));
             }
         }
+        $truck->placeTileAt($tile, $truck_pos);
         return $pftp;
     }
 
@@ -123,9 +132,7 @@ class PossiblePlacement {
         $pp = new PossiblePlacement();
         foreach ($truck->getAllTiles() as $pos => $tile) {
             if ($tile->type->isPlaceable()) {
-                $tile = $truck->removeTileAt($pos);
-                $pp->add(self::getPlacementForTruckPos($truck, $pos, $tile, $enclosures));
-                $truck->placeTileAt($tile, $pos);
+                $pp->add(self::getPlacementForTruckPos($truck, $pos, $enclosures));
             }
         }
         return $pp;

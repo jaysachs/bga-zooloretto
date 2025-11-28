@@ -169,7 +169,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
-                        e(1, 2),
+                        e(1, 2, null, 3, TileType::CAMEL_KID),
                         e(2, 1),
                     ])
                 ])),
@@ -177,7 +177,7 @@ final class PossiblePlacementTest extends TestCase
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2),
+                        e(2, 2, null, 3, TileType::CAMEL_KID),
                     ])
                 ])),
             ]),
@@ -192,7 +192,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
-                        e(1, 2),
+                        e(1, 2, null, 3, TileType::CAMEL_KID),
                         e(2, 1),
                     ])
                 ])),
@@ -200,7 +200,7 @@ final class PossiblePlacementTest extends TestCase
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2),
+                        e(2, 2, null, 3, TileType::CAMEL_KID),
                     ])
                 ])),
             ]),
