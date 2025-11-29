@@ -187,9 +187,11 @@ class Model {
     public function placeTilesInZooAndTakeTruck(int $truck_id, array $deliveries): array {
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $barn = $encs[0];
+        $toUpdate = [];
         foreach ($deliveries as $delivery) {
             $truck = $this->getTruck($truck_id);
             $encl = $encs[$delivery->enclosure_id];
+            $toUpdate[] = $encl;
             $tile = $truck->removeTileAt($delivery->truck_pos);
             $pos = $encl->placeTile($tile)->pos;
             if ($pos <> $delivery->enclosure_pos) {
@@ -222,7 +224,7 @@ class Model {
         $truck->taken_by = $this->player_id;
         $this->ps->updateTruck($truck);
 
-        $this->ps->updateEnclosures($this->player_id, $encs);
+        $this->ps->updateEnclosures($this->player_id, $toUpdate);
 
         return $deliveries;
     }
@@ -462,20 +464,23 @@ class Model {
         $this->ps->updatePlayer($from_player);
 
         $frombarn = $this->getEnclosuresForPlayer($from_player_id)[0];
-        $enc = $this->getEnclosuresForPlayer($this->player_id)[$dest->space->enclosure_id];
-        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $enc = $encs[$dest->space->enclosure_id];
+        $barn = $encs[0];
         $tile = $frombarn->takeTileAt($src->pos);
         $enc->placeTile($tile, $dest->space->pos);
 
         $offspring = $enc->checkForOffspring($barn);
+        $toUpdate = [$enc];
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $this->ps->updateEnclosures($this->player_id, [$barn]);
+            $toUpdate[] = $encs[$offspring->childSpace->enclosure_id];
         }
         // FIXME: then check fo completion bonus
 
         $this->ps->updateEnclosures($from_player_id, [$frombarn]);
-        $this->ps->updateEnclosures($this->player_id, [$enc]);
+        $this->ps->updateEnclosures($this->player_id, $toUpdate);
         return $tile;
     }
 
@@ -578,11 +583,7 @@ class Model {
 
         // no check fo completion bonus in enclosures
 
-        $encs = [$se, $de];
-        if ($barn !== $se && $barn !== $de) {
-            $encs[] = $barn;
-        }
-        $this->ps->updateEnclosures($this->player_id, $encs);
+        $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
 
         return [$stype, $dtype];
     }

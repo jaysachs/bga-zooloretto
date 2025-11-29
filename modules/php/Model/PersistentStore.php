@@ -216,9 +216,14 @@ class PersistentStore {
         $ids = implode(',', array_map(fn ($e) => "{$e->id}", $enclosures));
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id={$ids}");
         $values = [];
+        $seen = [];
         foreach ($enclosures as $enclosure) {
+            if (isset($seen[$enclosure->id])) {
+                continue;
+            }
+            $seen[$enclosure->id] = true;
             foreach ($enclosure->nonEmptyContents() as $pos => $t) {
-                $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
+                $values[] = "({$player_id}, {$enclosure->id}, {$pos}, {$t->id})";
             }
         }
         if (count($values) == 0) {
