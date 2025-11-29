@@ -31,7 +31,7 @@ $(WORK):
 
 $(STUBS): $(WORK) _ide_helper.php Makefile _local_ide_helper.php
 	mkdir -p $(WORK)/module/table
-	perl -p -e 's/  exit/\/\/ exit/;' -e 's/APP_GAMEMODULE_PATH = ""/APP_GAMEMODULE_PATH = "work\/"/' _ide_helper.php > $(STUBS)
+	perl -p -e 's/  exit/\/\/ exit/;' -e 's/APP_GAMEMODULE_PATH = ""/APP_GAMEMODULE_PATH = "work\/"/;' -e 's/{}\(\)\;/{}\;/;' _ide_helper.php > $(STUBS)
 	cat _local_ide_helper.php >> $(STUBS)
 
 $(TESTSTUBS): $(WORK) _ide_helper.php Makefile
