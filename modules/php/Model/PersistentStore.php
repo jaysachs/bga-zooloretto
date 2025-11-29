@@ -183,6 +183,9 @@ class PersistentStore {
 
     /** @param Enclosure[] $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
+        if (count($enclosures) == 0) {
+            return;
+        }
         $ids = implode(',', array_map(fn ($e) => "{$e->id}", $enclosures));
         $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id IN ({$ids})");
         $values = [];
