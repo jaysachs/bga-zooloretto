@@ -32,7 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Destination;
-use Bga\Games\zooloretto\Model\Placement;
+use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\PositionSet;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
@@ -128,8 +128,8 @@ class PlayerTurn extends AbstractState
 		// FIXME: this should be returned as a structure from the model method. Or as a kind of Placement.
 		$coins = $truck->coinPositions();
 
-		$placements = $model->placeTilesInZooAndTakeTruck($truck_id,
-			array_map(fn ($pt) => new Placement(
+		$deliveries = $model->placeTilesInZooAndTakeTruck($truck_id,
+			array_map(fn ($pt) => new Delivery(
 				$truck_id,
 				intval($pt['truck_pos']),
 				intval($pt['enclosure_id']),
@@ -142,18 +142,18 @@ class PlayerTurn extends AbstractState
 				'placement' => 'coin',
 			];
 		}
-		foreach ($placements as $pl) {
+		foreach ($deliveries as $del) {
 			$opl = [
-				'enclosure_id' => $pl-> enclosure_id,
-				'enclosure_pos' => $pl->enclosure_pos,
+				'enclosure_id' => $del->enclosure_id,
+				'enclosure_pos' => $del->enclosure_pos,
 			];
-			if ($pl->offspring) {
-				$opl['child_enclosure_id'] = $pl->offspring->childSpace->enclosure_id;
-				$opl['child_enclosure_pos'] = $pl->offspring->childSpace->pos;
-				$opl['child_type'] = $pl->offspring->child->type->value;
+			if ($del->offspring) {
+				$opl['child_enclosure_id'] = $del->offspring->childSpace->enclosure_id;
+				$opl['child_enclosure_pos'] = $del->offspring->childSpace->pos;
+				$opl['child_type'] = $del->offspring->child->type->value;
 			}
-			$p[$pl->truck_pos] = [
-				'truck_pos' => $pl->truck_pos,
+			$p[$del->truck_pos] = [
+				'truck_pos' => $del->truck_pos,
 				'placement' => $opl,
 			];
 		}
@@ -162,7 +162,7 @@ class PlayerTurn extends AbstractState
 		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} placed tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
-		  'placements' => $p,
+		  'deliveries' => $p,
 		  'money' => $model->getPlayers()[$active_player_id]->money,
 		]);
 		return NextPlayer::class;

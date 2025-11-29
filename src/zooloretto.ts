@@ -5,7 +5,7 @@ interface ZPlayer extends Player {
   purchased_extensions: number;
 }
 
-interface Placement {
+interface Delivery {
   truck_pos: number;
   placement: EnclosurePlacement | 'coin';
 }
@@ -906,14 +906,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     truck_id: number,
     money: number,
-    placements: Placement[]
+    deliveries: Delivery[]
   }) {
     let anims : AnimationList = [];
-    args.placements.forEach( (p) => {
-      let pl = p.placement;
+    args.deliveries.forEach( (del) => {
+      let pl = del.placement;
       if (pl == 'coin') {
         anims.push(() => this.animationManager.slideOutAndDestroy(
-          Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+          Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: del.truck_pos})!,
           this.getPlayerPanelElement(args.player_id),
           {}
         ).then(() => this.addMoney(args.player_id, 1)));
@@ -923,7 +923,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         //   the turn? Would need to send all of that forward in "possible moves".
         if (args.player_id != this.player_id) {
           anims.push(() => this.animationManager.slideAndAttach(
-            Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: p.truck_pos})!,
+            Elements.truckSpaceTile({truck_id: args.truck_id, truck_pos: del.truck_pos})!,
             Elements.enclosureSpace({player_id: args.player_id, enclosure_id: pl.enclosure_id, enclosure_pos: pl.enclosure_pos }),
             {})
           );

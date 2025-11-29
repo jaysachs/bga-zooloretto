@@ -180,29 +180,29 @@ class Model {
     }
 
     /**
-     * @param Placement[] $placements
+     * @param Delivery[] $placements
      *
-     * @return Placement[]
+     * @return Delivery[]
     */
-    public function placeTilesInZooAndTakeTruck(int $truck_id, array $placements): array {
+    public function placeTilesInZooAndTakeTruck(int $truck_id, array $deliveries): array {
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $barn = $encs[0];
-        foreach ($placements as $placement) {
+        foreach ($deliveries as $delivery) {
             $truck = $this->getTruck($truck_id);
-            $encl = $encs[$placement->enclosure_id];
-            $tile = $truck->removeTileAt($placement->truck_pos);
+            $encl = $encs[$delivery->enclosure_id];
+            $tile = $truck->removeTileAt($delivery->truck_pos);
             $pos = $encl->placeTile($tile);
-            if ($pos <> $placement->enclosure_pos) {
+            if ($pos <> $delivery->enclosure_pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
-                $placement->enclosure_pos = $pos;
+                $delivery->enclosure_pos = $pos;
             }
             $offspring = $encl->checkForOffspring($barn);
             // FIXME: check fo completion bonus
 
             if ($offspring) {
                 $this->game->warn("\n\nOffspring for {$encl->id}: {$offspring}\n\n");
-                $placement->offspring = $offspring;
+                $delivery->offspring = $offspring;
                 $this->saveOffspring($offspring);
 
                 // FIXME: return info on new child -- add to return value
@@ -225,7 +225,7 @@ class Model {
         foreach ($encs as $enclosure) {
             $this->ps->updateEnclosure($this->player_id, $enclosure);
         }
-        return $placements;
+        return $deliveries;
     }
 
     private function getPossiblePlacements(Truck $truck): PossiblePlacement {
