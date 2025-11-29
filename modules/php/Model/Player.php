@@ -107,6 +107,6 @@ class Player {
     }
 
     public function canAfford(Cost $cost): bool {
-        return $this->money >= $cost->amount;
+        return $this->money >= $cost->amount();
     }
 }
