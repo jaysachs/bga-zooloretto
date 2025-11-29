@@ -50,7 +50,7 @@ class Player {
 
     public function canExpand(): bool {
         return $this->purchased_extensions < $this->extension_limit
-            && $this->money >= Cost::EXPAND->amount();
+            && $this->canAfford(Cost::EXPAND);
     }
 
     public function moneySpent(): int {
