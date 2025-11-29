@@ -222,9 +222,8 @@ class Model {
         $truck->taken_by = $this->player_id;
         $this->ps->updateTruck($truck);
 
-        foreach ($encs as $enclosure) {
-            $this->ps->updateEnclosure($this->player_id, $enclosure);
-        }
+        $this->ps->updateEnclosures($this->player_id, $encs);
+
         return $deliveries;
     }
 
@@ -338,7 +337,7 @@ class Model {
         $this->pay($player, Cost::DISCARD);
         $tile = $barn->takeTileAt($pos);
 
-        $this->ps->updateEnclosure($this->player_id, $barn);
+        $this->ps->updateEnclosures($this->player_id, [$barn]);
 
         return $tile;
     }
@@ -433,9 +432,7 @@ class Model {
         }
         // FIXME: then check fo completion bonus
 
-        $this->ps->updateEnclosure($this->player_id, $encs[0]);
-        $this->ps->updateEnclosure($this->player_id, $srcenc);
-        $this->ps->updateEnclosure($this->player_id, $destenc);
+        $this->ps->updateEnclosures($this->player_id, $encs);
     }
 
     public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
@@ -473,12 +470,12 @@ class Model {
         $offspring = $enc->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $this->ps->updateEnclosure($this->player_id, $barn);
+            $this->ps->updateEnclosures($this->player_id, [$barn]);
         }
         // FIXME: then check fo completion bonus
 
-        $this->ps->updateEnclosure($from_player_id, $frombarn);
-        $this->ps->updateEnclosure($this->player_id, $enc);
+        $this->ps->updateEnclosures($from_player_id, [$frombarn]);
+        $this->ps->updateEnclosures($this->player_id, [$enc]);
         return $tile;
     }
 
@@ -581,11 +578,11 @@ class Model {
 
         // no check fo completion bonus in enclosures
 
+        $encs = [$se, $de];
         if ($barn !== $se && $barn !== $de) {
-            $this->ps->updateEnclosure($this->player_id, $barn);
+            $encs[] = $barn;
         }
-        $this->ps->updateEnclosure($this->player_id, $se);
-        $this->ps->updateEnclosure($this->player_id, $de);
+        $this->ps->updateEnclosures($this->player_id, $encs);
 
         return [$stype, $dtype];
     }

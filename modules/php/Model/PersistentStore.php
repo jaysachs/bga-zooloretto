@@ -211,14 +211,15 @@ class PersistentStore {
         return $encl;
     }
 
-    public function updateEnclosure(int $player_id, Enclosure $enclosure): void {
-        // This two-step seems inefficient, when we could pre-seed the contents with "empty".
-        // However, we'd still need more complexity to handle the barns, which don't have a fixed
-        // capacity.
-        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id=$player_id AND enclosure_id=$enclosure->id");
+    /** @param Enclosure[] $enclosures */
+    public function updateEnclosures(int $player_id, array $enclosures): void {
+        $ids = implode(',', array_map(fn ($e) => "{$e->id}", $enclosures));
+        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id={$ids}");
         $values = [];
-        foreach ($enclosure->nonEmptyContents() as $pos => $t) {
-            $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
+        foreach ($enclosures as $enclosure) {
+            foreach ($enclosure->nonEmptyContents() as $pos => $t) {
+                $values[] = "($player_id, $enclosure->id, $pos, $t->id)";
+            }
         }
         if (count($values) == 0) {
             return;
