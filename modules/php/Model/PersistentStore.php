@@ -40,18 +40,6 @@ class PersistentStore {
 
     public function __construct(private Db $db = new DefaultDb()) {}
 
-    /** @param Enclosure[] $enclosures */
-    public function insertEnclosures(int $player_id, array $enclosures): void {
-        $make = function(Enclosure $enc) use (&$player_id): string {
-            return "({$player_id}, {$enc->id}, {$enc->animal_capacity}, {$enc->stall_capacity})";
-        };
-        $this->db->execute("INSERT INTO enclosures (player_id, enclosure_id, animal_capacity, stall_capacity) VALUES "
-                            . implode(',', array_map($make, $enclosures)));
-        // See note blow. We could insert "empty" contents for all stalls, which would facilite updates like swaps.
-        // However, barns are a kind of enclosure and don't have a fixed capacity so that's not possible.
-        // Better to be consistent.
-    }
-
     public function updateTile(Tile $tile): void {
         $this->db->Execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
     }
@@ -100,23 +88,21 @@ class PersistentStore {
     /** @return Player[] */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, e.enclosure_count, t.id AS truck_taken
+        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, p.purchased_extensions, t.id AS truck_taken
                                           FROM player AS p
-                                          LEFT OUTER JOIN
-                                            (SELECT COUNT(*) as enclosure_count, player_id FROM enclosures GROUP BY player_id) AS e
-                                          ON p.player_id = e.player_id
                                           LEFT OUTER JOIN trucks AS t
                                           ON p.player_id = t.taken_by");
         $numPlayers = count($data);
-        // FIXME: this logic doesn't belong here
-        $extensionLimit = $numPlayers == 2 ? 2 : 1;
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
             $taken = intval($row["truck_taken"]);
-            // FIXME: this logic doesn't belong here
-            // 4 because the barn is an enclosure
-            $purchasedExtensions = intval($row["enclosure_count"]) - 4;
-            $players[$id] = new Player($id, intval($row["player_no"]), intval($row["money"]), $extensionLimit, $purchasedExtensions, $taken);
+            $players[$id] = new Player(
+                $id,
+                intval($row["player_no"]),
+                intval($row["money"]),
+                $numPlayers,
+                intval($row["purchased_extensions"]),
+                $taken);
         }
         return $players;
     }
@@ -171,28 +157,10 @@ class PersistentStore {
     }
 
     /**
-     * Returns enclosure mapped by enclosure_id.
-     *
+     * @param Enclosure[] $encs
      * @return Enclosure[]
      */
-    public function getEnclosuresForPlayer(int $player_id) : array {
-        // FIXME: need to handle un-purchased extensions!
-        // Either a boolean on the Extension (easy)
-        //   or not returning it.
-        $rows = $this->db->getObjectList("SELECT enclosure_id, animal_capacity, stall_capacity
-                                          FROM enclosures e
-                                          WHERE player_id = {$player_id}");
-        /** @var Enclosure[] */
-        $encl = [];
-        foreach ($rows as $row) {
-            $eid = intval($row['enclosure_id']);
-            if ($eid == 0) {
-                $encl[$eid] = Enclosure::barn();
-            } else {
-                $encl[$eid] = Enclosure::create($eid, intval($row['animal_capacity']), intval($row['stall_capacity']));
-            }
-        }
-
+    public function populateEnclosures(int $player_id, array $encs) : array {
         $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, t.type
                                           FROM enclosure_contents ec
                                           INNER JOIN tiles t
@@ -205,16 +173,16 @@ class PersistentStore {
             $tileid = intval($row['tile_id']);
             $type = TileType::from($row["type"]);
             if (!$type->isEmpty()) {
-                $encl[$eid]->placeTile(new Tile($tileid, $type), $pos);
+                $encs[$eid]->placeTile(new Tile($tileid, $type), $pos);
             }
         }
-        return $encl;
+        return $encs;
     }
 
     /** @param Enclosure[] $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
         $ids = implode(',', array_map(fn ($e) => "{$e->id}", $enclosures));
-        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id={$ids}");
+        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id IN ({$ids})");
         $values = [];
         $seen = [];
         foreach ($enclosures as $enclosure) {

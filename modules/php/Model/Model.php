@@ -69,17 +69,11 @@ class Model {
             }
         }
         $ps->insertTrucks($trucks);
-
-        /** @var Enclosure[] */
-        $encl = array_map(fn ($eid) => Model::makeEnclosure($eid), [ 0, 1, 2, 3 ] );
-        foreach ($player_ids as $player_id) {
-            $ps->insertEnclosures($player_id, $encl);
-        }
-
         $ps->setBankMoney(30 - 2 * $player_count);
-        $available = $player_count == 2 ? 2 : 1;
+
         foreach ($player_ids as $player_id) {
-            $ps->updatePlayer(new Player($player_id, 0, 2, $available, 0, 0));
+            $player = new Player($player_id, 0, 2, $player_count, 0, 0);
+            $ps->updatePlayer($player);
         }
     }
 
@@ -177,7 +171,8 @@ class Model {
         if (isset($this->_enclosures[$player_id])) {
             return $this->_enclosures[$player_id];
         }
-        $encs = $this->ps->getEnclosuresForPlayer($player_id);
+        $player = $this->getPlayer($player_id);
+        $encs = $this->ps->populateEnclosures($player_id, Enclosure::forPlayer($player));
         $this->_enclosures[$player_id] = $encs;
         return $encs;
     }
@@ -280,44 +275,16 @@ class Model {
         return $this->getPlayer($this->player_id)->canExpand();
     }
 
-    private static function makeEnclosure(int $id): Enclosure {
-        /* FIXME: find some way to have this auto-sync with the FE?
-           bonus points: also sync with the CSS!
-          from frontend:
-                      + enclosure(0, 20)
-                      + enclosure(1, 6)
-                      + enclosure(2, 6)
-                      + enclosure(3, 7)
-                      + enclosure(4, 6)
-                      + (this.twoPlayer ? enclosure(5, 6) : '') + `
-        */
-
-        $e = match ($id) {
-            0 => Enclosure::barn(),
-            1 => Enclosure::create(1, 5, 1),
-            2 => Enclosure::create(2, 4, 2),
-            3 => Enclosure::create(3, 6, 1),
-            4 => Enclosure::create(4, 5, 1),
-            5 => Enclosure::create(5, 5, 1),
-            default => throw new ModelException("Unexpected enclosure ID: {$id}"),
-        };
-        if ($id != $e->id) {
-            throw new ModelException("Created enclosure for {$id} has id {$e->id}");
-        }
-        return $e;
-    }
-
     public function expandZoo(int $pid): Player {
-        $this->game->warn("expandZoo {$this->player_id} ({$pid})");
         $player = $this->getPlayer($this->player_id);
-        $this->game->warn("player {$player}");
 
         $eid = $player->addExtension();
-        $this->game->warn("eid {$eid} player {$player}");
         $this->pay($player, Cost::EXPAND);
-        $e = Model::makeEnclosure($eid);
+        $this->ps->updatePlayer($player);
 
-        $this->ps->insertEnclosures($this->player_id, [$e]);
+        // $enc = Enclosure::extension($player->purchased_extensions);
+        // clear cache of enclosures per player
+        $this->_enclosures[$pid] = null;
 
         return $player;
     }

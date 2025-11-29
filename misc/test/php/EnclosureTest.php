@@ -38,7 +38,7 @@ final class EnclosureTest extends TestCase
 
     public function testPlacements(): void
     {
-        $enc = Enclosure::create(1, 3, 2);
+        $enc = Enclosure::forTest(1, 3, 2);
 
         $this->assertEquals(new Placement(1), $enc->placeTile(new Tile(1, TileType::ZEBRA)));
 
@@ -66,7 +66,7 @@ final class EnclosureTest extends TestCase
 
     public function testTakeTile()
     {
-        $enc = Enclosure::create(1, 3, 2);
+        $enc = Enclosure::forTest(1, 3, 2);
 
         $t1 = new Tile(1, TileType::ZEBRA);
         $t2 = new Tile(2, TileType::ZEBRA_FEMALE);
@@ -87,7 +87,7 @@ final class EnclosureTest extends TestCase
 
     public function testCheckForOffspring(): void {
         $barn = Enclosure::barn();
-        $e = Enclosure::create(1, 5, 2);
+        $e = Enclosure::forTest(1, 5, 2);
         $this->assertNull($e->checkForOffspring($barn));
         $barn->placeTile(new Tile(1, TileType::CAMEL_FEMALE));
         $barn->placeTile(new Tile(2, TileType::CAMEL_MALE));

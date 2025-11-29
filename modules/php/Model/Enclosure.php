@@ -36,22 +36,62 @@ class Enclosure {
     private const BARN_ID = 0;
 
     public static function barn(): Enclosure {
-        return new Enclosure(Enclosure::BARN_ID, 100, 100, 100);
+        return new Enclosure(self::BARN_ID, 100, 100, 100, 0, 0, 0);
+    }
+
+    public static function extension(int $extension_number): Enclosure {
+        return self::create(3+$extension_number, 5, 1, 1, 9, 5);
+    }
+
+    /** @return Enclosure[] */
+    public static function forPlayer(Player $player): array {
+        $encs = [
+            self::barn(),
+            self::create(1, 5, 1, 2, 8, 5),
+            self::create(2, 4, 2, 1, 5, 4),
+            self::create(3, 6, 1, 0, 10, 6),
+        ];
+        for ($i = 1; $i <= $player->purchased_extensions; $i++) {
+            $encs[] = self::extension($i, 5, 1, 1, 9, 5);
+        }
+        return $encs;
+    }
+
+    public static function forTest(int $id, int $animal_capacity, int $stall_capacity): Enclosure {
+        return self::create($id, $animal_capacity, $stall_capacity, 0, 0, 0);
+    }
+
+    private static function create(int $id, int $animal_capacity, int $stall_capacity,
+            int $coin_bonus,
+        int $completion_points,
+        int $near_completion_points): Enclosure {
+        if ($id <= 0 || $id > 10) {
+            throw new ModelException("invalid id {$id} for enclosure");
+        }
+        return new Enclosure(
+            $id,
+            $animal_capacity,
+            $stall_capacity,
+            $animal_capacity + $stall_capacity,
+            $coin_bonus,
+            $completion_points,
+            $near_completion_points
+        );
     }
 
     public function isBarn() : bool {
         return $this->id == Enclosure::BARN_ID;
     }
 
-    public static function create(int $id, int $animal_capacity, int $stall_capacity): Enclosure {
-        if ($id <= 0 || $id > 10) {
-            throw new ModelException("invalid id {$id} for enclosure");
-        }
-        return new Enclosure($id, $animal_capacity, $stall_capacity, $animal_capacity + $stall_capacity);
-    }
-
     public function clone(): Enclosure {
-        $e = new Enclosure($this->id, $this->animal_capacity, $this->stall_capacity, $this->total_capacity);
+        $e = new Enclosure(
+            $this->id,
+            $this->animal_capacity,
+            $this->stall_capacity,
+            $this->total_capacity,
+            $this->coin_bonus,
+            $this->completion_points,
+            $this->near_completion_points);
         foreach ($this->contents as $p => $c) {
             $e->contents[$p] = $c->clone();
         }
@@ -63,7 +103,14 @@ class Enclosure {
      * @param int $animal_capacity
      * @param int $stall_capacity
      */
-    private function __construct(public readonly int $id, readonly int $animal_capacity, readonly int $stall_capacity, readonly int $total_capacity) {
+    private function __construct(
+        public readonly int $id,
+        readonly int $animal_capacity,
+        readonly int $stall_capacity,
+        readonly int $total_capacity,
+        readonly int $coin_bonus,
+        readonly int $completion_points,
+        readonly int $near_completion_points) {
         for ($pos = 1; $pos <= $this->total_capacity; $pos++) {
             $this->contents[$pos] = Tile::empty();
         }

@@ -17,14 +17,14 @@ final class PossiblePlacementTest extends TestCase
 {
     public function testEmptyTruck(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $this->assertEquals(p([]), PossiblePlacement::possiblePlacementFor($truck, $encs));
     }
 
     public function testOne(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
         $this->assertEquals(
@@ -34,7 +34,7 @@ final class PossiblePlacementTest extends TestCase
 
     public function testTwoDifferentSpecies(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
         $truck->placeTileAt($this->tile(TileType::ZEBRA), 2);
@@ -91,7 +91,7 @@ final class PossiblePlacementTest extends TestCase
 
     public function testTwoOfSameSpecies(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
         $truck->placeTileAt($this->tile(TileType::CAMEL_MALE), 2);
@@ -152,7 +152,7 @@ final class PossiblePlacementTest extends TestCase
 
     public function testFertilePair(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $truck->placeTileAt($this->tile(TileType::CAMEL_FEMALE), 1);
         $truck->placeTileAt($this->tile(TileType::CAMEL_MALE), 2);

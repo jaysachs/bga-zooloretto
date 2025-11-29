@@ -32,12 +32,15 @@ class Player {
         public readonly int $id,
         public readonly int $no,
         public private(set) int $money,
-        private int $extension_limit,
+        int $num_players,
         public private(set) int $purchased_extensions,
-        public private(set) int $truck_taken) {}
+        public private(set) int $truck_taken) {
+        $this->extension_limit = $num_players == 2 ? 2 : 1;
+    }
 
     private int $spent = 0;
     private int $received = 0;
+    private int $extension_limit;
 
     public function __toString(): string
     {

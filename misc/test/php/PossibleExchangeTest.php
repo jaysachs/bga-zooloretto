@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-use Bga\Games\zooloretto\Utils;
 use Bga\Games\zooloretto\Model\{Enclosure, PositionSet, PossibleExchange, Space, Tile, TileType};
 
 final class PossibleExchangeTest extends TestCase
 {
     public function testEmpty(): void
     {
-        $encs = [ Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
@@ -27,7 +26,7 @@ final class PossibleExchangeTest extends TestCase
     }
 
     public function testNoBarn_Simple(): void {
-        $encs = [ Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::ELEPHANT));
         $this->assertEquals([
@@ -42,14 +41,14 @@ final class PossibleExchangeTest extends TestCase
         ], PossibleExchange::getPossibleExchanges($encs));
     }
     public function testNoBarn_SameAnimal() : void {
-        $encs = [ Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
         $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
     }
 
     public function testWithBarn(): void {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1)];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1)];
         $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
@@ -61,7 +60,7 @@ final class PossibleExchangeTest extends TestCase
     }
 
     public function testFullNoOffspring(): void {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
 
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[0]->placeTile(new Tile(2, TileType::KIOSK));
@@ -87,7 +86,7 @@ final class PossibleExchangeTest extends TestCase
     }
 
     public function testFullWithOffspring(): void {
-        $encs = [ Enclosure::barn(), Enclosure::create(1, 3, 1), Enclosure::create(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
 
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL_FEMALE));
         $encs[0]->placeTile(new Tile(2, TileType::KIOSK));
