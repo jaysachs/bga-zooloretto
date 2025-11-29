@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-use Bga\Games\zooloretto\Model\{Enclosure, PositionSet, PossibleExchange, Space, Tile, TileType};
+use Bga\Games\zooloretto\Model\{Enclosure, PossibleExchange, Space, Tile, TileType};
 
 final class PossibleExchangeTest extends TestCase
 {
@@ -22,7 +22,7 @@ final class PossibleExchangeTest extends TestCase
     }
 
     private function pe(int $src_id, array $src_pos, int $dest_id, array $dest_pos, array $children = []): PossibleExchange {
-        return new PossibleExchange(new PositionSet($src_id, $src_pos), new PositionSet($dest_id, $dest_pos), $children);
+        return new PossibleExchange($src_id, $src_pos, $dest_id, $dest_pos, $children);
     }
 
     public function testNoBarn_Simple(): void {

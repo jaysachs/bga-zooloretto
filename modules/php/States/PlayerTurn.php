@@ -33,7 +33,6 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Destination;
 use Bga\Games\zooloretto\Model\Delivery;
-use Bga\Games\zooloretto\Model\PositionSet;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -98,12 +97,12 @@ class PlayerTurn extends AbstractState
 
 		$px = array_map(fn (PossibleExchange $px) => [
 			'src' => [
-				'enclosure_id' => $px->src->enclosure_id,
-				'positions' => $px->src->positions,
+				'enclosure_id' => $px->src_enclosure_id,
+				'positions' => $px->src_positions,
 			],
 			'dest' => [
-				'enclosure_id' => $px->dest->enclosure_id,
-				'positions' => $px->dest->positions,
+				'enclosure_id' => $px->dest_enclosure_id,
+				'positions' => $px->dest_positions,
 			],
 			'children' => array_map(fn (Space $s) => $this->serializeSpace($s), $px->children),
 		], $model->getPossibleExchanges());
@@ -253,7 +252,7 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
 		$model = $this->createModel();
-		$animal_types = $model->exchange(new PositionSet($src_enclosure_id, $src_positions), new PositionSet($dest_enclosure_id, $dest_positions));
+		$animal_types = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
 		$player = $model->getPlayers()[$active_player_id];
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [

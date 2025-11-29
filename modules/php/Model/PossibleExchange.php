@@ -36,28 +36,33 @@ class PossibleExchange {
      * @param Space[] $children
      */
     public function __construct(
-        public readonly PositionSet $src,
-        public readonly PositionSet $dest,
+        public readonly int $src_enclosure_id,
+        public readonly array $src_positions,
+        public readonly int $dest_enclosure_id,
+        public readonly array $dest_positions,
+        // FIXME: not included in equals/toString, only needed as "output". Maybe move to a separate object.
         public readonly array $children,
-        // FIXME: needs to handle possible children. Add to PositionSet? (and maybe rename that?)
 ) {
-        if (count($src->positions) <> count($dest->positions)) {
+        if (count($src_positions) <> count($dest_positions)) {
             throw new ModelException("Size of src positions and dest positions must be the same");
         }
-        if ($src->enclosure_id == $dest->enclosure_id) {
+        if ($src_enclosure_id == $dest_enclosure_id) {
             throw new ModelException("src and dest enclosure_id must be different");
         }
     }
 
-    public function equals(PossibleExchange $other): bool {
-        return $this->src == $other->src
-            && $this->dest == $other->dest
+    public function matches(PossibleExchange $other): bool {
+        return $this->src_enclosure_id == $other->src_enclosure_id
+            && count(array_diff($this->src_positions, $other->src_positions)) == 0
+            && $this->dest_enclosure_id == $other->dest_enclosure_id
+            && count(array_diff($this->dest_positions, $other->dest_positions)) == 0
             ;
     }
 
     public function __toString(): string
     {
-        return "PossibleExchange(" . $this->src . ',' . $this->dest . ")";
+        return "PossEx(src:{$this->src_enclosure_id} " . Utils::arrayToString($this->src_positions)
+                  . "dest:{$this->dest_enclosure_id} " . Utils::arrayToString($this->src_positions) . ")";
     }
 
     /**
@@ -169,6 +174,6 @@ class PossibleExchange {
         if ($offspring && $offspring->childSpace) {
             $spaces[] = $offspring->childSpace;
         }
-        return new PossibleExchange(new PositionSet($src_enc->id, $src_pos), new PositionSet($dest_enc->id, $dest_pos), $spaces);
+        return new PossibleExchange($src_enc->id, $src_pos, $dest_enc->id, $dest_pos, $spaces);
     }
 }

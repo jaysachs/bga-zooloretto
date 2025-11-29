@@ -399,7 +399,7 @@ class Model {
         }
 
         $encs = $this->getEnclosuresForPlayer();
-        $player = $this->ps->retrievePlayers()[$this->player_id];
+        $player = $this->getPlayer();
 
         $this->chargePlayer($player, Cost::MOVE);
         $srcenc = $encs[$src->enclosure_id];
@@ -421,7 +421,7 @@ class Model {
     }
 
     public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
-        $player = $this->ps->retrievePlayers()[$this->player_id];
+        $player = $this->getPlayer();
         $src = new Space(0, $barn_pos);
 
         $found = false;
@@ -519,43 +519,43 @@ class Model {
     }
 
     /** @return TileType[]  length 2 of the form [srctype, desttype] */
-    public function exchange(PositionSet $src, PositionSet $dest): array {
+    public function exchange(PossibleExchange $ex): array {
         $found = false;
         foreach ($this->getPossibleExchanges() as $px) {
-            if ($src == $px->src && $dest == $px->dest) {
+            if ($ex->matches($px)) {
                 $found = true;
                 break;
             }
         }
         if (! $found) {
-            throw new ModelException("Illegal exchange of {$src} and {$dest}");
+            throw new ModelException("Illegal exchange of {$ex}");
         }
 
-        $player = $this->ps->retrievePlayers()[$this->player_id];
+        $player = $this->getPlayer();
         $this->chargePlayer($player, Cost::EXCHANGE);
 
         $encs = $this->getEnclosuresForPlayer();
-        $se = $encs[$src->enclosure_id];
-        $de = $encs[$dest->enclosure_id];
+        $se = $encs[$ex->src_enclosure_id];
+        $de = $encs[$ex->dest_enclosure_id];
 
         $stype = TileType::EMPTY;
         $dtype = TileType::EMPTY;
-        for ($p = 0; $p < count($src->positions); $p++) {
+        for ($p = 0; $p < count($ex->src_positions); $p++) {
             $srctile = Tile::empty();
             $desttile = Tile::empty();
-            if (!$se->tileAt($src->positions[$p])->isEmpty()) {
-                $srctile = $se->takeTileAt($src->positions[$p]);
+            if (!$se->tileAt($ex->src_positions[$p])->isEmpty()) {
+                $srctile = $se->takeTileAt($ex->src_positions[$p]);
             }
-            if (!$de->tileAt($dest->positions[$p])->isEmpty()) {
-                $desttile = $de->takeTileAt($dest->positions[$p]);
+            if (!$de->tileAt($ex->dest_positions[$p])->isEmpty()) {
+                $desttile = $de->takeTileAt($ex->dest_positions[$p]);
             }
             if (!$desttile->isEmpty()) {
                 $dtype = $desttile->type;
-                $se->placeTile($desttile, $src->positions[$p]);
+                $se->placeTile($desttile, $ex->src_positions[$p]);
             }
             if (!$srctile->isEmpty()) {
                 $stype = $srctile->type;
-                $de->placeTile($srctile, $dest->positions[$p]);
+                $de->placeTile($srctile, $ex->dest_positions[$p]);
             }
         }
 
