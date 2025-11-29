@@ -464,9 +464,9 @@ class Model {
         $from_player->receiveMoney(1);
         $this->ps->updatePlayer($from_player);
 
-        $frombarn = $this->ps->getEnclosuresForPlayer($from_player_id)[0];
-        $enc = $this->ps->getEnclosuresForPlayer($this->player_id)[$dest->space->enclosure_id];
-        $barn = $this->ps->getEnclosuresForPlayer($this->player_id)[0];
+        $frombarn = $this->getEnclosuresForPlayer($from_player_id)[0];
+        $enc = $this->getEnclosuresForPlayer($this->player_id)[$dest->space->enclosure_id];
+        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
         $tile = $frombarn->takeTileAt($src->pos);
         $enc->placeTile($tile, $dest->space->pos);
 
@@ -494,7 +494,7 @@ class Model {
             if ($player->id == $this->player_id) {
                 continue;
             }
-            $barn = $this->ps->getEnclosuresForPlayer($player->id)[0];
+            $barn = $this->getEnclosuresForPlayer($player->id)[0];
             foreach ($barn->nonEmptyContents() as $pos => $tile) {
                 $dests = [];
                 foreach ($enclosures as $enclosure) {
@@ -517,7 +517,7 @@ class Model {
             // can't afford it.
             return [];
         }
-        return PossibleExchange::getPossibleExchanges($this->ps->getEnclosuresForPlayer($this->player_id));
+        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer($this->player_id));
     }
 
     private function saveOffspring(Offspring $offspring): void {
@@ -544,7 +544,7 @@ class Model {
         $player = $this->ps->retrievePlayers()[$this->player_id];
         $this->pay($player, Cost::EXCHANGE);
 
-        $encs = $this->ps->getEnclosuresForPlayer($this->player_id);
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
         $se = $encs[$src->enclosure_id];
         $de = $encs[$dest->enclosure_id];
 
