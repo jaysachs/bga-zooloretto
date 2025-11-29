@@ -81,8 +81,9 @@ class PersistentStore {
         $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
     }
 
-    public function incBankMoney(int $delta): void {
-        $this->db->execute("UPDATE zglobals SET bank_money = bank_money + {$delta}");
+    public function getBankMoney(): int {
+        $row = $this->db->getSingleFieldList("SELECT bank_money FROM zglobals");
+        return intval($row["bank_money"]);
     }
 
     /** @return Player[] */

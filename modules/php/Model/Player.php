@@ -44,7 +44,7 @@ class Player {
 
     public function __toString(): string
     {
-        return "P(id={$this->id},no={$this->no},money={$this->money},el={$this->extension_limit},"
+        return "Player(id={$this->id},no={$this->no},money={$this->money},el={$this->extension_limit},"
              . "pe={$this->purchased_extensions},truck={$this->truck_taken},spent={$this->spent},rec={$this->received})";
     }
 
@@ -104,5 +104,9 @@ class Player {
 		}
         $this->purchased_extensions++;
         return $this->purchased_extensions + 3;
+    }
+
+    public function canAfford(Cost $cost): bool {
+        return $this->money >= $cost->amount;
     }
 }

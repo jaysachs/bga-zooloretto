@@ -77,7 +77,10 @@ class Model {
         }
     }
 
-    private function getPlayer(int $id): Player {
+    private function getPlayer(?int $id = 0): Player {
+        if ($id == 0) {
+            $id = $this->player_id;
+        }
         $players = $this->getPlayers();
         if (isset($players[$id])) {
             return $players[$id];
@@ -171,7 +174,7 @@ class Model {
         if (isset($this->_enclosures[$player_id])) {
             return $this->_enclosures[$player_id];
         }
-        $player = $this->getPlayer($player_id);
+        $player = $this->getPlayer();
         $encs = $this->ps->populateEnclosures($player_id, Enclosure::forPlayer($player));
         $this->_enclosures[$player_id] = $encs;
         return $encs;
@@ -186,31 +189,37 @@ class Model {
         $encs = $this->getEnclosuresForPlayer();
         $barn = $encs[0];
         $toUpdate = [];
+        $player = $this->getPlayer();
         foreach ($deliveries as $delivery) {
             $truck = $this->getTruck($truck_id);
             $encl = $encs[$delivery->enclosure_id];
             $toUpdate[] = $encl;
             $tile = $truck->removeTileAt($delivery->truck_pos);
-            $pos = $encl->placeTile($tile)->pos;
+            $placement = $encl->placeTile($tile);
+            if ($placement->completedEnclosure) {
+                $amt = min($this->ps->getBankMoney(), $encl->coin_bonus);
+                $this->payPlayer($player, $amt);
+            }
+            $pos = $placement->pos;
             if ($pos <> $delivery->enclosure_pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
                 $delivery->enclosure_pos = $pos;
             }
             $offspring = $encl->checkForOffspring($barn);
-            // FIXME: check fo completion bonus
 
             if ($offspring) {
                 $this->game->warn("\n\nOffspring for {$encl->id}: {$offspring}\n\n");
                 $delivery->offspring = $offspring;
                 $this->saveOffspring($offspring);
+                // FIXME: check fo completion bonus
 
                 // FIXME: return info on new child -- add to return value
             } else {
                 $this->game->warn("\n\nNo offspriing for {$encl->id}\n\n");
             }
         }
-        $player = $this->getPlayer($this->player_id);
+        $player = $this->getPlayer();
         $player->takeTruck($truck_id);
 
         $truck = $this->getTruck($truck_id);
@@ -234,7 +243,7 @@ class Model {
     }
 
     public function getTrucksWithPossiblePlacements(): array {
-		$player = $this->getPlayer($this->player_id);
+		$player = $this->getPlayer();
 
 		$trucks_available = [];
 		if (!$player->truck_taken) {
@@ -272,14 +281,14 @@ class Model {
     }
 
     public function canExpand(): bool {
-        return $this->getPlayer($this->player_id)->canExpand();
+        return $this->getPlayer()->canExpand();
     }
 
     public function expandZoo(int $pid): Player {
-        $player = $this->getPlayer($this->player_id);
+        $player = $this->getPlayer();
 
         $eid = $player->addExtension();
-        $this->pay($player, Cost::EXPAND);
+        $this->chargePlayer($player, Cost::EXPAND);
         $this->ps->updatePlayer($player);
 
         // $enc = Enclosure::extension($player->purchased_extensions);
@@ -295,7 +304,7 @@ class Model {
 
     /** return int[] positions in barn that are discardable */
     public function getDiscardbleBarnPos(): array {
-        if ($this->getPlayer($this->player_id)->money < 1) {
+        if (! $this->getPlayer()->canAfford(Cost::DISCARD)) {
             return [];
         }
         $barn = $this->getEnclosuresForPlayer()[0];
@@ -303,10 +312,10 @@ class Model {
     }
 
     public function discardBarnTile(int $pos): Tile {
-        $player = $this->getPlayer($this->player_id);
+        $player = $this->getPlayer();
         $barn = $this->getEnclosuresForPlayer()[0];
 
-        $this->pay($player, Cost::DISCARD);
+        $this->chargePlayer($player, Cost::DISCARD);
         $tile = $barn->takeTileAt($pos);
 
         $this->ps->updateEnclosures($this->player_id, [$barn]);
@@ -316,7 +325,7 @@ class Model {
 
     /** @return PossibleMove[] */
     public function getPossibleMoves(): array {
-        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
+        if (! $this->getPlayer()->canAfford(Cost::MOVE)) {
             return [];
         }
         $result = [];
@@ -392,17 +401,21 @@ class Model {
         $encs = $this->getEnclosuresForPlayer();
         $player = $this->ps->retrievePlayers()[$this->player_id];
 
-        $this->pay($player, Cost::MOVE);
+        $this->chargePlayer($player, Cost::MOVE);
         $srcenc = $encs[$src->enclosure_id];
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
-        $destenc->placeTile($tile, $dest->pos);
+        $placement = $destenc->placeTile($tile, $dest->pos);
+        if ($placement->completedEnclosure) {
+            $amt = min($this->ps->getBankMoney(), $destenc->coin_bonus);
+            $this->payPlayer($player, $amt);
+        }
 
         $offspring = $destenc->checkForOffspring($encs[0]);
         if ($offspring) {
+            // FIXME: then check fo completion bonus
             $this->saveOffspring($offspring);
         }
-        // FIXME: then check fo completion bonus
 
         $this->ps->updateEnclosures($this->player_id, $encs);
     }
@@ -429,7 +442,7 @@ class Model {
         $from_player = $this->getPlayer($from_player_id);
         $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
-        $this->ps->incBankMoney(1);
+        $this->incBankMoney(1);
         $from_player->receiveMoney(1);
         $this->ps->updatePlayer($from_player);
 
@@ -439,15 +452,19 @@ class Model {
         $enc = $encs[$dest->space->enclosure_id];
         $barn = $encs[0];
         $tile = $frombarn->takeTileAt($src->pos);
-        $enc->placeTile($tile, $dest->space->pos);
+        $placement = $enc->placeTile($tile, $dest->space->pos);
+        if ($placement->completedEnclosure) {
+            $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
+            $this->payPlayer($player, $amt);
+        }
 
         $offspring = $enc->checkForOffspring($barn);
         $toUpdate = [$enc];
         if ($offspring) {
             $this->saveOffspring($offspring);
             $toUpdate[] = $encs[$offspring->childSpace->enclosure_id];
+            // FIXME: then check fo completion bonus
         }
-        // FIXME: then check fo completion bonus
 
         // Update the selling player first, to avoid violating uniqueness constraint in DB.
         $this->ps->updateEnclosures($from_player_id, [$frombarn]);
@@ -457,7 +474,7 @@ class Model {
 
     /** @return PossibleBuy[] */
     public function getPurchaseableTiles(): array {
-        if ($this->getPlayer($this->player_id)->money < 2) {
+        if (! $this->getPlayer()->canAfford(Cost::PURCHASE)) {
             return [];
         }
         $enclosures = $this->getEnclosuresForPlayer();
@@ -486,7 +503,7 @@ class Model {
 
     /** @return PossibleExchange[] */
     public function getPossibleExchanges() : array {
-        if ($this->ps->retrievePlayers()[$this->player_id]->money < 1) {
+        if (! $this->getPlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
             return [];
         }
@@ -515,7 +532,7 @@ class Model {
         }
 
         $player = $this->ps->retrievePlayers()[$this->player_id];
-        $this->pay($player, Cost::EXCHANGE);
+        $this->chargePlayer($player, Cost::EXCHANGE);
 
         $encs = $this->getEnclosuresForPlayer();
         $se = $encs[$src->enclosure_id];
@@ -559,9 +576,28 @@ class Model {
         return [$stype, $dtype];
     }
 
-    private function pay(Player $player, Cost $cost) : void {
+    private ?int $_bankMoney = null;
+    private function bankMoney() : int {
+        if ($this->_bankMoney === null) {
+            $this->_bankMoney = $this->ps->getBankMoney();
+        }
+        return $this->_bankMoney;
+    }
+
+    private function incBankMoney(int $amt) {
+        $this->_bankMoney = $this->bankMoney() + $amt;
+        $this->ps->setBankMoney($this->_bankMoney);
+    }
+
+    private function chargePlayer(Player $player, Cost $cost) : void {
         $player->payMoney($cost);
         $this->ps->updatePlayer($player);
-        $this->ps->incBankMoney($cost->amount());
+        $this->incBankMoney($cost->amount());
+    }
+
+    private function payPlayer(Player $player, int $amt) : void {
+        $player->receiveMoney($amt);
+        $this->ps->updatePlayer($player);
+        $this->incBankMoney(-$amt);
     }
 }
