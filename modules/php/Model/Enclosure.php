@@ -150,6 +150,18 @@ class Enclosure {
         return array_filter($this->contents, fn ($t) => !$t->isEmpty());
     }
 
+    private function allAnimalPositionsFilled(): bool {
+        if ($this->isBarn()) {
+            return false;
+        }
+        for ($pos = 1; $pos <= $this->animal_capacity; $pos++) {
+            if ($this->contents[$pos]->isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** @return int[] positions of animals */
     public function filledAnimalPositions(?TileType $animal = null): array {
         if ($animal) {
@@ -189,20 +201,23 @@ class Enclosure {
      * positions 1 through 4 inclusive are for animals, and positions 5 and 6 are for stalls.
      *
      * position 0 means "nextavailable"
-     * @return int the position it was placed in
+     * @return Placement
      */
-    public function placeTile(Tile $tile, int $pos = 0): int {
+    public function placeTile(Tile $tile, int $pos = 0): Placement {
         if (!$tile->type->isPlaceable()) {
             throw new ModelException("Can only place animals and stills in enclosures, not {$tile->type->value}");
         }
         if ($this->isBarn()) {
-            return $this->doPlaceTile($tile, $pos, 1, $this->total_capacity);
+            // barns never completed
+            return new Placement($this->doPlaceTile($tile, $pos, 1, $this->total_capacity));
         }
         if ($tile->type->isAnimal()) {
-            return $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
+            $pos = $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
+            return new Placement($pos, $this->allAnimalPositionsFilled());
         }
         if ($tile->type->isStall()) {
-            return $this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity);
+            // stalls do not complete
+            return new Placement($this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity));
         }
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
@@ -235,16 +250,14 @@ class Enclosure {
         $this->contents[$fp] = $father;
         $this->contents[$mp] = $mother;
 
-        error_log("Child is {$child} mother is {$mother}");
-
         /** @var Space | null */
         $space = null;
         $pos = $this->availablePos($child->type);
         if ($pos == 0) {
-            $pos = $barn->placeTile($child);
+            $pos = $barn->placeTile($child)->pos;
             $space = new Space($barn->id, $pos);
         } else {
-            $pos = $this->placeTile($child);
+            $pos = $this->placeTile($child)->pos;
             $space = new Space($this->id, $pos);
         }
 

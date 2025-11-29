@@ -152,12 +152,12 @@ class PossibleExchange {
         $i = 0;
         foreach ($srcTiles as $tile) {
             $p = $i < count($dest_pos) ? $dest_pos[$i] : 0;
-            $dest_pos[$i++] = $dest_enc->placeTile($tile, $p);
+            $dest_pos[$i++] = $dest_enc->placeTile($tile, $p)->pos;
         }
         $i = 0;
         foreach ($destTiles as $tile) {
             $p = $i < count($src_pos) ? $src_pos[$i] : 0;
-            $src_pos[$i++] = $src_enc->placeTile($tile, $p);
+            $src_pos[$i++] = $src_enc->placeTile($tile, $p)->pos;
         }
 
         $spaces = [];

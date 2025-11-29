@@ -191,7 +191,7 @@ class Model {
             $truck = $this->getTruck($truck_id);
             $encl = $encs[$delivery->enclosure_id];
             $tile = $truck->removeTileAt($delivery->truck_pos);
-            $pos = $encl->placeTile($tile);
+            $pos = $encl->placeTile($tile)->pos;
             if ($pos <> $delivery->enclosure_pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
