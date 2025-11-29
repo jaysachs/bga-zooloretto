@@ -1,6 +1,5 @@
 interface ZPlayer extends Player {
   player_id: number;
-  player_no: number;
   money: number;
   purchased_extensions: number;
 }
@@ -640,8 +639,8 @@ class ZoolorettoHtml {
 
   private otherPlayerDiv(player: ZPlayer): HTMLElement {
     return Html
-      .div({ id: `zoo-playerboard-${player.player_no}`, classes: [ "zoo-playerboard", "whiteblock" ] },
-        Html.div({ id: `zoo-playername-${player.player_no}`, classes: "zoo-playername"},
+      .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard", "whiteblock" ] },
+        Html.div({ id: `zoo-playername-${player.player_id}`, classes: "zoo-playername"},
           Html.span({ text: player.name })
         ),
         this.playerDiv(player)

@@ -60,12 +60,6 @@ class Game extends \Bga\GameFramework\Table
 						$i18n[] = 'player_name';
 					}
 				}
-				if (!isset($args['player_no'])) {
-					$args['player_no'] = $this->getPlayerNoById($args['player_id']);
-					if ($i18n != null) {
-						$i18n[] = 'player_no';
-					}
-				}
 			}
 			return $args;
 		});
@@ -131,7 +125,6 @@ class Game extends \Bga\GameFramework\Table
 			], TileType::cases()),
 		];
 		foreach ($model->getPlayers() as $player) {
-			$datas['players'][$player->id]['player_no'] = $player->no;
 			$datas['players'][$player->id]['player_id'] = $player->id;
 			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
