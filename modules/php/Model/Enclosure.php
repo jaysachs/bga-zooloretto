@@ -33,7 +33,7 @@ class Enclosure {
     /** @var Tile[] */
     private array $contents = [];
 
-    private const BARN_ID = 0;
+    private const int BARN_ID = 0;
 
     public static function barn(): Enclosure {
         return new Enclosure(self::BARN_ID, 100, 100, 100, 0, 0, 0);
@@ -297,8 +297,8 @@ class Enclosure {
         $this->contents[$fp] = $father;
         $this->contents[$mp] = $mother;
 
-        /** @var Space | null */
-        $space = null;
+        // /** @var ?Space */
+        // $space = null;
         $pos = $this->availablePos($child->type);
         if ($pos == 0) {
             $pos = $barn->placeTile($child)->pos;

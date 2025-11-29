@@ -39,7 +39,7 @@ class Destination {
 
     public function __toString(): string
     {
-        return "es{encid:{$this->space},childspace:{$this->childSpace},childtile:{$this->tile->type->value}";
+        return "es(encid:{$this->space},childspace:{$this->childSpace},childtile:{$this->tile->type->value})";
     }
 
     public function equals(Destination $other): bool
