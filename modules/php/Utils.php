@@ -32,7 +32,8 @@ class Utils
     public static function arrayToString(array $arr, ?bool $keys = false): string {
         if ($keys) {
             $arr = array_map(
-                function ($k,$v) use (&$keys) {
+                /** @param array | mixed $k */
+                function ($k, $v) use (&$keys) {
                     $ks = is_array($k) ? Utils::arrayToString($k, $keys) : "{$k}";
                     $vs = is_array($v) ? Utils::arrayToString($v, $keys) : "{$v}";
                     return "{$ks}=>{$vs}" ;

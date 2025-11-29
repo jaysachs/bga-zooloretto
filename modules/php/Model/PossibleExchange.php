@@ -167,11 +167,11 @@ class PossibleExchange {
 
         $spaces = [];
         $offspring = $src_enc->checkForOffspring($barn);
-        if ($offspring && $offspring->childSpace) {
+        if ($offspring) {
             $spaces[] = $offspring->childSpace;
         }
         $offspring = $dest_enc->checkForOffspring($barn);
-        if ($offspring && $offspring->childSpace) {
+        if ($offspring) {
             $spaces[] = $offspring->childSpace;
         }
         return new PossibleExchange($src_enc->id, $src_pos, $dest_enc->id, $dest_pos, $spaces);

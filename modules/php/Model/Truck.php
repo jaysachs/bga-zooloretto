@@ -57,7 +57,7 @@ class Truck {
     }
 
     public function isEmpty(): bool {
-        foreach ($this->getAllTiles() as $pos => $tile) {
+        foreach ($this->getAllTiles() as $tile) {
             if (!$tile->isEmpty()) { return false; }
         }
         return true;

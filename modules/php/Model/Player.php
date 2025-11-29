@@ -96,7 +96,7 @@ class Player {
     }
 
     public function addExtension(): int {
-        if ($this->money < COST::EXPAND->amount()) {
+        if ($this->money < Cost::EXPAND->amount()) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}
         if ($this->purchased_extensions >= $this->extension_limit) {

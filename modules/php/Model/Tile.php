@@ -154,7 +154,7 @@ class Tile {
 			$this->type = $this->type->reproducedType();
 			return $this;
 		}
-		throw new ModelException("Cannot mark tile of type {$this->type} as reproduced");
+		throw new ModelException("Cannot mark tile of type {$this->type->value} as reproduced");
 	}
 
 	public function __toString()

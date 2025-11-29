@@ -52,7 +52,7 @@ class Enclosure {
             self::create(3, 6, 1, 0, 10, 6),
         ];
         for ($i = 1; $i <= $player->purchased_extensions; $i++) {
-            $encs[] = self::extension($i, 5, 1, 1, 9, 5);
+            $encs[] = self::extension($i);
         }
         return $encs;
     }
@@ -165,7 +165,7 @@ class Enclosure {
     }
 
     public function animalType(): TileType {
-        foreach ($this->contents as $pos => $tile) {
+        foreach ($this->contents as $tile) {
             if ($tile->type->isAnimal()) {
                 return $tile->type->canonicalType();
             }

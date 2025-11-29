@@ -168,7 +168,7 @@ class Model {
      * @return Enclosure[]
      */
     public function getEnclosuresForPlayer(?int $player_id = 0) : array {
-        if (! $player_id) {
+        if ($player_id === null || $player_id === 0) {
             $player_id = $this->player_id;
         }
         if (isset($this->_enclosures[$player_id])) {
@@ -181,7 +181,7 @@ class Model {
     }
 
     /**
-     * @param Delivery[] $placements
+     * @param Delivery[] $deliveries
      *
      * @return Delivery[]
     */
@@ -287,13 +287,13 @@ class Model {
     public function expandZoo(int $pid): Player {
         $player = $this->getPlayer();
 
-        $eid = $player->addExtension();
+        $player->addExtension();
         $this->chargePlayer($player, Cost::EXPAND);
         $this->ps->updatePlayer($player);
 
         // $enc = Enclosure::extension($player->purchased_extensions);
         // clear cache of enclosures per player
-        $this->_enclosures[$pid] = null;
+        unset($this->_enclosures[$pid]);
 
         return $player;
     }
@@ -338,7 +338,7 @@ class Model {
         // animal or stall from barn
         foreach ($barn->nonEmptyContents() as $pos => $tile) {
             $src = new Space($barn->id, $pos);
-            /** @var Space[] */
+            /** @var Destination[] */
             $dests = [];
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
@@ -360,7 +360,7 @@ class Model {
         // or stall from one (non-barn) enclosure to another
         foreach ($enclosures as $enc) {
             foreach ($enc->nonEmptyContents() as $pos => $tile) {
-                /** @var Space[] */
+                /** @var Destination[] */
                 $dests = [];
                 $src = new Space($enc->id, $pos);
                 if ($tile->type->isStall()) {
@@ -428,7 +428,7 @@ class Model {
         foreach ($this->getPurchaseableTiles() as $pt) {
             if ($pt->player_id == $from_player_id && $pt->move->src == $src) {
                 foreach ($pt->move->dests as $dest) {
-                    if ($dest == $target) {
+                    if ($dest->space == $target) {
                         $found = true;
                         break 2;
                     }
@@ -449,10 +449,10 @@ class Model {
         $frombarn = $this->getEnclosuresForPlayer($from_player_id)[0];
 
         $encs = $this->getEnclosuresForPlayer();
-        $enc = $encs[$dest->space->enclosure_id];
+        $enc = $encs[$target->enclosure_id];
         $barn = $encs[0];
         $tile = $frombarn->takeTileAt($src->pos);
-        $placement = $enc->placeTile($tile, $dest->space->pos);
+        $placement = $enc->placeTile($tile, $target->pos);
         if ($placement->completedEnclosure) {
             $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
             $this->payPlayer($player, $amt);
@@ -584,7 +584,7 @@ class Model {
         return $this->_bankMoney;
     }
 
-    private function incBankMoney(int $amt) {
+    private function incBankMoney(int $amt): void {
         $this->_bankMoney = $this->bankMoney() + $amt;
         $this->ps->setBankMoney($this->_bankMoney);
     }
