@@ -1,14 +1,20 @@
+* Bug: exchange violates unique constraint since we do enclosure-at-a-time updating. We can avoid this for puchase, by updating the "selling" player first.
+
 * Need to handle (near) empty primary stock pile rendering.
 
 * generally move away from %ages for flex children.
 
 * Implement offspring for: purchase, take truck, move, exchange
+  * This is pretty much done, server-side. Client-side, we still need to get
+    offspring rendered before confirmation (i.e. during flow).
 
 * Implement scoring
+  * Depends on proper modeling of enclosures (see below).
 
 * Implement money limits; where (if anywhere) to display bank money?
 
 * Should client-side "pre-confirm" update money?
+  * I think they should.
 
 * Implement enclosure completion bonuses
 
@@ -19,58 +25,3 @@
   * if pay with coin tiles, can those be handed out again (e.g. for enclosure bonus)
   * do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
     * if we do, can we still give e.g. approx percentage left (like T&E)?
-
-
-* Enclosure creation and storage
-
-Right now, enclosures are created in setupNewGame and then persisted
-in their entirety to the DB, and only read from there during the
-game. There's something nice about that, but the capacities of those
-enclosures are fixed data. So technically no need to store those in
-the DB. Currently the existence of enclosures with ID 4 (and 5)
-indicate purchased extensions. If I get rid of the Enclosures table
-I'll need to use a `purchased_extensions` field on Players to track
-extensions purchased. That's fine. (It would be possible to also store
-empty enclosure positions in the `enclosure_contents` table to track
-that too.)
-
-But maybe I should have
-
-class Enclosure {
-  public static function e1() { ... }
-  public static function e2() { ... }
-  etc etc
-}
-
-to go along with barn(). Tests could just use those, or I could leave
-the constructor public (maybe). Then, when reading enclosures, we're
-really just grabbing the fixed set of enclosures (pass them in?) and
-then populating them.
-
-So in Model, it might look like
-
-   $player = $this->getPlayer($player_id);
-   $encs = $this->ps->populateEnclosures(
-         $player->id,
-         Enclosures::enclosures($player->purchasedExtensions()));
-
-This is all motivated because I need to store "bonus coins" and
-"points for completion and near-completion" for each enclosure. And
-they could be in the DB, but that seems like it opens up room for
-mistakes. So instead, just store the mutable stuff (the contents).
-
-
-Also considering adding player_id to Enclosure. Then we could have a
-
-  public static function enclosuresForPlayer(int $player_id, int $purchased_exts): array
-
-method which gives them back to you. For tests, we either expose the
-Enclosure constructor directly, or offer a forTest() that gives some
-variance on individual enclosures.  If Enclosure has player_id on it,
-then the enclosure itself is sufficient to do updates. And that will
-help with the problem with exchange, where we want to keep the unique
-constraint, by having an updateenclosures() method taking an
-array. That works everywhere except for purchaseTile, where we need to
-pass in a "foreign" barn. If Enclosure had the ID, we'd be set. But
-then we're in the position of needing to fetch the other player before
-getting their enclosures. Maybe that's OK.
