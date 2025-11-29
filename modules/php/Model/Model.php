@@ -170,7 +170,10 @@ class Model {
      *
      * @return Enclosure[]
      */
-    public function getEnclosuresForPlayer(int $player_id) : array {
+    public function getEnclosuresForPlayer(?int $player_id = 0) : array {
+        if (! $player_id) {
+            $player_id = $this->player_id;
+        }
         if (isset($this->_enclosures[$player_id])) {
             return $this->_enclosures[$player_id];
         }
@@ -185,7 +188,7 @@ class Model {
      * @return Delivery[]
     */
     public function placeTilesInZooAndTakeTruck(int $truck_id, array $deliveries): array {
-        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $encs = $this->getEnclosuresForPlayer();
         $barn = $encs[0];
         $toUpdate = [];
         foreach ($deliveries as $delivery) {
@@ -231,7 +234,7 @@ class Model {
 
     private function getPossiblePlacements(Truck $truck): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
-            $truck, $this->getEnclosuresForPlayer($this->player_id)
+            $truck, $this->getEnclosuresForPlayer()
         );
     }
 
@@ -328,13 +331,13 @@ class Model {
         if ($this->getPlayer($this->player_id)->money < 1) {
             return [];
         }
-        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        $barn = $this->getEnclosuresForPlayer()[0];
         return array_keys($barn->nonEmptyContents());
     }
 
     public function discardBarnTile(int $pos): Tile {
         $player = $this->getPlayer($this->player_id);
-        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        $barn = $this->getEnclosuresForPlayer()[0];
 
         $this->pay($player, Cost::DISCARD);
         $tile = $barn->takeTileAt($pos);
@@ -350,7 +353,7 @@ class Model {
             return [];
         }
         $result = [];
-        $enclosures = $this->getEnclosuresForPlayer($this->player_id);
+        $enclosures = $this->getEnclosuresForPlayer();
         $barn = $enclosures[0];
         array_splice($enclosures, 0, 1);
         // moves a single animal tile from the barn to an empty enclosure space or he
@@ -419,7 +422,7 @@ class Model {
             throw new ModelException("illegal move {$src} {$dest}");
         }
 
-        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $encs = $this->getEnclosuresForPlayer();
         $player = $this->ps->retrievePlayers()[$this->player_id];
 
         $this->pay($player, Cost::MOVE);
@@ -465,7 +468,7 @@ class Model {
 
         $frombarn = $this->getEnclosuresForPlayer($from_player_id)[0];
 
-        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $encs = $this->getEnclosuresForPlayer();
         $enc = $encs[$dest->space->enclosure_id];
         $barn = $encs[0];
         $tile = $frombarn->takeTileAt($src->pos);
@@ -489,7 +492,7 @@ class Model {
         if ($this->getPlayer($this->player_id)->money < 2) {
             return [];
         }
-        $enclosures = $this->getEnclosuresForPlayer($this->player_id);
+        $enclosures = $this->getEnclosuresForPlayer();
         /** @var PossibleBuy[] */
         $result = [];
         foreach ($this->getPlayers() as $player) {
@@ -519,7 +522,7 @@ class Model {
             // can't afford it.
             return [];
         }
-        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer($this->player_id));
+        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer());
     }
 
     private function saveOffspring(Offspring $offspring): void {
@@ -546,7 +549,7 @@ class Model {
         $player = $this->ps->retrievePlayers()[$this->player_id];
         $this->pay($player, Cost::EXCHANGE);
 
-        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $encs = $this->getEnclosuresForPlayer();
         $se = $encs[$src->enclosure_id];
         $de = $encs[$dest->enclosure_id];
 
