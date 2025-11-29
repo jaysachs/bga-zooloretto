@@ -1,5 +1,3 @@
-* Bug: exchange violates unique constraint since we do enclosure-at-a-time updating. We can avoid this for puchase, by updating the "selling" player first.
-
 * Need to handle (near) empty primary stock pile rendering.
 
 * generally move away from %ages for flex children.

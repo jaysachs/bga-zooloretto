@@ -449,6 +449,7 @@ class Model {
         }
         // FIXME: then check fo completion bonus
 
+        // Update the selling player first, to avoid violating uniqueness constraint in DB.
         $this->ps->updateEnclosures($from_player_id, [$frombarn]);
         $this->ps->updateEnclosures($this->player_id, $toUpdate);
         return $tile;
