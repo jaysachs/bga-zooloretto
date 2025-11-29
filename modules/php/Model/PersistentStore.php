@@ -83,7 +83,7 @@ class PersistentStore {
 
     public function getBankMoney(): int {
         $row = $this->db->getSingleFieldList("SELECT bank_money FROM zglobals");
-        return intval($row["bank_money"]);
+        return intval($row[0]);
     }
 
     /** @return Player[] */
