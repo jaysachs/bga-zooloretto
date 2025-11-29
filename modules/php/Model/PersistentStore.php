@@ -130,6 +130,7 @@ class PersistentStore {
         $id = $stock->drawn->id;
         $this->db->execute("UPDATE zglobals SET drawn_tile = {$id}");
         $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");
+        $this->db->execute("DELETE FROM endgame_stock WHERE tile_id = $id");
     }
 
     /** @return Truck[] */
