@@ -20,6 +20,7 @@ body {
       9% of that is width of tile
      */
     --zoo-tile-size: calc(0.454 * (100vw - 240px) * 0.09);
+    --zoo-truck-aspect-ratio: calc(473 / 175);
 }
 
 body.mobile_version {
@@ -201,10 +202,11 @@ body.mobile_version {
 }
 
 .zoo-depot-space {
-    height: calc(1.4 * (var(--zoo-tile-size)));
+    /* the 1.5 comes from the image properties */
+    height: calc(1.5 * (var(--zoo-tile-size)));
     min-width: calc(4 * (var(--zoo-tile-size)));
     width: auto;
-    aspect-ratio: 2.83333;
+    aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
     margin: 0.5vw;
 }
 
@@ -213,9 +215,7 @@ body.mobile_version {
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Wagon3.png');
-    width: 100%;
-    aspect-ratio: 527 / 186;
-    height: auto;
+    aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
 }
 
 .zoo-truck.zoo-selected {
@@ -235,18 +235,19 @@ body.mobile_version {
     /* FIXME: auto doesn't work here?? takes up height of the truck, not match aspect-ratio */
     height: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
     aspect-ratio: 1.0 !important;
-    top: 14%;
+    top: 16%;
 }
 
-/* FIXME: these don't depend on tile size, just the relative dimension of trucks. compute this on truck width/height or vice-versa? */
+/* These don't depend on tile size, just the relative dimension of trucks.
+   The formula was not derived, just fits */
 .zoo-truck > div:nth-child(1) {
-    left: 4.4%;
+    left: calc(100% * (2 * 1 * (11 + 1)) / 473);
 }
 .zoo-truck > div:nth-child(2) {
-    left: 8.6%;
+    left: calc(100% * (2 * 2 * (11 + 2)) / 473);
 }
 .zoo-truck > div:nth-child(3) {
-    left: 13.0%;
+    left: calc(100% * (2 * 3 * (11 + 3)) / 473);
 }
 
 .zoo-moved {
