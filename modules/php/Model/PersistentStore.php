@@ -74,7 +74,9 @@ class PersistentStore {
     }
 
     public function updatePlayer(Player $player): void {
-        $this->db->execute("UPDATE player SET money = {$player->money} WHERE player_id = {$player->id}");
+        $this->db->execute("UPDATE player
+                            SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions}
+                            WHERE player_id = {$player->id}");
     }
 
     public function setBankMoney(int $money): void {
@@ -89,7 +91,7 @@ class PersistentStore {
     /** @return Player[] */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT p.player_id, p.player_no, p.money, p.purchased_extensions, t.id AS truck_taken
+        $data = $this->db->getObjectList("SELECT p.player_id, p.money, p.purchased_extensions, t.id AS truck_taken
                                           FROM player AS p
                                           LEFT OUTER JOIN trucks AS t
                                           ON p.player_id = t.taken_by");
@@ -99,7 +101,6 @@ class PersistentStore {
             $taken = intval($row["truck_taken"]);
             $players[$id] = new Player(
                 $id,
-                intval($row["player_no"]),
                 intval($row["money"]),
                 $numPlayers,
                 intval($row["purchased_extensions"]),
@@ -121,7 +122,9 @@ class PersistentStore {
         $select = function (string $tblname) use (&$tileFromRow): array {
             return array_map(
                 $tileFromRow,
-                $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type FROM $tblname p INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
+                $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type
+                                          FROM $tblname p
+                                          INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
         };
         return new Stock($select('primary_stock'), $select('endgame_stock'), $drawn);
     }
@@ -175,6 +178,9 @@ class PersistentStore {
             $tileid = intval($row['tile_id']);
             $type = TileType::from($row["type"]);
             if (!$type->isEmpty()) {
+                if (!isset($encs[$eid])) {
+                    throw new ModelException("No enclosure {$eid} for {$player_id} but it has {$type->value} at {$pos}");
+                }
                 $encs[$eid]->placeTile(new Tile($tileid, $type), $pos);
             }
         }

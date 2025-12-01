@@ -11,8 +11,10 @@
     offspring rendered before confirmation (i.e. during flow).
 
 * Implement scoring
+  * Done on backend.
 
 * Implement money limits; where (if anywhere) to display bank money?
+  * Just need to thread bank money through to client.
 
 * Should client-side "pre-confirm" update money?
   * I think they should.
@@ -20,10 +22,5 @@
 * Implement enclosure completion bonuses
   * in progress
 
-* Maybe don't have zooming boards, just lay them out vertically (or maybe horizontally?)
-
-* Get rules clarifications on
-  * limited coin (should online implementation use that?)
-  * if pay with coin tiles, can those be handed out again (e.g. for enclosure bonus)
-  * do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
-    * if we do, can we still give e.g. approx percentage left (like T&E)?
+* Do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
+  * if we do, can we still give e.g. approx percentage left (like T&E)?

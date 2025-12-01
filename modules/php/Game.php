@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto;
 use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Player;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
@@ -114,7 +115,7 @@ class Game extends \Bga\GameFramework\Table
 						$model->getEnclosuresForPlayer($p->id)
 					)),
 				],
-				$model->getPlayers())),
+				$model->getAllPlayers())),
             'primary_stocksize' => $stock->primaryCount(),
             'endgame_stocksize' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
@@ -124,7 +125,7 @@ class Game extends \Bga\GameFramework\Table
 				'name' => $t->translated(),
 			], TileType::cases()),
 		];
-		foreach ($model->getPlayers() as $player) {
+		foreach ($model->getAllPlayers() as $player) {
 			$datas['players'][$player->id]['player_id'] = $player->id;
 			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
@@ -354,5 +355,29 @@ class Game extends \Bga\GameFramework\Table
 		$this->doCreateGame($player_ids);
 		$this->gamestate->jumpToState(2);
 		$this->notify->all('debugReset', '', []);
+	}
+
+	public function debug_drawUntil(int $nleft): void {
+		$model = new Model($this, 0);
+		$stock = $model->getStock();
+		while ($stock->primaryCount() > $nleft) {
+			$stock = $model->drawTile();
+			$drawn = $stock->drawn;
+			$stock->removeDrawnTile();
+			$this->notify->all(
+			"DrawTile",
+			// FIXME: render the tile image in the log (in addition? instead?)
+			'debug drew a ${translatedval} tile.',
+			[
+				// 'player_id' => 0,
+				'tile_type' => $drawn->type->value,
+				'drawn_from_endgame_pile' => false, // FIXME
+				// 'primary_left' => $amt($stock->primaryCount()),
+				// 'endgame_left' => $amt($stock->endgameCount()),
+				'translatedval' => $drawn->type->translated(),
+				'i18n' => ['translatedval']
+			]);
+		}
+		new PersistentStore()->updateStock($stock);
 	}
 }

@@ -39,15 +39,15 @@ class NextPlayer extends AbstractState
             game: $game,
             id: 4,
             type: StateType::GAME,
-            description: clienttranslate('Changing player...'),
+            description: clienttranslate('Determining next player...'),
             updateGameProgression: true,
         );
     }
 
     public function onEnteringState(): mixed
     {
-        $model = $this->createModel();
-		$players = $model->getPlayers();
+        $model = $this->createModel(0);
+		$players = $model->getAllPlayers();
 
 		$initial_player_id = intval($this->game->getActivePlayerId());
 		$this->game->giveExtraTime($initial_player_id);
@@ -60,6 +60,6 @@ class NextPlayer extends AbstractState
 			}
 		} while ($player_id != $initial_player_id);
 
-		return NextTurn::class;
+		return NextRound::class;
     }
 }

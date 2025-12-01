@@ -77,7 +77,7 @@ class PlayerTurn extends AbstractState
 
 	public function getArgs(int $active_player_id): array
 	{
-        $model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$tpp = $model->getTrucksWithPossiblePlacements();
 		$trucks_available = array_map(fn (int $id, PossiblePlacement $pp) => [
 			'truck_id' => $id,
@@ -121,7 +121,7 @@ class PlayerTurn extends AbstractState
 
 	#[PossibleAction]
 	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$truck = $model->getTruck($truck_id);
 
 		// FIXME: this should be returned as a structure from the model method. Or as a kind of Placement.
@@ -162,7 +162,7 @@ class PlayerTurn extends AbstractState
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'deliveries' => $p,
-		  'money' => $model->getPlayers()[$active_player_id]->money,
+		  'money' => $model->getActivePlayer()->money,
 		]);
 		return NextPlayer::class;
 	}
@@ -170,7 +170,7 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actDrawTile(int $active_player_id): mixed
 	{
-        $model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 
 		$stock = $model->drawTile();
 		$tile = $stock->drawn;
@@ -209,8 +209,8 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actExpandZoo(int $active_player_id): mixed
 	{
-        $model = $this->createModel();
-		$player = $model->expandZoo($active_player_id);
+        $model = $this->createModel($active_player_id);
+		$player = $model->expandZoo();
 		$this->notify->all(
 			"ExpandZoo",
 			clienttranslate('${player_name} expanded their zoo.'),
@@ -226,7 +226,7 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
 	{
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$src = new Space($src_id, $src_pos);
 		$dest = new Space($dest_id, $dest_pos);
 		$model->moveTile($src, $dest);
@@ -237,7 +237,7 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'src' => $this->serializeSpace($src),
 				'dest' => $this->serializeSpace($dest),
-				'money' => $model->getPlayers()[$active_player_id]->money,
+				'money' => $model->getActivePlayer()->money,
 			]
 		);
 		return NextPlayer::class;
@@ -251,9 +251,9 @@ class PlayerTurn extends AbstractState
 		int $dest_enclosure_id,
 		#[JsonParam] array $dest_positions): mixed
 	{
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$animal_types = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
-		$player = $model->getPlayers()[$active_player_id];
+		$player = $model->getActivePlayer();
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
 			'player_id' => $active_player_id,
@@ -271,9 +271,9 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actPurchaseTile(int $active_player_id, int $from_player_id, int $barn_pos, int $enclosure_id, int $enclosure_pos): mixed
 	{
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$tile = $model->purchaseTile($from_player_id, $barn_pos, new Space($enclosure_id, $enclosure_pos));
-		$player = $model->getPlayers()[$active_player_id];
+		$player = $model->getActivePlayer();
 		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile}', [
 			'player_id' => $active_player_id,
 			'barn_pos' => $barn_pos,
@@ -282,7 +282,7 @@ class PlayerTurn extends AbstractState
 			'tile' => $tile->type->value,
 			'money' => $player->money,
 			'from_player_id' => $from_player_id,
-			'from_player_money' => $model->getPlayers()[$from_player_id]->money,
+			'from_player_money' => $model->getPlayer($from_player_id)->money,
 		]);
 		return NextPlayer::class;
 	}
@@ -290,12 +290,12 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actDiscardTile(int $active_player_id, int $barn_pos): mixed
 	{
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$tile = $model->discardBarnTile($barn_pos);
 		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile}',[
 			'player_id' => $active_player_id,
 			'tile' => $tile->type->value,
-			'money' => $model->getPlayers()[$active_player_id]->money,
+			'money' => $model->getActivePlayer()->money,
 			'barn_pos' => $barn_pos,
 		]
 		);

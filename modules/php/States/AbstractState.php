@@ -52,8 +52,8 @@ abstract class AbstractState extends GameState
             updateGameProgression: $updateGameProgression);
     }
 
-    protected function createModel(): Model {
-        return new Model($this->game, intval($this->game->getActivePlayerId()));
+    protected function createModel(int $player_id): Model {
+        return new Model($this->game, $player_id);
     }
 
     protected function giveExtraTime(int $player_id, ?int $specificTime = null): void {

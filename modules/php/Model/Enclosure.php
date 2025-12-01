@@ -209,6 +209,22 @@ class Enclosure {
         return true;
     }
 
+    public function emptyAnimalCount(): int {
+        return $this->animal_capacity - count($this->filledAnimalPositions());
+    }
+
+    /** @return array<string,int> */
+    public function stallTypes(): array {
+        $stallTypes = [];
+        for ($i = 1; $i <= $this->stall_capacity; $i++) {
+            $t = $this->contents[$this->animal_capacity + $i];
+            if ($t->type->isStall()) {
+                $stallTypes[$t->type->value] = 1;
+            }
+        }
+        return $stallTypes;
+    }
+
     /** @return int[] positions of animals */
     public function filledAnimalPositions(?TileType $animal = null): array {
         if ($animal) {

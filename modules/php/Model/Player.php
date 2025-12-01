@@ -30,7 +30,6 @@ namespace Bga\Games\zooloretto\Model;
 class Player {
     public function __construct(
         public readonly int $id,
-        public readonly int $no,
         public private(set) int $money,
         int $num_players,
         public private(set) int $purchased_extensions,
@@ -44,7 +43,7 @@ class Player {
 
     public function __toString(): string
     {
-        return "Player(id={$this->id},no={$this->no},money={$this->money},el={$this->extension_limit},"
+        return "Player(id={$this->id},money={$this->money},el={$this->extension_limit},"
              . "pe={$this->purchased_extensions},truck={$this->truck_taken},spent={$this->spent},rec={$this->received})";
     }
 
@@ -95,7 +94,7 @@ class Player {
         $this->spent += $amount;
     }
 
-    public function addExtension(): int {
+    public function addExtension(): void {
         if ($this->money < Cost::EXPAND->amount()) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}
@@ -103,7 +102,6 @@ class Player {
 			throw new ModelException("No space for new enclosures");
 		}
         $this->purchased_extensions++;
-        return $this->purchased_extensions + 3;
     }
 
     public function canAfford(Cost $cost): bool {

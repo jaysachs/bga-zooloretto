@@ -28,10 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use \Bga\GameFramework\Table;
-use \Bga\GameFramework\Components\Counters\PlayerCounter;
-use \Bga\GameFramework\Components\Counters\TableCounter;
-
-
+use Bga\Games\zooloretto\Utils;
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
@@ -39,9 +36,10 @@ use \Bga\GameFramework\Components\Counters\TableCounter;
 */
 
 class Model {
-    public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) { }
+    public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
+    }
 
-    /** @param $player_ids int[] */
+    /** @param int[] $player_ids */
     public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
         $tilepool = Tile::createInitialPool($player_count);
@@ -72,16 +70,17 @@ class Model {
         $ps->setBankMoney(30 - 2 * $player_count);
 
         foreach ($player_ids as $player_id) {
-            $player = new Player($player_id, 0, 2, $player_count, 0, 0);
+            $player = new Player($player_id, 2, $player_count, 0, 0);
             $ps->updatePlayer($player);
         }
     }
 
-    private function getPlayer(?int $id = 0): Player {
-        if ($id == 0) {
-            $id = $this->player_id;
-        }
-        $players = $this->getPlayers();
+    public function getActivePlayer(): Player {
+        return $this->getPlayer($this->player_id);
+    }
+
+    public function getPlayer(int $id): Player {
+        $players = $this->getAllPlayers();
         if (isset($players[$id])) {
             return $players[$id];
         }
@@ -92,7 +91,7 @@ class Model {
     private ?array $_players = null;
 
     /** @return Player[] */
-    public function getPlayers(): array {
+    public function getAllPlayers(): array {
         if ($this->_players == null) {
             $this->_players = $this->ps->retrievePlayers();
         }
@@ -174,7 +173,7 @@ class Model {
         if (isset($this->_enclosures[$player_id])) {
             return $this->_enclosures[$player_id];
         }
-        $player = $this->getPlayer();
+        $player = $this->getPlayer($player_id);
         $encs = $this->ps->populateEnclosures($player_id, Enclosure::forPlayer($player));
         $this->_enclosures[$player_id] = $encs;
         return $encs;
@@ -189,7 +188,7 @@ class Model {
         $encs = $this->getEnclosuresForPlayer();
         $barn = $encs[0];
         $toUpdate = [];
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
         foreach ($deliveries as $delivery) {
             $truck = $this->getTruck($truck_id);
             $encl = $encs[$delivery->enclosure_id];
@@ -209,17 +208,15 @@ class Model {
             $offspring = $encl->checkForOffspring($barn);
 
             if ($offspring) {
-                $this->game->warn("\n\nOffspring for {$encl->id}: {$offspring}\n\n");
                 $delivery->offspring = $offspring;
                 $this->saveOffspring($offspring);
                 // FIXME: check fo completion bonus
 
                 // FIXME: return info on new child -- add to return value
             } else {
-                $this->game->warn("\n\nNo offspriing for {$encl->id}\n\n");
             }
         }
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
         $player->takeTruck($truck_id);
 
         $truck = $this->getTruck($truck_id);
@@ -243,7 +240,7 @@ class Model {
     }
 
     public function getTrucksWithPossiblePlacements(): array {
-		$player = $this->getPlayer();
+		$player = $this->getActivePlayer();
 
 		$trucks_available = [];
 		if (!$player->truck_taken) {
@@ -257,8 +254,8 @@ class Model {
     }
 
     /** @return array<int,array<int>> keyed by truck ID; if null, truck is returned, otherwise it's the positions dumped. */
-    public function prepareNextTurn(): array {
-        $players = $this->getPlayers();
+    public function prepareNextRound(): array {
+        $players = $this->getAllPlayers();
         $result = [];
         foreach ($this->getTrucks() as $truck) {
             $pid = $truck->taken_by;
@@ -281,11 +278,11 @@ class Model {
     }
 
     public function canExpand(): bool {
-        return $this->getPlayer()->canExpand();
+        return $this->getActivePlayer()->canExpand();
     }
 
-    public function expandZoo(int $pid): Player {
-        $player = $this->getPlayer();
+    public function expandZoo(): Player {
+        $player = $this->getActivePlayer();
 
         $player->addExtension();
         $this->chargePlayer($player, Cost::EXPAND);
@@ -293,7 +290,7 @@ class Model {
 
         // $enc = Enclosure::extension($player->purchased_extensions);
         // clear cache of enclosures per player
-        unset($this->_enclosures[$pid]);
+        unset($this->_enclosures[$this->player_id]);
 
         return $player;
     }
@@ -304,7 +301,7 @@ class Model {
 
     /** return int[] positions in barn that are discardable */
     public function getDiscardbleBarnPos(): array {
-        if (! $this->getPlayer()->canAfford(Cost::DISCARD)) {
+        if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
             return [];
         }
         $barn = $this->getEnclosuresForPlayer()[0];
@@ -312,7 +309,7 @@ class Model {
     }
 
     public function discardBarnTile(int $pos): Tile {
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
         $barn = $this->getEnclosuresForPlayer()[0];
 
         $this->chargePlayer($player, Cost::DISCARD);
@@ -325,7 +322,7 @@ class Model {
 
     /** @return PossibleMove[] */
     public function getPossibleMoves(): array {
-        if (! $this->getPlayer()->canAfford(Cost::MOVE)) {
+        if (! $this->getActivePlayer()->canAfford(Cost::MOVE)) {
             return [];
         }
         $result = [];
@@ -399,7 +396,7 @@ class Model {
         }
 
         $encs = $this->getEnclosuresForPlayer();
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
 
         $this->chargePlayer($player, Cost::MOVE);
         $srcenc = $encs[$src->enclosure_id];
@@ -421,7 +418,7 @@ class Model {
     }
 
     public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
 
         $found = false;
@@ -474,13 +471,13 @@ class Model {
 
     /** @return PossibleBuy[] */
     public function getPurchaseableTiles(): array {
-        if (! $this->getPlayer()->canAfford(Cost::PURCHASE)) {
+        if (! $this->getActivePlayer()->canAfford(Cost::PURCHASE)) {
             return [];
         }
         $enclosures = $this->getEnclosuresForPlayer();
         /** @var PossibleBuy[] */
         $result = [];
-        foreach ($this->getPlayers() as $player) {
+        foreach ($this->getAllPlayers() as $player) {
             if ($player->id == $this->player_id) {
                 continue;
             }
@@ -503,7 +500,7 @@ class Model {
 
     /** @return PossibleExchange[] */
     public function getPossibleExchanges() : array {
-        if (! $this->getPlayer()->canAfford(Cost::EXCHANGE)) {
+        if (! $this->getActivePlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
             return [];
         }
@@ -531,7 +528,7 @@ class Model {
             throw new ModelException("Illegal exchange of {$ex}");
         }
 
-        $player = $this->getPlayer();
+        $player = $this->getActivePlayer();
         $this->chargePlayer($player, Cost::EXCHANGE);
 
         $encs = $this->getEnclosuresForPlayer();
@@ -599,5 +596,83 @@ class Model {
         $player->receiveMoney($amt);
         $this->ps->updatePlayer($player);
         $this->incBankMoney(-$amt);
+    }
+
+    private function computeScore(Player $player): mixed {
+        $detail = [
+            'player_id' => $player->id,
+            'money' => $player->money,
+            'full_enclosures' => 0,
+            'full_enclosure_points' => 0,
+            'near_full_enclosures' => 0,
+            'near_full_enclosure_points' => 0,
+            'other_enclosures' => 0,
+            'other_enclosure_points' => 0,
+            'barn_stall_types' => 0,
+            'barn_animal_types' => 0,
+            'barn_stall_points' => 0,
+            'barn_animal_points' => 0,
+        ];
+        $encs = $this->getEnclosuresForPlayer($player->id);
+        foreach ($encs as $enc) {
+            if ($enc->isBarn()) {
+                $barnAnimalTypes = [];
+                $barnStallTypes = [];
+                foreach ($enc->nonEmptyContents() as $tile) {
+                    if ($tile->type->isAnimal()) {
+                        $barnAnimalTypes[$tile->type->value] = 1;
+                    } else { // if $tile->type->isStall() {
+                        $barnStallTypes[$tile->type->value] = 1;
+                    }
+                }
+                $detail['barn_stall_types'] = count($barnStallTypes);
+                $detail['barn_animal_types'] = count($barnAnimalTypes);
+                $detail['barn_stall_points'] = -2 * count($barnStallTypes);
+                $detail['barn_animal_points'] = -2 * count($barnAnimalTypes);
+            } else {
+                switch ($enc->emptyAnimalCount()) {
+                    case 0:
+                        $detail['full_enclosures']++;
+                        $detail['full_enclosure_points'] += $enc->completion_points;
+                        break;
+                    case 1:
+                        $detail['near_full_enclosures']++;
+                        $detail['near_full_enclosure_points'] += $enc->near_completion_points;
+                        break;
+                    default:
+                        if (count($enc->stallTypes()) > 0) {
+                            $detail['other_enclosures']++;
+                            $detail['other_enclosure_points'] += count($enc->filledAnimalPositions());
+                        }
+                };
+            }
+        }
+        $detail['total_points'] =
+              $detail['full_enclosure_points']
+            + $detail['near_full_enclosure_points']
+            + $detail['other_enclosure_points']
+            + $detail['barn_stall_points']
+            + $detail['barn_animal_points'];
+
+        usort($detail, function($d1, $d2): int {
+            $s = $d2['total_points'] - $d1['total_points'];
+            if ($s != 0) { return $s; }
+            return $d2['money'] - $d1['money'];
+        });
+
+        return $detail;
+    }
+
+    /** @return array<int,array> */
+    public function computeScores(): array {
+        $scores = [];
+        foreach ($this->getAllPlayers() as $player) {
+            $scores[] = $this->computeScore($player);
+        }
+        // FIXME: persist details?
+        // FIXME: persist scores
+        $sql = "UPDATE player set player_score_aux = money";
+        $this->game->DbQuery( $sql );
+        return $scores;
     }
 }

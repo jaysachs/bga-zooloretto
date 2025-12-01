@@ -32,7 +32,7 @@ use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Truck;
 
-class NextTurn extends AbstractState
+class NextRound extends AbstractState
 {
     function __construct(private Game $game)
     {
@@ -40,15 +40,15 @@ class NextTurn extends AbstractState
             game: $game,
             id: 6,
             type: StateType::GAME,
-            description: clienttranslate('Changing player...'),
+            description: clienttranslate('Finishing the round ...'),
             updateGameProgression: true,
         );
     }
 
     public function onEnteringState(): mixed
     {
-        $model = $this->createModel();
-        $truck_stuff = $model->prepareNextTurn();
+        $model = $this->createModel(0);
+        $truck_stuff = $model->prepareNextRound();
         $dumped = [];
         $returned = [];
         foreach ($truck_stuff as $tid => $x) {
@@ -62,14 +62,19 @@ class NextTurn extends AbstractState
             }
         }
         $this->notify->all(
-            "EndTurn",
-            clienttranslate('Turn is over... starting another turn.'),
+            "EndRound",
+            $model->getStock()->inLastRound()
+                ? clienttranslate('Game is over')
+                : clienttranslate('Starting next round'),
             [
                 'truck_dumped_pos' => $dumped,
                 'truck_ids_returned' => $returned,
                 'last_round' => $model->getStock()->inLastRound(),
             ]
         );
+        if ($model->getStock()->inLastRound()) {
+            return ComputeScores::class;
+        }
         return PlayerTurn::class;
     }
 }

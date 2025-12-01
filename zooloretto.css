@@ -30,210 +30,109 @@ body.mobile_version {
 
 #zoo-game {
     display : flex;
-    flex-direction: column;
+    flex-direction: row-reverse;
+    column-gap: 0.5vw;
+    margin-right: 0.2vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
-    --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.025);
-    background-color: yellow;
+    --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.05);
 }
 
-#zoo-upper-container {
-    padding: 1%;
+
+/*
+ * Shared components -- draw pile, bank money, trucks
+ */
+
+#zoo-shared-container {
+    padding: 0.2vw;
+    flex: 1;
     display: flex;
-
-    background-color:lightgreen;
+    flex-direction: column;
 }
 
-#zoo-stock {
-    width: 10%;
-    padding: 0.5%;
+#zoo-stock-and-bank {
     display: flex;
     flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    /*    grid-gap: 4px; */
-
-    background-color: #c3d7e9;
 }
 
-#zoo-pile {
+#zoo-bank {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    background: url('img/Money.png') center / 70% no-repeat;
+}
+
+#zoo-bank-money {
+    color: white;
+    font-style: bold;
+    font-weight: bold;
+    font-size: 1.5vw;
+    display: flex;
+}
+
+#zoo-stock, #zoo-end-stock {
+    flex: 2;
+    padding: 0.5%;
+}
+
+.zoo-pile {
     position: relative;
+    display: inline-block;
     aspect-ratio: 1.0;
-    width: calc(var(--zoo-tile-size) * 1.5);
+    width: calc(var(--zoo-tile-size) * 1.83);
     height: auto;
 }
 
-#zoo-pile > span {
+.zoo-pile > span {
     position: absolute;
     aspect-ratio: 1.0;
-    width: calc(var(--zoo-tile-size));
+    width: calc(1.244 * var(--zoo-tile-size));
     height: auto;
 }
 
-#zoo-pile > span:nth-child(1) { left: 0; top: 0; }
-#zoo-pile > span:nth-child(2) { left: 0.5vw; top: 0.5vw; }
-#zoo-pile > span:nth-child(3) { left: 1.0vw; top: 1.0vw; }
-#zoo-pile > span:nth-child(4) { left: 1.5vw; top: 1.5vw; }
-#zoo-pile > span:nth-child(5) { left: 2.0vw; margin-top: 2.0vw; }
-/* #zoo-pile > span:nth-child(6) { left: 2.5vw; margin-top: 2.5vw; } */
+.zoo-pile > span:nth-child(1) { left: 25%; top: 0; }
+.zoo-pile > span:nth-child(2) { left: 20%; top: 5%; }
+.zoo-pile > span:nth-child(3) { left: 15%; top: 10%; }
+.zoo-pile > span:nth-child(4) { left: 10%; top: 15%; }
+.zoo-pile > span:nth-child(5) { left: 5%; top: 20%; }
+/* #zoo-pile > span:nth-child(6) { left: -2.5vw; margin-top: 2.5vw; } */
 
-#zoo-boards {
-    width: 100%;
-    height: auto;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    display : flex;
-    padding-bottom: 0%;
-    align-items: flex-start;
-    justify-content: center;
-    flex-direction: row;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
-}
 
-#zoo-other-playerboards {
-    width: 50%;
-    height: auto;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    display : flex;
-    padding-bottom: 0%;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0% 0% 0% 0%;
-    max-width: 10000px;
-}
-
-#playeraid {
-    margin-top: 2%;
-    margin-bottom: 2%;
-    width: 30%;
-    height: auto;
-    display: flex;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-    padding-bottom: 25%;
-    align-items: flex-start;
-    justify-content: flex-start;
-    transition: background-image 2s;
-    margin-right: 1%;
-    margin-left: 1%;
-}
-
-.zoo-board {
-    margin-right: 1%;
-    margin-left: 1%;
-    margin-top: 2%;
-    margin-bottom: 2%;
-    /* FIXME: at this width, can't use the 5.0vw tile size */
-    width: 65%;
-    background-repeat: no-repeat;
-    background-size: contain;
-    position: relative;
-/*    padding-bottom: 46%; */
-    transition: background-image 2s;
-}
-
-.zoo-board {
-    aspect-ratio: 1;
-    background-image: url('img/Board0.png');
-}
-
-.zoo-board[zoo-extensions="1"] {
-    background-image: url('img/Board1.png');
-    transition: background 1.5s ease-in-out;
-}
-
-#zoo-game.zoo-2p .zoo-board {
-    aspect-ratio: 1097 / 899 !important;
-}
-
-#zoo-game.zoo-2p .zoo-board[zoo-extensions="0"] {
-    background-image: url('img/Board20.png')
-}
-
-#zoo-game.zoo-2p .zoo-board[zoo-extensions="1"] {
-    background-image: url('img/Board21.png');
-    transition: background 1.5s ease-in-out;
-}
-
-#zoo-game.zoo-2p .zoo-board[zoo-extensions="2"] {
-    background-image: url('img/Board22.png');
-    transition: background 1.5s ease-in-out;
-}
-
-.zoo-playerboard {
-    display : flex;
-    flex-direction: column;
-    width: 90%;
-    height: 30%;
-    display : flex;
-    position: relative;
-    border-radius: 10px 10px;
-    /* overflow: auto; */
-    padding-top: 0%;
-     padding-bottom: 0%;
-    align-items: center;
-   /* background-color: red;  */
-}
-
-.zoo-playername {
-    display : flex;
-    flex-direction: row;
-    width: 80%;
-    height: 100%;
-    position: relative;
-    overflow: auto;
-    padding-top: 0%;
-    padding-bottom: 0%;
-}
-
-#zoo-depot {
-    width: 90%;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-
-    background-color: #e9c7e9;
-    /* position:relative;*/
-}
+/*
+ * Trucks
+ */
 
 .zoo-depot-space {
-    /* the 1.5 comes from the image properties */
-    height: calc(1.5 * (var(--zoo-tile-size)));
-    min-width: calc(4 * (var(--zoo-tile-size)));
+    /* FIXME: these are weird. Would like to do this some other way */
+    /* the 1.83 is related to the truck image dimensions, but also affects the flex layout with the boards, which affects the size of the tiles on the board. */
+    height: calc(1.83 * (var(--zoo-tile-size)));
     width: auto;
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
-    margin: 0.5vw;
+/*    min-width: calc(4 * (var(--zoo-tile-size))); */
+    margin: 1vw;
+}
+
+#zoo-shared-container .zoo-depot-space:not(:has(div)) {
+    background: url('img/TruckSpot.png') center / contain no-repeat;
 }
 
 .zoo-truck {
-    display: flex;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-image: url('img/Wagon3.png');
+    /* replicate these three here so we see it when it slides */
+    height: calc(1.83 * (var(--zoo-tile-size)));
+    width: auto;
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
-}
-
-.zoo-truck.zoo-selected {
-    transform: translate(0, 3.0vw);
-    transition: transform 1s;
-}
-
-.zoo-truck:not(.zoo-selected) {
-    transition: 1s;
-    transition-property: transform;
+    display: flex;
+    background: url('img/Truck.png') center / contain no-repeat;
+    aspect-ratio: inherit;
 }
 
 /* truck cells */
 .zoo-truck > div {
     position: relative;
-    width: calc(var(--zoo-tile-size));
-    /* FIXME: auto doesn't work here?? takes up height of the truck, not match aspect-ratio */
-    height: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
+    /* need to specify height explicitly, auto causes it to be the height of the truck */
+    xheight: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
+    height: 68%;
+    width: auto;
     aspect-ratio: 1.0 !important;
     top: 16%;
 }
@@ -248,6 +147,64 @@ body.mobile_version {
 }
 .zoo-truck > div:nth-child(3) {
     left: calc(100% * (2 * 3 * (11 + 3)) / 473);
+}
+
+
+
+/*
+ * Player boards
+ */
+
+#zoo-boards {
+    flex: 10;
+    display : flex;
+    flex-direction: column;
+}
+
+.zoo-board {
+    margin: 2%;
+    /* FIXME: this is tied to the %ages of the board width, and also margins */
+    width: 73.74%;
+    /* this is important since enclosures are positioned relative to this. */
+    position: relative;
+    background: url('img/Board0.png') center / contain no-repeat;
+    transition: background-image 1s ease-in-out;
+    aspect-ratio: 1;
+}
+
+.zoo-board[zoo-extensions="1"] {
+    background-image: url('img/Board1.png');
+}
+
+#zoo-game.zoo-2p .zoo-board {
+    aspect-ratio: 1097 / 899 !important;
+    width: 90%;
+}
+
+#zoo-game.zoo-2p .zoo-board[zoo-extensions="0"] {
+    background-image: url('img/Board20.png');
+}
+
+#zoo-game.zoo-2p .zoo-board[zoo-extensions="1"] {
+    background-image: url('img/Board21.png');
+}
+
+#zoo-game.zoo-2p .zoo-board[zoo-extensions="2"] {
+    background-image: url('img/Board22.png');
+}
+
+
+.zoo-playerboard {
+    display : flex;
+    flex-direction: column;
+    width: auto;
+    border-radius: 10px 10px;
+    align-items: center;
+}
+
+.zoo-playername {
+    padding-top: 0%;
+    padding-bottom: 0%;
 }
 
 .zoo-moved {
@@ -284,9 +241,7 @@ body.mobile_version {
     height: 100%;
 
     filter:
-        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width)) #573404)
-        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width))  #573404)
-        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(var(--zoo-drop-shadow-width))  #573404)
+        drop-shadow(calc(var(--zoo-drop-shadow-width)) calc(-1 * var(--zoo-drop-shadow-width)) #573404)
     ;
 
     background-image: url('img/Tiles.png');
@@ -468,9 +423,7 @@ body.mobile_version {
 
 [zoo-tile="Coin"]
 {
-    background-image: url('img/Coin.png');
-    background-size: contain;
-    background-repeat: no-repeat;
+    background: url('img/Coin.png') center / contain no-repeat;
 }
 
 .playeraidIT
@@ -513,101 +466,13 @@ body.mobile_version {
     width: 32.80816922%;
 }
 
-/**************/
-
-
-
-.plnomoney
-{
-    display : flex;
-    flex-direction: row;
-    width: 80%;
-}
-.plnomoney2
-{
-    display : flex;
-    flex-direction: row;
-    width: 100%;
-}
-.player_number
-{
-    display : flex;
-    flex-direction: row;
-    width: 20%;
-    margin-right: 10%;
-}
-
-.money
-{
-    border-radius: 5% 5%;
-    border: 0 solid;
-    width: 10%;
-    display: flex;
-    position: relative;
-    background-size: contain;
-    background-repeat: no-repeat;
-    padding-bottom: 10%;
-    margin-right: 2%;
-    margin-bottom: 4%;
-    margin-top: 4%;
-    margin-left: 2%;
-    z-index:5;
-    transform-origin: center center;
-    /* filter: drop-shadow(0.1vw 0.2vw #573404) drop-shadow(0.1vw 0.1vw #573404) drop-shadow(0.1vw 0.1vw #573404); */
-    background-image: url('img/Money.png');
-}
-
-.zoo-money-label {
-    height: 100%;
-    width: auto;
-    aspect-ratio: 1;
-    background-image: url('img/Money.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.zoo-money {
-    flex: 1;
-    display:flex;
-    width: auto;
-}
-
-.zoo-player-panel-ext  {
-    display:flex;
-    width: auto;
-}
-
-.zoo-player-panel-ext .zoo-truck {
-    width: auto;
-    height: 100%;
-    top: 10%;
-}
-
-.zoo-player-panel-ext .zoo-depot-space .zoo-truck > div {
-    width: 23%;
-    height: auto;
-}
-
-.zoo-player-panel-ext .zoo-depot-space {
-    flex: 1;
-    height: 1.5em;
-    min-width: inherit;
-    margin: 0vw;
-}
 
 .zoo-cell {
-    /* Note these are relative to, the image size of the boards. */
+    /* Note these are relative to the image size of the boards. */
     width: 9%;
-    height: 9%;
+    height: auto;
+    aspect-ratio: 1.0;
     position: absolute;
-    /*
-    display : flex;
-    z-index:5;
-    transform-origin: center center;
-*/
-    /* background-color: orangered; */
-    /* opacity: 0.33; */
-/*    border: 2px solid white; */
 }
 
 #zoo-game.zoo-2p .zoo-board .zoo-cell {
@@ -626,14 +491,14 @@ body.mobile_version {
 
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] {
     position: relative;
-    width: 30%;
+    width: 28%;
     height: 50%;
     top: 50%;
-    left: 37%;
+    left: 38%;
     display : grid;
-    column-gap: calc(var(--zoo-highlight-width) * 2);
-    row-gap: calc(var(--zoo-highlight-width) * 2);
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    column-gap: calc(var(--zoo-highlight-width) * 5);
+    row-gap: calc(var(--zoo-highlight-width) * 5);
+    grid-template-columns: 1fr 1fr 1fr;
 }
 
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] .zoo-cell {
@@ -687,6 +552,26 @@ body.mobile_version {
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='5'] .zoo-cell:nth-child(6) { left: 5.987490879%; top: 83.5%; }
 
 
+#zoo-game .zoo-board [zoo-enclosure='0'] {
+    position: relative;
+    width: 35%;
+    height: 50%;
+    top: 50%;
+    left: 23.5%;
+    display : grid;
+    column-gap: calc(var(--zoo-highlight-width) * 6);
+    row-gap: calc(var(--zoo-highlight-width) * 6);
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+#zoo-game .zoo-board [zoo-enclosure='0'] .zoo-cell {
+    display: inline-block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    position: static;
+}
+
 .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 41.7%; top: 10.3%; }
 .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(2) { left: 28.5%; top: 23.5%; }
 .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(3) { left: 41.7%; top: 21.2%; }
@@ -721,50 +606,44 @@ body.mobile_version {
 .zoo-board [zoo-enclosure='4'] .zoo-cell:nth-child(6) { left: 7.3%; top: 83.5%; }
 
 
-.highlighted
-{
-    border:#22A520 0.4vw solid !important;
-    transform: scale(0.84) !important;
-}
-
-.highlighted2
-{
-    border:#A52220 0.4vw solid !important;
-    transform: scale(1) !important;
-    cursor: pointer;
-}
-
-.highlighted3
-{
-    border:#2220A5 0.4vw solid !important;
-    transform: scale(1) !important;
-    cursor: pointer;
-}
-
-
 /*
-  Zoom other player boards.
-*/
+ * Player panels
+ */
 
-#zoo-boards:not(:has(.zoo-zoom:hover)) .zoo-main-board {
-    transition: transform 1s ease-in-out !important;
+.zoo-money-label {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    background-image: url('img/Money.png');
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
-#zoo-boards:has(.zoo-zoom:hover) .zoo-main-board {
-    transform: scale(0.5) translate(-50%,-50%);
-    transition: transform 1s ease-in-out !important;
+.zoo-money {
+    flex: 1;
+    display:flex;
+    width: auto;
 }
 
-.zoo-zoom:not(:hover) {
-    transition: transform 1s ease-in-out !important;
+.zoo-player-panel-ext  {
+    display:flex;
+    width: auto;
 }
 
-.zoo-zoom:hover {
-    /* FIXME: the translate here relates to the % given to the active player board */
-    /* for 65% it's kinda but not exactly: */
-    transform: scale(2.4) translate(-19%,20%);
-    transition: transform 1s ease-in-out !important;
+.zoo-player-panel-ext .zoo-truck {
+    width: auto;
+    height: 100%;
+    top: 10%;
+}
 
-    /* transform: scale(2.3) translate(0 ,0); */
-    z-index: 100;
+.zoo-player-panel-ext .zoo-depot-space .zoo-truck > div {
+    width: 23%;
+    height: auto;
+}
+
+.zoo-player-panel-ext .zoo-depot-space {
+    flex: 1;
+    height: 1.5em;
+    min-width: inherit;
+    margin: 0vw;
 }

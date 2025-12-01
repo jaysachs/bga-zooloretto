@@ -186,7 +186,7 @@
 <script type="text/javascript" src="https://studio.boardgamearena.com:8084/data/themereleases/251105-1400/js/modules/layer/ly_studio.js"> </script>
 
 
-<title>◢ You must place a tile on a Wagon. • zooloretto • BGA studio</title>
+<title>◢ You must place a tile on a Truck. • zooloretto • BGA studio</title>
 
 <script type="text/javascript">
 (function(){
@@ -549,7 +549,7 @@
                                     <img class="textalign_inner" src="https://studio.boardgamearena.com:8084/data/themereleases/251105-1400/img/layout/active_player.gif" alt="" id="active_player_statusbar_icon" style="width:32px; height: 32px;">
                                     <div class="icon20 icon20_night this_is_night"></div>
                                 </div>
-                                <span id="pagemaintitletext"><span class="playername" style="color: #ff0000;">You</span> must place a tile on a Wagon.</span><div id="generalactions"></div>
+                                <span id="pagemaintitletext"><span class="playername" style="color: #ff0000;">You</span> must place a <span style="aspect-ratio: 1.0; height: 2em; width: auto;" zoo-tile="EF"></span> on a truck.</span><div id="generalactions"></div>
                                 <span id="gotonexttable_wrap" style="display: inline;">&nbsp;
                                     <a id="go_to_next_table_inactive_player" class="bgabutton bgabutton_red" href="https://studio.boardgamearena.com/play?from=791223" style="display: none;"><span id="go_to_next_player_label">Go to next table</span> <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
                                     <a id="go_to_next_table_active_player" class="bgabutton bgabutton_gray" href="https://studio.boardgamearena.com/play?from=791223&amp;dontplay=791223" style="margin-left: 10px; display: inline;"><i class="fa fa-arrow-right" aria-hidden="true"></i></a>
@@ -761,12 +761,16 @@
                           }
                           t.classList.toggle('zoo-selected');
                       }
-                      function changeSize(delta) {
+                      function toggle2p() {
                           const name = '--zoo-tile-size';
-                          let s = document.documentElement.style;
-                          let v = s.getPropertyValue(name);
-                          let val = Number(v.substring(0, v.indexOf('vw')));
-                          s.setProperty(name, (val + delta) + "vw");
+                          let cl = document.getElementById('zoo-game').classList;
+                          cl.toggle('zoo-2p')
+                          let e = document.getElementById('zoo-playerboard-3');
+                          if (e.style == 'display: none') {
+                              e.style = '';
+                          } else {
+                              e.style = 'display: none';
+                          }
                       }
                       function togglePlayerBoards() {
                           let s = document.getElementById('ebd-body').classList;
@@ -779,227 +783,226 @@
                           }
                       }
                       function changeExtensions() {
-                          let s = document.getElementById('zoo-main-board');
+                          let s = document.getElementById('zoo-board-1');
                           console.log(s);
                           let x = Number(s.getAttribute('zoo-extensions'));
                           console.log(x);
-                          if (x) { s.setAttribute('zoo-extensions', '0'); }
-                          else { s.setAttribute('zoo-extensions', '1'); }
+                          x++;
+                          if (x > 2) { x = 0; }
+                          s.setAttribute('zoo-extensions', `${x}`);
                       }
                       </script>
-                    <div style="display: flex;">
-                      <span>tile size</span>
-                      <button class="bgabutton bgabutton_blue" type="button" onclick="togglePlayerBoards()">Flip playerboards</button>
-                      <button class="bgabutton bgabutton_blue" type="button" onclick="changeSize(0.5)">Increase</button>
-                      <button class="bgabutton bgabutton_blue" type="button" onclick="changeSize(-0.5)">Decrease</button>
-                      <button class="bgabutton bgabutton_blue" type="button" onclick="changeExtensions()">Extensions</button>
+
+                    <div style="display: flex; column-gap: 8px; justify-content: flex-start; width: auto; align-items: center;">
+                      <span style="flex: none; width: auto;">Things to try</span>
+                      <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="togglePlayerBoards()">Toggle Mobile mode</button>
+                      <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="toggle2p()">Toggle 2p</button>
+                      <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="changeExtensions()">Extensions</button>
                       <br></br>
                     </div>
 
 
 
-<div id="zoo-game" class="zoo-2p xzoo-debug">
-  <div id="zoo-upper-container">
-    <div id="zoo-depot">
-      <div id="zoo-depot-space-1" class="zoo-depot-space">
-        <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
-          <div id="truckspace_1_1"></div>
-          <div id="truckspace_1_2"><span zoo-tile="CF"></span></div>
-          <div id="truckspace_1_3"></div>
-        </div>
+<div id="zoo-game" class="xzoo-debug">
+  <div id="zoo-shared-container">
+    <div id="zoo-stock-and-bank">
+      <div id="zoo-stock">
+        <div id="zoo-pile" class="zoo-pile"><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="PM"></span></div>
+        <span>103</span>
       </div>
-      <div id="zoo-depot-space-1" class="zoo-depot-space">
-        <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
-          <div id="truckspace_1_1"></div>
-          <div id="truckspace_1_2" class="zoo-selectable"></div>
-          <div id="truckspace_1_3"></div>
-        </div>
+      <div id="zoo-endgame-stock">
+        <div id="zoo-endgame-pile" class="zoo-pile"><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span class="zoo-disk"></span></div>
+        <span>15</span>
       </div>
-      <div id="zoo-depot-space-1" class="zoo-depot-space">
-        <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
-          <div id="truckspace_1_1"><span zoo-tile="EM"></span></div>
-          <div id="truckspace_1_2" class="zoo-selectable"><span zoo-tile="CF"></span></div>
-          <div id="truckspace_1_3"></div>
-        </div>
-      </div>
-      <div id="zoo-depot-space-2" class="zoo-depot-space">
-        <div id="truck_2" onclick="doMove(event);" class="zoo-truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div zoo-tile="block"></div></div></div>
-      </div>
-      <div id="zoo-depot-space-3" class="zoo-depot-space">
-        <div id="truck_3" class="zoo-truck">
-          <div id="truckspace_3_1"><span class="zoo-selectable zoo-tile-Coin"></span></div>
-          <div id="truckspace_3_2"><div zoo-tile="block"></div></div>
-          <div id="truckspace_3_3"><div zoo-tile="block"></div></div>
-        </div>
+      <div id="zoo-bank">
+        <div id="zoo-bank-money">23</div>
       </div>
     </div>
 
-    <div id="zoo-stock">
-
-      <div id="zoo-pile"><span class="zoo-disk"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="PM"></span></div>
-
+    <div id="zoo-depot-space-1" class="zoo-depot-space">
+      <div id="truck_1" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
+        <div id="truckspace_1_1"></div>
+        <div id="truckspace_1_2"><span zoo-tile="CF"></span></div>
+        <div id="truckspace_1_3" class="zoo-selectable"></div>
+      </div>
+    </div>
+    <div id="zoo-depot-space-2" class="zoo-depot-space">
+    </div>
+    <div id="zoo-depot-space-3" class="zoo-depot-space">
+      <div id="truck_3" class="zoo-truck zoo-selectable" onclick="doSelect(event)">
+        <div id="truckspace_1_1"><span zoo-tile="EM"></span></div>
+        <div id="truckspace_1_2" class="zoo-selectable"><span zoo-tile="CF"></span></div>
+        <div id="truckspace_1_3"></div>
+      </div>
+    </div>
+    <div id="zoo-depot-space-4" class="zoo-depot-space">
+      <div id="truck_2" onclick="doMove(event);" class="zoo-truck"><div id="truckspace_2_1"></div><div id="truckspace_2_2"></div><div id="truckspace_2_3"><div zoo-tile="block"></div></div></div>
+    </div>
+    <div id="zoo-depot-space-3" class="zoo-depot-space">
+      <div id="truck_3" class="zoo-truck">
+        <div id="truckspace_3_1"><span class="zoo-selectable zoo-tile-Coin"></span></div>
+        <div id="truckspace_3_2"><div zoo-tile="block"></div></div>
+        <div id="truckspace_3_3"><div zoo-tile="block"></div></div>
+      </div>
     </div>
   </div>
 
   <div id="zoo-boards">
+    <div id="zoo-playerboard-0" class="zoo-playerboard whiteblock">
+      <div id="zoo-playername-0" class="zoo-playername"><p>vagabond0</p></div>
+      <div id="zoo-board-1" class="zoo-board whiteblock zoo-main-board" zoo-extensions="0">
+        <div id="enclosure_1_0" zoo-enclosure="0">
+          <div id="enclosure_1_0_1" class="zoo-cell zoo-selectable"><span zoo-tile="C"></span></div>
+          <div id="enclosure_1_0_2" class="zoo-cell zoo-targetable"></div>
+          <div id="enclosure_1_0_3" class="zoo-cell zoo-selected"></div>
+          <div id="enclosure_1_0_4" class="zoo-cell zoo-moved"></div>
 
-    <div id="zoo-board-1234" class="zoo-board zoo-main-board" zoo-extensions="0">
-      <div id="enclosure_1_0" zoo-enclosure="0">
-        <div id="enclosure_1_0_1" class="zoo-cell zoo-selectable"><span zoo-tile="C"></span></div>
-        <div id="enclosure_1_0_2" class="zoo-cell zoo-targetable"></div>
-        <div id="enclosure_1_0_3" class="zoo-cell zoo-selected"></div>
-        <div id="enclosure_1_0_4" class="zoo-cell zoo-moved"></div>
-
-        <div id="enclosure_1_0_1" class="zoo-cell"></div>
-        <div id="enclosure_1_0_2" class="zoo-cell"></div>
-        <div id="enclosure_1_0_3" class="zoo-cell"></div>
-        <div id="enclosure_1_0_4" class="zoo-cell"></div>
-        <div id="enclosure_1_0_1" class="zoo-cell"></div>
-        <div id="enclosure_1_0_2" class="zoo-cell"></div>
-        <div id="enclosure_1_0_3" class="zoo-cell"></div>
-        <div id="enclosure_1_0_4" class="zoo-cell"></div>
-        <div id="enclosure_1_0_5" class="zoo-cell"></div>
-        <div id="enclosure_1_0_6" class="zoo-cell"></div>
-        <div id="enclosure_1_0_1" class="zoo-cell"></div>
-        <div id="enclosure_1_0_2" class="zoo-cell"></div>
-        <div id="enclosure_1_0_5" class="zoo-cell"></div>
-        <div id="enclosure_1_0_6" class="zoo-cell"></div>
-        <div id="enclosure_1_0_1" class="zoo-cell"></div>
-        <div id="enclosure_1_0_2" class="zoo-cell"></div>
-        <div id="enclosure_1_0_3" class="zoo-cell"></div>
-        <div id="enclosure_1_0_4" class="zoo-cell"></div>
-        <div id="enclosure_1_0_5" class="zoo-cell"></div>
-        <div id="enclosure_1_0_6" class="zoo-cell"></div>
+          <div id="enclosure_1_0_1" class="zoo-cell"></div>
+          <div id="enclosure_1_0_2" class="zoo-cell"></div>
+          <div id="enclosure_1_0_3" class="zoo-cell"></div>
+          <div id="enclosure_1_0_4" class="zoo-cell"></div>
+          <div id="enclosure_1_0_1" class="zoo-cell"></div>
+          <div id="enclosure_1_0_2" class="zoo-cell"></div>
+          <div id="enclosure_1_0_3" class="zoo-cell"></div>
+          <div id="enclosure_1_0_4" class="zoo-cell"></div>
+          <div id="enclosure_1_0_5" class="zoo-cell"></div>
+          <div id="enclosure_1_0_6" class="zoo-cell"></div>
+          <div id="enclosure_1_0_1" class="zoo-cell"></div>
+          <div id="enclosure_1_0_2" class="zoo-cell"></div>
+          <div id="enclosure_1_0_5" class="zoo-cell"></div>
+          <div id="enclosure_1_0_6" class="zoo-cell"></div>
+          <div id="enclosure_1_0_1" class="zoo-cell"></div>
+          <div id="enclosure_1_0_2" class="zoo-cell"></div>
+          <div id="enclosure_1_0_3" class="zoo-cell"></div>
+          <div id="enclosure_1_0_4" class="zoo-cell"></div>
+          <div id="enclosure_1_0_5" class="zoo-cell"></div>
+          <div id="enclosure_1_0_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_1_1" zoo-enclosure="1">
+          <div id="enclosure_1_1_1" class="zoo-cell zoo-selectable"></div>
+          <div id="enclosure_1_1_2" class="zoo-cell"><span zoo-tile="LF"></span></div>
+          <div id="enclosure_1_1_3" class="zoo-cell zoo-selected"></div>
+          <div id="enclosure_1_1_4" class="zoo-cell"></div>
+          <div id="enclosure_1_1_5" class="zoo-cell"></div>
+          <div id="enclosure_1_1_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_1_2" zoo-enclosure="2">
+          <div id="enclosure_1_2_1" class="zoo-cell"></div>
+          <div id="enclosure_1_2_2" class="zoo-cell"></div>
+          <div id="enclosure_1_2_3" class="zoo-cell zoo-moved"></div>
+          <div id="enclosure_1_2_4" class="zoo-cell"></div>
+          <div id="enclosure_1_2_5" class="zoo-cell"></div>
+          <div id="enclosure_1_2_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_1_3" zoo-enclosure="3">
+          <div id="enclosure_1_3_1" class="zoo-cell"></div>
+          <div id="enclosure_1_3_2" class="zoo-cell"></div>
+          <div id="enclosure_1_3_3" class="zoo-cell"></div>
+          <div id="enclosure_1_3_4" class="zoo-cell"></div>
+          <div id="enclosure_1_3_5" class="zoo-cell"></div>
+          <div id="enclosure_1_3_6" class="zoo-cell"></div>
+          <div id="enclosure_1_3_7" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_1_4" zoo-enclosure="4">
+          <div id="enclosure_1_4_1" class="zoo-cell"></div>
+          <div id="enclosure_1_4_2" class="zoo-cell"></div>
+          <div id="enclosure_1_4_3" class="zoo-cell"></div>
+          <div id="enclosure_1_4_4" class="zoo-cell"></div>
+          <div id="enclosure_1_4_5" class="zoo-cell"></div>
+          <div id="enclosure_1_4_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_1_5" zoo-enclosure="5">
+          <div id="enclosure_1_5_1" class="zoo-cell"></div>
+          <div id="enclosure_1_5_2" class="zoo-cell"></div>
+          <div id="enclosure_1_5_3" class="zoo-cell"></div>
+          <div id="enclosure_1_5_4" class="zoo-cell"></div>
+          <div id="enclosure_1_5_5" class="zoo-cell"></div>
+          <div id="enclosure_1_5_6" class="zoo-cell"></div>
+        </div>
       </div>
-      <div id="enclosure_1_1" zoo-enclosure="1">
-        <div id="enclosure_1_1_1" class="zoo-cell zoo-selectable"></div>
-        <div id="enclosure_1_1_2" class="zoo-cell"></div>
-        <div id="enclosure_1_1_3" class="zoo-cell zoo-selected"></div>
-        <div id="enclosure_1_1_4" class="zoo-cell"></div>
-        <div id="enclosure_1_1_5" class="zoo-cell"></div>
-        <div id="enclosure_1_1_6" class="zoo-cell"></div>
-      </div>
-      <div id="enclosure_1_2" zoo-enclosure="2">
-        <div id="enclosure_1_2_1" class="zoo-cell"></div>
-        <div id="enclosure_1_2_2" class="zoo-cell"></div>
-        <div id="enclosure_1_2_3" class="zoo-cell zoo-moved"></div>
-        <div id="enclosure_1_2_4" class="zoo-cell"></div>
-        <div id="enclosure_1_2_5" class="zoo-cell"></div>
-        <div id="enclosure_1_2_6" class="zoo-cell"></div>
-      </div>
-      <div id="enclosure_1_3" zoo-enclosure="3">
-        <div id="enclosure_1_3_1" class="zoo-cell"></div>
-        <div id="enclosure_1_3_2" class="zoo-cell"></div>
-        <div id="enclosure_1_3_3" class="zoo-cell"></div>
-        <div id="enclosure_1_3_4" class="zoo-cell"></div>
-        <div id="enclosure_1_3_5" class="zoo-cell"></div>
-        <div id="enclosure_1_3_6" class="zoo-cell"></div>
-        <div id="enclosure_1_3_7" class="zoo-cell"></div>
-      </div>
-      <div id="enclosure_1_4" zoo-enclosure="4">
-        <div id="enclosure_1_4_1" class="zoo-cell"></div>
-        <div id="enclosure_1_4_2" class="zoo-cell"></div>
-        <div id="enclosure_1_4_3" class="zoo-cell"></div>
-        <div id="enclosure_1_4_4" class="zoo-cell"></div>
-        <div id="enclosure_1_4_5" class="zoo-cell"></div>
-        <div id="enclosure_1_4_6" class="zoo-cell"></div>
-      </div>
-      <div id="enclosure_1_5" zoo-enclosure="5">
-        <div id="enclosure_1_5_1" class="zoo-cell"></div>
-        <div id="enclosure_1_5_2" class="zoo-cell"></div>
-        <div id="enclosure_1_5_3" class="zoo-cell"></div>
-        <div id="enclosure_1_5_4" class="zoo-cell"></div>
-        <div id="enclosure_1_5_5" class="zoo-cell"></div>
-        <div id="enclosure_1_5_6" class="zoo-cell"></div>
+    </div>
+    <div id="zoo-playerboard-2" class="zoo-playerboard whiteblock">
+      <div id="zoo-playername-2" class="zoo-playername"><p>vagabond1</p></div>
+      <div id="zoo-board-2" class="zoo-board" zoo-extensions="2">
+        <div id="enclosure_1_0" zoo-enclosure="0">
+          <div id="enclosure_1_0_1" class="zoo-cell"><span zoo-tile="Z"></span></div>
+          <div id="enclosure_1_0_2" class="zoo-cell"></div>
+          <div id="enclosure_1_0_3" class="zoo-cell"></div>
+          <div id="enclosure_1_0_4" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_2_1" zoo-enclosure="1">
+          <div id="enclosure_2_1_1" class="zoo-cell"></div>
+          <div id="enclosure_2_1_2" class="zoo-cell"></div>
+          <div id="enclosure_2_1_3" class="zoo-cell"></div>
+          <div id="enclosure_2_1_4" class="zoo-cell"></div>
+          <div id="enclosure_2_1_5" class="zoo-cell"></div>
+          <div id="enclosure_2_1_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_2_2" zoo-enclosure="2">
+          <div id="enclosure_2_2_1" class="zoo-cell"></div>
+          <div id="enclosure_2_2_2" class="zoo-cell"></div>
+          <div id="enclosure_2_2_3" class="zoo-cell"></div>
+          <div id="enclosure_2_2_4" class="zoo-cell"></div>
+          <div id="enclosure_2_2_5" class="zoo-cell"></div>
+          <div id="enclosure_2_2_6" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_2_3" zoo-enclosure="3">
+          <div id="enclosure_2_3_1" class="zoo-cell"></div>
+          <div id="enclosure_2_3_2" class="zoo-cell"></div>
+          <div id="enclosure_2_3_3" class="zoo-cell"></div>
+          <div id="enclosure_2_3_4" class="zoo-cell"></div>
+          <div id="enclosure_2_3_5" class="zoo-cell"></div>
+          <div id="enclosure_2_3_6" class="zoo-cell"></div>
+          <div id="enclosure_2_3_7" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_2_4" zoo-enclosure="4">
+          <div id="enclosure_2_4_1" class="zoo-cell"></div>
+          <div id="enclosure_2_4_2" class="zoo-cell"></div>
+          <div id="enclosure_2_4_3" class="zoo-cell"></div>
+          <div id="enclosure_2_4_4" class="zoo-cell"></div>
+          <div id="enclosure_2_4_5" class="zoo-cell"></div>
+          <div id="enclosure_2_4_6" class="zoo-cell"></div>
+        </div>
       </div>
     </div>
 
-    <div id="zoo-other-playerboards">
-
-        <div id="zoo-playerboard-2" class="zoo-playerboard whiteblock">
-          <div id="zoo-playername-2" class="zoo-playername"><p>vagabond1</p></div>
-          <div id="zoo-board-2" class="zoo-board zoo-zoom" zoo-extensions="2">
-            <div id="enclosure_1_0" zoo-enclosure="0">
-              <div id="enclosure_1_0_1" class="zoo-cell"><span zoo-tile="Z"></span></div>
-              <div id="enclosure_1_0_2" class="zoo-cell"></div>
-              <div id="enclosure_1_0_3" class="zoo-cell"></div>
-              <div id="enclosure_1_0_4" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_2_1" zoo-enclosure="1">
-              <div id="enclosure_2_1_1" class="zoo-cell"></div>
-              <div id="enclosure_2_1_2" class="zoo-cell"></div>
-              <div id="enclosure_2_1_3" class="zoo-cell"></div>
-              <div id="enclosure_2_1_4" class="zoo-cell"></div>
-              <div id="enclosure_2_1_5" class="zoo-cell"></div>
-              <div id="enclosure_2_1_6" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_2_2" zoo-enclosure="2">
-              <div id="enclosure_2_2_1" class="zoo-cell"></div>
-              <div id="enclosure_2_2_2" class="zoo-cell"></div>
-              <div id="enclosure_2_2_3" class="zoo-cell"></div>
-              <div id="enclosure_2_2_4" class="zoo-cell"></div>
-              <div id="enclosure_2_2_5" class="zoo-cell"></div>
-              <div id="enclosure_2_2_6" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_2_3" zoo-enclosure="3">
-              <div id="enclosure_2_3_1" class="zoo-cell"></div>
-              <div id="enclosure_2_3_2" class="zoo-cell"></div>
-              <div id="enclosure_2_3_3" class="zoo-cell"></div>
-              <div id="enclosure_2_3_4" class="zoo-cell"></div>
-              <div id="enclosure_2_3_5" class="zoo-cell"></div>
-              <div id="enclosure_2_3_6" class="zoo-cell"></div>
-              <div id="enclosure_2_3_7" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_2_4" zoo-enclosure="4">
-              <div id="enclosure_2_4_1" class="zoo-cell"></div>
-              <div id="enclosure_2_4_2" class="zoo-cell"></div>
-              <div id="enclosure_2_4_3" class="zoo-cell"></div>
-              <div id="enclosure_2_4_4" class="zoo-cell"></div>
-              <div id="enclosure_2_4_5" class="zoo-cell"></div>
-              <div id="enclosure_2_4_6" class="zoo-cell"></div>
-            </div>
-          </div>
+    <div id="zoo-playerboard-3" class="zoo-playerboard whiteblock">
+      <div id="zoo-playername-3" class="zoo-playername"><p>vagabond2</p></div>
+      <div id="zoo-board-3" class="zoo-board" zoo-extensions="1">
+        <div id="zoo-barn-3" class="zoo-barn"></div>
+        <div id="enclosure_3_1" zoo-enclosure="1">
+          <div id="enclosure_3_1_1" class="zoo-cell"></div>
+          <div id="enclosure_3_1_3" class="zoo-cell"></div>
+          <div id="enclosure_3_1_3" class="zoo-cell"></div>
+          <div id="enclosure_3_1_4" class="zoo-cell"></div>
+          <div id="enclosure_3_1_5" class="zoo-cell"></div>
+          <div id="enclosure_3_1_6" class="zoo-cell"></div>
         </div>
-
-        <div id="zoo-playerboard-3" class="zoo-playerboard whiteblock">
-          <div id="zoo-playername-3" class="zoo-playername"><p>vagabond2</p></div>
-          <div class="zoo-board zoo-zoom" zoo-extensions="1">
-            <div id="zoo-barn-3" class="zoo-barn"></div>
-            <div id="enclosure_3_1" zoo-enclosure="1">
-              <div id="enclosure_3_1_1" class="zoo-cell"></div>
-              <div id="enclosure_3_1_3" class="zoo-cell"></div>
-              <div id="enclosure_3_1_3" class="zoo-cell"></div>
-              <div id="enclosure_3_1_4" class="zoo-cell"></div>
-              <div id="enclosure_3_1_5" class="zoo-cell"></div>
-              <div id="enclosure_3_1_6" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_3_3" zoo-enclosure="2">
-              <div id="enclosure_3_3_1" class="zoo-cell"></div>
-              <div id="enclosure_3_3_3" class="zoo-cell"></div>
-              <div id="enclosure_3_3_3" class="zoo-cell"></div>
-              <div id="enclosure_3_3_4" class="zoo-cell"></div>
-              <div id="enclosure_3_3_5" class="zoo-cell"></div>
-              <div id="enclosure_3_3_6" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_3_3" zoo-enclosure="3">
-              <div id="enclosure_3_3_1" class="zoo-cell"></div>
-              <div id="enclosure_3_3_3" class="zoo-cell"></div>
-              <div id="enclosure_3_3_3" class="zoo-cell"></div>
-              <div id="enclosure_3_3_4" class="zoo-cell"></div>
-              <div id="enclosure_3_3_5" class="zoo-cell"></div>
-              <div id="enclosure_3_3_6" class="zoo-cell"></div>
-              <div id="enclosure_3_3_7" class="zoo-cell"></div>
-            </div>
-            <div id="enclosure_3_4" zoo-enclosure="4">
-              <div id="enclosure_3_4_1" class="zoo-cell"></div>
-              <div id="enclosure_3_4_3" class="zoo-cell"></div>
-              <div id="enclosure_3_4_3" class="zoo-cell"></div>
-              <div id="enclosure_3_4_4" class="zoo-cell"></div>
-              <div id="enclosure_3_4_5" class="zoo-cell"></div>
-              <div id="enclosure_3_4_6" class="zoo-cell"></div>
-            </div>
+        <div id="enclosure_3_3" zoo-enclosure="2">
+          <div id="enclosure_3_3_1" class="zoo-cell"></div>
+          <div id="enclosure_3_3_3" class="zoo-cell"></div>
+          <div id="enclosure_3_3_3" class="zoo-cell"></div>
+          <div id="enclosure_3_3_4" class="zoo-cell"></div>
+          <div id="enclosure_3_3_5" class="zoo-cell"></div>
+          <div id="enclosure_3_3_6" class="zoo-cell"></div>
         </div>
-
+        <div id="enclosure_3_3" zoo-enclosure="3">
+          <div id="enclosure_3_3_1" class="zoo-cell"></div>
+          <div id="enclosure_3_3_3" class="zoo-cell"></div>
+          <div id="enclosure_3_3_3" class="zoo-cell"></div>
+          <div id="enclosure_3_3_4" class="zoo-cell"></div>
+          <div id="enclosure_3_3_5" class="zoo-cell"></div>
+          <div id="enclosure_3_3_6" class="zoo-cell"></div>
+          <div id="enclosure_3_3_7" class="zoo-cell"></div>
+        </div>
+        <div id="enclosure_3_4" zoo-enclosure="4">
+          <div id="enclosure_3_4_1" class="zoo-cell"></div>
+          <div id="enclosure_3_4_3" class="zoo-cell"></div>
+          <div id="enclosure_3_4_3" class="zoo-cell"></div>
+          <div id="enclosure_3_4_4" class="zoo-cell"></div>
+          <div id="enclosure_3_4_5" class="zoo-cell"></div>
+          <div id="enclosure_3_4_6" class="zoo-cell"></div>
+        </div>
       </div>
     </div>
   </div>

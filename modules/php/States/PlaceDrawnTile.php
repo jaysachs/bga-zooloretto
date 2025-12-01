@@ -65,7 +65,7 @@ class PlaceDrawnTile extends AbstractState
     #[PossibleAction]
     public function actPlaceDrawnTileInTruck(int $active_player_id, int $truck_id, int $truck_pos): mixed {
 
-		$model = $this->createModel();
+        $model = $this->createModel($active_player_id);
 		$tile = $model->placeDrawnTileOnTruck($truck_id, $truck_pos);
         $stock = $model->getStock();
 		$this->notify->all(
