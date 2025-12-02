@@ -82,7 +82,7 @@ class PlaceDrawnTile extends AbstractState
 				'translatedval' => $tile->type->translated(),
                 'primary_pile_size' => $stock->primaryCount(),
                 'endgame_pile_size' => $stock->endgameCount(),
-                'drawn_tile_on_endgame' => $stock->inLastRound(),
+                'drawn_from_endgame_pile' => $stock->inLastRound(),
 				'i18n' => [ 'translatedval' ],
 			]
 		);

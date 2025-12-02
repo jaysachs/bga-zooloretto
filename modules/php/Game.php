@@ -371,13 +371,13 @@ class Game extends \Bga\GameFramework\Table
 			[
 				// 'player_id' => 0,
 				'tile_type' => $drawn->type->value,
-				'drawn_from_endgame_pile' => $stock->lastDrawFromEndgamePile(),
+				'drawn_from_endgame_pile' => $stock->inLastRound(),
 			]);
 			$this->notify->all('DebugPlace', 'debug placed tile offboard',
 			[
 				'primary_pile_size' => $stock->primaryCount(),
 				'endgame_pile_size' => $stock->endgameCount(),
-				'drawn_from_endgame_pile' => $stock->lastDrawFromEndgamePile(),
+				'drawn_from_endgame_pile' => $stock->inLastRound(),
 			]);
 		}
 		new PersistentStore()->updateStock($stock);

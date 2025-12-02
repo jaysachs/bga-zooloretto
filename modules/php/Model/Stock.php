@@ -67,10 +67,6 @@ class Stock {
         return $tile;
     }
 
-    public function lastDrawFromEndgamePile(): bool {
-        return $this->waslastRoundTriggered() || count($this->primary) == 0;
-    }
-
     public function drawTile(): Tile {
         if (!$this->drawn->isEmpty()) {
             throw new ModelException("Attmpt to draw a 2nd tile");

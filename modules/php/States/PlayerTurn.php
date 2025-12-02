@@ -188,7 +188,7 @@ class PlayerTurn extends AbstractState
 			else return 200;
 		};
 
-		$drawn_from_endgame_pile = $stock->lastDrawFromEndgamePile();
+		$drawn_from_endgame_pile = $stock->inLastRound();
 
 		$this->notify->all(
 			"DrawTile",
