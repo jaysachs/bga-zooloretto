@@ -70,17 +70,17 @@ body.mobile_version {
     display: flex;
 }
 
-#zoo-stock, #zoo-endgame-stock {
+#zoo-primary-pile, #zoo-endgame-pile {
     flex: 2;
     padding: 0.5%;
     position: relative;
 }
 
-#zoo-pile-count,#zoo-endgame-pile-count {
+#zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
     right: 1em;
-    top: -1.5em;
-    text-align: right;
+    top: -0.5em;
+    text-align: center;
 }
 
 .zoo-pile {

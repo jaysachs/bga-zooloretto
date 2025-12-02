@@ -116,8 +116,8 @@ class Game extends \Bga\GameFramework\Table
 					)),
 				],
 				$model->getAllPlayers())),
-            'primary_stock_size' => $stock->primaryCount(),
-            'endgame_stock_size' => $stock->endgameCount(),
+            'primary_pile_size' => $stock->primaryCount(),
+            'endgame_pile_size' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
             'lastround' => $stock->inLastRound(),
 			'tile_translations' => array_map(fn ($t) => [
@@ -330,8 +330,8 @@ class Game extends \Bga\GameFramework\Table
 							'truck_id' => $truck->id,
 							'truck_pos' => $p,
 							'translatedval' => $drawn->type->translated(),
-							// 'primary_stock_size' => $stock->primaryCount(),
-							// 'endgame_stock_size' => $stock->endgameCount(),
+							// 'primary_pile_size' => $stock->primaryCount(),
+							// 'endgame_pile_size' => $stock->endgameCount(),
 							'i18n' => [ 'translatedval' ],
 						]
 
@@ -375,8 +375,8 @@ class Game extends \Bga\GameFramework\Table
 			]);
 			$this->notify->all('DebugPlace', 'debug placed tile offboard',
 			[
-				'primary_stock_size' => $stock->primaryCount(),
-				'endgame_stock_size' => $stock->endgameCount(),
+				'primary_pile_size' => $stock->primaryCount(),
+				'endgame_pile_size' => $stock->endgameCount(),
 				'drawn_from_endgame_pile' => $stock->lastDrawFromEndgamePile(),
 			]);
 		}

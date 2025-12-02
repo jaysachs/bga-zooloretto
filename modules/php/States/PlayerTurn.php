@@ -197,8 +197,8 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'tile_type' => $tile->type->value,
 				'drawn_from_endgame_pile' => $drawn_from_endgame_pile,
-				'primary_left' => $amt($stock->primaryCount()),
-				'endgame_left' => $amt($stock->endgameCount()),
+				'primary_pile_size' => $amt($stock->primaryCount()),
+				'endgame_pile_size' => $amt($stock->endgameCount()),
 				'translatedval' => $tile->type->translated(),
 				'i18n' => ['translatedval']
 			]
