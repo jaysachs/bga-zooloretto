@@ -661,7 +661,9 @@ class Model {
     public function computeScores(): array {
         $scores = [];
         foreach ($this->getAllPlayers() as $player) {
-            $scores[] = $this->computeScore($player);
+            $details = $this->computeScore($player);
+            $scores[] = $details;
+            $this->ps->updateScore($player->id, $details['total_points']);
         }
         usort($scores, function($d1, $d2): int {
             $s = $d2['total_points'] - $d1['total_points'];

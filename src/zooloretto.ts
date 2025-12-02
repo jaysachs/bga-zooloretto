@@ -879,6 +879,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     if (args.drawn_from_endgame_pile) {
       this.removeEndgamePileDisk();
+      (this as any).addLastTurnBanner(
+        _('This is the last round!')
+      );
     }
     this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
   }
@@ -1087,6 +1090,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       }
     }
     this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
+  }
+
+  private async notif_GameEnd(args: {
+    player_id: number,
+    total_points: number,
+  }[]): Promise<void> {
+    args.forEach(s => this.scoreCtrl[s.player_id]!.setValue(s.total_points));
   }
 
   private async notif_debugReset(): Promise<void> {
