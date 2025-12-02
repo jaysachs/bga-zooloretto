@@ -24,3 +24,45 @@
 
 * Do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
   * if we do, can we still give e.g. approx percentage left (like T&E)?
+
+
+-----
+Stock:
+
+For primary, if there are 5 or more, we show five stacked tiles. If there are less, we show that number.
+
+For endgame pile, if none have been drawn, we show the disk on top. Once the first endgame tile is drawn, we (a) indicate last round and (b) move the disk (somewhere; to the primary pile spot? above/below? remove it off the board?) and (c) then do endgame pile like the primary pile.
+
+So in notifying on drawn tile, we need to know the tile drawn, how many of each pile there is, and which pile the tile was drawn from. "is last round" just means the drawn tile is from the endgame pile. Does that present a problem with the disk animation?
+
+draw:
+
+if (tile_drawn_from_primary) {
+  // don't change endgame pile at all
+  // just "flip" top primary tile
+} else {
+  if (disk_is_still_on_top) {
+    // could instead have arg that is "was this the first endgame tile drawn"?
+    move_disk();
+  }
+  "flip" endgame tile;
+}
+
+place tile:
+
+if (from_endgame) {
+  slide_from_endgame_to_truck;
+  if endgame_count > 4 {
+    add tile to "front" of endgame
+  } else {
+    add "space" to "back" of endgame
+  }
+} else {
+  slide_from_primary_to_truck;
+  if primary_count > 4 {
+    add tile to "front" of primary
+  }
+  else {
+    add "space" to "back" of primary
+  }
+}

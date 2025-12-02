@@ -18,7 +18,10 @@ interface EnclosurePlacement {
 }
 
 interface TruckLocation{ truck_id: number, truck_pos: number };
-interface PlaceDrawnTileArgs { tile: string, available_spaces: TruckLocation[] };
+interface PlaceDrawnTileArgs {
+  drawn_tile_on_endgame: boolean,
+  available_spaces: TruckLocation[]
+};
 
 type PlacedTile = {
   // truck_id is implicit
@@ -59,8 +62,8 @@ interface PlayerEnclosure {
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
-  primary_stocksize: number;
-  endgame_stocksize: number;
+  primary_stock_size: number;
+  endgame_stock_size: number;
   lastround: boolean;
   drawntile: string;
   // Should always be 3.
@@ -146,6 +149,7 @@ class IDS {
   static readonly ENDGAME_PILE_COUNT = 'zoo-endgame-pile-count';
   static readonly OFF_BOARD = 'overall-footer';
   static readonly BANK_MONEY = 'zoo-bank-money';
+  static readonly DISK = 'zoo-disk';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(id : number) { return `truck-${id}`; }
@@ -164,13 +168,16 @@ class CSS {
   static readonly SELECTED = 'zoo-selected';
   static readonly MOVED = 'zoo-moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
-  static readonly DISK = 'zoo-disk';
   static readonly PILE = 'zoo-pile'
 }
 
 class Elements {
   static topPile(): HTMLElement | undefined {
       return $(IDS.PILE).lastElementChild as (HTMLElement | undefined);
+  }
+
+  static topEndgamePile(): HTMLElement | undefined {
+      return $(IDS.ENDGAME_PILE).lastElementChild as (HTMLElement | undefined);
   }
 
   static truck(truck_id: number) : HTMLElement {
@@ -453,25 +460,25 @@ class DrawTileFlow extends PlayFlow<undefined> {
   }
 };
 
-class PlaceDrawnTile extends ZooFlow<TruckLocation[]> {
+class PlaceDrawnTile extends ZooFlow<PlaceDrawnTileArgs> {
   constructor(g: ZoolorettoGame) { super(g); }
 
-  override doStart(available_spaces: TruckLocation[]) {
+  override doStart(args: PlaceDrawnTileArgs) {
     console.log("starting PlaceDrawnTile flow", this);
     this.initStatusBar(_('Place the drawn tile'));
-    this.markSelected(Elements.topPile());
-    available_spaces.forEach(
-      (truckLoc: TruckLocation) =>
-        this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos), (evt) => this.placeDrawnTile(truckLoc)));
+    let elem = args.drawn_tile_on_endgame ? Elements.topEndgamePile()! : Elements.topPile()!;
+    this.markSelected(elem);
+    args.available_spaces.forEach((truckLoc: TruckLocation) =>
+        this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
+          (evt) => this.placeDrawnTile(elem, truckLoc)));
   }
 
-  private placeDrawnTile(truckLoc: TruckLocation) {
-    let tile = Elements.topPile()!;
+  private placeDrawnTile(tileElem: HTMLElement, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
-    this.slide(tile, space)
+    this.slide(tileElem, space)
       .then(() => {
         // FIXME: can't we thread the tile into here from the args?
-        this.confirmPlaceDrawnTile(tile.getAttribute(Attrs.TILE)!, truckLoc);
+        this.confirmPlaceDrawnTile(tileElem.getAttribute(Attrs.TILE)!, truckLoc);
       });
   }
 
@@ -652,11 +659,11 @@ class ZoolorettoHtml {
           Html.div({ id: 'zoo-stock-and-bank' },
             Html.div({ id: 'zoo-stock' },
               Html.div({ id: IDS.PILE, classes: CSS.PILE }),
-              Html.span({ id: IDS.PILE_COUNT, text: "103" })
+              Html.div({ id: IDS.PILE_COUNT, text: "??" })
             ),
             Html.div({ id: 'zoo-endgame-stock' },
               Html.div({ id: IDS.ENDGAME_PILE, classes: CSS.PILE }),
-              Html.span({ id: IDS.ENDGAME_PILE_COUNT, text: "15" })
+              Html.div({ id: IDS.ENDGAME_PILE_COUNT, text: "?" })
             ),
             Html.div({ id: 'zoo-bank' },
               Html.div({ id: IDS.BANK_MONEY, text: '27' })
@@ -717,27 +724,35 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private renderStock() : void {
-    var n = Math.min(this.gamedatas.primary_stocksize, 5);
+    let s = Math.min(this.gamedatas.primary_stock_size, 5);
     // FIXME: handle exhausted primary pile
     /*
     if (n < 5) {
       this.addStockTile(CSS.DISK);
     }
       */
-    if (this.gamedatas.drawntile) {
-      n--;
-    }
-    while  (n-- > 0) {
-      this.addStockTile();
-    }
-    if (this.gamedatas.drawntile) {
-      this.addStockTile(this.gamedatas.drawntile);
+
+    if (s > 0) {
+      var tilecount = (this.gamedatas.drawntile) ? s-1 : s;
+      while  (tilecount-- > 0) {
+        this.addStockTile();
+      }
+      if (this.gamedatas.drawntile) {
+        this.addStockTile(this.gamedatas.drawntile);
+      }
     }
 
-    for (let i = 0; i < 4; ++i) {
+    var n = Math.min(this.gamedatas.endgame_stock_size, this.gamedatas.lastround ? 5 : 4);
+    while (n-- > 0) {
       $(IDS.ENDGAME_PILE).appendChild(this.makeTileSpan('back')!);
     }
-    $(IDS.ENDGAME_PILE).appendChild(Html.span({ classes: CSS.DISK }));
+    if (!this.gamedatas.lastround) {
+      $(IDS.ENDGAME_PILE).appendChild(Html.span({ id: IDS.DISK }));
+    } else if (this.gamedatas.drawntile) {
+      this.setSpanToTile(Elements.topEndgamePile()!, this.gamedatas.drawntile);
+    }
+    $(IDS.PILE_COUNT).innerText = `${this.gamedatas.primary_stock_size}`;
+    $(IDS.ENDGAME_PILE_COUNT).innerText = `${this.gamedatas.endgame_stock_size}`;
   }
 
   private renderTrucks(): void {
@@ -862,39 +877,84 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    new PlaceDrawnTile(this).start(args.available_spaces);
+    new PlaceDrawnTile(this).start(args);
   }
 
   private async notif_DrawTile(
     args: {
       tile_type: string,
       drawn_from_endgame_pile: boolean,
-      primary_left: number,
-      endgame_left: number,
     }
   ): Promise<void> {
-    // FIXME: need to handle disk removal / pile exhaustion
-    // FIXME: animate "flip" the top tile?
-    this.setSpanToTile(Elements.topPile()!, args.tile_type);
+    var elem;
+    if (args.drawn_from_endgame_pile) {
+      let disk = $(IDS.DISK);
+      if (disk) {
+        this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD));
+        $(IDS.ENDGAME_PILE).appendChild(this.makeTileSpan('back')!);
+      }
+      elem = Elements.topEndgamePile()!;
+    } else {
+      elem = Elements.topPile()!;
+    }
+    this.setSpanToTile(elem, args.tile_type);
+  }
+
+  private async notif_DebugPlace(
+    args: {
+      drawn_from_endgame_pile: boolean,
+      primary_stock_size: number,
+      endgame_stock_size: number,
+    }
+  ): Promise<void> {
+    let elem = args.drawn_from_endgame_pile ? Elements.topEndgamePile()! : Elements.topPile()!;
+    await this.animationManager.slideOutAndDestroy(elem, $(IDS.OFF_BOARD), {}).then(
+      () => {
+        if (args.drawn_from_endgame_pile) {
+          if (args.endgame_stock_size >= 5) {
+            $(IDS.ENDGAME_PILE).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+          }
+        } else {
+          if (args.primary_stock_size >= 5) {
+            $(IDS.PILE).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+          }
+        }
+      }
+    ).then(() => {
+      $(IDS.PILE_COUNT).innerText = `${args.primary_stock_size}`;
+      $(IDS.ENDGAME_PILE_COUNT).innerText = `${args.endgame_stock_size}`;
+    });
   }
 
   private async notif_PlaceDrawnTileInTruck(args: {
     player_id: number,
-    tile_id: number,
-    val: string,
     truck_id: number,
     truck_pos: number,
+    drawn_tile_on_endgame: boolean,
     primary_stock_size: number,
     endgame_stock_size: number }) {
     // FIXME: need to handle stock refresh -- need to send pile sizes in the notif args
     if (this.player_id != args.player_id) {
       await this.animationManager.slideAndAttach(
-        Elements.topPile()!,
+        args.drawn_tile_on_endgame ? Elements.topEndgamePile()! : Elements.topPile()!,
         Elements.truckSpace(args.truck_id, args.truck_pos), {})
-        .then(() => this.addStockTile());
+        .then(() => {
+        if (args.drawn_tile_on_endgame) {
+          if (args.endgame_stock_size >= 5) {
+            $(IDS.ENDGAME_PILE).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+          }
+        } else {
+          if (args.primary_stock_size >= 5) {
+            $(IDS.PILE).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+          }
+        }
+
+        });
     } else {
       this.addStockTile();
     }
+    $(IDS.PILE_COUNT).innerText = `${args.primary_stock_size}`;
+    $(IDS.ENDGAME_PILE_COUNT).innerText = `${args.endgame_stock_size}`;
   }
 
   private async notif_ExpandZoo(args: {

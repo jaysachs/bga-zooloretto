@@ -70,9 +70,17 @@ body.mobile_version {
     display: flex;
 }
 
-#zoo-stock, #zoo-end-stock {
+#zoo-stock, #zoo-endgame-stock {
     flex: 2;
     padding: 0.5%;
+    position: relative;
+}
+
+#zoo-pile-count,#zoo-endgame-pile-count {
+    position: relative;
+    right: 1em;
+    top: -1.5em;
+    text-align: right;
 }
 
 .zoo-pile {
@@ -130,7 +138,6 @@ body.mobile_version {
 .zoo-truck > div {
     position: relative;
     /* need to specify height explicitly, auto causes it to be the height of the truck */
-    xheight: calc(var(--zoo-tile-size)); /* 72%; */ /* 30%; calc(var(--zoo-tile-size)); */
     height: 68%;
     width: auto;
     aspect-ratio: 1.0 !important;
@@ -249,18 +256,17 @@ body.mobile_version {
     background-size: 600% 600%;
 }
 
-[zoo-tile="back"],[zoo-tile="block"],.zoo-disk {
-    /* differ from tile */
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-}
-
 [zoo-tile="back"],[zoo-tile="block"] {
-    background-image: url('img/Back.png') !important;
+    /* differ from tile */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Back.png');
 }
 
-.zoo-disk {
-    background-image: url('img/Disk.png') !important;
+#zoo-disk {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Disk.png');
 }
 
 /* offspring tiles are actually round */

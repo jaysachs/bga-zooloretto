@@ -59,6 +59,7 @@ class PlaceDrawnTile extends AbstractState
         }
         return [
             'available_spaces' => $available,
+            'drawn_tile_on_endgame' => $model->getStock()->inLastRound(),
         ];
     }
 
@@ -73,13 +74,12 @@ class PlaceDrawnTile extends AbstractState
 			clienttranslate( '${player_name} placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.'),
 			[
 				'player_id' => $active_player_id,
-				'tile_id' => $tile->id,
-				'val' => $tile->type->value,
                 'truck_id' => $truck_id,
                 'truck_pos' => $truck_pos,
 				'translatedval' => $tile->type->translated(),
                 'primary_stock_size' => $stock->primaryCount(),
                 'endgame_stock_size' => $stock->endgameCount(),
+                'drawn_tile_on_endgame' => $stock->inLastRound(),
 				'i18n' => [ 'translatedval' ],
 			]
 		);

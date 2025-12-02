@@ -116,8 +116,8 @@ class Game extends \Bga\GameFramework\Table
 					)),
 				],
 				$model->getAllPlayers())),
-            'primary_stocksize' => $stock->primaryCount(),
-            'endgame_stocksize' => $stock->endgameCount(),
+            'primary_stock_size' => $stock->primaryCount(),
+            'endgame_stock_size' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
             'lastround' => $stock->inLastRound(),
 			'tile_translations' => array_map(fn ($t) => [
@@ -357,25 +357,27 @@ class Game extends \Bga\GameFramework\Table
 		$this->notify->all('debugReset', '', []);
 	}
 
-	public function debug_drawUntil(int $nleft): void {
+	public function debug_drawN(int $n): void {
 		$model = new Model($this, 0);
 		$stock = $model->getStock();
-		while ($stock->primaryCount() > $nleft) {
+		while ($n-- > 0) {
 			$stock = $model->drawTile();
 			$drawn = $stock->drawn;
 			$stock->removeDrawnTile();
 			$this->notify->all(
 			"DrawTile",
 			// FIXME: render the tile image in the log (in addition? instead?)
-			'debug drew a ${translatedval} tile.',
+			'debug drew a ${tile_type} tile.',
 			[
 				// 'player_id' => 0,
 				'tile_type' => $drawn->type->value,
-				'drawn_from_endgame_pile' => false, // FIXME
-				// 'primary_left' => $amt($stock->primaryCount()),
-				// 'endgame_left' => $amt($stock->endgameCount()),
-				'translatedval' => $drawn->type->translated(),
-				'i18n' => ['translatedval']
+				'drawn_from_endgame_pile' => $stock->lastDrawFromEndgamePile(),
+			]);
+			$this->notify->all('DebugPlace', 'debug placed tile offboard',
+			[
+				'primary_stock_size' => $stock->primaryCount(),
+				'endgame_stock_size' => $stock->endgameCount(),
+				'drawn_from_endgame_pile' => $stock->lastDrawFromEndgamePile(),
 			]);
 		}
 		new PersistentStore()->updateStock($stock);
