@@ -19,6 +19,7 @@ interface EnclosurePlacement {
 
 interface TruckLocation{ truck_id: number, truck_pos: number };
 interface PlaceDrawnTileArgs {
+  tile: string,
   drawn_tile_on_endgame: boolean,
   available_spaces: TruckLocation[]
 };
@@ -449,7 +450,7 @@ class ExpandZooFlow extends ZooFlow {
   }
 };
 
-class DrawTileFlow extends PlayFlow<undefined> {
+class DrawTileFlow extends ZooFlow {
   constructor(g: ZoolorettoGame) { super(g); }
 
   override doStart() {
@@ -460,7 +461,7 @@ class DrawTileFlow extends PlayFlow<undefined> {
   }
 };
 
-class PlaceDrawnTile extends ZooFlow<PlaceDrawnTileArgs> {
+class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   override doStart(args: PlaceDrawnTileArgs) {
@@ -470,16 +471,12 @@ class PlaceDrawnTile extends ZooFlow<PlaceDrawnTileArgs> {
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
-          (evt) => this.placeDrawnTile(elem, truckLoc)));
+          (evt) => this.placeDrawnTile(elem, args.tile, truckLoc)));
   }
 
-  private placeDrawnTile(tileElem: HTMLElement, truckLoc: TruckLocation) {
+  private placeDrawnTile(tileElem: HTMLElement, tile: string, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
-    this.slide(tileElem, space)
-      .then(() => {
-        // FIXME: can't we thread the tile into here from the args?
-        this.confirmPlaceDrawnTile(tileElem.getAttribute(Attrs.TILE)!, truckLoc);
-      });
+    this.slide(tileElem, space).then(() => this.confirmPlaceDrawnTile(tile, truckLoc));
   }
 
   private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
@@ -663,7 +660,7 @@ class ZoolorettoHtml {
             ),
             Html.div({ id: 'zoo-endgame-stock' },
               Html.div({ id: IDS.ENDGAME_PILE, classes: CSS.PILE }),
-              Html.div({ id: IDS.ENDGAME_PILE_COUNT, text: "?" })
+              Html.div({ id: IDS.ENDGAME_PILE_COUNT })
             ),
             Html.div({ id: 'zoo-bank' },
               Html.div({ id: IDS.BANK_MONEY, text: '27' })
@@ -751,8 +748,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     } else if (this.gamedatas.drawntile) {
       this.setSpanToTile(Elements.topEndgamePile()!, this.gamedatas.drawntile);
     }
-    $(IDS.PILE_COUNT).innerText = `${this.gamedatas.primary_stock_size}`;
-    $(IDS.ENDGAME_PILE_COUNT).innerText = `${this.gamedatas.endgame_stock_size}`;
   }
 
   private renderTrucks(): void {
@@ -787,6 +782,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private moneyCounter: Counter[] = [];
+  private primaryStockCounter: Counter;
+  private endgameStockCounter: Counter;
 
   private setupHtml(twoPlayer: boolean): void {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
@@ -797,6 +794,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
     }
+    this.primaryStockCounter = new ebg.counter();
+    this.primaryStockCounter.create(IDS.PILE_COUNT, { value: this.gamedatas.primary_stock_size });
+    this.endgameStockCounter = new ebg.counter();
+    this.endgameStockCounter.create(IDS.ENDGAME_PILE_COUNT, { value: this.gamedatas.endgame_stock_size });
     this.renderStock();
     this.renderTrucks();
     this.renderEnclosures();
@@ -877,7 +878,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    new PlaceDrawnTile(this).start(args);
+    new PlaceDrawnTileFlow(this).start(args);
   }
 
   private async notif_DrawTile(
@@ -886,6 +887,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       drawn_from_endgame_pile: boolean,
     }
   ): Promise<void> {
+    this.gamedatas.lastround = args.drawn_from_endgame_pile;
     var elem;
     if (args.drawn_from_endgame_pile) {
       let disk = $(IDS.DISK);
@@ -921,8 +923,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         }
       }
     ).then(() => {
-      $(IDS.PILE_COUNT).innerText = `${args.primary_stock_size}`;
-      $(IDS.ENDGAME_PILE_COUNT).innerText = `${args.endgame_stock_size}`;
+      this.primaryStockCounter.toValue(args.primary_stock_size);
+      this.endgameStockCounter.toValue(args.endgame_stock_size);
     });
   }
 
@@ -953,8 +955,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     } else {
       this.addStockTile();
     }
-    $(IDS.PILE_COUNT).innerText = `${args.primary_stock_size}`;
-    $(IDS.ENDGAME_PILE_COUNT).innerText = `${args.endgame_stock_size}`;
+    this.primaryStockCounter.toValue(args.primary_stock_size);
+    this.endgameStockCounter.toValue(args.endgame_stock_size);
   }
 
   private async notif_ExpandZoo(args: {
