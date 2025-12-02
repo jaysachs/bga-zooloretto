@@ -173,8 +173,8 @@ class CSS {
 }
 
 class Elements {
-  static drawnTile(endgame: boolean): HTMLElement | undefined {
-    return $(endgame ? IDS.ENDGAME_PILE_TILES : IDS.PRIMARY_PILE_TILES).lastElementChild as (HTMLElement | undefined);
+  static drawnTile(endgame: boolean): HTMLElement {
+    return $(endgame ? IDS.ENDGAME_PILE_TILES : IDS.PRIMARY_PILE_TILES).lastElementChild as HTMLElement;
   }
 
   static topPrimaryPile(): HTMLElement | undefined {
@@ -471,7 +471,7 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   override doStart(args: PlaceDrawnTileArgs) {
     console.log("starting PlaceDrawnTile flow", this);
     this.initStatusBar(_('Place the drawn tile'));
-    let elem = Elements.drawnTile(args.drawn_from_endgame_pile)!;
+    let elem = Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
@@ -733,7 +733,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.addStockTile('endgame');
     }
     if (this.gamedatas.drawntile) {
-      this.setSpanToTile(Elements.drawnTile(this.gamedatas.lastround)!, this.gamedatas.drawntile);
+      this.setSpanToTile(Elements.drawnTile(this.gamedatas.lastround), this.gamedatas.drawntile);
     }
     if (!this.gamedatas.lastround) {
       $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK }));
@@ -887,7 +887,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (args.drawn_from_endgame_pile) {
       this.removeEndgamePileDisk();
     }
-    this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile)!, args.tile_type);
+    this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
   }
 
   private replenishPilesAndUpdateCounters(
@@ -918,7 +918,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   ): Promise<void> {
     await this.animationManager.slideOutAndDestroy(
-      Elements.drawnTile(args.drawn_from_endgame_pile)!,
+      Elements.drawnTile(args.drawn_from_endgame_pile),
       $(IDS.OFF_BOARD),
       {})
         .then(() => this.replenishPilesAndUpdateCounters(args));
@@ -934,7 +934,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     // FIXME: need to handle stock refresh -- need to send pile sizes in the notif args
     if (this.player_id != args.player_id) {
       await this.animationManager.slideAndAttach(
-        Elements.drawnTile(args.drawn_from_endgame_pile)!,
+        Elements.drawnTile(args.drawn_from_endgame_pile),
         Elements.truckSpace(args.truck_id, args.truck_pos),
         {}).then(() => this.replenishPilesAndUpdateCounters(args));
     } else {
