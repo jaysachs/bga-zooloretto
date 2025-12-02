@@ -41,11 +41,11 @@ class Stock {
     }
 
     public function primaryCount(): int {
-        return count($this->primary);
+        return count($this->primary) + ((!$this->drawn->isEmpty() && count($this->endgame) == self::LASTSET_SIZE) ? 1 : 0);
     }
 
     public function endgameCount(): int {
-        return count($this->endgame);
+        return count($this->endgame) + ((!$this->drawn->isEmpty() && count($this->endgame) < self::LASTSET_SIZE) ? 1 : 0); ;
     }
 
     /** @return int[] */
