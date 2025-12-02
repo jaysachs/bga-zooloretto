@@ -50,12 +50,12 @@ class NextPlayer extends AbstractState
 		$players = $model->getAllPlayers();
 
 		$initial_player_id = intval($this->game->getActivePlayerId());
-		$this->game->giveExtraTime($initial_player_id);
+		// $this->game->giveExtraTime($initial_player_id);
 		$player_id = 0;
 		do {
-			$this->game->activeNextPlayer();
-			$player_id = intval($this->game->getActivePlayerId());
+			$player_id = $this->game->activeNextPlayer();
 			if (! $players[$player_id]->truck_taken) {
+                $this->giveExtraTime($player_id);
 				return PlayerTurn::class;
 			}
 		} while ($player_id != $initial_player_id);
