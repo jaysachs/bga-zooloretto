@@ -33,24 +33,31 @@ CREATE TABLE IF NOT EXISTS `tiles` (
 
 CREATE TABLE IF NOT EXISTS `trucks` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  -- which player id took it, or 0 if still available
-  `taken_by` int(10) NOT NULL DEFAULT 0,
+  -- which player id took it, or NULL if still available
+  `taken_by` int(10) unsigned,
   -- NULL is empty; 0 is "blocked off"
   `tile_id1` int(10) unsigned NOT NULL DEFAULT 0,
   `tile_id2` int(10) unsigned NOT NULL DEFAULT 0,
   `tile_id3` int(10) unsigned NOT NULL DEFAULT 0,
+  -- FIXME: this requires null take_by
+  FOREIGN KEY (`taken_by`) REFERENCES `player`(`player_id`),
+  FOREIGN KEY (`tile_id1`) REFERENCES `tiles`(`id`),
+  FOREIGN KEY (`tile_id2`) REFERENCES `tiles`(`id`),
+  FOREIGN KEY (`tile_id3`) REFERENCES `tiles`(`id`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `primary_stock` (
   `tile_id` int(10) unsigned NOT NULL,
   `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  FOREIGN KEY (`tile_id`) REFERENCES `tiles`(`id`),
   PRIMARY KEY (`seq_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `endgame_stock` (
   `tile_id` int(10) unsigned NOT NULL,
   `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  FOREIGN KEY (`tile_id`) REFERENCES `tiles`(`id`),
   PRIMARY KEY (`seq_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
@@ -58,6 +65,7 @@ CREATE TABLE IF NOT EXISTS `zglobals` (
   `id` int(10) unsigned NOT NULL DEFAULT 0,
   `bank_money` int(10) unsigned NOT NULL,
   `drawn_tile` int(10) unsigned,
+  FOREIGN KEY (`drawn_tile`) REFERENCES `tiles`(`id`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -69,6 +77,8 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
   `enclosure_id` int(10) unsigned NOT NULL,
   `pos` int(10) unsigned NOT NULL,
   `tile_id` int(10) unsigned NOT NULL,
+  FOREIGN KEY (`tile_id`) REFERENCES `tiles`(`id`),
+  FOREIGN KEY (`player_id`) REFERENCES `player`(`player_id`),
   PRIMARY KEY (`player_id`, `enclosure_id`, `pos`),
   -- this means we can't insert EMPTY, which is fine.
   UNIQUE (`tile_id`)

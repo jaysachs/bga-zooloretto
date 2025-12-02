@@ -149,15 +149,18 @@ class PersistentStore {
                 $tile = function(int $pos) use (&$row): ?Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], intval($row["taken_by"]));
+                $taken_by = $row['taken_by'];
+                if ($taken_by !== null) { $taken_by = intval($taken_by); }
+                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
             }, $rows);
     }
 
     public function updateTruck(Truck $truck): void {
         $tiles = $truck->getAllTiles();
+        $taken_by = $truck->taken_by ?? "NULL";
         $this->db->execute(
             "UPDATE trucks
-             SET tile_id1={$tiles[1]->id}, tile_id2={$tiles[2]->id}, tile_id3={$tiles[3]->id}, taken_by={$truck->taken_by}
+             SET tile_id1={$tiles[1]->id}, tile_id2={$tiles[2]->id}, tile_id3={$tiles[3]->id}, taken_by={$taken_by}
              WHERE id = {$truck->id}");
     }
 
