@@ -41,11 +41,11 @@ class Stock {
     }
 
     public function primaryCount(): int {
-        return count($this->primary) + ((!$this->drawn->isEmpty() && count($this->endgame) == self::LASTSET_SIZE) ? 1 : 0);
+        return count($this->primary) + ((!$this->drawn->isEmpty() && $this->inLastRound()) ? 0 : 1);
     }
 
     public function endgameCount(): int {
-        return count($this->endgame) + ((!$this->drawn->isEmpty() && count($this->endgame) < self::LASTSET_SIZE) ? 1 : 0); ;
+        return count($this->endgame) + ((!$this->drawn->isEmpty() && $this->inLastRound()) ? 1 : 0);
     }
 
     /** @return int[] */
@@ -106,19 +106,3 @@ class Stock {
         return new Stock($values, $lastset, Tile::empty());
     }
 }
-
-/*
-$deck = Deck::create(2);
-var_dump($deck);
-
-$make = function (Tile $tile): string {
-			$tv = $tile->type->value;
-			$id = $tile->id;
-			return "($id,'','','','$tv','AVAILABLE')";
-		};
-		$values = array_merge(
-			array_map(function (Tile $tile) use (&$make): string { return $make($tile, 'AVAILABLE'); }, $deck->tiles),
-			array_map(function (Tile $tile)use (&$make): string { return $make($tile, 'LASTSET'); }, $deck->lastset)
-		);
-        var_dump($values);
-        */
