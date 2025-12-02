@@ -96,13 +96,6 @@ class Stock {
         return count($this->endgame) < self::LASTSET_SIZE;
     }
 
-    /**
-     * @return Tile[]
-     */
-    public function all(): array {
-        return array_merge($this->primary, $this->endgame);
-    }
-
     /** @param Tile[] $pool */
     public static function create(array $pool): Stock {
         $values = array_values($pool);
