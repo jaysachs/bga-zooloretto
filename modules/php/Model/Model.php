@@ -654,12 +654,6 @@ class Model {
             + $detail['barn_stall_points']
             + $detail['barn_animal_points'];
 
-        usort($detail, function($d1, $d2): int {
-            $s = $d2['total_points'] - $d1['total_points'];
-            if ($s != 0) { return $s; }
-            return $d2['money'] - $d1['money'];
-        });
-
         return $detail;
     }
 
@@ -669,6 +663,12 @@ class Model {
         foreach ($this->getAllPlayers() as $player) {
             $scores[] = $this->computeScore($player);
         }
+        usort($scores, function($d1, $d2): int {
+            $s = $d2['total_points'] - $d1['total_points'];
+            if ($s != 0) { return $s; }
+            return $d2['money'] - $d1['money'];
+        });
+
         // FIXME: persist details?
         // FIXME: persist scores
         $sql = "UPDATE player set player_score_aux = money";
