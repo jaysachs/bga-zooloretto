@@ -41,7 +41,7 @@ class Stock {
     }
 
     public function primaryCount(): int {
-        return count($this->primary) + ((!$this->drawn->isEmpty() && $this->inLastRound()) ? 0 : 1);
+        return count($this->primary) + ((!$this->drawn->isEmpty() && !$this->inLastRound()) ? 1 : 0);
     }
 
     public function endgameCount(): int {
