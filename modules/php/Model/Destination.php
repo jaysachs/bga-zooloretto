@@ -30,22 +30,17 @@ namespace Bga\Games\zooloretto\Model;
 class Destination {
     public function __construct(
         public readonly Space $space,
-        public readonly ?Space $childSpace = null,
-        public private(set) ?Tile $tile = null) {
-            if ($this->tile == null) {
-                $this->tile = Tile::empty();
-            }
-        }
+        public readonly ?Offspring $offspring = null) {
+    }
 
     public function __toString(): string
     {
-        return "es(encid:{$this->space},childspace:{$this->childSpace},childtile:{$this->tile->type->value})";
+        return "es(encid:{$this->space},offspring:{$this->offspring})";
     }
 
     public function equals(Destination $other): bool
     {
-        return $this->space == $other->space && $this->childSpace == $other->childSpace
-          && $this->tile == $other->tile;
+        return $this->space == $other->space && $this->offspring == $other->offspring;
     }
 
 }

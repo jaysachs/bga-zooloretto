@@ -38,4 +38,11 @@ class Offspring {
     {
         return "Offspring(child={$this->child},mother={$this->mother},father={$this->father},space={$this->childSpace})";
     }
+
+    public function equals(Offspring $other): bool {
+        return $this->child == $other->child
+            && $this->mother == $other->mother
+            && $this->father == $other->father
+            && $this->childSpace == $other->childSpace;
+    }
 }

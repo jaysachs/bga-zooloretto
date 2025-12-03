@@ -341,13 +341,7 @@ class Model {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
                     $offspring = $enc->checkForOffspring($barn);
-                    $childSpace = null;
-                    $childTile = null;
-                    if ($offspring) {
-                        $childTile = $offspring->child;
-                        $childSpace = $offspring->childSpace;
-                    }
-                    $dests[] = new Destination(new Space($enc->id, $ap), $childSpace, $childTile);
+                    $dests[] = new Destination(new Space($enc->id, $ap), $offspring);
                 }
             }
             if (count($dests) > 0) {

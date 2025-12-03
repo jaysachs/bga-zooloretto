@@ -67,10 +67,10 @@ class PlayerTurn extends AbstractState
 			'enclosure_id' => $s->space->enclosure_id,
 			'pos' => $s->space->pos,
 		];
-		if ($s->childSpace !== null) {
-			$result['child_enclosure_id'] = $s->childSpace->enclosure_id;
-			$result['child_pos'] = $s->childSpace->pos;
-			$result['child_tile'] = $s->tile->type->value;
+		if ($s->offspring !== null) {
+			$result['child_enclosure_id'] = $s->offspring->childSpace->enclosure_id;
+			$result['child_pos'] = $s->offspring->childSpace->pos;
+			$result['child_tile'] = $s->offspring->child->type->value;
 		}
 		return $result;
 	}
