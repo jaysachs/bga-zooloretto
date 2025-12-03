@@ -2,8 +2,6 @@
   * Have Model accumulate things that can be queried later? As opposed to having to return
     everything? Things like enclosure complation, offspring growth, ...
 
-* Need to handle (near) empty primary stock pile rendering.
-
 * generally move away from %ages for flex children.
 
 * Implement offspring for: purchase, take truck, move, exchange
@@ -16,8 +14,8 @@
 * Implement money limits; where (if anywhere) to display bank money?
   * Just need to thread bank money through to client.
 
-* Should client-side "pre-confirm" update money?
-  * I think they should.
+* Should client-side "pre-confirm" update money and show children?
+  * I think it should.
 
 * Implement enclosure completion bonuses
   * in progress
