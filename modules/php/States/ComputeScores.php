@@ -47,9 +47,9 @@ class ComputeScores extends AbstractState
     {
         $model = $this->createModel(0);
         $scoreDetailsByPlayerId = $model->computeScores();
-        // FIXME: say who won?
-        $this->notify->all('GameEnded', clienttranslate('Game over'), [
-            'scores' => $scoreDetailsByPlayerId,
+        // FIXME: include winner(s) in message?
+        $this->notify->all('GameEnded', clienttranslate('Scoring completed'), [
+            'endScores' => $scoreDetailsByPlayerId,
         ]);
         return 99;
     }

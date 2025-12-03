@@ -70,6 +70,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   // Should always be 3.
   trucks: Truck[];
   player_enclosures: PlayerEnclosure[];
+  endScores: any;
 }
 
 interface PossibleEnclosurePlacement {
@@ -152,6 +153,7 @@ class IDS {
   static readonly OFF_BOARD = 'overall-footer';
   static readonly BANK_MONEY = 'zoo-bank-money';
   static readonly DISK = 'zoo-disk';
+  static readonly SCORE_SHEET = 'zoo-score-sheet';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(id : number) { return `truck-${id}`; }
@@ -677,7 +679,8 @@ class ZoolorettoHtml {
           this.playerBoardDiv(currentPlayer),
           ... otherplayers.map((p) => this.playerBoardDiv(p))
         ),
-      // this.div({id: 'zoo-playeraid' })
+        // Html.div({id: 'zoo-playeraid' }),
+        Html.div({id: IDS.SCORE_SHEET})
     );
   }
 
@@ -790,6 +793,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
     this.setupHtml(twoPlayer);
     this.setupNotifications();
+    this.setupScoreSheet();
 
     console.log('Game setup done');
   }
@@ -1092,11 +1096,67 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
   }
 
-  private async notif_GameEnd(args: {
-    player_id: number,
-    total_points: number,
-  }[]): Promise<void> {
-    args.forEach(s => this.scoreCtrl[s.player_id]!.setValue(s.total_points));
+  private scoreSheet: ScoreSheet;
+  private setupScoreSheet(): void {
+    this.scoreSheet = new BgaScoreSheet.ScoreSheet(
+    document.getElementById(IDS.SCORE_SHEET)!, // an empty div on your template to place the score sheet on
+    {
+      animationsActive: () => this.bgaAnimationsActive(), // so the animation doesn't trigger on replay fast mode
+      playerNameWidth: 80,
+      playerNameHeight: 30,
+      entryLabelWidth: 120,
+      entryLabelHeight: 20,
+      classes: 'score-sheet-background',
+      players: this.gamedatas.players,
+      entries: [
+        {
+          property: 'full_enclosure_points',
+          label: _('Points for full enclosures'),
+          labelClasses: 'entries-label',
+        },
+        {
+          property: 'near_full_enclosure_points',
+          label: _('Points for nearly full enclosures'),
+          labelClasses: 'entries-label',
+        },
+        {
+          property: 'other_enclosure_points',
+          label: _('Other enclosure points (with stalls)'),
+          labelClasses: 'entries-label',
+        },
+        {
+          property: 'barn_stall_points',
+          label: _('Penalty for stall types left in barn'),
+          labelClasses: 'entries-label',
+        },
+        {
+          property: 'barn_animal_points',
+          label: _('Penalty for animal types left in barn'),
+          labelClasses: 'entries-label',
+        },
+        {
+          property: 'total',
+          label: _('Total'),
+          labelClasses: 'entries-label',
+          scoresClasses: 'total',
+          width: 80,
+          height: 40,
+        },
+      ],
+      scores: this.gamedatas.endScores, // to defined if the game state is 99, else null, so the score displays directly on reload when the game is ended. If unset, the score sheet will be hidden by default.
+      onScoreDisplayed: (property: string, playerId: number, score: number) => { // if you want to do something when a score is revealed
+        if (property === 'total') {
+          this.scoreCtrl[playerId]!.setValue(score);
+        }
+      },
+    }
+  );      }
+
+  private async notif_GameEnded(args: { endScores: any, }): Promise<void> {
+    await this.scoreSheet.setScores(args.endScores, {
+            startBy: this.player_id,
+        });
+    // args.forEach(s => this.scoreCtrl[s.player_id]!.setValue(s.total_points));
   }
 
   private async notif_debugReset(): Promise<void> {

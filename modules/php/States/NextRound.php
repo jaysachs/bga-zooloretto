@@ -63,9 +63,7 @@ class NextRound extends AbstractState
         }
         $this->notify->all(
             "EndRound",
-            $model->getStock()->inLastRound()
-                ? clienttranslate('Game is over')
-                : clienttranslate('Starting next round'),
+            clienttranslate('Finishing the round'),
             [
                 'truck_dumped_pos' => $dumped,
                 'truck_ids_returned' => $returned,

@@ -229,13 +229,6 @@ body.mobile_version {
     box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) blue;
 }
 
-
-.backtransition
-{
-    transition: background-image 1s;
-    z-index: 20;
-}
-
 [zoo-tile] {
     /* round the corners */
     border-radius: 5% 5%;

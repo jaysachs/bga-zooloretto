@@ -647,7 +647,7 @@ class Model {
                 };
             }
         }
-        $detail['total_points'] =
+        $detail['total'] =
               $detail['full_enclosure_points']
             + $detail['near_full_enclosure_points']
             + $detail['other_enclosure_points']
@@ -662,15 +662,9 @@ class Model {
         $scores = [];
         foreach ($this->getAllPlayers() as $player) {
             $details = $this->computeScore($player);
-            $scores[] = $details;
-            $this->ps->updateScore($player->id, $details['total_points']);
+            $scores[$player->id] = $details;
+            $this->ps->updateScore($player->id, $details['total']);
         }
-        usort($scores, function($d1, $d2): int {
-            $s = $d2['total_points'] - $d1['total_points'];
-            if ($s != 0) { return $s; }
-            return $d2['money'] - $d1['money'];
-        });
-
         // FIXME: persist details?
         // FIXME: persist scores
         $sql = "UPDATE player set player_score_aux = money";
