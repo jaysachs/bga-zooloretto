@@ -1,15 +1,14 @@
-* Need to surface enclosure completions as notifications. (This can update bank money too).
+* Need to surface offspring generation and enclosure completions as notifications. (This can update bank money too).
   * Have Model accumulate things that can be queried later? As opposed to having to return
     everything? Things like enclosure complation, offspring growth, ...
 
-* generally move away from %ages for flex children.
+* Revisit responsive layout implementation. (reconsider var for tile width, and just use known (relative) dimensions of things.
 
 * Implement offspring for: purchase, take truck, move, exchange
   * This is pretty much done, server-side. Client-side, we still need to get
     offspring rendered before confirmation (i.e. during flow).
 
-* Implement scoring
-  * Done on backend.
+* Final score sheet rendering
 
 * Implement money limits; where (if anywhere) to display bank money?
   * Just need to thread bank money through to client.
@@ -22,3 +21,34 @@
 
 * Do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
   * if we do, can we still give e.g. approx percentage left (like T&E)?
+
+
+----
+Client-side pre-confirm updates/animations that should happen:
+ * universal: "money" means current player, bank, and possibly other players (Purchase)
+ * Draw
+   * warn "this will trigger end game" as needed
+ * TakeTruckPlaceTiles
+   * if a placement creates an offspring, show it
+   * if a placement completes an enclosure, show money bonus
+   * coin tiles should animate off and update money
+ * Move
+   * update money
+   * if offspring, show
+   * if enclsoure completed, update money includes that bonus
+ * Exchange
+   * update money
+   * (no completion bonus possible)
+   * if offspring, show
+ * Discard tile
+    * update money cost
+    * (no offspring possible)
+ * Purchase tile
+    * update money
+    * if complete enclosure, update money includes that
+    * (no offspring possible)
+ * Expand zoo
+    * update money
+
+Open question is how to deal with "restart". (and probably, eventually undo).
+Right now we keep track of animations and replay them backwards. We could instead keep track of Promises to evaluate (where some are animations). (Leverage Counter::getValue to get money undos; offspring undos are just animations).
