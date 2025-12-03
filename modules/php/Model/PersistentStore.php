@@ -153,6 +153,7 @@ class PersistentStore {
                 $tile = function(int $pos) use (&$row): ?Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
+                /** @var string | int | null */
                 $taken_by = $row['taken_by'];
                 if ($taken_by !== null) { $taken_by = intval($taken_by); }
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);

@@ -152,7 +152,7 @@ class Model {
         return array_sum(
             array_map(
                 function (Truck $t): int { return $t->freeSpaces(); },
-                array_filter($this->getTrucks(), fn ($t) => ! $t->taken_by)
+                array_filter($this->getTrucks(), fn ($t) => $t->taken_by === null)
             )
         );
     }

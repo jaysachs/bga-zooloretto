@@ -109,7 +109,7 @@ class Truck {
 
     /** @return int[] the positions emptied. */
     public function dumpTiles(): array {
-        if ($this->taken_by) {
+        if ($this->taken_by !== null) {
             throw new ModelException("Cannot dump a non-taken truck");
         }
         $p = [];
@@ -123,7 +123,7 @@ class Truck {
     }
 
     public function returnTruck(): int {
-        if (!$this->taken_by) {
+        if ($this->taken_by === null) {
             throw new ModelException("Cannot return a non-taken truck");
         }
         foreach ($this->tiles as $tile) {
@@ -140,7 +140,7 @@ class Truck {
         if ($player_id == 0) {
             throw new ModelException("0 player cannot take a truck");
         }
-        if (!$this->taken_by) {
+        if ($this->taken_by === null) {
             $this->taken_by = $player_id;
         } else {
             throw new ModelException("Attempt to take truck $this->id by $player_id that was already taken by $this->taken_by");
@@ -148,7 +148,7 @@ class Truck {
     }
 
     public function canBeTaken(): bool {
-        if ($this->taken_by) {
+        if ($this->taken_by !== null) {
             return false;
         }
         foreach ($this->tiles as $tile) {
