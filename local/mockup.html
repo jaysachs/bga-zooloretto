@@ -784,12 +784,18 @@
                       }
                       function changeExtensions() {
                           let s = document.getElementById('zoo-board-1');
-                          console.log(s);
                           let x = Number(s.getAttribute('zoo-extensions'));
-                          console.log(x);
                           x++;
                           if (x > 2) { x = 0; }
                           s.setAttribute('zoo-extensions', `${x}`);
+                      }
+                      function toggleScore() {
+                          let s = document.getElementById('zoo-score-sheet');
+                          if (s.style.display == 'none') {
+                              s.style.display = 'inherit';
+                          } else {
+                              s.style.display = 'none';
+                          }
                       }
                       </script>
 
@@ -798,6 +804,7 @@
                       <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="togglePlayerBoards()">Toggle Mobile mode</button>
                       <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="toggle2p()">Toggle 2p</button>
                       <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="changeExtensions()">Extensions</button>
+                      <button style="flex: none; width: auto;" class="bgabutton bgabutton_blue" type="button" onclick="toggleScore()">Toggle score</button>
                       <br></br>
                     </div>
 
@@ -1006,7 +1013,7 @@
       </div>
     </div>
   </div>
-  <div id="playeraid" class="playeraidEN zoo-zoom"></div>
+  <div id="zoo-score-sheet" class="bga-score-sheet_sheet zoo-score-sheet" style="--bga-score-sheet_left: 0px; --bga-score-sheet_top: 0px; --bga-score-sheet_skip-button-display: none; display: none;" data-visible="true"><table><tr><td class="bga-score-sheet_corner"></td><th class="bga-score-sheet_player-name" style="--player-color: #0000ff;">vagabond0</th><th class="bga-score-sheet_player-name" style="--player-color: #ffa500;">vagabond1</th></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="full_enclosure_points" title="Specified on the enclosure tile, granted if enclosure is full of animals">Points for full enclosures</th><td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405406">0</td><td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405407">0</td></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="near_full_enclosure_points" title="undefined">Points for nearly full enclosures</th><td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405406">0</td><td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405407">0</td></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="other_enclosure_points" title="undefined">Other enclosure points (with stalls)</th><td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405406">2</td><td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405407">0</td></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_stall_points" title="undefined">Penalty for stall types left in barn</th><td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405406">0</td><td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405407">0</td></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_animal_points" title="undefined">Penalty for animal types left in barn</th><td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405406">0</td><td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405407">0</td></tr><tr><th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="total" title="undefined">Total</th><td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405406" style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">2</td><td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405407" style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">0</td></tr></table></div>
 </div>
 
 

@@ -645,3 +645,18 @@ body.mobile_version {
     min-width: inherit;
     margin: 0vw;
 }
+
+
+.zoo-score-sheet {
+    position: absolute;
+    left: 10%;
+    width: 80%;
+    height: auto;
+    margin: 10px;
+    background-color: #bbdd33;
+    border: 1px solid;
+}
+
+.zoo-score-total,.zoo-score-entries-label {
+
+}

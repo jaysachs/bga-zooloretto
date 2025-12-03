@@ -1102,43 +1102,44 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     document.getElementById(IDS.SCORE_SHEET)!, // an empty div on your template to place the score sheet on
     {
       animationsActive: () => this.bgaAnimationsActive(), // so the animation doesn't trigger on replay fast mode
-      playerNameWidth: 80,
-      playerNameHeight: 30,
-      entryLabelWidth: 120,
-      entryLabelHeight: 20,
-      classes: 'score-sheet-background',
+      // playerNameWidth: 80,
+      // playerNameHeight: 30,
+      // entryLabelWidth: 120,
+      // entryLabelHeight: 20,
+      classes: 'zoo-score-sheet',
       players: this.gamedatas.players,
       entries: [
         {
           property: 'full_enclosure_points',
           label: _('Points for full enclosures'),
-          labelClasses: 'entries-label',
+          title: _('Specified on the enclosure tile, granted if enclosure is full of animals'),
+          labelClasses: 'zoo-score-entries-label',
         },
         {
           property: 'near_full_enclosure_points',
           label: _('Points for nearly full enclosures'),
-          labelClasses: 'entries-label',
+          labelClasses: 'zoo-score-entries-label',
         },
         {
           property: 'other_enclosure_points',
           label: _('Other enclosure points (with stalls)'),
-          labelClasses: 'entries-label',
+          labelClasses: 'zoo-score-entries-label',
         },
         {
           property: 'barn_stall_points',
           label: _('Penalty for stall types left in barn'),
-          labelClasses: 'entries-label',
+          labelClasses: 'zoo-score-entries-label',
         },
         {
           property: 'barn_animal_points',
           label: _('Penalty for animal types left in barn'),
-          labelClasses: 'entries-label',
+          labelClasses: 'zoo-score-entries-label',
         },
         {
           property: 'total',
           label: _('Total'),
-          labelClasses: 'entries-label',
-          scoresClasses: 'total',
+          labelClasses: 'zoo-score-entries-label',
+          scoresClasses: 'zoo-score-total',
           width: 80,
           height: 40,
         },
