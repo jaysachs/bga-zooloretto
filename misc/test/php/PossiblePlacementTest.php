@@ -5,12 +5,12 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
 use Bga\Games\zooloretto\Utils;
-use Bga\Games\zooloretto\Model\{Enclosure, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
+use Bga\Games\zooloretto\Model\{Enclosure, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
 
-function e(int $x, int $y, $z = null, int $o = 0, TileType $t = TileType::EMPTY) {
-    return new PlacementForEnclosure($x, $y, $z, $o, $t);
+function e(int $x, int $y, $z = null, ?Offspring $offspring = null) {
+    return new PlacementForEnclosure($x, $y, $z, $offspring);
 }
-function t(int $x, TileType $y, $z = []) { return new PlacementsForTruckPos($x, $y, $z); }
+function t(int $truck_id, TileType $y, $z = []) { return new PlacementsForTruckPos($truck_id, $y, $z); }
 function p($x = []) { return new PossiblePlacement($x); }
 
 final class PossiblePlacementTest extends TestCase
@@ -26,7 +26,7 @@ final class PossiblePlacementTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
+        $truck->placeTileAt( new Tile(1, TileType::CAMEL), 1);
         $this->assertEquals(
             p([t(1, TileType::CAMEL, [e(0,1), e(1,1), e(2,1)])]),
             PossiblePlacement::possiblePlacementFor($truck, $encs));
@@ -36,8 +36,8 @@ final class PossiblePlacementTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
-        $truck->placeTileAt($this->tile(TileType::ZEBRA), 2);
+        $truck->placeTileAt(new Tile(1, TileType::CAMEL), 1);
+        $truck->placeTileAt(new Tile(2, TileType::ZEBRA), 2);
 
         $expected = p([
             t(1, TileType::CAMEL, [
@@ -93,8 +93,8 @@ final class PossiblePlacementTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL), 1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL_MALE), 2);
+        $truck->placeTileAt(new Tile(1, TileType::CAMEL), 1);
+        $truck->placeTileAt(new Tile(2, TileType::CAMEL_MALE), 2);
 
         $expected = p([
             t(1, TileType::CAMEL, [
@@ -152,10 +152,23 @@ final class PossiblePlacementTest extends TestCase
 
     public function testFertilePair(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 2, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL_FEMALE), 1);
-        $truck->placeTileAt($this->tile(TileType::CAMEL_MALE), 2);
+        $mother = new Tile(1, TileType::CAMEL_FEMALE);
+        $rm = $mother->clone();
+        $father = new Tile(2, TileType::CAMEL_MALE);
+        $rf = $father->clone();
+
+        $rm->markReproduced();
+        $rf->markReproduced();
+
+        $truck->placeTileAt($mother, 1);
+        $truck->placeTileAt($father, 2);
+
+        $kid = function($eid, $pos) use(&$rm, &$rf) : Offspring {
+            return new Offspring(new Tile($rm->id+300, TileType::CAMEL_KID),
+                                 $rm, $rf, new Space($eid, $pos));
+        };
 
         $expected = p([
             t(1, TileType::CAMEL_FEMALE, [
@@ -169,7 +182,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
-                        e(1, 2, null, 3, TileType::CAMEL_KID),
+                        e(1, 2, null, $kid(1,3)),
                         e(2, 1),
                     ])
                 ])),
@@ -177,7 +190,7 @@ final class PossiblePlacementTest extends TestCase
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, 3, TileType::CAMEL_KID),
+                        e(2, 2, null, $kid(0, 1)),
                     ])
                 ])),
             ]),
@@ -192,7 +205,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
-                        e(1, 2, null, 3, TileType::CAMEL_KID),
+                        e(1, 2, null, $kid(1, 3)),
                         e(2, 1),
                     ])
                 ])),
@@ -200,7 +213,7 @@ final class PossiblePlacementTest extends TestCase
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, 3, TileType::CAMEL_KID),
+                        e(2, 2, null, $kid(0, 1)),
                     ])
                 ])),
             ]),
@@ -209,10 +222,5 @@ final class PossiblePlacementTest extends TestCase
         $this->assertEquals(
             $expected,
             PossiblePlacement::possiblePlacementFor($truck, $encs));
-    }
-
-    private int $tile_id = 1;
-    private function tile(TileType $type) {
-        return new Tile($this->tile_id++, $type);
     }
 }

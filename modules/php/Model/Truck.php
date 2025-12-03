@@ -203,6 +203,13 @@ class Truck {
         $this->tiles[$p] = $tile;
     }
 
+    public function tileAt(int $pos): Tile {
+        if ($pos <= 0 || $pos > self::CAPACITY) {
+            throw new ModelException("invalid position $pos of truck");
+        }
+        return $this->tiles[$pos-1];
+    }
+
     public function __toString(): string
     {
         return "Truck(id=$this->id,tiles=" . Utils::arrayToString($this->tiles) . ")";

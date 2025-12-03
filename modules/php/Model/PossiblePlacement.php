@@ -34,9 +34,7 @@ class PlacementForEnclosure {
         public int $enclosure_pos, // not clear if needed
         // FIXME: allowed to be null, but we never make it null. Allow that.
         public ?PossiblePlacement $next = null,
-        // FIXME: put these in a class?
-        public int $offspring_pos = 0,
-        public TileType $offspring_type = TileType::EMPTY) {}
+        public ?Offspring $offspring = null) {}
 
     public function serialize(): array {
         $data = [
@@ -48,9 +46,10 @@ class PlacementForEnclosure {
             $data['next'] = $this->next->serialize();
         }
 
-        if ($this->offspring_pos) {
-            $data['offspring_pos'] = $this->offspring_pos;
-            $data['offspring_type'] = $this->offspring_type;
+        if ($this->offspring) {
+            $data['offspring_enclosure_id'] = $this->offspring->childSpace->enclosure_id;
+            $data['offspring_pos'] = $this->offspring->childSpace->pos;
+            $data['offspring_type'] = $this->offspring->child->type->value;
         }
         return $data;
     }
@@ -98,12 +97,7 @@ class PossiblePlacement {
         $enc = $clones[$eid];
         $enc->placeTile($tile, $enclosure_pos);
 
-        $offspring = $enc->checkForOffspring($clones[0]);
-        if ($offspring) {
-            // FIXME: child may end up in barn
-            $pfe->offspring_pos = $offspring->childSpace->pos;
-            $pfe->offspring_type = $offspring->child->type;
-        }
+        $pfe->offspring = $enc->checkForOffspring($clones[0]);
 
         if (!$truck->isEmpty()) {
             $pfe->next = self::possiblePlacementFor($truck, $clones);
