@@ -30,9 +30,9 @@ final class EnclosureTest extends TestCase
         $pos = 1;
         $id = 10;
         for ($i = 0; $i < 10; $i++) {
-            $this->assertEquals(new Placement($pos++), $barn->placeTile(new Tile($id++, TileType::CAMEL)));
-            $this->assertEquals(new Placement($pos++), $barn->placeTile(new Tile($id++, TileType::BARROW)));
-            $this->assertEquals(new Placement($pos++), $barn->placeTile(new Tile($id++, TileType::ELEPHANT_FEMALE)));
+            $this->assertEquals(new Placement(new Space(0, $pos++)), $barn->placeTile(new Tile($id++, TileType::CAMEL)));
+            $this->assertEquals(new Placement(new Space(0, $pos++)), $barn->placeTile(new Tile($id++, TileType::BARROW)));
+            $this->assertEquals(new Placement(new Space(0, $pos++)), $barn->placeTile(new Tile($id++, TileType::ELEPHANT_FEMALE)));
         }
     }
 
@@ -40,7 +40,7 @@ final class EnclosureTest extends TestCase
     {
         $enc = Enclosure::forTest(1, 3, 2);
 
-        $this->assertEquals(new Placement(1), $enc->placeTile(new Tile(1, TileType::ZEBRA)));
+        $this->assertEquals(new Placement(new Space(1, 1)), $enc->placeTile(new Tile(1, TileType::ZEBRA)));
 
         // same species can still go in
         $this->assertEquals(2, $enc->availablePos(TileType::ZEBRA_FEMALE));
@@ -50,16 +50,16 @@ final class EnclosureTest extends TestCase
         $this->assertEquals(4, $enc->availablePos(TileType::KIOSK));
 
         // we can place another zebra
-        $this->assertEquals(new Placement(2), $enc->placeTile(new Tile(2, TileType::ZEBRA_FEMALE)));
+        $this->assertEquals(new Placement(new Space(1, 2)), $enc->placeTile(new Tile(2, TileType::ZEBRA_FEMALE)));
         // anod another
-        $this->assertEquals(new Placement(3, true), $enc->placeTile(new Tile(2, TileType::ZEBRA_MALE)));
+        $this->assertEquals(new Placement(new Space(1, 3), true), $enc->placeTile(new Tile(2, TileType::ZEBRA_MALE)));
         // but now we're full of animals
         $this->assertEquals(0, $enc->availablePos(TileType::ZEBRA_MALE));
 
         // 2 stalls can still go in
         $this->assertEquals(4, $enc->availablePos(TileType::KIOSK));
-        $this->assertEquals(new Placement(4), $enc->placeTile(new Tile(4, TileType::KIOSK)));
-        $this->assertEquals(new Placement(5), $enc->placeTile(new Tile(4, TileType::BARROW)));
+        $this->assertEquals(new Placement(new Space(1, 4)), $enc->placeTile(new Tile(4, TileType::KIOSK)));
+        $this->assertEquals(new Placement(new Space(1, 5)), $enc->placeTile(new Tile(4, TileType::BARROW)));
         // and then we're full
         $this->assertEquals(0, $enc->availablePos(TileType::POPCORN));
     }
@@ -71,9 +71,9 @@ final class EnclosureTest extends TestCase
         $t1 = new Tile(1, TileType::ZEBRA);
         $t2 = new Tile(2, TileType::ZEBRA_FEMALE);
         $t3 = new Tile(3, TileType::KIOSK);
-        $this->assertEquals(new Placement(1), $enc->placeTile($t1));
-        $this->assertEquals(new Placement(2), $enc->placeTile($t2));
-        $this->assertEquals(new Placement(4), $enc->placeTile($t3));
+        $this->assertEquals(new Placement(new Space(1, 1)), $enc->placeTile($t1));
+        $this->assertEquals(new Placement(new Space(1, 2)), $enc->placeTile($t2));
+        $this->assertEquals(new Placement(new Space(1, 4)), $enc->placeTile($t3));
 
         $this->assertEquals($t2, $enc->takeTileAt(2));
         $this->assertEquals([1 => $t1, 4 => $t3], $enc->nonEmptyContents());
@@ -82,7 +82,7 @@ final class EnclosureTest extends TestCase
         $this->assertEquals([4 => $t3], $enc->nonEmptyContents());
 
         // no species so we can now place other species.
-        $this->assertEquals(new Placement(1), $enc->placeTile(new Tile(4, TileType::ELEPHANT)));
+        $this->assertEquals(new Placement(new Space(1, 1)), $enc->placeTile(new Tile(4, TileType::ELEPHANT)));
     }
 
     public function testCheckForOffspring(): void {

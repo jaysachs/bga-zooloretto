@@ -199,7 +199,7 @@ class Model {
                 $amt = min($this->ps->getBankMoney(), $encl->coin_bonus);
                 $this->payPlayer($player, $amt);
             }
-            $pos = $placement->pos;
+            $pos = $placement->space->pos;
             if ($pos <> $delivery->enclosure_pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");

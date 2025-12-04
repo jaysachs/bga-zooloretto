@@ -29,16 +29,16 @@ namespace Bga\Games\zooloretto\Model;
 
 class Placement {
     public function __construct(
-        public int $pos,
+        public Space $space,
         public bool $completedEnclosure = false,
     ) {}
 
     public function equals(Placement $other): bool {
-        return $this->pos == $other->pos && $this->completedEnclosure == $other->completedEnclosure;
+        return $this->space == $other->space && $this->completedEnclosure == $other->completedEnclosure;
     }
 
     public function __toString(): string
     {
-        return "Placement(pos={$this->pos},completed={$this->completedEnclosure})";
+        return "Placement(space={$this->space},completed={$this->completedEnclosure})";
     }
 }

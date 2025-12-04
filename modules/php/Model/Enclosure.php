@@ -272,15 +272,15 @@ class Enclosure {
         }
         if ($this->isBarn()) {
             // barns never completed
-            return new Placement($this->doPlaceTile($tile, $pos, 1, $this->total_capacity));
+            return new Placement(new Space($this->id, $this->doPlaceTile($tile, $pos, 1, $this->total_capacity)));
         }
         if ($tile->type->isAnimal()) {
             $pos = $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
-            return new Placement($pos, $this->allAnimalPositionsFilled());
+            return new Placement(new Space($this->id, $pos), $this->allAnimalPositionsFilled());
         }
         if ($tile->type->isStall()) {
             // stalls do not complete
-            return new Placement($this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity));
+            return new Placement(new Space($this->id, $this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity)));
         }
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
@@ -313,17 +313,9 @@ class Enclosure {
         $this->contents[$fp] = $father;
         $this->contents[$mp] = $mother;
 
-        // /** @var ?Space */
-        // $space = null;
-        $pos = $this->availablePos($child->type);
-        if ($pos == 0) {
-            $pos = $barn->placeTile($child)->pos;
-            $space = new Space($barn->id, $pos);
-        } else {
-            $pos = $this->placeTile($child)->pos;
-            $space = new Space($this->id, $pos);
-        }
-
+        $space = ($this->availablePos($child->type) == 0)
+            ? $barn->placeTile($child)->space
+            : $this->placeTile($child)->space;
         return new Offspring($child, $mother, $father, $space);
     }
 
