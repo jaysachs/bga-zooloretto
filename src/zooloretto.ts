@@ -10,7 +10,7 @@ interface ZPlayer extends Player {
 interface TruckSpace {
   pos: number;
   // Empty string for empty.
-  tile_type: string;
+  tile: string;
 }
 
 interface Truck {
@@ -22,19 +22,14 @@ interface Truck {
   contents: TruckSpace[];
 }
 
-interface EnclosureSpace {
+interface EnclosureContents {
   pos: number;
   tile: string;
 }
 
 interface Enclosure {
   enclosure_id: number;
-  spaces: EnclosureSpace[];
-}
-
-interface PlayerEnclosure {
-  player_id: number;
-  enclosures: Enclosure[];
+  contents: EnclosureContents[];
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
@@ -44,7 +39,8 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   drawntile: string;
   // Should always be 3.
   trucks: Truck[];
-  player_enclosures: PlayerEnclosure[];
+  // keyed by player_id
+  enclosures: Enclosure[][];
   endScores: any;
 }
 
@@ -57,7 +53,6 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
 interface Space {
   enclosure_id: number;
   pos: number;
-  enclosure(): HTMLElement;
 }
 
 interface Offspring {
@@ -131,7 +126,7 @@ interface PlayState {
   can_draw: boolean;
   can_expand: boolean;
   available_trucks: AvailableTruck[];
-  possible_discards: number[];
+  possible_discards: Space[];
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossiblePurchase[];
@@ -576,18 +571,18 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<number[]> {
+class DiscardTileFlow extends ZooFlow<Space[]> {
   constructor(g : ZoolorettoGame) { super(g); }
 
-  override doStart(discardables: number[]) {
+  override doStart(discardables: Space[]) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
     this.addRestartTurnButton();
 
-    discardables.forEach((pos: number) => {
+    discardables.forEach((space: Space) => {
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, 0, pos),
+        Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
         // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
-        (evt) => this.confirmDiscard(pos));
+        (evt) => this.confirmDiscard(space.pos));
     });
   }
 
@@ -773,8 +768,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private renderTrucks(): void {
     for (let truck of this.gamedatas.trucks) {
       truck.contents.forEach(contents => {
-        if (contents.tile_type) {
-          Elements.truckSpace(truck.truck_id, contents.pos).append(this.makeTileSpan(contents.tile_type));
+        if (contents.tile) {
+          Elements.truckSpace(truck.truck_id, contents.pos).append(this.makeTileSpan(contents.tile));
         }
       });
 
@@ -787,14 +782,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private renderEnclosures(): void {
-    for (let penc of this.gamedatas.player_enclosures) {
-      for (let enc of penc.enclosures) {
-        for (let es of enc.spaces) {
+    for (let player_id in this.gamedatas.enclosures) {
+      this.gamedatas.enclosures[player_id]!.forEach(enc =>
+        enc.contents.forEach(es => {
           if (es.tile) {
-            Elements.enclosureSpace(penc.player_id, enc.enclosure_id, es.pos).append(this.makeTileSpan(es.tile));
+            Elements.enclosureSpace(Number(player_id), enc.enclosure_id, es.pos).append(this.makeTileSpan(es.tile));
           }
-        }
-      }
+        })
+      )
     }
   }
 

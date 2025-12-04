@@ -81,6 +81,24 @@ class Game extends \Bga\GameFramework\Table
 	{
 		$model = new Model($this, intval($this->getActivePlayerId()));
 		$stock = $model->getStock();
+		$encs = [];
+		foreach ($model->getAllPlayers() as $player) {
+			$encs[$player->id] = array_map(
+				function (Enclosure $e) : array {
+					$contents = [];
+					foreach ($e->nonEmptyContents() as $pos => $tile) {
+						$contents[] = [
+							'pos' => $pos,
+							'tile' => $tile->type->value,
+						];
+					}
+					return [
+						'enclosure_id' => $e->id,
+						'contents' => $contents,
+					];
+				},
+				$model->getEnclosuresForPlayer($player->id));
+		}
 		$datas = [
             'trucks' => array_map(function (Truck $truck): array {
 				$tiles = $truck->getAllTiles();
@@ -89,33 +107,13 @@ class Game extends \Bga\GameFramework\Table
 					'taken_by_player_id' => $truck->taken_by,
 					'contents' => array_map(
 						function(Tile $tile, int $pos): array {
-							return ['pos' => $pos, 'tile_type' => $tile == null ? null : $tile->type->value ];
+							return ['pos' => $pos, 'tile' => $tile == null ? null : $tile->type->value ];
 						},
 						$tiles,
 						array_keys($tiles)),
 				];
 			}, $model->getTrucks()),
-            'player_enclosures' => array_merge(array_map(
-				fn (Player $p) => [
-					'player_id' => $p->id,
-					'enclosures' => array_merge(array_map(
-						function (Enclosure $e) : array {
-							$contents = [];
-							foreach ($e->nonEmptyContents() as $pos => $tile) {
-								$contents[] = [
-									'pos' => $pos,
-									'tile_type' => $tile->type->value,
-								];
-							}
-							return [
-								'enclosure_id' => $e->id,
-								'spaces' => $contents,
-							];
-						},
-						$model->getEnclosuresForPlayer($p->id)
-					)),
-				],
-				$model->getAllPlayers())),
+            'enclosures' => $encs,
             'primary_pile_size' => $stock->primaryCount(),
             'endgame_pile_size' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
