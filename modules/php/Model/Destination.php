@@ -43,4 +43,12 @@ class Destination {
         return $this->space == $other->space && $this->offspring == $other->offspring;
     }
 
+    public function serialize(): mixed {
+		return [
+			'space' => $this->space->serialize(),
+			'offspring' => ($this->offspring ? $this->offspring->serialize() : null),
+		];
+	}
+
+
 }

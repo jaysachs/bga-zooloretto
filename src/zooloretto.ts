@@ -1,40 +1,15 @@
+//
+// interfaces for gamedatas
+//
 interface ZPlayer extends Player {
   player_id: number;
   money: number;
   purchased_extensions: number;
 }
 
-interface Delivery {
-  truck_pos: number;
-  placement: EnclosurePlacement | 'coin';
-}
-
-interface EnclosurePlacement {
-  enclosure_id: number;
-  enclosure_pos: number;
-  child_enclosure_id: number;
-  child_enclosure_pos: number;
-  child_type: string | undefined;
-}
-
-interface TruckLocation{ truck_id: number, truck_pos: number };
-interface PlaceDrawnTileArgs {
-  tile: string,
-  drawn_from_endgame_pile: boolean,
-  available_spaces: TruckLocation[]
-};
-
-type PlacedTile = {
-  // truck_id is implicit
-  truck_pos: number;
-  enclosure_id: number;
-  enclosure_pos: number;
-};
-
 interface TruckSpace {
   pos: number;
-
-  // Empty string for empty. FIXME: use null?
+  // Empty string for empty.
   tile_type: string;
 }
 
@@ -49,7 +24,7 @@ interface Truck {
 
 interface EnclosureSpace {
   pos: number;
-  tile_type: string;
+  tile: string;
 }
 
 interface Enclosure {
@@ -73,6 +48,47 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   endScores: any;
 }
 
+//
+// interfaces for args & notifs
+//
+
+// general use
+
+interface Space {
+  enclosure_id: number;
+  pos: number;
+}
+
+interface Offspring {
+  spacs: Space;
+  tile: string;
+}
+
+interface Destination {
+  space: Space;
+  offspring: Offspring;
+}
+
+// FIXME: is this useful?
+interface TruckLocation {
+  truck_id: number,
+  truck_pos: number
+};
+
+
+// PlaceDrawnTile state
+
+interface PlaceDrawnTileArgs {
+  tile: string,
+  drawn_from_endgame_pile: boolean,
+  available_spaces: TruckLocation[]
+};
+
+// PlayerTurn state
+
+
+
+
 interface PossibleEnclosurePlacement {
   enclosure_id: number;
   enclosure_pos: number;
@@ -89,22 +105,16 @@ interface AvailableTruck {
   playable: PossiblePlacement[];
 }
 
-interface Space {
-  enclosure_id: number;
-  pos: number;
-}
-
 interface PossibleMove {
   src: Space;
-  dests: Space[];
+  dests: Destination[];
 }
 
 interface PossiblePurchase {
   player_id: number;
   barn_pos: number;
-  dests: Space[];
+  dests: Destination[];
 }
-
 
 interface ExchangeGroup {
 	enclosure_id: number;
@@ -126,6 +136,22 @@ interface PlayState {
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossiblePurchase[];
 }
+
+// notif_TakeTruckAndPlaceTiles
+
+interface Delivery {
+  truck_pos: number;
+  placement: EnclosurePlacement | 'coin';
+}
+
+interface EnclosurePlacement {
+  enclosure_id: number;
+  enclosure_pos: number;
+  child_enclosure_id: number;
+  child_enclosure_pos: number;
+  child_type: string | undefined;
+}
+
 
 //
 // HTML structures
@@ -412,26 +438,26 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
 
   private selectDestinationForPurchase(pp: PossiblePurchase) {
     this.initStatusBar(_("Select a destination for the purchased tile"));
-    pp.dests.forEach((dest: Space) =>
+    pp.dests.forEach((dest: Destination) =>
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, dest.enclosure_id, dest.pos),
+        Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos),
         (evt) => {
           this.slide(
             Elements.enclosureTile(pp.player_id, 0, pp.barn_pos),
-            Elements.enclosureSpace(this.player_id, dest.enclosure_id, dest.pos));
+            Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos));
           this.confirmPurchase(pp, dest)
         }
       ));
     this.addRestartTurnButton();
   }
 
-  private confirmPurchase(pp: PossiblePurchase, dest: Space) {
+  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmActionButton('actPurchaseTile', {
       from_player_id: pp.player_id,
       barn_pos: pp.barn_pos,
-      enclosure_id: dest.enclosure_id,
-      enclosure_pos: dest.pos
+      enclosure_id: dest.space.enclosure_id,
+      enclosure_pos: dest.space.pos
     });
     this.addRestartTurnButton();
   }
@@ -484,6 +510,14 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
     this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
     this.addRestartTurnButton();
   }
+};
+
+
+type PlacedTile = {
+  // truck_id is implicit
+  truck_pos: number;
+  enclosure_id: number;
+  enclosure_pos: number;
 };
 
 class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
@@ -581,9 +615,9 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   private chooseDest(pm: PossibleMove) {
     this.initStatusBar(_('Select a destination space'));
     this.addRestartTurnButton();
-    pm.dests.forEach((dest: Space) => {
+    pm.dests.forEach((dest: Destination) => {
       let elem = Elements.enclosureTile(this.player_id, pm.src.enclosure_id, pm.src.pos);
-      let destElem = Elements.enclosureSpace(this.player_id, dest.enclosure_id, dest.pos)
+      let destElem = Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos)
       this.addSelectableOnclick(destElem,
         (evt) => this.slide(elem, destElem)
           .then(() => { destElem.classList.remove(CSS.SELECTED); destElem.classList.add(CSS.MOVED); this.confirmMove(pm.src, dest); })
@@ -591,10 +625,10 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     });
   }
 
-  private confirmMove(src: Space, dest: Space) {
+  private confirmMove(src: Space, dest: Destination) {
     this.initStatusBar(_('Confirm move'));
     this.addConfirmActionButton('actMoveTile', {
-      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.enclosure_id, dest_pos: dest.pos
+      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
     });
     this.addRestartTurnButton();
   }
@@ -754,11 +788,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private renderEnclosures(): void {
     for (let penc of this.gamedatas.player_enclosures) {
-      penc.player_id;
       for (let enc of penc.enclosures) {
         for (let es of enc.spaces) {
-          if (es.tile_type) {
-            Elements.enclosureSpace(penc.player_id, enc.enclosure_id, es.pos).append(this.makeTileSpan(es.tile_type));
+          if (es.tile) {
+            Elements.enclosureSpace(penc.player_id, enc.enclosure_id, es.pos).append(this.makeTileSpan(es.tile));
           }
         }
       }
@@ -996,7 +1029,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims);
   }
 
-  private async notif_MoveTile(args: {player_id: number, src: Space, dest: Space, money: number}) {
+  private async notif_MoveTile(args: {
+    player_id: number,
+    src: Space,
+    dest: Space,
+    money: number
+  }) {
     if (args.player_id != this.player_id) {
       this.animationManager.slideAndAttach(
         Elements.enclosureTile(args.player_id, args.src.enclosure_id, args.src.pos),
@@ -1006,7 +1044,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoney(args.player_id, args.money);
   }
 
-  private async notif_DiscardTile(args: { player_id: number, money: number, barn_pos: number }) {
+  private async notif_DiscardTile(args: {
+    player_id: number,
+    money: number,
+    barn_pos: number
+  }) {
     await this.animationManager.slideOutAndDestroy(
       Elements.enclosureTile(args.player_id, 0, args.barn_pos),
       $(IDS.OFF_BOARD),

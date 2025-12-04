@@ -31,7 +31,6 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Destination;
 use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
@@ -55,26 +54,6 @@ class PlayerTurn extends AbstractState
 	public function onEnteringState(int $active_player_id): void {
 	}
 
-	private function serializeSpace(Space $s): mixed {
-		return [
-			'enclosure_id' => $s->enclosure_id,
-			'pos' => $s->pos,
-		];
-	}
-
-	private function serializeDestination(Destination $s): mixed {
-		$result = [
-			'enclosure_id' => $s->space->enclosure_id,
-			'pos' => $s->space->pos,
-		];
-		if ($s->offspring !== null) {
-			$result['child_enclosure_id'] = $s->offspring->childSpace->enclosure_id;
-			$result['child_pos'] = $s->offspring->childSpace->pos;
-			$result['child_tile'] = $s->offspring->child->type->value;
-		}
-		return $result;
-	}
-
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
@@ -85,14 +64,14 @@ class PlayerTurn extends AbstractState
 		], array_keys($tpp), array_values($tpp));
 
 		$pm = array_map(fn (PossibleMove $pm) => [
-			'src' => $this->serializeSpace($pm->src),
-			'dests' => array_map(fn ($d) => $this->serializeDestination($d), $pm->dests),
+			'src' => $pm->src->serialize(),
+			'dests' => array_map(fn ($d) => $d->serialize(), $pm->dests),
 		], $model->getPossibleMoves());
 
 		$pb = array_map(fn (PossibleBuy $b) => [
 			'player_id' => $b->player_id,
 			'barn_pos' => $b->move->src->pos,
-			'dests' => array_map(fn ($d) => $this->serializeDestination($d), $b->move->dests),
+			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
 		$px = array_map(fn (PossibleExchange $px) => [
@@ -104,7 +83,7 @@ class PlayerTurn extends AbstractState
 				'enclosure_id' => $px->dest_enclosure_id,
 				'positions' => $px->dest_positions,
 			],
-			'children' => array_map(fn (Space $s) => $this->serializeSpace($s), $px->children),
+			'children' => array_map(fn (Space $s) => $s->serialize(), $px->children),
 		], $model->getPossibleExchanges());
 
 		return [
@@ -236,8 +215,8 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} moved a tile'),
 			[
 				'player_id' => $active_player_id,
-				'src' => $this->serializeSpace($src),
-				'dest' => $this->serializeSpace($dest),
+				'src' => $src->serialize(),
+				'dest' => $dest->serialize(),
 				'money' => $model->getActivePlayer()->money,
 			]
 		);

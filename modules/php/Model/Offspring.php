@@ -45,4 +45,12 @@ class Offspring {
             && $this->father == $other->father
             && $this->childSpace == $other->childSpace;
     }
+
+    public function serialize(): mixed {
+        return [
+			'space' => $this->childSpace->serialize(),
+			'tile' => $this->child->type->value,
+		];
+
+    }
 }
