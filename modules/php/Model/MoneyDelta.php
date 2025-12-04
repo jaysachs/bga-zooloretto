@@ -34,6 +34,10 @@ class MoneyDelta {
         public readonly array $player_delta = [])
     {}
 
+    public static function chargePlayer(int $player_id, Cost $cost): MoneyDelta {
+        return new MoneyDelta($cost->amount(), [ $player_id => -$cost->amount() ]);
+    }
+
     public function equals(MoneyDelta $other) {
         return $this->bank_delta == $other->bank_delta
            && $this->player_delta == $other->player_delta;

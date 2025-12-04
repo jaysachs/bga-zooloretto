@@ -56,13 +56,19 @@ interface Space {
 }
 
 interface Offspring {
-  spacs: Space;
+  space: Space;
   tile: string;
+}
+
+interface MoneyDelta {
+  bank: number;
+  players: number[];
 }
 
 interface Destination {
   space: Space;
   offspring: Offspring;
+  money_delta: MoneyDelta;
 }
 
 // FIXME: is this useful?
@@ -80,10 +86,9 @@ interface PlaceDrawnTileArgs {
   available_spaces: TruckLocation[]
 };
 
+
+
 // PlayerTurn state
-
-
-
 
 interface PossibleEnclosurePlacement {
   space: Space;
@@ -126,7 +131,7 @@ interface PlayState {
   can_draw: boolean;
   can_expand: boolean;
   available_trucks: AvailableTruck[];
-  possible_discards: Space[];
+  possible_discards: Destination[];
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossiblePurchase[];
@@ -571,24 +576,25 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<Space[]> {
+class DiscardTileFlow extends ZooFlow<Destination[]> {
   constructor(g : ZoolorettoGame) { super(g); }
 
-  override doStart(discardables: Space[]) {
+  override doStart(discardables: Destination[]) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
     this.addRestartTurnButton();
 
-    discardables.forEach((space: Space) => {
+    discardables.forEach((dest: Destination) => {
+      let space = dest.space;
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
         // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
-        (evt) => this.confirmDiscard(space.pos));
+        (evt) => this.confirmDiscard(dest));
     });
   }
 
-  private confirmDiscard(pos: number) {
+  private confirmDiscard(dest: Destination) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmActionButton('actDiscardTile', { barn_pos: pos });
+    this.addConfirmActionButton('actDiscardTile', { barn_pos: dest.space.pos });
     this.addRestartTurnButton();
   }
 }
