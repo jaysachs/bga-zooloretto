@@ -8,6 +8,7 @@ STATS=modules/php/Stats.php
 GENSTATS=$(ROOT)/bgautil/genstats/genstats.php
 WORK=work
 STUBS=$(WORK)/module/table/table.game.php
+TS_STUBS=$(WORK)/bga-framework.d.ts
 TESTSTUBS=$(WORK)/test/module/table/table.game.php
 PSALM_CONFIG=psalm.xml
 JS=$(GAME).js
@@ -17,7 +18,7 @@ COLORMAP=src/colormap.ts
 
 build: $(JS) $(STUBS) # $(STATS)
 
-$(JS): $(COLORMAP) src/*.ts
+$(JS): $(COLORMAP) src/*.ts tsconfig.json $(TS_STUBS)
 	npm run build:ts
 
 $(STATS): $(GENSTATS) stats.json
@@ -28,6 +29,9 @@ $(COLORMAP): misc/colormap.php gameinfos.inc.php
 
 $(WORK):
 	mkdir $(WORK)
+
+$(TS_STUBS): $(WORK) bga-framework.d.ts
+	perl -p -e 's/bRealtime: boolean;/bRealtime: boolean;\n  notifqueue: GameNotifQueue;\n/' bga-framework.d.ts > $(TS_STUBS)
 
 $(STUBS): $(WORK) _ide_helper.php Makefile _local_ide_helper.php
 	mkdir -p $(WORK)/module/table
