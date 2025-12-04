@@ -1933,6 +1933,8 @@ namespace Bga\GameFramework {
 
         /**
          * Translation function using appropriate gettext domain.
+         * 
+         * @deprecated use clienttranslate instead.
          */
         protected function _(string $text): string
         {            
@@ -2698,6 +2700,54 @@ namespace Bga\GameFramework\Helpers {
          */
         public static function encode(mixed $obj): string {
             return '';
+        }
+    }
+}
+
+namespace Bga\GameFramework\GameResult {
+    class Player
+    {
+        public function __construct(
+            public int $id,
+            public string $name,
+            public string $color = '000000',
+            public ?int $score = null,
+            public ?int $scoreAux = null,
+        ) {}
+
+        /**
+         * @return Player
+         */
+        public static function fromPlayerDb(array $playerDb): self {
+            return new self(0, '');
+        }
+
+        /**
+         * @return Player[]
+         */
+        public static function fromPlayersDb(array $playersDb): array {
+            return [];
+        }
+    }
+
+    class GameResult
+    {
+
+        /**
+         * Score all players separately (no-team game).
+         *
+         * @param Player[] $players The players at this table. Currently, real players only.
+         * @param bool $reverseScore Whether negative scores should be rewarded
+         * @param bool $reverseScoreAux Whether auxiliary score ordering is reversed
+         *
+         * @return self
+         */
+        public static function individualRanking(
+            array $players,
+            bool $reverseScore = false,
+            bool $reverseScoreAux = false,
+        ) {
+            return new self();
         }
     }
 }
