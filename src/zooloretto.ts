@@ -106,7 +106,7 @@ interface PossibleMove {
 }
 
 interface PossiblePurchase {
-  player_id: number;
+  from_player_id: number;
   src: Space;
   dests: Destination[];
 }
@@ -425,7 +425,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
     possible_purchases.forEach((pp: PossiblePurchase) =>
       this.addSelectableOnclick(
-        Elements.enclosureSpace(pp.player_id, pp.src.enclosure_id, pp.src.pos),
+        Elements.enclosureSpace(pp.from_player_id, pp.src.enclosure_id, pp.src.pos),
         (evt) => this.selectDestinationForPurchase(pp)
     ));
     this.addRestartTurnButton();
@@ -438,7 +438,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
         Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos),
         (evt) => {
           this.slide(
-            Elements.enclosureTile(pp.player_id, pp.src.enclosure_id, pp.src.pos),
+            Elements.enclosureTile(pp.from_player_id, pp.src.enclosure_id, pp.src.pos),
             Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos));
           this.confirmPurchase(pp, dest)
         }
@@ -449,7 +449,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
   private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmActionButton('actPurchaseTile', {
-      from_player_id: pp.player_id,
+      from_player_id: pp.from_player_id,
       barn_pos: pp.src.pos,
       enclosure_id: dest.space.enclosure_id,
       enclosure_pos: dest.space.pos

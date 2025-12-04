@@ -29,7 +29,7 @@ namespace Bga\Games\zooloretto\Model;
 
 class PossibleBuy {
     public function __construct(
-        public readonly int $player_id,
+        public readonly int $from_player_id,
         public readonly PossibleMove $move) {
             if ($move->src->enclosure_id <> 0) {
                 throw new ModelException("Can only purchase from barn");

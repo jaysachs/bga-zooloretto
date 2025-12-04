@@ -69,7 +69,7 @@ class PlayerTurn extends AbstractState
 		], $model->getPossibleMoves());
 
 		$pb = array_map(fn (PossibleBuy $b) => [
-			'player_id' => $b->player_id,
+			'from_player_id' => $b->from_player_id,
 			'src' => $b->move->src->serialize(),
 			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());

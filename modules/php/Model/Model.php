@@ -417,7 +417,7 @@ class Model {
 
         $found = false;
         foreach ($this->getPurchaseableTiles() as $pt) {
-            if ($pt->player_id == $from_player_id && $pt->move->src == $src) {
+            if ($pt->from_player_id == $from_player_id && $pt->move->src == $src) {
                 foreach ($pt->move->dests as $dest) {
                     if ($dest->space == $target) {
                         $found = true;

@@ -40,7 +40,7 @@ class PossibleExchange {
         public readonly array $src_positions,
         public readonly int $dest_enclosure_id,
         public readonly array $dest_positions,
-        // FIXME: not included in equals/toString, only needed as "output". Maybe move to a separate object.
+        // FIXME: should be Offspring array ...
         public readonly array $children,
 ) {
         if (count($src_positions) <> count($dest_positions)) {
@@ -53,9 +53,9 @@ class PossibleExchange {
 
     public function matches(PossibleExchange $other): bool {
         return $this->src_enclosure_id == $other->src_enclosure_id
-            && count(array_diff($this->src_positions, $other->src_positions)) == 0
+            && $this->src_positions == $other->src_positions
             && $this->dest_enclosure_id == $other->dest_enclosure_id
-            && count(array_diff($this->dest_positions, $other->dest_positions)) == 0
+            && $this->dest_positions == $other->dest_positions
             ;
     }
 

@@ -33,13 +33,15 @@ class PlacementForEnclosure {
         public Space $space,
         // FIXME: allowed to be null, but we never make it null. Allow that.
         public ?PossiblePlacement $next = null,
-        public ?Offspring $offspring = null) {}
+        public ?Offspring $offspring = null,
+        public ?MoneyDelta $moneyDelta = null) {}
 
     public function serialize(): array {
         return [
             'space' => $this->space->serialize(),
             'next' => $this->next ? $this->next->serialize() : null,
             'offspring' => $this->offspring ? $this->offspring->serialize() : null,
+            'moneyDelta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
         ];
     }
 }

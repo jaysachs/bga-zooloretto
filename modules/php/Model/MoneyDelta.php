@@ -27,31 +27,22 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class Destination {
+class MoneyDelta {
+    /** @param int[] $player_delta keyed by player_id */
     public function __construct(
-        public readonly Space $space,
-        public readonly ?Offspring $offspring = null,
-        public readonly ?MoneyDelta $moneyDelta = null) {
+        public readonly int $bank_delta,
+        public readonly array $player_delta = [])
+    {}
+
+    public function equals(MoneyDelta $other) {
+        return $this->bank_delta == $other->bank_delta
+           && $this->player_delta == $other->player_delta;
     }
 
-    public function __toString(): string
-    {
-        return "es(encid:{$this->space},offspring:{$this->offspring})";
+    public function serialize(): array {
+        return [
+            'bank' => $this->bank_delta,
+            'players' => $this->player_delta,
+        ];
     }
-
-    public function equals(Destination $other): bool
-    {
-        return $this->space == $other->space && $this->offspring == $other->offspring
-         && $this->moneyDelta == $other->moneyDelta;
-    }
-
-    public function serialize(): mixed {
-		return [
-			'space' => $this->space->serialize(),
-			'offspring' => $this->offspring ? $this->offspring->serialize() : null,
-            'moneydelta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
-		];
-	}
-
-
 }
