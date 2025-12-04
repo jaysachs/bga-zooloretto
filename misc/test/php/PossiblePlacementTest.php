@@ -8,7 +8,7 @@ use Bga\Games\zooloretto\Utils;
 use Bga\Games\zooloretto\Model\{Enclosure, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
 
 function e(int $x, int $y, $z = null, ?Offspring $offspring = null) {
-    return new PlacementForEnclosure($x, $y, $z, $offspring);
+    return new PlacementForEnclosure(new Space($x, $y), $z, $offspring);
 }
 function t(int $truck_id, TileType $y, $z = []) { return new PlacementsForTruckPos($truck_id, $y, $z); }
 function p($x = []) { return new PossiblePlacement($x); }
