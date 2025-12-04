@@ -299,13 +299,13 @@ class Model {
         return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
     }
 
-    /** return int[] positions in barn that are discardable */
-    public function getDiscardbleBarnPos(): array {
+    /** return Space[] positions in barn that are discardable */
+    public function getDiscardables(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
             return [];
         }
         $barn = $this->getEnclosuresForPlayer()[0];
-        return array_keys($barn->nonEmptyContents());
+        return array_map(fn ($p) => new Space(0, $p), array_keys($barn->nonEmptyContents()));
     }
 
     public function discardBarnTile(int $pos): Tile {
@@ -568,7 +568,7 @@ class Model {
     }
 
     private ?int $_bankMoney = null;
-    private function bankMoney() : int {
+    public function bankMoney() : int {
         if ($this->_bankMoney === null) {
             $this->_bankMoney = $this->ps->getBankMoney();
         }

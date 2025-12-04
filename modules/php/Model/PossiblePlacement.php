@@ -30,28 +30,17 @@ namespace Bga\Games\zooloretto\Model;
 class PlacementForEnclosure {
 
     public function __construct(
-        public int $enclosure_id,
-        public int $enclosure_pos, // not clear if needed
+        public Space $space,
         // FIXME: allowed to be null, but we never make it null. Allow that.
         public ?PossiblePlacement $next = null,
         public ?Offspring $offspring = null) {}
 
     public function serialize(): array {
-        $data = [
-            'enclosure_id' => $this->enclosure_id,
-            'enclosure_pos' => $this->enclosure_pos,
-            // 'next' => $this->next ? array_map(fn (PossiblePlacement $n) => $n->serialize(), $this->next->placements) : [],
+        return [
+            'space' => $this->space->serialize(),
+            'next' => $this->next ? $this->next->serialize() : null,
+            'offspring' => $this->offspring ? $this->offspring->serialize() : null,
         ];
-        if ($this->next) {
-            $data['next'] = $this->next->serialize();
-        }
-
-        if ($this->offspring) {
-            $data['offspring_enclosure_id'] = $this->offspring->childSpace->enclosure_id;
-            $data['offspring_pos'] = $this->offspring->childSpace->pos;
-            $data['offspring_type'] = $this->offspring->child->type->value;
-        }
-        return $data;
     }
 }
 
@@ -91,7 +80,7 @@ class PossiblePlacement {
 
     /** @param Enclosure[] $enclosures */
     private static function getPlacementsForEnclosure(Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): PlacementForEnclosure {
-        $pfe = new PlacementForEnclosure($eid,$enclosure_pos);
+        $pfe = new PlacementForEnclosure(new Space($eid,$enclosure_pos));
 
         $clones = array_map(fn ($e) => $e->clone(), $enclosures);
         $enc = $clones[$eid];

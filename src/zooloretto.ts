@@ -57,6 +57,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
 interface Space {
   enclosure_id: number;
   pos: number;
+  enclosure(): HTMLElement;
 }
 
 interface Offspring {
@@ -90,8 +91,7 @@ interface PlaceDrawnTileArgs {
 
 
 interface PossibleEnclosurePlacement {
-  enclosure_id: number;
-  enclosure_pos: number;
+  space: Space;
   next: PossiblePlacement[];
 }
 interface PossiblePlacement {
@@ -112,7 +112,7 @@ interface PossibleMove {
 
 interface PossiblePurchase {
   player_id: number;
-  barn_pos: number;
+  src: Space;
   dests: Destination[];
 }
 
@@ -430,7 +430,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
     possible_purchases.forEach((pp: PossiblePurchase) =>
       this.addSelectableOnclick(
-        Elements.enclosureSpace(pp.player_id, 0, pp.barn_pos),
+        Elements.enclosureSpace(pp.player_id, pp.src.enclosure_id, pp.src.pos),
         (evt) => this.selectDestinationForPurchase(pp)
     ));
     this.addRestartTurnButton();
@@ -443,7 +443,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
         Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos),
         (evt) => {
           this.slide(
-            Elements.enclosureTile(pp.player_id, 0, pp.barn_pos),
+            Elements.enclosureTile(pp.player_id, pp.src.enclosure_id, pp.src.pos),
             Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos));
           this.confirmPurchase(pp, dest)
         }
@@ -455,7 +455,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmActionButton('actPurchaseTile', {
       from_player_id: pp.player_id,
-      barn_pos: pp.barn_pos,
+      barn_pos: pp.src.pos,
       enclosure_id: dest.space.enclosure_id,
       enclosure_pos: dest.space.pos
     });
@@ -563,12 +563,12 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.initStatusBar(_('Choose a destination for the selected tile'));
     this.addRestartTurnButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-      let encElem = Elements.enclosureSpace(this.player_id, pep.enclosure_id, pep.enclosure_pos);
+      let encElem = Elements.enclosureSpace(this.player_id, pep.space.enclosure_id, pep.space.pos);
       encElem.classList.add(CSS.TARGETABLE);
       this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then( () => {
-          this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.enclosure_id, enclosure_pos: pep.enclosure_pos});
+          this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
           this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
         });
       });
@@ -1103,13 +1103,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private notif_ExchangeEnclosureAnimals(args: {
     player_id: number,
-    player_name: number
 		src_enclosure_id: number,
 		src_positions: number[],
 		dest_enclosure_id: number,
 		dest_positions: number[],
-		src_animal_type: string,
-		dest_animal_type: string,
     money: number,
   }) {
     if (args.player_id == this.player_id) {

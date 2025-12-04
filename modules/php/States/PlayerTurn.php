@@ -70,7 +70,7 @@ class PlayerTurn extends AbstractState
 
 		$pb = array_map(fn (PossibleBuy $b) => [
 			'player_id' => $b->player_id,
-			'barn_pos' => $b->move->src->pos,
+			'src' => $b->move->src->serialize(),
 			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
@@ -86,12 +86,14 @@ class PlayerTurn extends AbstractState
 			'children' => array_map(fn (Space $s) => $s->serialize(), $px->children),
 		], $model->getPossibleExchanges());
 
+		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
+
 		return [
 			'can_draw' => $model->canDraw(),
 			'available_trucks' => $trucks_available,
 			'possible_moves' => $pm,
 			'possible_purchases' => $pb,
-			'possible_discards' => $model->getDiscardbleBarnPos(),
+			'possible_discards' => $pd,
 			'possible_exchanges' => $px,
 			'can_expand' => $model->canExpand(),
 			'lastround' => $model->getStock()->inLastRound(),
