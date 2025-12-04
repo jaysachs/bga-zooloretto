@@ -65,7 +65,7 @@ class PlacementsForTruckPos {
 }
 
 class PossiblePlacement {
-    /** @param PlacementsForTruckPos[] */
+    /** @param PlacementsForTruckPos[] $placements */
     public function __construct(private array $placements = []) {}
 
 
