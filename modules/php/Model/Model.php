@@ -345,8 +345,14 @@ class Model {
             foreach ($enclosures as $enc) {
                 $ap = $enc->availablePos($tile->type);
                 if ($ap > 0) {
+                    $pl = $enc->placeTile($tile, $ap);
                     $offspring = $enc->checkForOffspring($barn);
-                    $dests[] = new Destination(new Space($enc->id, $ap), $offspring);
+                    $moneyDelta = null;
+                    if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
+                        $moneyDelta = MoneyDelta::chargePlayer($this->player_id, -$enc->coin_bonus);
+                    }
+                    $enc->takeTileAt($ap);
+                    $dests[] = new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
                 }
             }
             if (count($dests) > 0) {

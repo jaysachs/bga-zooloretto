@@ -397,6 +397,17 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     this.game.updateMoneyDelta(moneyDelta);
   }
 
+  protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
+    console.log("offspringSlide", offspring);
+    if (offspring) {
+      let offspringElem = Html.span({});
+      offspringElem.setAttribute(Attrs.TILE, offspring.tile);
+      offspringElem.style.transform = 'rotate(0deg)';
+      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space.enclosure_id, offspring.space.pos));
+    }
+    return Promise.resolve();
+  }
+
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
@@ -623,14 +634,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
-          var p = Promise.resolve();
-          if (pep.offspring) {
-            let offspringElem = Html.span({});
-            offspringElem.setAttribute(Attrs.TILE, pep.offspring.tile);
-            offspringElem.style.transform = 'rotate(0deg)';
-            p = this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, pep.offspring.space.enclosure_id, pep.offspring.space.pos));
-          }
-          return p.then( () => {
+          return this.offspringSlide(pep.offspring).then( () => {
             this.updateMoneyDelta(pep.money_delta);
             this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
             this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks);
@@ -689,12 +693,17 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
       let destElem = Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos)
       this.addSelectableOnclick(destElem,
         (evt) => this.slide(elem, destElem)
-          .then(() => { destElem.classList.remove(CSS.SELECTED); destElem.classList.add(CSS.MOVED); this.confirmMove(pm.src, dest); })
+          .then(() => {
+            destElem.classList.remove(CSS.SELECTED);
+            destElem.classList.add(CSS.MOVED);
+            this.confirmMove(pm.src, dest);
+          })
       )
     });
   }
 
-  private confirmMove(src: Space, dest: Destination) {
+  private async confirmMove(src: Space, dest: Destination) {
+    await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
     this.addConfirmActionButton('actMoveTile', {
       src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
