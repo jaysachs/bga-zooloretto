@@ -32,6 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Delivery;
+use Bga\Games\zooloretto\Model\MoneyDelta;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -74,6 +75,7 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
+		$pex = $model->getPossibleExchanges();
 		$px = array_map(fn (PossibleExchange $px) => [
 			'src' => [
 				'enclosure_id' => $px->src_enclosure_id,
@@ -83,8 +85,9 @@ class PlayerTurn extends AbstractState
 				'enclosure_id' => $px->dest_enclosure_id,
 				'positions' => $px->dest_positions,
 			],
+			'money_delta' => $pex->moneyDelta->serialize(),
 			'children' => array_map(fn (Space $s) => $s->serialize(), $px->children),
-		], $model->getPossibleExchanges());
+		], ($pex ? $pex->exchanges : []));
 
 		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
 

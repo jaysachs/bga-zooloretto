@@ -494,13 +494,14 @@ class Model {
         return $result;
     }
 
-    /** @return PossibleExchange[] */
-    public function getPossibleExchanges() : array {
+    public function getPossibleExchanges() : ?PossibleExchanges {
         if (! $this->getActivePlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
-            return [];
+            return null;
         }
-        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer());
+        return new PossibleExchanges(
+            MoneyDelta::chargePlayer($this->player_id, Cost::EXCHANGE),
+            PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer()));
     }
 
     private function saveOffspring(Offspring $offspring): void {

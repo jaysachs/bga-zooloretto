@@ -63,7 +63,7 @@ interface Offspring {
 
 interface MoneyDelta {
   bank: number;
-  players: number[];
+  players: { [ playerId: number ]: number };
 }
 
 interface Destination {
@@ -125,6 +125,7 @@ interface ExchangeGroup {
 interface PossibleExchange {
   src: ExchangeGroup;
   dest: ExchangeGroup;
+  money_delta: MoneyDelta;
 }
 
 interface PlayState {
@@ -237,16 +238,20 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   protected readonly game: G;
   protected readonly player_id: number;
   private onClickAbortController : AbortController = new AbortController();
-  private moves: {origin: HTMLElement, dest: HTMLElement, elem: HTMLElement }[] = [];
+  private undos: AnimationList = [];
 
   constructor(g : G) {
     this.game = g;
     this.player_id = g.player_id;
   }
 
+  protected pushUndoAnim(anim: (() => Promise<any>) | (() => any)): void {
+    this.undos.push(anim);
+  }
+
   start(args?: T) {
     console.debug("Starting", this, args);
-    this.moves = [];
+    this.undos = [];
     this.onClickAbortController = new AbortController();
     this.doStart(args);
   }
@@ -258,18 +263,15 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
-    this.moves.push({origin: elem.parentElement as HTMLElement, dest: newParent, elem: elem });
+    this.pushUndoAnim(() => this.game.animationManager.slideAndAttach(elem, elem.parentElement as HTMLElement, {}))
     return this.game.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
   }
 
   protected async rollback(): Promise<any> {
     let anims: AnimationList = [];
-    while (this.moves.length > 0) {
-      let move = this.moves.pop()!;
-      anims.push(() => {
-        return this.game.animationManager.slideAndAttach(move.elem, move.origin, {});
-      });
+    while (this.undos.length > 0) {
+      anims.push(this.undos.pop()!);
     }
     this.clearMarked();
     await this.game.animationManager.playParallel(anims);
@@ -355,6 +357,18 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
 abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, ZoolorettoGame> {
 
+  private negate(moneyDelta: MoneyDelta): MoneyDelta {
+    return {
+      bank: -moneyDelta.bank,
+      players: Object.fromEntries(Object.entries(moneyDelta.players).map(kv => [kv[0], -kv[1]])),
+    };
+  }
+
+  protected updateMoneyDelta(moneyDelta: MoneyDelta): void {
+    this.pushUndoAnim(() => this.game.updateMoneyDelta(this.negate(moneyDelta)));
+    this.game.updateMoneyDelta(moneyDelta);
+  }
+
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
@@ -404,6 +418,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
                 anims.push(() => this.slide(destElem, Elements.enclosureSpace(this.player_id, pe.src.enclosure_id, pe.src.positions[i]!)));
               }
             }
+            this.updateMoneyDelta(pe.money_delta);
             this.playParallel(anims).then(() => this.confirmExchange(pe));
           }
         )
@@ -471,8 +486,9 @@ class ExpandZooFlow extends ZooFlow {
     this.initStatusBar(_('Expand zoo?'));
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
+    this.pushUndoAnim(() => this.game.renderExtensions(this.player_id, current));
     this.addConfirmActionButton('actExpandZoo', {}, true);
-    this.addRestartTurnButton(() => { this.game.renderExtensions(this.player_id, current); });
+    this.addRestartTurnButton();
   }
 };
 
@@ -590,7 +606,7 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
         Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
         // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
         (evt) => {
-          this.game.updateMoneyDelta(dest.money_delta);
+          this.updateMoneyDelta(dest.money_delta);
           this.confirmDiscard(dest);
         });
     });
