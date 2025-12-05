@@ -33,7 +33,7 @@ class PossibleExchange {
     /**
      * @param int[] $src_positions
      * @param int[] $dest_positions
-     * @param Space[] $children
+     * @param Offspring[] $offspring
      */
     public function __construct(
         public readonly int $src_enclosure_id,
@@ -41,7 +41,7 @@ class PossibleExchange {
         public readonly int $dest_enclosure_id,
         public readonly array $dest_positions,
         // FIXME: should be Offspring array ...
-        public readonly array $children,
+        public readonly array $offspring,
 ) {
         if (count($src_positions) <> count($dest_positions)) {
             throw new ModelException("Size of src positions and dest positions must be the same");
@@ -168,11 +168,11 @@ class PossibleExchange {
         $spaces = [];
         $offspring = $src_enc->checkForOffspring($barn);
         if ($offspring) {
-            $spaces[] = $offspring->childSpace;
+            $spaces[] = $offspring;
         }
         $offspring = $dest_enc->checkForOffspring($barn);
         if ($offspring) {
-            $spaces[] = $offspring->childSpace;
+            $spaces[] = $offspring;
         }
         return new PossibleExchange($src_enc->id, $src_pos, $dest_enc->id, $dest_pos, $spaces);
     }

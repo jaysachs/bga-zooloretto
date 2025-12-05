@@ -34,6 +34,7 @@ use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\MoneyDelta;
+use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -88,7 +89,7 @@ class PlayerTurn extends AbstractState
 				'positions' => $px->dest_positions,
 			],
 			'money_delta' => $pex->moneyDelta->serialize(),
-			'children' => array_map(fn (Space $s) => $s->serialize(), $px->children),
+			'offspring' => array_map(fn (Offspring $s) => $s->serialize(), $px->offspring),
 		], ($pex ? $pex->exchanges : []));
 
 		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());

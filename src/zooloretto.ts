@@ -131,6 +131,7 @@ interface ExchangeGroup {
 interface PossibleExchange {
   src: ExchangeGroup;
   dest: ExchangeGroup;
+  offspring: Offspring[];
   money_delta: MoneyDelta;
 }
 
@@ -459,6 +460,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
                 anims.push(() => this.slide(destElem, Elements.enclosureSpace(this.player_id, pe.src.enclosure_id, pe.src.positions[i]!)));
               }
             }
+            pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             this.updateMoneyDelta(pe.money_delta);
             this.playParallel(anims).then(() => this.confirmExchange(pe));
           }
