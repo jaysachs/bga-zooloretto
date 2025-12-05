@@ -94,6 +94,8 @@ interface PlaceDrawnTileArgs {
 interface PossibleEnclosurePlacement {
   space: Space;
   next: PossiblePlacement[];
+  offspring: Offspring | undefined;
+  money_delta: MoneyDelta | undefined;
 }
 interface PossiblePlacement {
   truck_pos: number;
@@ -263,9 +265,16 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected slide(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
-    this.pushUndoAnim(() => this.game.animationManager.slideAndAttach(elem, elem.parentElement as HTMLElement, {}))
+    let currParent = elem.parentElement as HTMLElement;
+    this.pushUndoAnim(() => this.game.animationManager.slideAndAttach(elem, currParent, {}));
     return this.game.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
+  }
+
+  protected slideIn(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
+    this.pushUndoAnim(() => this.game.animationManager.slideOutAndDestroy(elem, $(IDS.OFF_BOARD), {}));
+    newParent.appendChild(elem);
+    return this.game.animationManager.slideIn(elem, $(IDS.OFF_BOARD), { });
   }
 
   protected async rollback(): Promise<any> {
@@ -364,7 +373,10 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     };
   }
 
-  protected updateMoneyDelta(moneyDelta: MoneyDelta): void {
+  protected updateMoneyDelta(moneyDelta?: MoneyDelta): void {
+    if (! moneyDelta) {
+      return;
+    }
     this.pushUndoAnim(() => this.game.updateMoneyDelta(this.negate(moneyDelta)));
     this.game.updateMoneyDelta(moneyDelta);
   }
@@ -553,6 +565,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 
   private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
+    // FIXME: first slide out (and update money) for any coin tiles
     this.truck_id = truck_id;
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
@@ -584,9 +597,19 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       encElem.classList.add(CSS.TARGETABLE);
       this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
-        this.slide(tileElem,encElem).then( () => {
-          this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-          this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
+        this.slide(tileElem,encElem).then(() => {
+          var p = Promise.resolve();
+          if (pep.offspring) {
+            let offspringElem = Html.span({});
+            offspringElem.setAttribute(Attrs.TILE, pep.offspring.tile);
+            offspringElem.style.transform = 'rotate(0deg)';
+            p = this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, pep.offspring.space.enclosure_id, pep.offspring.space.pos));
+          }
+          return p.then( () => {
+            this.updateMoneyDelta(pep.money_delta);
+            this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
+            this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
+          });
         });
       });
     });
@@ -1026,8 +1049,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     deliveries: Delivery[]
   }) {
     let anims : AnimationList = [];
-    args.deliveries.forEach( (del) => {
+    args.deliveries.forEach(del => {
       let pl = del.placement;
+      // FIXME: coin animation should already have happened for active player.
       if (pl == 'coin') {
         anims.push(() => this.animationManager.slideOutAndDestroy(
           Elements.truckTile(args.truck_id, del.truck_pos)!,
@@ -1035,24 +1059,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           {}
         ).then(() => this.addMoney(args.player_id, 1)));
       } else {
-        // FIXME: figure out a more elegant way to not replay what the active player did.
-        // Possibly do all of it (including money increase, offspring, etc) during
-        //   the turn? Would need to send all of that forward in "possible moves".
         if (args.player_id != this.player_id) {
           anims.push(() => this.animationManager.slideAndAttach(
             Elements.truckTile(args.truck_id,del.truck_pos)!,
             Elements.enclosureSpace(args.player_id, pl.enclosure_id, pl.enclosure_pos),
             {})
           );
-        }
-        // for now, we don't animate offspring appearing until committed.
-        if (pl.child_type) {
-          anims.push(() => {
-            let elem = this.makeTileSpan(pl.child_type!);
-            let parent = Elements.enclosureSpace(args.player_id, pl.child_enclosure_id, pl.child_enclosure_pos);
-            parent.appendChild(elem);
-            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-          });
+          if (pl.child_type) {
+            anims.push(() => {
+              let elem = this.makeTileSpan(pl.child_type!);
+              let parent = Elements.enclosureSpace(args.player_id, pl.child_enclosure_id, pl.child_enclosure_pos);
+              parent.appendChild(elem);
+              return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+            });
+          }
         }
       }
     });
