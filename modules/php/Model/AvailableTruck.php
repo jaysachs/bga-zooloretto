@@ -32,6 +32,7 @@ class AvailableTruck {
      * @param int[] $coin_positions
      */
     public function __construct(
+        public private(set) int $player_id,
         public private(set) int $truck_id,
         public private(set) PossiblePlacement $placement,
         public private(set) array $coin_positions) { }
@@ -41,6 +42,7 @@ class AvailableTruck {
 			'truck_id' => $this->truck_id,
 			'coin_positions' => $this->coin_positions,
 			'playable' => $this->placement->serialize(),
+            'money_delta' => MoneyDelta::payPlayer($this->player_id, count($this->coin_positions))->serialize(),
         ];
     }
 }

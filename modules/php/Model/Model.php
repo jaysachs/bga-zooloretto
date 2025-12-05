@@ -247,7 +247,7 @@ class Model {
 		if (!$player->truck_taken) {
 			foreach ($this->getTrucks() as $truck) {
 				if ($truck->canBeTaken()) {
-					$trucks_available[] = new AvailableTruck($truck->id, $this->getPossiblePlacements($truck), []);
+					$trucks_available[] = new AvailableTruck($player->id, $truck->id, $this->getPossiblePlacements($truck), $truck->coinPositions());
 				}
 			}
 		}

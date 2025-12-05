@@ -106,6 +106,7 @@ interface PossiblePlacement {
 interface AvailableTruck {
   truck_id: number;
   coin_positions: number[];
+  money_delta: MoneyDelta;
   playable: PossiblePlacement[];
 }
 
@@ -278,6 +279,16 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     return this.game.animationManager.slideIn(elem, $(IDS.OFF_BOARD), { });
   }
 
+  protected slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement): Promise<any> {
+    let backup = elem.cloneNode() as HTMLElement;
+    let parent = elem.parentElement as HTMLElement;
+    this.pushUndoAnim(() => {
+      parent.appendChild(backup);
+      this.game.animationManager.slideIn(backup, toElem, {});
+    });
+    return this.game.animationManager.slideOutAndDestroy(elem, toElem, {});
+  }
+
   protected async rollback(): Promise<any> {
     let anims: AnimationList = [];
     while (this.undos.length > 0) {
@@ -360,8 +371,12 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.markSelectable(elem);
     elem.addEventListener(
       "click",
-      (ev: MouseEvent) => { this.clearOnclicks(); this.markSelected(elem); onclick(ev); },
+      async (ev: MouseEvent) => { this.clearOnclicks(); this.markSelected(elem); await onclick(ev); },
       { signal: this.onClickAbortController.signal });
+  }
+
+  protected getPlayerPanelElement(player_id: number): HTMLElement {
+    return this.game.getPlayerPanelElement(player_id);
   }
 }
 
@@ -561,12 +576,21 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.placedTiles = [];
     this.truck_id = 0;
     availableTrucks.forEach((truck: AvailableTruck) => {
-      this.addSelectableOnclick($(IDS.truck(truck.truck_id)), (evt) => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks));
+      this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
+        async (evt) => {
+          await this.playParallel(truck.coin_positions.map(pos =>
+            () => this.slideOutAndDestroy(
+              Elements.truckTile(truck.truck_id, pos)!,
+              this.getPlayerPanelElement(this.player_id))))
+            .then(() => {
+              this.updateMoneyDelta(truck.money_delta);
+              this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks);
+            });
+        });
     });
   }
 
-  private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availabeTrucks: AvailableTruck[]) {
-    // FIXME: first slide out (and update money) for any coin tiles
+  private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availableTrucks: AvailableTruck[]) {
     this.truck_id = truck_id;
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
@@ -583,14 +607,14 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
         let elem = Elements.truckSpace(truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, (evt) => {
           elem.classList.add(CSS.SELECTED);
-          this.chooseDestination(truck_id, pp, availabeTrucks);
+          this.chooseDestination(truck_id, pp, availableTrucks);
         });
       });
     }
     this.addRestartTurnButton();
   }
 
-  private chooseDestination(truck_id: number, pp: PossiblePlacement, availabeTrucks: AvailableTruck[]) {
+  private chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
     this.addRestartTurnButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
@@ -609,7 +633,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
           return p.then( () => {
             this.updateMoneyDelta(pep.money_delta);
             this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-            this.chooseTruckTileToPlace(truck_id, pep.next, availabeTrucks);
+            this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks);
           });
         });
       });
@@ -1050,17 +1074,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     deliveries: Delivery[]
   }) {
     let anims : AnimationList = [];
-    args.deliveries.forEach(del => {
-      let pl = del.placement;
-      // FIXME: coin animation should already have happened for active player.
-      if (pl == 'coin') {
-        anims.push(() => this.animationManager.slideOutAndDestroy(
-          Elements.truckTile(args.truck_id, del.truck_pos)!,
-          this.getPlayerPanelElement(args.player_id),
-          {}
-        ).then(() => this.addMoney(args.player_id, 1)));
-      } else {
-        if (args.player_id != this.player_id) {
+    if (args.player_id != this.player_id) {
+      args.deliveries.forEach(del => {
+        let pl = del.placement;
+        if (pl == 'coin') {
+          anims.push(() => this.animationManager.slideOutAndDestroy(
+            Elements.truckTile(args.truck_id, del.truck_pos)!,
+            this.getPlayerPanelElement(args.player_id),
+            {}
+          ).then(() => this.addMoney(args.player_id, 1)));
+        } else {
           anims.push(() => this.animationManager.slideAndAttach(
             Elements.truckTile(args.truck_id,del.truck_pos)!,
             Elements.enclosureSpace(args.player_id, pl.enclosure_id, pl.enclosure_pos),
@@ -1075,8 +1098,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             });
           }
         }
-      }
-    });
+      });
+    }
     anims.push(() => this.animationManager.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id)), {}));

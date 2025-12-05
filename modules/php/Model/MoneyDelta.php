@@ -38,6 +38,10 @@ class MoneyDelta {
         return new MoneyDelta($cost->amount(), [ $player_id => -$cost->amount() ]);
     }
 
+    public static function payPlayer(int $player_id, int $amt): MoneyDelta {
+        return new MoneyDelta(0, [ $player_id => $amt ]);
+    }
+
     public function equals(MoneyDelta $other) {
         return $this->bank_delta == $other->bank_delta
            && $this->player_delta == $other->player_delta;
