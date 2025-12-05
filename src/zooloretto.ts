@@ -112,12 +112,14 @@ interface AvailableTruck {
 
 interface PossibleMove {
   src: Space;
+  money_delta: MoneyDelta;
   dests: Destination[];
 }
 
 interface PossiblePurchase {
   from_player_id: number;
   src: Space;
+  money_delta: MoneyDelta;
   dests: Destination[];
 }
 
@@ -492,6 +494,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
   }
 
   private selectDestinationForPurchase(pp: PossiblePurchase) {
+    this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
     pp.dests.forEach((dest: Destination) =>
       this.addSelectableOnclick(
@@ -686,6 +689,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   }
 
   private chooseDest(pm: PossibleMove) {
+    this.updateMoneyDelta(pm.money_delta);
     this.initStatusBar(_('Select a destination space'));
     this.addRestartTurnButton();
     pm.dests.forEach((dest: Destination) => {

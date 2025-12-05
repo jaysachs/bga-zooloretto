@@ -27,13 +27,11 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class PossibleBuy {
+class PossibleMoves {
+    /**
+     * @param PossibleMove[] $moves
+     */
     public function __construct(
-        public readonly int $from_player_id,
         public readonly MoneyDelta $moneyDelta,
-        public readonly PossibleMove $move) {
-            if ($move->src->enclosure_id <> 0) {
-                throw new ModelException("Can only purchase from barn");
-            }
-        }
+        public readonly array $moves) { }
 }

@@ -63,14 +63,17 @@ class PlayerTurn extends AbstractState
 			fn (AvailableTruck $at) => $at->serialize(),
 			$model->getAvailableTrucks());
 
+		$pms = $model->getPossibleMoves();
 		$pm = array_map(fn (PossibleMove $pm) => [
 			'src' => $pm->src->serialize(),
+			'money_delta' => $pms->moneyDelta->serialize(),
 			'dests' => array_map(fn ($d) => $d->serialize(), $pm->dests),
-		], $model->getPossibleMoves());
+		], $pms->moves);
 
 		$pb = array_map(fn (PossibleBuy $b) => [
 			'from_player_id' => $b->from_player_id,
 			'src' => $b->move->src->serialize(),
+			'money_delta' => $b->moneyDelta->serialize(),
 			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 

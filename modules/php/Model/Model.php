@@ -340,10 +340,9 @@ class Model {
         return null;
     }
 
-    /** @return PossibleMove[] */
-    public function getPossibleMoves(): array {
+    public function getPossibleMoves(): PossibleMoves {
         if (! $this->getActivePlayer()->canAfford(Cost::MOVE)) {
-            return [];
+            return new PossibleMoves(new MoneyDelta(0, []), []);
         }
         $result = [];
         $enclosures = $this->getEnclosuresForPlayer();
@@ -388,13 +387,13 @@ class Model {
                 }
             }
         }
-        return $result;
+        return new PossibleMoves(MoneyDelta::costPlayer($this->player_id, Cost::MOVE), $result);
     }
 
     public function moveTile(Space $src, Space $dest): void {
         $pms = $this->getPossibleMoves();
         $found = false;
-        foreach ($pms as $pm) {
+        foreach ($pms->moves as $pm) {
             if ($pm->src == $src) {
                 foreach ($pm->dests as $d) {
                     if ($d->space == $dest) {
@@ -506,7 +505,8 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $result[] = new PossibleBuy($player->id, new PossibleMove(new Space($barn->id, $pos), $dests));
+                    $delta = new MoneyDelta(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
+                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($barn->id, $pos), $dests));
                 }
             }
         }
