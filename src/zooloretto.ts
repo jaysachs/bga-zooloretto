@@ -105,6 +105,7 @@ interface PossiblePlacement {
 
 interface AvailableTruck {
   truck_id: number;
+  coin_positions: number[];
   playable: PossiblePlacement[];
 }
 

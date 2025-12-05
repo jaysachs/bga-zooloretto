@@ -31,6 +31,7 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\MoneyDelta;
 use Bga\Games\zooloretto\Model\PossibleBuy;
@@ -58,11 +59,9 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-		$tpp = $model->getTrucksWithPossiblePlacements();
-		$trucks_available = array_map(fn (int $id, PossiblePlacement $pp) => [
-			'truck_id' => $id,
-			'playable' => $pp->serialize(),
-		], array_keys($tpp), array_values($tpp));
+		$available_trucks = array_map(
+			fn (AvailableTruck $at) => $at->serialize(),
+			$model->getAvailableTrucks());
 
 		$pm = array_map(fn (PossibleMove $pm) => [
 			'src' => $pm->src->serialize(),
@@ -93,7 +92,7 @@ class PlayerTurn extends AbstractState
 
 		return [
 			'can_draw' => $model->canDraw(),
-			'available_trucks' => $trucks_available,
+			'available_trucks' => $available_trucks,
 			'possible_moves' => $pm,
 			'possible_purchases' => $pb,
 			'possible_discards' => $pd,

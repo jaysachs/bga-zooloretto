@@ -239,14 +239,15 @@ class Model {
         );
     }
 
-    public function getTrucksWithPossiblePlacements(): array {
+    /** @return AvailableTruck[] */
+    public function getAvailableTrucks(): array {
 		$player = $this->getActivePlayer();
 
 		$trucks_available = [];
 		if (!$player->truck_taken) {
 			foreach ($this->getTrucks() as $truck) {
 				if ($truck->canBeTaken()) {
-					$trucks_available[$truck->id] = $this->getPossiblePlacements($truck);
+					$trucks_available[] = new AvailableTruck($truck->id, $this->getPossiblePlacements($truck), []);
 				}
 			}
 		}
