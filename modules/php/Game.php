@@ -217,7 +217,7 @@ class Game extends \Bga\GameFramework\Table
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
 
-		$this->doCreateGame(array_keys($players));
+		Model::createNewGame(array_keys($players));
 		$this->playerStats->init([
 			'full1',
 			'full2',
@@ -245,31 +245,10 @@ class Game extends \Bga\GameFramework\Table
 		return PlayerTurn::class;
 	}
 
-	/** @param $player_ids int[] */
-	private function doCreateGame(array $player_ids) {
-		Model::createNewGame($player_ids);
-	}
-
 	/*
     function optionEnabled(TableOption $option): bool
     {
         return $this->tableOptions->get($option->value) > 0;
-    }
-
-    public function debug_zc(string $zctype, int $points, bool $used, int $row, int $col): void {
-        $active_player_id = intval($this->getActivePlayerId());
-        $this->notify->all(
-            "zigguratCardSelection",
-            clienttranslate('${player_name} chose ziggurat card ${zcard}'),
-            [
-                "player_id" => $active_player_id,
-                "player_name" => $this->getPlayerNameById($active_player_id),
-                "zcard" => $zctype,
-                "cardused" => $used,
-                "points" => $points,
-                "hex" => new RowCol($row, $col),
-            ]
-        );
     }
     */
 
@@ -343,21 +322,6 @@ class Game extends \Bga\GameFramework\Table
 				}
 			}
 		}
-	}
-
-	public function debug_resetGame(): void {
-		// FIXME: do more tables including resetting money.
-		$db = new DefaultDb();
-		$player_ids = $db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
-		$db->execute('DELETE FROM tiles');
-		$db->execute('DELETE FROM trucks');
-		$db->execute('DELETE FROM enclosures');
-		$db->execute('DELETE FROM enclosure_contents');
-		$db->execute('DELETE FROM primary_stock');
-		$db->execute('DELETE FROM endgame_stock');
-		$this->doCreateGame($player_ids);
-		$this->gamestate->jumpToState(2);
-		$this->notify->all('debugReset', '', []);
 	}
 
 	public function debug_drawN(int $n): void {
