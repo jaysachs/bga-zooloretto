@@ -37,6 +37,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   endgame_pile_size: number;
   lastround: boolean;
   drawntile: string;
+  bank_money: number;
   // Should always be 3.
   trucks: Truck[];
   // keyed by player_id
@@ -588,7 +589,10 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
         // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
-        (evt) => this.confirmDiscard(dest));
+        (evt) => {
+          this.game.updateMoneyDelta(dest.money_delta);
+          this.confirmDiscard(dest);
+        });
     });
   }
 
@@ -799,6 +803,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
+  private bankCounter: Counter;
   private moneyCounter: Counter[] = [];
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
@@ -812,6 +817,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
     }
+    this.bankCounter = new ebg.counter();
+    this.bankCounter.create(IDS.BANK_MONEY, { value: this.gamedatas.bank_money });
     this.primaryStockCounter = new ebg.counter();
     this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: this.gamedatas.primary_pile_size });
     this.endgameStockCounter = new ebg.counter();
@@ -848,6 +855,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         this.addTooltip(ele.id, this.zcardTooltips[ele.attribute(Attrs.ZTYPE)!], '');
       });
       */
+  }
+
+  public updateMoneyDelta(delta: MoneyDelta): void {
+    if (delta.bank) {
+      this.bankCounter.incValue(delta.bank);
+    }
+    for (let player_id in delta.players) {
+      this.moneyCounter[player_id]!.incValue(delta.players[player_id]!);
+    }
   }
 
   private updateMoney(player_id: number, money: number): void {

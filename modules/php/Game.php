@@ -118,6 +118,7 @@ class Game extends \Bga\GameFramework\Table
             'endgame_pile_size' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->type->value,
             'lastround' => $stock->inLastRound(),
+			'bank_money' => $model->bankMoney(),
 			'tile_translations' => array_map(fn ($t) => [
 				'type' => $t->value,
 				'name' => $t->translated(),

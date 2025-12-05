@@ -49,7 +49,7 @@ class Destination {
 		return [
 			'space' => $this->space->serialize(),
 			'offspring' => $this->offspring ? $this->offspring->serialize() : null,
-            'moneydelta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
+            'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
 		];
 	}
 
