@@ -515,7 +515,11 @@ class Model {
     /** @return TileType[]  length 2 of the form [srctype, desttype] */
     public function exchange(PossibleExchange $ex): array {
         $found = false;
-        foreach ($this->getPossibleExchanges() as $px) {
+        $pex = $this->getPossibleExchanges();
+        if (!$pex) {
+            throw new ModelException("No exchanges possible");
+        }
+        foreach ($pex->exchanges as $px) {
             if ($ex->matches($px)) {
                 $found = true;
                 break;

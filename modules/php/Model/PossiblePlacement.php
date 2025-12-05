@@ -39,9 +39,9 @@ class PlacementForEnclosure {
     public function serialize(): array {
         return [
             'space' => $this->space->serialize(),
-            'next' => $this->next ? $this->next->serialize() : null,
+            'next' => $this->next ? $this->next->serialize() : [],
             'offspring' => $this->offspring ? $this->offspring->serialize() : null,
-            'moneyDelta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
+            'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
         ];
     }
 }
