@@ -2,10 +2,7 @@
 
 * Final score sheet rendering
 
-* Show client-side "pre-confirm" update money and offspring and enclosure completion coin bonus.
-  * In progress. Still need to handle:
-    * purchase cost disbursement
-    * exchange offspring creation
+* Handle rare exchange-triggers-two-offspring-in-one-enclosure case.
 
 * Do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
   * if we do, can we still give e.g. approx percentage left (like T&E)?
