@@ -325,6 +325,21 @@ class Model {
         return $tile;
     }
 
+    private function makePossibleDest(Enclosure $enc, Tile $tile, Enclosure $barn): Destination | null {
+        $ap = $enc->availablePos($tile->type);
+        if ($ap > 0) {
+            $pl = $enc->placeTile($tile, $ap);
+            $offspring = $enc->checkForOffspring($barn);
+            $moneyDelta = null;
+            if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
+                $moneyDelta = MoneyDelta::chargePlayer($this->player_id, -$enc->coin_bonus);
+            }
+            $enc->takeTileAt($ap);
+            return new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
+        }
+        return null;
+    }
+
     /** @return PossibleMove[] */
     public function getPossibleMoves(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::MOVE)) {
@@ -343,16 +358,9 @@ class Model {
             /** @var Destination[] */
             $dests = [];
             foreach ($enclosures as $enc) {
-                $ap = $enc->availablePos($tile->type);
-                if ($ap > 0) {
-                    $pl = $enc->placeTile($tile, $ap);
-                    $offspring = $enc->checkForOffspring($barn);
-                    $moneyDelta = null;
-                    if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
-                        $moneyDelta = MoneyDelta::chargePlayer($this->player_id, -$enc->coin_bonus);
-                    }
-                    $enc->takeTileAt($ap);
-                    $dests[] = new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
+                $dest = $this->makePossibleDest($enc, $tile, $barn);
+                if ($dest) {
+                    $dests[] = $dest;
                 }
             }
             if (count($dests) > 0) {
@@ -479,6 +487,8 @@ class Model {
         if (! $this->getActivePlayer()->canAfford(Cost::PURCHASE)) {
             return [];
         }
+        // FIXME: We need to gather up all the Buys into an object, and attach
+        //   a MoneyDelta there for the purchase price.
         $enclosures = $this->getEnclosuresForPlayer();
         /** @var PossibleBuy[] */
         $result = [];
@@ -489,10 +499,10 @@ class Model {
             $barn = $this->getEnclosuresForPlayer($player->id)[0];
             foreach ($barn->nonEmptyContents() as $pos => $tile) {
                 $dests = [];
-                foreach ($enclosures as $enclosure) {
-                    $p = $enclosure->availablePos($tile->type);
-                    if ($p > 0) {
-                        $dests[] = new Destination(new Space($enclosure->id, $p));
+                foreach ($enclosures as $enc) {
+                    $dest = $this->makePossibleDest($enc, $tile, $barn);
+                    if ($dest) {
+                        $dests[] = $dest;
                     }
                 }
                 if (count($dests) > 0) {
