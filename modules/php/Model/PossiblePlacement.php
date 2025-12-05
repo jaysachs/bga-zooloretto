@@ -87,11 +87,13 @@ class PossiblePlacement {
         $clones = array_map(fn ($e) => $e->clone(), $enclosures);
         $enc = $clones[$eid];
         $pl = $enc->placeTile($tile, $enclosure_pos);
-        if ($pl->completedEnclosure) {
+
+        $offspring = $enc->checkForOffspring($clones[0]);
+        $pfe->offspring = $offspring;
+
+        if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
             $pfe->moneyDelta = MoneyDelta::chargePlayer($player_id, -$enc->coin_bonus);
         }
-
-        $pfe->offspring = $enc->checkForOffspring($clones[0]);
 
         if (!$truck->isEmpty()) {
             $pfe->next = self::possiblePlacementFor($player_id, $truck, $clones);

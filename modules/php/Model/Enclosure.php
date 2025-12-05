@@ -316,7 +316,8 @@ class Enclosure {
         $space = ($this->availablePos($child->type) == 0)
             ? $barn->placeTile($child)->space
             : $this->placeTile($child)->space;
-        return new Offspring($child, $mother, $father, $space);
+        $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
+        return new Offspring($child, $mother, $father, $space, $completed);
     }
 
     public function __toString(): string

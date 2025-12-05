@@ -32,7 +32,8 @@ class Offspring {
         public readonly Tile $child,
         public readonly Tile $mother,
         public readonly Tile $father,
-        public readonly Space $childSpace) {}
+        public readonly Space $childSpace,
+        public readonly bool $enclosureCompleted) {}
 
     public function __toString()
     {
@@ -43,7 +44,8 @@ class Offspring {
         return $this->child == $other->child
             && $this->mother == $other->mother
             && $this->father == $other->father
-            && $this->childSpace == $other->childSpace;
+            && $this->childSpace == $other->childSpace
+            && $this->enclosureCompleted == $other->enclosureCompleted;
     }
 
     public function serialize(): mixed {

@@ -100,7 +100,8 @@ final class EnclosureTest extends TestCase
                 new Tile(303, TileType::CAMEL_KID),
                 new Tile(3, TileType::CAMEL_FEMALE_R),
                 new Tile(4, TileType::CAMEL_MALE_R),
-                new Space(1, 3)),
+                new Space(1, 3),
+                false),
             $e->checkForOffspring($barn));
         $this->assertNull($e->checkForOffspring($barn));
 
@@ -111,7 +112,8 @@ final class EnclosureTest extends TestCase
                 new Tile(306, TileType::ELEPHANT_KID),
                 new Tile(6, TileType::ELEPHANT_FEMALE_R),
                 new Tile(5, TileType::ELEPHANT_MALE_R),
-                new Space(0, 3)),
+                new Space(0, 3),
+                false),
             $e->checkForOffspring($barn));
         $this->assertEquals(new Tile(306, TileType::ELEPHANT_KID), $barn->tileAt(3));
     }

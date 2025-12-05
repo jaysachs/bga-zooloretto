@@ -152,7 +152,7 @@ final class PossiblePlacementTest extends TestCase
 
     public function testFertilePair(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 2, 2, 5) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1, 7), Enclosure::forTest(2, 2, 2, 5) ];
         $truck = new Truck(1);
         $mother = new Tile(1, TileType::CAMEL_FEMALE);
         $rm = $mother->clone();
@@ -165,9 +165,9 @@ final class PossiblePlacementTest extends TestCase
         $truck->placeTileAt($mother, 1);
         $truck->placeTileAt($father, 2);
 
-        $kid = function($eid, $pos) use(&$rm, &$rf) : Offspring {
+        $kid = function($eid, $pos, $comp = false) use(&$rm, &$rf) : Offspring {
             return new Offspring(new Tile($rm->id+300, TileType::CAMEL_KID),
-                                 $rm, $rf, new Space($eid, $pos));
+                                 $rm, $rf, new Space($eid, $pos), $comp);
         };
 
         $expected = p([
@@ -182,7 +182,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
-                        e(1, 2, null, $kid(1,3)),
+                        e(1, 2, null, $kid(1, 3, true), MoneyDelta::chargePlayer(100, -7)),
                         e(2, 1),
                     ])
                 ])),
@@ -205,7 +205,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
-                        e(1, 2, null, $kid(1, 3)),
+                        e(1, 2, null, $kid(1, 3, true), MoneyDelta::chargePlayer(100, -7)),
                         e(2, 1),
                     ])
                 ])),
