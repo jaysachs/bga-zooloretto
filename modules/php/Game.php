@@ -303,20 +303,21 @@ class Game extends \Bga\GameFramework\Table
 		$player_id = intval($this->getActivePlayerId());
 		$model = new Model($this, $player_id);
 		$trucks = $model->getTrucks();
+		$stock = $model->getStock();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
 			$this->notify->all(
-			"DrawTile",
-			// FIXME: render the tile image in the log (in addition? instead?)
-			'debug drew a ${translatedval} tile.',
-			[
-				// 'player_id' => 0,
-				'tile_type' => $drawn->type->value,
-				'drawn_from_endgame_pile' => false, // FIXME
-				// 'primary_left' => $amt($stock->primaryCount()),
-				// 'endgame_left' => $amt($stock->endgameCount()),
-				'translatedval' => $drawn->type->translated(),
-				'i18n' => ['translatedval']
+				"DrawTile",
+				// FIXME: render the tile image in the log (in addition? instead?)
+				'debug drew a ${translatedval} tile.',
+				[
+					'player_id' => 0,
+					'drawn_from_endgame_pile' => $stock->inLastRound(),
+					'primary_pile_size' => $stock->primaryCount(),
+					'endgame_pile_size' => $stock->endgameCount(),
+					'tile_type' => $drawn->type->value,
+					'translatedval' => $drawn->type->translated(),
+					'i18n' => ['translatedval']
 			]);
 			foreach ($trucks as $truck) {
 				$p = $truck->firstFreePosition();
@@ -332,8 +333,8 @@ class Game extends \Bga\GameFramework\Table
 							'truck_id' => $truck->id,
 							'truck_pos' => $p,
 							'translatedval' => $drawn->type->translated(),
-							// 'primary_pile_size' => $stock->primaryCount(),
-							// 'endgame_pile_size' => $stock->endgameCount(),
+							'primary_pile_size' => $stock->primaryCount(),
+							'endgame_pile_size' => $stock->endgameCount(),
 							'i18n' => [ 'translatedval' ],
 						]
 
