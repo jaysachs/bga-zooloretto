@@ -57,8 +57,8 @@ class Enclosure {
         return $encs;
     }
 
-    public static function forTest(int $id, int $animal_capacity, int $stall_capacity): Enclosure {
-        return self::create($id, $animal_capacity, $stall_capacity, 0, 0, 0);
+    public static function forTest(int $id, int $animal_capacity, int $stall_capacity, int $coin_bonus = 0): Enclosure {
+        return self::create($id, $animal_capacity, $stall_capacity, $coin_bonus, 0, 0);
     }
 
     private static function create(int $id, int $animal_capacity, int $stall_capacity,

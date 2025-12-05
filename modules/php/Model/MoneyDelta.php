@@ -34,15 +34,19 @@ class MoneyDelta {
         public readonly array $player_delta = [])
     {}
 
-    public static function chargePlayer(int $player_id, Cost $cost): MoneyDelta {
-        return new MoneyDelta($cost->amount(), [ $player_id => -$cost->amount() ]);
+    public static function costPlayer(int $player_id, Cost $cost): MoneyDelta {
+        return MoneyDelta::chargePlayer($player_id, $cost->amount());
     }
 
-    public static function payPlayer(int $player_id, int $amt): MoneyDelta {
+    public static function chargePlayer(int $player_id, int $amount): MoneyDelta {
+        return new MoneyDelta($amount, [ $player_id => -$amount ]);
+    }
+
+    public static function giftPlayer(int $player_id, int $amt): MoneyDelta {
         return new MoneyDelta(0, [ $player_id => $amt ]);
     }
 
-    public function equals(MoneyDelta $other) {
+    public function equals(MoneyDelta $other): bool {
         return $this->bank_delta == $other->bank_delta
            && $this->player_delta == $other->player_delta;
     }

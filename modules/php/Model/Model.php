@@ -235,7 +235,9 @@ class Model {
 
     private function getPossiblePlacements(Truck $truck): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
-            $truck, $this->getEnclosuresForPlayer()
+            $this->player_id,
+            $truck,
+            $this->getEnclosuresForPlayer()
         );
     }
 
@@ -307,7 +309,7 @@ class Model {
         }
         $barn = $this->getEnclosuresForPlayer()[0];
         return array_map(
-            fn ($p) => new Destination(new Space(0, $p), null, MoneyDelta::chargePlayer($this->player_id, Cost::DISCARD)),
+            fn ($p) => new Destination(new Space(0, $p), null, MoneyDelta::costPlayer($this->player_id, Cost::DISCARD)),
             array_keys($barn->nonEmptyContents()));
     }
 
@@ -501,7 +503,7 @@ class Model {
             return null;
         }
         return new PossibleExchanges(
-            MoneyDelta::chargePlayer($this->player_id, Cost::EXCHANGE),
+            MoneyDelta::costPlayer($this->player_id, Cost::EXCHANGE),
             PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer()));
     }
 

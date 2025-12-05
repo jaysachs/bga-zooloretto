@@ -5,10 +5,10 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
 use Bga\Games\zooloretto\Utils;
-use Bga\Games\zooloretto\Model\{Enclosure, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
+use Bga\Games\zooloretto\Model\{Enclosure, MoneyDelta, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
 
-function e(int $x, int $y, $z = null, ?Offspring $offspring = null) {
-    return new PlacementForEnclosure(new Space($x, $y), $z, $offspring);
+function e(int $x, int $y, $z = null, ?Offspring $offspring = null, ?MoneyDelta $moneyDelta = null) {
+    return new PlacementForEnclosure(new Space($x, $y), $z, $offspring, $moneyDelta);
 }
 function t(int $truck_id, TileType $y, $z = []) { return new PlacementsForTruckPos($truck_id, $y, $z); }
 function p($x = []) { return new PossiblePlacement($x); }
@@ -19,7 +19,7 @@ final class PossiblePlacementTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $this->assertEquals(p([]), PossiblePlacement::possiblePlacementFor($truck, $encs));
+        $this->assertEquals(p([]), PossiblePlacement::possiblePlacementFor(0, $truck, $encs));
     }
 
     public function testOne(): void
@@ -29,7 +29,7 @@ final class PossiblePlacementTest extends TestCase
         $truck->placeTileAt( new Tile(1, TileType::CAMEL), 1);
         $this->assertEquals(
             p([t(1, TileType::CAMEL, [e(0,1), e(1,1), e(2,1)])]),
-            PossiblePlacement::possiblePlacementFor($truck, $encs));
+            PossiblePlacement::possiblePlacementFor(0, $truck, $encs));
     }
 
     public function testTwoDifferentSpecies(): void
@@ -86,7 +86,7 @@ final class PossiblePlacementTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            PossiblePlacement::possiblePlacementFor($truck, $encs));
+            PossiblePlacement::possiblePlacementFor(0, $truck, $encs));
     }
 
     public function testTwoOfSameSpecies(): void
@@ -147,12 +147,12 @@ final class PossiblePlacementTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            PossiblePlacement::possiblePlacementFor($truck, $encs));
+            PossiblePlacement::possiblePlacementFor(0, $truck, $encs));
     }
 
     public function testFertilePair(): void
     {
-        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 2, 2) ];
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 2, 2, 5) ];
         $truck = new Truck(1);
         $mother = new Tile(1, TileType::CAMEL_FEMALE);
         $rm = $mother->clone();
@@ -190,7 +190,7 @@ final class PossiblePlacementTest extends TestCase
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, $kid(0, 1)),
+                        e(2, 2, null, $kid(0, 1), MoneyDelta::chargePlayer(100, -5)),
                     ])
                 ])),
             ]),
@@ -213,7 +213,7 @@ final class PossiblePlacementTest extends TestCase
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, $kid(0, 1)),
+                        e(2, 2, null, $kid(0, 1), MoneyDelta::chargePlayer(100, -5)),
                     ])
                 ])),
             ]),
@@ -221,6 +221,6 @@ final class PossiblePlacementTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            PossiblePlacement::possiblePlacementFor($truck, $encs));
+            PossiblePlacement::possiblePlacementFor(100, $truck, $encs));
     }
 }
