@@ -1256,6 +1256,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           labelClasses: 'zoo-score-entries-label',
         },
         {
+          property: 'stall_points',
+          label: _('Points for types of stalls in enclosures'),
+          labelClasses: 'zoo-score-entries-label',
+        },
+        {
           property: 'barn_stall_points',
           label: _('Penalty for stall types left in barn'),
           labelClasses: 'zoo-score-entries-label',

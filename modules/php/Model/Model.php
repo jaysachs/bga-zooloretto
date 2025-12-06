@@ -635,8 +635,10 @@ class Model {
             'barn_animal_types' => 0,
             'barn_stall_points' => 0,
             'barn_animal_points' => 0,
+            'stall_points' => 0,
         ];
         $encs = $this->getEnclosuresForPlayer($player->id);
+        $stall_types = [];
         foreach ($encs as $enc) {
             if ($enc->isBarn()) {
                 $barnAnimalTypes = [];
@@ -666,14 +668,19 @@ class Model {
                         if (count($enc->stallTypes()) > 0) {
                             $detail['other_enclosures']++;
                             $detail['other_enclosure_points'] += count($enc->filledAnimalPositions());
+                            foreach ($enc->stallTypes() as $st => $ct) {
+                                $stall_types[$st] = 1;
+                            }
                         }
                 };
             }
         }
+        $detail['stall_points'] = 2 * count($stall_types);
         $detail['total'] =
               $detail['full_enclosure_points']
             + $detail['near_full_enclosure_points']
             + $detail['other_enclosure_points']
+            + $detail['stall_points']
             + $detail['barn_stall_points']
             + $detail['barn_animal_points'];
 
