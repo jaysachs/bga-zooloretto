@@ -661,10 +661,13 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
       let space = dest.space;
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
-        // FIXME: slide it offboard? need to adjust PlayFlow to "resuscitate" elements destroyed.
-        (evt) => {
-          this.updateMoneyDelta(dest.money_delta);
-          this.confirmDiscard(dest);
+        async (evt) => {
+          await this.slideOutAndDestroy(
+            Elements.enclosureTile(this.player_id, space.enclosure_id, space.pos),
+            $(IDS.OFF_BOARD)).then(() => {
+              this.updateMoneyDelta(dest.money_delta);
+              this.confirmDiscard(dest);
+            })
         });
     });
   }
@@ -914,6 +917,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.setupHtml(twoPlayer);
     this.setupNotifications();
     this.setupScoreSheet();
+    if (gamedatas.lastround) {
+      (this as any).addLastTurnBanner(_('This is the last round!'));
+    }
 
     console.log('Game setup done');
   }
@@ -995,14 +1001,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     new PlaceDrawnTileFlow(this).start(args);
   }
 
-  private removeEndgamePileDisk(): void {
-      let disk = $(IDS.DISK);
-      if (disk) {
-        this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD));
-        $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan('back')!);
-      }
-  }
-
   private async notif_DrawTile(
     args: {
       tile_type: string,
@@ -1010,13 +1008,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   ): Promise<void> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
-    if (args.drawn_from_endgame_pile) {
-      this.removeEndgamePileDisk();
-      (this as any).addLastTurnBanner(
-        _('This is the last round!')
-      );
+    let disk = $(IDS.DISK);
+    if (args.drawn_from_endgame_pile && disk) {
+      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{})
+        .then(() => {
+          $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile_type));
+          (this as any).addLastTurnBanner(_('This is the last round!'));
+        });
     }
-    this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
+    else {
+      this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
+    }
   }
 
   private replenishPilesAndUpdateCounters(
@@ -1060,7 +1062,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     drawn_from_endgame_pile: boolean,
     primary_pile_size: number,
     endgame_pile_size: number }) {
-    // FIXME: need to handle stock refresh -- need to send pile sizes in the notif args
     if (this.player_id != args.player_id) {
       await this.animationManager.slideAndAttach(
         Elements.drawnTile(args.drawn_from_endgame_pile),
@@ -1076,9 +1077,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       purchased_extensions: number,
       money: number
     }) {
-    if (this.player_id != args.player_id) {
-      this.renderExtensions(args.player_id, args.purchased_extensions);
+    if (args.player_id == this.player_id) {
+      return;
     }
+    this.renderExtensions(args.player_id, args.purchased_extensions);
     this.updateMoney(args.player_id, args.money);
   }
 
@@ -1127,13 +1129,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     dest: Space,
     money: number
   }) {
-    if (args.player_id != this.player_id) {
-      this.animationManager.slideAndAttach(
-        Elements.enclosureTile(args.player_id, args.src.enclosure_id, args.src.pos),
-        Elements.enclosureSpace(args.player_id, args.dest.enclosure_id, args.dest.pos),
-        {});
+    if (args.player_id == this.player_id) {
+      return;
     }
-    this.updateMoney(args.player_id, args.money);
+    await this.animationManager.slideAndAttach(
+      Elements.enclosureTile(args.player_id, args.src.enclosure_id, args.src.pos),
+      Elements.enclosureSpace(args.player_id, args.dest.enclosure_id, args.dest.pos),
+      {}).then(() => this.updateMoney(args.player_id, args.money));
   }
 
   private async notif_DiscardTile(args: {
@@ -1141,11 +1143,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     money: number,
     barn_pos: number
   }) {
+    if (args.player_id == this.player_id) {
+      return;
+    }
+    this.updateMoney(args.player_id, args.money);
     await this.animationManager.slideOutAndDestroy(
       Elements.enclosureTile(args.player_id, 0, args.barn_pos),
       $(IDS.OFF_BOARD),
       {});
-    this.updateMoney(args.player_id, args.money);
   }
 
   private async notif_PurchaseTile(args: {
@@ -1158,14 +1163,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 			money: number,
       from_player_money: number,
     }) {
-      if (this.player_id != args.player_id) {
-        await this.animationManager.slideAndAttach(
-          Elements.enclosureTile(args.from_player_id, 0, args.barn_pos),
-          Elements.enclosureSpace(args.player_id, args.enclosure_id, args.enclosure_pos),
-          {});
-      }
-      this.updateMoney(args.player_id, args.money);
-      this.updateMoney(args.from_player_id, args.from_player_money);
+    if (args.player_id == this.player_id) {
+      return;
+    }
+    await this.animationManager.slideAndAttach(
+      Elements.enclosureTile(args.from_player_id, 0, args.barn_pos),
+      Elements.enclosureSpace(args.player_id, args.enclosure_id, args.enclosure_pos),
+      {}).then( () => {
+        this.updateMoney(args.player_id, args.money);
+        this.updateMoney(args.from_player_id, args.from_player_money);
+      });
   }
 
   private async notif_EndRound(args: {
@@ -1193,7 +1200,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     })
   }
 
-  private notif_ExchangeEnclosureAnimals(args: {
+  private async notif_ExchangeEnclosureAnimals(args: {
     player_id: number,
 		src_enclosure_id: number,
 		src_positions: number[],
@@ -1202,7 +1209,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     money: number,
   }) {
     if (args.player_id == this.player_id) {
-      this.updateMoney(args.player_id, args.money);
       return;
     }
     // FIXME: unify this with the body of ExchangeFlow::confirm
@@ -1224,7 +1230,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           {}));
       }
     }
-    this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
+    await this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
   }
 
   private scoreSheet: ScoreSheet;
