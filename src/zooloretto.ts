@@ -306,7 +306,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.game.statusBar.setTitle(title, args);
   }
 
-  protected addConfirmActionButton(bgaAction: string, args?: any, autoclick? : boolean) {
+  protected addConfirmActionButton(bgaAction: string, args: any, autoclick? : boolean) {
     this.game.statusBar.addActionButton(
       _('Confirm'),
       () => {
@@ -314,7 +314,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
         this.game.statusBar.removeActionButtons();
         this.game.bgaPerformAction(bgaAction, args);
       },
-      { autoclick: autoclick || false });
+      { autoclick: (autoclick === undefined) || autoclick });
   }
 
   protected addRestartTurnButton(onCancel?: CallableFunction): void {
@@ -531,7 +531,7 @@ class ExpandZooFlow extends ZooFlow {
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
     this.pushUndoAnim(() => this.game.renderExtensions(this.player_id, current));
-    this.addConfirmActionButton('actExpandZoo', {}, true);
+    this.addConfirmActionButton('actExpandZoo', {});
     this.addRestartTurnButton();
   }
 };
@@ -541,8 +541,8 @@ class DrawTileFlow extends ZooFlow<boolean> {
 
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
-    this.markSelectable(Elements.drawnTile(lastround));
-    this.addConfirmActionButton('actDrawTile');
+    this.markSelected(Elements.drawnTile(lastround));
+    this.addConfirmActionButton('actDrawTile', {});
     this.addRestartTurnButton();
   }
 };
@@ -568,7 +568,7 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
     this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
         { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
-    this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl, true);
+    this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl);
     this.addRestartTurnButton();
   }
 };
