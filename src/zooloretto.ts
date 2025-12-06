@@ -1202,9 +1202,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async notif_ExchangeEnclosureAnimals(args: {
     player_id: number,
 		src_enclosure_id: number,
-		src_positions: number[],
+		src_spaces: Space[],
 		dest_enclosure_id: number,
-		dest_positions: number[],
+		dest_spaces: Space[],
     moneys: Moneys,
   }) {
     if (args.player_id == this.player_id) {
@@ -1212,20 +1212,22 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     // FIXME: unify this with the body of ExchangeFlow::confirm
     let anims: AnimationList = [];
-    for (let i = 0; i < args.src_positions.length; ++i) {
-      let srcElem = Elements.enclosureTile(args.player_id, args.src_enclosure_id, args.src_positions[i]!);
+    for (let i = 0; i < args.src_spaces.length; ++i) {
+      let s = args.src_spaces[i]!;
+      let d = args.dest_spaces[i]!;
+      let srcElem = Elements.enclosureTile(args.player_id, s.enclosure_id, s.pos);
       if (srcElem) {
         anims.push(() => this.animationManager.slideAndAttach(
           srcElem,
-          Elements.enclosureSpace(args.player_id, args.dest_enclosure_id, args.dest_positions[i]!),
+          Elements.enclosureSpace(args.player_id, d.enclosure_id, d.pos),
           {}
         ));
       }
-      let destElem = Elements.enclosureTile(args.player_id, args.dest_enclosure_id, args.dest_positions[i]!);
+      let destElem = Elements.enclosureTile(args.player_id, d.enclosure_id, d.pos);
       if (destElem) {
         anims.push(() => this.animationManager.slideAndAttach(
           destElem,
-          Elements.enclosureSpace(args.player_id, args.src_enclosure_id, args.src_positions[i]!),
+          Elements.enclosureSpace(args.player_id, s.enclosure_id, s.pos),
           {}));
       }
     }

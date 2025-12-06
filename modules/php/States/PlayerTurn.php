@@ -238,14 +238,16 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$animal_types = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
-		$player = $model->getActivePlayer();
+
+		$to_spaces = fn($id, $ap) => array_map(fn ($p) => new Space($id, $p)->serialize(), $ap);
+
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
 			'player_id' => $active_player_id,
 			'src_enclosure_id' => $src_enclosure_id,
-			'src_positions' => $src_positions,
+			'src_spaces' => $to_spaces($src_enclosure_id, $src_positions),
 			'dest_enclosure_id' => $dest_enclosure_id,
-			'dest_positions' => $dest_positions,
+			'dest_spaces' => $to_spaces($dest_enclosure_id, $dest_positions),
 			'src_animal_type' => $animal_types[0]->value,
 			'dest_animal_type' => $animal_types[1]->value,
         	'moneys' => $model->currentMoneys()->serialize(),
