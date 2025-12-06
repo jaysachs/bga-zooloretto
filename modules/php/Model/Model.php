@@ -690,7 +690,6 @@ class Model {
     /** @return array<int,array> */
     public function computeScores(?bool $persist = false): array {
         $scores = [];
-        $pscores = [];
         foreach ($this->getAllPlayers() as $player) {
             $details = $this->computeScore($player);
             $scores[$player->id] = $details;
