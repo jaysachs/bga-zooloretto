@@ -74,7 +74,12 @@ class PersistentStore {
     }
 
     public function updateScore(int $player_id, int $score): void {
-        $this->db->execute("UPDATE player SET player_score = {$score} WHERE player_id = {$player_id}");
+        $this->db->execute("
+            UPDATE player
+            SET player_score = {$score},
+                player_score_aux = money
+            WHERE player_id = {$player_id}
+        ");
     }
 
     public function updatePlayer(Player $player): void {
