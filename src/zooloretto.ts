@@ -853,7 +853,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.setSpanToTile(Elements.drawnTile(this.gamedatas.lastround), this.gamedatas.drawntile);
     }
     if (!this.gamedatas.lastround) {
-      $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK }));
+      $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK, classes: 'zoo-disk' }));
     }
   }
 

@@ -255,20 +255,15 @@ body.mobile_version {
     background-image: url('img/Back.png');
 }
 
-#zoo-disk {
+/* This mimics [zoo-tile="back"] (plus the basic [zoo-tile]),
+   allowing "slideOffAndDestroy" to work properly. */
+.zoo-disk {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Disk.png');
-    /*
-    These seem to be needed so slideOutAndDestroy shows it. Oddly, tiles don't seem to need it
-    when sOAD from the barn.
-    These are basically taken from [zoo-tile], though the width comes from pile.
-    If we made the disk a tile= attribute, this would just work.
-     */
-    display: inline-block;
-    aspect-ratio: 1.0;
-    width: calc(1.244 * var(--zoo-tile-size));
-    height: auto;
 }
 
 /* offspring tiles are actually round */
