@@ -32,6 +32,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\Truck;
+use BgaSystemException;
 
 class PlaceDrawnTile extends AbstractState
 {
@@ -88,8 +89,16 @@ class PlaceDrawnTile extends AbstractState
         return NextPlayer::class;
     }
 
-    function zombie(int $playerId): mixed {
-        // FIXME
-        return "";
+    function zombie(int $player_id): mixed {
+        $model = new Model($this->game, $player_id);
+        foreach ($model->getTrucks() as $truck) {
+            $pos = $truck->firstFreePosition();
+            if ($pos > 0) {
+                return $this->actPlaceDrawnTileInTruck($player_id, $truck->id, $pos);
+            }
+        }
+        throw new BgaSystemException("In PlaceDrawnTile state, but no trucks have an open spot?!");
+        // could instead keep making progress ... ?
+        // return NextPlayer::class;
     }
 }

@@ -47,7 +47,7 @@ class PlacementForEnclosure {
 }
 
 class PlacementsForTruckPos {
-    /** @param $next PlacementForEnclosure[] */
+    /** @param PlacementForEnclosure[] $next */
     public function __construct(
         public int $truck_pos = 0,
         public TileType $tile_type = TileType::EMPTY,
@@ -68,7 +68,7 @@ class PlacementsForTruckPos {
 
 class PossiblePlacement {
     /** @param PlacementsForTruckPos[] $placements */
-    public function __construct(private array $placements = []) {}
+    public function __construct(public array $placements = []) {}
 
 
     public function add(PlacementsForTruckPos $p1): void {

@@ -293,9 +293,31 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
-	function zombie(int $playerId): mixed
+	function zombie(int $player_id): mixed
 	{
-		// FIXME
-		return "";
+		$model = $this->createModel($player_id);
+		if ($model->canDraw()) {
+			return $this->actDrawTile($player_id);
+		}
+
+		$truck = $model->getAvailableTrucks()[0];
+		$pl = $truck->placement->placements[0];
+		$pt = [];
+		do {
+			$pt[] = [
+				'truck_pos' => $pl->truck_pos,
+				'enclosure_id' => $pl->next[0]->space->enclosure_id,
+				'enclosure_pos' => $pl->next[0]->space->pos,
+			];
+			$pn = null;
+			if ($pl->next) {
+				$x = $pl->next[0];
+				if ($x->next) {
+					$pn = $x->next[0];
+				}
+			}
+			$pl = $pn;
+		} while ($pl);
+		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->truck_id, $pt);
 	}
 }
