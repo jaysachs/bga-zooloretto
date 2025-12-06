@@ -34,7 +34,7 @@ class PlacementForEnclosure {
         // FIXME: allowed to be null, but we never make it null. Allow that.
         public ?PossiblePlacement $next = null,
         public ?Offspring $offspring = null,
-        public ?MoneyDelta $moneyDelta = null) {}
+        public ?Moneys $moneyDelta = null) {}
 
     public function serialize(): array {
         return [
@@ -92,7 +92,7 @@ class PossiblePlacement {
         $pfe->offspring = $offspring;
 
         if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
-            $pfe->moneyDelta = MoneyDelta::chargePlayer($player_id, -$enc->coin_bonus);
+            $pfe->moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
         }
 
         if (!$truck->isEmpty()) {

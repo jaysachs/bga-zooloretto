@@ -61,7 +61,7 @@ interface Offspring {
   tile: string;
 }
 
-interface MoneyDelta {
+interface Moneys {
   bank: number;
   players: { [ playerId: number ]: number };
 }
@@ -69,7 +69,7 @@ interface MoneyDelta {
 interface Destination {
   space: Space;
   offspring: Offspring;
-  money_delta: MoneyDelta;
+  money_delta: Moneys;
 }
 
 // FIXME: is this useful?
@@ -95,7 +95,7 @@ interface PossibleEnclosurePlacement {
   space: Space;
   next: PossiblePlacement[];
   offspring: Offspring | undefined;
-  money_delta: MoneyDelta | undefined;
+  money_delta: Moneys | undefined;
 }
 interface PossiblePlacement {
   truck_pos: number;
@@ -106,20 +106,20 @@ interface PossiblePlacement {
 interface AvailableTruck {
   truck_id: number;
   coin_positions: number[];
-  money_delta: MoneyDelta;
+  money_delta: Moneys;
   playable: PossiblePlacement[];
 }
 
 interface PossibleMove {
   src: Space;
-  money_delta: MoneyDelta;
+  money_delta: Moneys;
   dests: Destination[];
 }
 
 interface PossiblePurchase {
   from_player_id: number;
   src: Space;
-  money_delta: MoneyDelta;
+  money_delta: Moneys;
   dests: Destination[];
 }
 
@@ -132,7 +132,7 @@ interface PossibleExchange {
   src: ExchangeGroup;
   dest: ExchangeGroup;
   offspring: Offspring[];
-  money_delta: MoneyDelta;
+  money_delta: Moneys;
 }
 
 interface PlayState {
@@ -385,14 +385,14 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
 abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, ZoolorettoGame> {
 
-  private negate(moneyDelta: MoneyDelta): MoneyDelta {
+  private negate(moneyDelta: Moneys): Moneys {
     return {
       bank: -moneyDelta.bank,
       players: Object.fromEntries(Object.entries(moneyDelta.players).map(kv => [kv[0], -kv[1]])),
     };
   }
 
-  protected updateMoneyDelta(moneyDelta?: MoneyDelta): void {
+  protected updateMoneyDelta(moneyDelta?: Moneys): void {
     if (! moneyDelta) {
       return;
     }
@@ -942,7 +942,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       */
   }
 
-  public updateMoneyDelta(delta: MoneyDelta): void {
+  public updateMoneyDelta(delta: Moneys): void {
     if (delta.bank) {
       this.bankCounter.incValue(delta.bank);
     }
@@ -951,8 +951,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private updateMoney(player_id: number, money: number): void {
-    this.moneyCounter[player_id]!.toValue(money);
+  private updateMoneys(moneys: Moneys): void {
+    this.bankCounter.toValue(moneys.bank);
+    Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue[pv[1]]);
   }
 
   private addMoney(player_id: number, delta: number): void {
@@ -1010,7 +1011,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
-      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{})
+      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{ animationsActive: true})
         .then(() => {
           $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile_type));
           (this as any).addLastTurnBanner(_('This is the last round!'));
@@ -1075,13 +1076,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async notif_ExpandZoo(args: {
       player_id: number,
       purchased_extensions: number,
-      money: number
+      moneys: Moneys,
     }) {
     if (args.player_id == this.player_id) {
       return;
     }
     this.renderExtensions(args.player_id, args.purchased_extensions);
-    this.updateMoney(args.player_id, args.money);
+    this.updateMoneys(args.moneys);
   }
 
   private async notif_TakeTruckAndPlaceTiles(args: {
@@ -1127,7 +1128,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     src: Space,
     dest: Space,
-    money: number
+    moneys: Moneys,
   }) {
     if (args.player_id == this.player_id) {
       return;
@@ -1135,18 +1136,18 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.animationManager.slideAndAttach(
       Elements.enclosureTile(args.player_id, args.src.enclosure_id, args.src.pos),
       Elements.enclosureSpace(args.player_id, args.dest.enclosure_id, args.dest.pos),
-      {}).then(() => this.updateMoney(args.player_id, args.money));
+      {}).then(() => this.updateMoneys(args.moneys));
   }
 
   private async notif_DiscardTile(args: {
     player_id: number,
-    money: number,
+    moneys: Moneys,
     barn_pos: number
   }) {
     if (args.player_id == this.player_id) {
       return;
     }
-    this.updateMoney(args.player_id, args.money);
+    this.updateMoneys(args.moneys);
     await this.animationManager.slideOutAndDestroy(
       Elements.enclosureTile(args.player_id, 0, args.barn_pos),
       $(IDS.OFF_BOARD),
@@ -1160,8 +1161,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 			enclosure_id: number,
 			enclosure_pos: number,
 			tile: string,
-			money: number,
-      from_player_money: number,
+			moneys: Moneys,
     }) {
     if (args.player_id == this.player_id) {
       return;
@@ -1170,8 +1170,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       Elements.enclosureTile(args.from_player_id, 0, args.barn_pos),
       Elements.enclosureSpace(args.player_id, args.enclosure_id, args.enclosure_pos),
       {}).then( () => {
-        this.updateMoney(args.player_id, args.money);
-        this.updateMoney(args.from_player_id, args.from_player_money);
+        this.updateMoneys(args.moneys);
       });
   }
 
@@ -1206,7 +1205,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 		src_positions: number[],
 		dest_enclosure_id: number,
 		dest_positions: number[],
-    money: number,
+    moneys: Moneys,
   }) {
     if (args.player_id == this.player_id) {
       return;
@@ -1230,7 +1229,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           {}));
       }
     }
-    await this.animationManager.playParallel(anims).then(()=>this.updateMoney(args.player_id, args.money));
+    await this.animationManager.playParallel(anims).then(()=>this.updateMoneys(args.moneys));
   }
 
   private scoreSheet: ScoreSheet;

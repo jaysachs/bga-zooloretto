@@ -32,6 +32,6 @@ class PossibleMoves {
      * @param PossibleMove[] $moves
      */
     public function __construct(
-        public readonly MoneyDelta $moneyDelta,
+        public readonly Moneys $moneyDelta,
         public readonly array $moves) { }
 }

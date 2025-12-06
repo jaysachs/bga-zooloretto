@@ -309,7 +309,7 @@ class Model {
         }
         $barn = $this->getEnclosuresForPlayer()[0];
         return array_map(
-            fn ($p) => new Destination(new Space(0, $p), null, MoneyDelta::costPlayer($this->player_id, Cost::DISCARD)),
+            fn ($p) => new Destination(new Space(0, $p), null, Moneys::costPlayerDelta($this->player_id, Cost::DISCARD)),
             array_keys($barn->nonEmptyContents()));
     }
 
@@ -332,7 +332,7 @@ class Model {
             $offspring = $enc->checkForOffspring($barn);
             $moneyDelta = null;
             if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
-                $moneyDelta = MoneyDelta::chargePlayer($this->player_id, -$enc->coin_bonus);
+                $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
             }
             $enc->takeTileAt($ap);
             return new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
@@ -342,7 +342,7 @@ class Model {
 
     public function getPossibleMoves(): PossibleMoves {
         if (! $this->getActivePlayer()->canAfford(Cost::MOVE)) {
-            return new PossibleMoves(new MoneyDelta(0, []), []);
+            return new PossibleMoves(new Moneys(0, []), []);
         }
         $result = [];
         $enclosures = $this->getEnclosuresForPlayer();
@@ -387,7 +387,7 @@ class Model {
                 }
             }
         }
-        return new PossibleMoves(MoneyDelta::costPlayer($this->player_id, Cost::MOVE), $result);
+        return new PossibleMoves(Moneys::costPlayerDelta($this->player_id, Cost::MOVE), $result);
     }
 
     public function moveTile(Space $src, Space $dest): void {
@@ -505,7 +505,7 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $delta = new MoneyDelta(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
+                    $delta = new Moneys(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
                     $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($barn->id, $pos), $dests));
                 }
             }
@@ -519,7 +519,7 @@ class Model {
             return null;
         }
         return new PossibleExchanges(
-            MoneyDelta::costPlayer($this->player_id, Cost::EXCHANGE),
+            Moneys::costPlayerDelta($this->player_id, Cost::EXCHANGE),
             PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer()));
     }
 
@@ -690,5 +690,9 @@ class Model {
         $sql = "UPDATE player set player_score_aux = money";
         $this->game->DbQuery( $sql );
         return $scores;
+    }
+
+    public function currentMoneys(): Moneys {
+        return new Moneys($this->bankMoney(), array_map(fn (Player $p) => $p->money, $this->getAllPlayers()));
     }
 }

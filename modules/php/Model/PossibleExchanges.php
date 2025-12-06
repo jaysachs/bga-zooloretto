@@ -34,7 +34,7 @@ class PossibleExchanges {
      * @param PossibleExchange[] $exchanges,
      */
     public function __construct(
-        public readonly MoneyDelta $moneyDelta,
+        public readonly Moneys $moneyDelta,
         public readonly array $exchanges
     ) {}
 }

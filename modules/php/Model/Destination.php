@@ -31,7 +31,7 @@ class Destination {
     public function __construct(
         public readonly Space $space,
         public readonly ?Offspring $offspring = null,
-        public readonly ?MoneyDelta $moneyDelta = null) {
+        public readonly ?Moneys $moneyDelta = null) {
     }
 
     public function __toString(): string

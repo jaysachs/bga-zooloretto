@@ -33,12 +33,10 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
-use Bga\Games\zooloretto\Model\MoneyDelta;
 use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
-use Bga\Games\zooloretto\Model\PossiblePlacement;
 use Bga\Games\zooloretto\Model\Space;
 
 class PlayerTurn extends AbstractState
@@ -103,7 +101,6 @@ class PlayerTurn extends AbstractState
 			'possible_exchanges' => $px,
 			'can_expand' => $model->canExpand(),
 			'lastround' => $model->getStock()->inLastRound(),
-			// 'money' => $player->money,
 		];
 	}
 
@@ -150,7 +147,7 @@ class PlayerTurn extends AbstractState
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'deliveries' => $p,
-		  'money' => $model->getActivePlayer()->money,
+		  'moneys' => $model->currentMoneys()->serialize(),
 		]);
 		return NextPlayer::class;
 	}
@@ -205,7 +202,7 @@ class PlayerTurn extends AbstractState
 			[
 				'player_id' => $active_player_id,
 				'purchased_extensions' => $player->purchased_extensions,
-				'money' => $player->money,
+	  		    'moneys' => $model->currentMoneys()->serialize(),
 			]
 		);
 		return NextPlayer::class;
@@ -225,7 +222,7 @@ class PlayerTurn extends AbstractState
 				'player_id' => $active_player_id,
 				'src' => $src->serialize(),
 				'dest' => $dest->serialize(),
-				'money' => $model->getActivePlayer()->money,
+        		'moneys' => $model->currentMoneys()->serialize(),
 			]
 		);
 		return NextPlayer::class;
@@ -251,7 +248,7 @@ class PlayerTurn extends AbstractState
 			'dest_positions' => $dest_positions,
 			'src_animal_type' => $animal_types[0]->value,
 			'dest_animal_type' => $animal_types[1]->value,
-			'money' => $player->money,
+        	'moneys' => $model->currentMoneys()->serialize(),
 		]);
 		return NextPlayer::class;
 	}
@@ -268,7 +265,7 @@ class PlayerTurn extends AbstractState
 			'enclosure_id' => $enclosure_id,
 			'enclosure_pos' => $enclosure_pos,
 			'tile' => $tile->type->value,
-			'money' => $player->money,
+    		'moneys' => $model->currentMoneys()->serialize(),
 			'from_player_id' => $from_player_id,
 			'from_player_money' => $model->getPlayer($from_player_id)->money,
 		]);
@@ -283,7 +280,7 @@ class PlayerTurn extends AbstractState
 		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile}',[
 			'player_id' => $active_player_id,
 			'tile' => $tile->type->value,
-			'money' => $model->getActivePlayer()->money,
+        	'moneys' => $model->currentMoneys()->serialize(),
 			'barn_pos' => $barn_pos,
 		]
 		);

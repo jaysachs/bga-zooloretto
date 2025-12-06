@@ -10,5 +10,3 @@
 * Format log messages with tile images (and hovercards).
 
 * Log messages for all significant events (either separate messages for moves/money/offspring, or compound ones).
-
-* Make sure bank money is updated in all notifs. Maybe use MoneyDelta everywhere?

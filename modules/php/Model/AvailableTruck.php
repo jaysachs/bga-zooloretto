@@ -42,7 +42,7 @@ class AvailableTruck {
 			'truck_id' => $this->truck_id,
 			'coin_positions' => $this->coin_positions,
 			'playable' => $this->placement->serialize(),
-            'money_delta' => MoneyDelta::giftPlayer($this->player_id, count($this->coin_positions))->serialize(),
+            'money_delta' => Moneys::giftPlayerDelta($this->player_id, count($this->coin_positions))->serialize(),
         ];
     }
 }

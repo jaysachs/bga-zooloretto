@@ -27,34 +27,34 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class MoneyDelta {
+class Moneys {
     /** @param int[] $player_delta keyed by player_id */
     public function __construct(
-        public readonly int $bank_delta,
-        public readonly array $player_delta = [])
+        public readonly int $bank,
+        public readonly array $players = [])
     {}
 
-    public static function costPlayer(int $player_id, Cost $cost): MoneyDelta {
-        return MoneyDelta::chargePlayer($player_id, $cost->amount());
+    public static function costPlayerDelta(int $player_id, Cost $cost): Moneys {
+        return Moneys::chargePlayerDelta($player_id, $cost->amount());
     }
 
-    public static function chargePlayer(int $player_id, int $amount): MoneyDelta {
-        return new MoneyDelta($amount, [ $player_id => -$amount ]);
+    public static function chargePlayerDelta(int $player_id, int $amount): Moneys {
+        return new Moneys($amount, [ $player_id => -$amount ]);
     }
 
-    public static function giftPlayer(int $player_id, int $amt): MoneyDelta {
-        return new MoneyDelta(0, [ $player_id => $amt ]);
+    public static function giftPlayerDelta(int $player_id, int $amt): Moneys {
+        return new Moneys(0, [ $player_id => $amt ]);
     }
 
-    public function equals(MoneyDelta $other): bool {
-        return $this->bank_delta == $other->bank_delta
-           && $this->player_delta == $other->player_delta;
+    public function equals(Moneys $other): bool {
+        return $this->bank == $other->bank
+           && $this->players == $other->players;
     }
 
     public function serialize(): array {
         return [
-            'bank' => $this->bank_delta,
-            'players' => $this->player_delta,
+            'bank' => $this->bank,
+            'players' => $this->players,
         ];
     }
 }

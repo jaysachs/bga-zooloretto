@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-use Bga\Games\zooloretto\Utils;
-use Bga\Games\zooloretto\Model\{Enclosure, MoneyDelta, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
+use Bga\Games\zooloretto\Model\{Enclosure, Moneys, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
 
-function e(int $x, int $y, $z = null, ?Offspring $offspring = null, ?MoneyDelta $moneyDelta = null) {
+function e(int $x, int $y, $z = null, ?Offspring $offspring = null, ?Moneys $moneyDelta = null) {
     return new PlacementForEnclosure(new Space($x, $y), $z, $offspring, $moneyDelta);
 }
 function t(int $truck_id, TileType $y, $z = []) { return new PlacementsForTruckPos($truck_id, $y, $z); }
@@ -182,7 +181,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
-                        e(1, 2, null, $kid(1, 3, true), MoneyDelta::chargePlayer(100, -7)),
+                        e(1, 2, null, $kid(1, 3, true), Moneys::chargePlayerDelta(100, -7)),
                         e(2, 1),
                     ])
                 ])),
@@ -190,7 +189,7 @@ final class PossiblePlacementTest extends TestCase
                     t(2, TileType::CAMEL_MALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, $kid(0, 1), MoneyDelta::chargePlayer(100, -5)),
+                        e(2, 2, null, $kid(0, 1), Moneys::chargePlayerDelta(100, -5)),
                     ])
                 ])),
             ]),
@@ -205,7 +204,7 @@ final class PossiblePlacementTest extends TestCase
                 e(1, 1, p([
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
-                        e(1, 2, null, $kid(1, 3, true), MoneyDelta::chargePlayer(100, -7)),
+                        e(1, 2, null, $kid(1, 3, true), Moneys::chargePlayerDelta(100, -7)),
                         e(2, 1),
                     ])
                 ])),
@@ -213,7 +212,7 @@ final class PossiblePlacementTest extends TestCase
                     t(1, TileType::CAMEL_FEMALE, [
                         e(0, 1),
                         e(1, 1),
-                        e(2, 2, null, $kid(0, 1), MoneyDelta::chargePlayer(100, -5)),
+                        e(2, 2, null, $kid(0, 1), Moneys::chargePlayerDelta(100, -5)),
                     ])
                 ])),
             ]),
