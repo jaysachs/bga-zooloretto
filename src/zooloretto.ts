@@ -1280,8 +1280,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           height: 40,
         },
       ],
-      scores: this.gamedatas.endScores, // to defined if the game state is 99, else null, so the score displays directly on reload when the game is ended. If unset, the score sheet will be hidden by default.
-      onScoreDisplayed: (property: string, playerId: number, score: number) => { // if you want to do something when a score is revealed
+      scores: this.gamedatas.endScores,
+      onScoreDisplayed: (property: string, playerId: number, score: number) => {
         if (property === 'total') {
           this.scoreCtrl[playerId]!.setValue(score);
         }
@@ -1293,16 +1293,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     await this.scoreSheet.setScores(args.endScores, {
             startBy: this.player_id,
         });
-    // args.forEach(s => this.scoreCtrl[s.player_id]!.setValue(s.total_points));
-  }
-
-  private async notif_debugReset(): Promise<void> {
-    window.location.reload();
-  }
-
-  private async notif_LastRound(): Promise<void> {
-    // (1) if first tile of endgame pile taken, remove disk (slide off board)
-    // (2) add banner
   }
 
   ///////
