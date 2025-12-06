@@ -28,7 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class Moneys {
-    /** @param int[] $player_delta keyed by player_id */
+    /** @param int[] $players keyed by player_id */
     public function __construct(
         public readonly int $bank,
         public readonly array $players = [])

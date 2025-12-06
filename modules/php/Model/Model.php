@@ -668,7 +668,7 @@ class Model {
                         if (count($enc->stallTypes()) > 0) {
                             $detail['other_enclosures']++;
                             $detail['other_enclosure_points'] += count($enc->filledAnimalPositions());
-                            foreach ($enc->stallTypes() as $st => $ct) {
+                            foreach (array_keys($enc->stallTypes()) as $st) {
                                 $stall_types[$st] = 1;
                             }
                         }
