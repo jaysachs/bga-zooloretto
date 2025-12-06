@@ -34,8 +34,7 @@ class Delivery {
     public function __construct(
         public int $truck_id,
         public int $truck_pos,
-        public int $enclosure_id,
-        public int $enclosure_pos, // not clear if needed
+        public Space $space,
         public ?Offspring $offspring = null,
     ) {}
 }

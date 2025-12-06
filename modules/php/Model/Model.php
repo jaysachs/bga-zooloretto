@@ -191,7 +191,7 @@ class Model {
         $player = $this->getActivePlayer();
         foreach ($deliveries as $delivery) {
             $truck = $this->getTruck($truck_id);
-            $encl = $encs[$delivery->enclosure_id];
+            $encl = $encs[$delivery->space->enclosure_id];
             $toUpdate[] = $encl;
             $tile = $truck->removeTileAt($delivery->truck_pos);
             $placement = $encl->placeTile($tile);
@@ -200,10 +200,10 @@ class Model {
                 $this->payPlayer($player, $amt);
             }
             $pos = $placement->space->pos;
-            if ($pos <> $delivery->enclosure_pos) {
+            if ($pos <> $delivery->space->pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
-                $delivery->enclosure_pos = $pos;
+                $delivery->space->pos = $pos;
             }
             $offspring = $encl->checkForOffspring($barn);
 
@@ -325,16 +325,17 @@ class Model {
         return $tile;
     }
 
-    private function makePossibleDest(Enclosure $enc, Tile $tile, Enclosure $barn): Destination | null {
+    private function makePossibleDest(Enclosure $enc, Tile $tile, Enclosure $buyer_barn): Destination | null {
         $ap = $enc->availablePos($tile->type);
         if ($ap > 0) {
+            $enc = $enc->clone();
+            $buyer_barn = $buyer_barn->clone();
             $pl = $enc->placeTile($tile, $ap);
-            $offspring = $enc->checkForOffspring($barn);
+            $offspring = $enc->checkForOffspring($buyer_barn);
             $moneyDelta = null;
             if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
                 $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
             }
-            $enc->takeTileAt($ap);
             return new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
         }
         return null;
@@ -429,54 +430,56 @@ class Model {
         $this->ps->updateEnclosures($this->player_id, $encs);
     }
 
-    public function purchaseTile(int $from_player_id, int $barn_pos, Space $target): Tile {
+    public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): Tile {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
 
-        $found = false;
+        $found = null;
         foreach ($this->getPurchaseableTiles() as $pt) {
-            if ($pt->from_player_id == $from_player_id && $pt->move->src == $src) {
+            if ($pt->from_player_id == $seller_player_id && $pt->move->src == $src) {
                 foreach ($pt->move->dests as $dest) {
                     if ($dest->space == $target) {
-                        $found = true;
+                        $found = $dest;
                         break 2;
                     }
                 }
             }
         }
         if (!$found) {
-            throw new ModelException("Illegal purchase {$from_player_id} {$barn_pos} {$target}");
+            throw new ModelException("Illegal purchase {$seller_player_id} {$barn_pos} {$target}");
         }
 
-        $from_player = $this->getPlayer($from_player_id);
+        $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
         $this->incBankMoney(1);
-        $from_player->receiveMoney(1);
-        $this->ps->updatePlayer($from_player);
-
-        $frombarn = $this->getEnclosuresForPlayer($from_player_id)[0];
+        $seller->receiveMoney(1);
+        $this->ps->updatePlayer($seller);
+        $seller_barn = $this->getEnclosuresForPlayer($seller_player_id)[0];
 
         $encs = $this->getEnclosuresForPlayer();
         $enc = $encs[$target->enclosure_id];
-        $barn = $encs[0];
-        $tile = $frombarn->takeTileAt($src->pos);
+        $buyer_barn = $encs[0];
+
+        $tile = $seller_barn->takeTileAt($src->pos);
         $placement = $enc->placeTile($tile, $target->pos);
         if ($placement->completedEnclosure) {
             $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
             $this->payPlayer($player, $amt);
         }
 
-        $offspring = $enc->checkForOffspring($barn);
+        $offspring = $enc->checkForOffspring($buyer_barn);
         $toUpdate = [$enc];
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $toUpdate[] = $encs[$offspring->childSpace->enclosure_id];
+            $te = $offspring->childSpace->enclosure_id;
+            if ($te <> $enc->id) {
+                $toUpdate[] = $encs[$te];
+            }
             // FIXME: then check fo completion bonus
         }
-
         // Update the selling player first, to avoid violating uniqueness constraint in DB.
-        $this->ps->updateEnclosures($from_player_id, [$frombarn]);
+        $this->ps->updateEnclosures($seller_player_id, [$seller_barn]);
         $this->ps->updateEnclosures($this->player_id, $toUpdate);
         return $tile;
     }
@@ -495,18 +498,18 @@ class Model {
             if ($player->id == $this->player_id) {
                 continue;
             }
-            $barn = $this->getEnclosuresForPlayer($player->id)[0];
-            foreach ($barn->nonEmptyContents() as $pos => $tile) {
+            $seller_barn = $this->getEnclosuresForPlayer($player->id)[0];
+            foreach ($seller_barn->nonEmptyContents() as $pos => $tile) {
                 $dests = [];
                 foreach ($enclosures as $enc) {
-                    $dest = $this->makePossibleDest($enc, $tile, $barn);
+                    $dest = $this->makePossibleDest($enc, $tile, $enclosures[0]);
                     if ($dest) {
                         $dests[] = $dest;
                     }
                 }
                 if (count($dests) > 0) {
                     $delta = new Moneys(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
-                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($barn->id, $pos), $dests));
+                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($seller_barn->id, $pos), $dests));
                 }
             }
         }

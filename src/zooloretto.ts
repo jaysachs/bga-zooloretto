@@ -23,13 +23,8 @@ interface Truck {
 }
 
 interface EnclosureContents {
-  pos: number;
+  space: Space;
   tile: string;
-}
-
-interface Enclosure {
-  enclosure_id: number;
-  contents: EnclosureContents[];
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
@@ -41,7 +36,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   // Should always be 3.
   trucks: Truck[];
   // keyed by player_id
-  enclosures: Enclosure[][];
+  enclosures: EnclosureContents[][];
   endScores: any;
 }
 
@@ -123,14 +118,9 @@ interface PossiblePurchase {
   dests: Destination[];
 }
 
-interface ExchangeGroup {
-	enclosure_id: number;
-  positions: number[];
-}
-
 interface PossibleExchange {
-  src: ExchangeGroup;
-  dest: ExchangeGroup;
+  src: Space[];
+  dest: Space[];
   offspring: Offspring[];
   money_delta: Moneys;
 }
@@ -154,11 +144,8 @@ interface Delivery {
 }
 
 interface EnclosurePlacement {
-  enclosure_id: number;
-  enclosure_pos: number;
-  child_enclosure_id: number;
-  child_enclosure_pos: number;
-  child_type: string | undefined;
+  space: Space;
+  offspring: Offspring | undefined;
 }
 
 
@@ -227,12 +214,12 @@ class Elements {
     return this.truckSpace(truck_id, truck_pos).firstChild as (HTMLElement | undefined);
   }
 
-  static enclosureSpace(player_id: number, enclosure_id: number, enclosure_pos: number) : HTMLElement {
-    return $(IDS.enclosureSpace(player_id, enclosure_id, enclosure_pos));
+  static enclosureSpace(player_id: number, space: Space) : HTMLElement {
+    return $(IDS.enclosureSpace(player_id, space.enclosure_id, space.pos));
   }
 
-  static enclosureTile(player_id: number, enclosure_id: number, enclosure_pos: number) : HTMLElement {
-    return this.enclosureSpace(player_id, enclosure_id, enclosure_pos).firstElementChild as HTMLElement;
+  static enclosureTile(player_id: number, space: Space) : HTMLElement {
+    return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
 }
@@ -406,7 +393,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
       let offspringElem = Html.span({});
       offspringElem.setAttribute(Attrs.TILE, offspring.tile);
       offspringElem.style.transform = 'rotate(0deg)';
-      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space.enclosure_id, offspring.space.pos));
+      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space));
     }
     return Promise.resolve();
   }
@@ -419,22 +406,23 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   protected override doStart(possible_exchanges: PossibleExchange[]) {
     let exchangesBySrc : PossibleExchange[][] = [];
     for (let pe of possible_exchanges) {
-      let p = exchangesBySrc[pe.src.enclosure_id];
+      let src = pe.src[0]!;
+      let p = exchangesBySrc[src.enclosure_id];
       if (!p) {
-        exchangesBySrc[pe.src.enclosure_id] = [];
+        exchangesBySrc[src.enclosure_id] = [];
       }
-      exchangesBySrc[pe.src.enclosure_id]?.push(pe);
+      exchangesBySrc[src.enclosure_id]!.push(pe);
     }
 
     this.initStatusBar(_("Select the first enclosure to exchange"));
     exchangesBySrc.forEach((pes: PossibleExchange[]) => {
       let src = pes[0]!.src;
-      src.positions.forEach((p) => {
-        if (Elements.enclosureTile(this.player_id, src.enclosure_id, p)) {
-          this.addSelectableOnclick(Elements.enclosureSpace(this.player_id, src.enclosure_id, p),
+      src.forEach((p) => {
+        if (Elements.enclosureTile(this.player_id, p)) {
+          this.addSelectableOnclick(Elements.enclosureSpace(this.player_id, p),
                                     (evt) => this.selectDestinationForExchange(pes));
         }
-      });
+      })
     });
     this.addRestartTurnButton();
   }
@@ -442,25 +430,27 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   private selectDestinationForExchange(pes: PossibleExchange[]) {
     this.initStatusBar(_("Select the destingation enclosure for the exchange"));
     pes.forEach((pe : PossibleExchange) =>
-      pe.dest.positions.forEach(d =>
+      pe.dest.forEach(d =>
         this.addSelectableOnclick(
-          Elements.enclosureSpace(this.player_id, pe.dest.enclosure_id, d),
+          Elements.enclosureSpace(this.player_id, d),
           (evt) =>  {
             let anims: AnimationList = [];
-            for (let i = 0; i < pe.src.positions.length; ++i) {
-              let srcElem = Elements.enclosureTile(this.player_id, pe.src.enclosure_id, pe.src.positions[i]!);
+            for (let i = 0; i < pe.src.length; ++i) {
+              let srcElem = Elements.enclosureTile(this.player_id, pe.src[i]!);
               if (srcElem) {
                 anims.push(() => this.slide(
                   srcElem,
-                  Elements.enclosureSpace(this.player_id, pe.dest.enclosure_id, pe.dest.positions[i]!)
+                  Elements.enclosureSpace(this.player_id, pe.dest[i]!)
                 ));
               }
-              let destElem = Elements.enclosureTile(this.player_id, pe.dest.enclosure_id, pe.dest.positions[i]!);
+              let destElem = Elements.enclosureTile(this.player_id, pe.dest[i]!);
               if (destElem) {
-                anims.push(() => this.slide(destElem, Elements.enclosureSpace(this.player_id, pe.src.enclosure_id, pe.src.positions[i]!)));
+                anims.push(() => this.slide(destElem, Elements.enclosureSpace(this.player_id, pe.src[i]!)));
               }
             }
-            pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
+            if (pe.offspring) {
+              pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
+            }
             this.updateMoneyDelta(pe.money_delta);
             this.playParallel(anims).then(() => this.confirmExchange(pe));
           }
@@ -473,10 +463,10 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   private confirmExchange(pe: PossibleExchange) {
     this.initStatusBar(_("Confirm exchange"));
     this.addConfirmActionButton("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : pe.src.enclosure_id,
-		  src_positions: JSON.stringify(pe.src.positions),
-		  dest_enclosure_id: pe.dest.enclosure_id,
-      dest_positions: JSON.stringify(pe.dest.positions),
+  		src_enclosure_id : pe.src[0]!.enclosure_id,
+		  src_positions: JSON.stringify(pe.src.map((s) => s.pos)),
+		  dest_enclosure_id: pe.dest[0]!.enclosure_id,
+      dest_positions: JSON.stringify(pe.dest.map((s) => s.pos)),
     });
     this.addRestartTurnButton();
   }
@@ -487,11 +477,12 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
 
   protected override doStart(possible_purchases: PossiblePurchase[]) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
-    possible_purchases.forEach((pp: PossiblePurchase) =>
-      this.addSelectableOnclick(
-        Elements.enclosureSpace(pp.from_player_id, pp.src.enclosure_id, pp.src.pos),
-        (evt) => this.selectDestinationForPurchase(pp)
-    ));
+    possible_purchases.forEach((pp: PossiblePurchase) => {
+        this.addSelectableOnclick(
+          Elements.enclosureSpace(pp.from_player_id, pp.src),
+          (evt) => this.selectDestinationForPurchase(pp)
+        );
+      });
     this.addRestartTurnButton();
   }
 
@@ -500,12 +491,17 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     this.initStatusBar(_("Select a destination for the purchased tile"));
     pp.dests.forEach((dest: Destination) =>
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos),
+        Elements.enclosureSpace(this.player_id, dest.space),
         (evt) => {
           this.slide(
-            Elements.enclosureTile(pp.from_player_id, pp.src.enclosure_id, pp.src.pos),
-            Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos));
-          this.confirmPurchase(pp, dest)
+            Elements.enclosureTile(pp.from_player_id, pp.src),
+            Elements.enclosureSpace(this.player_id, dest.space)).then( () => {
+              this.updateMoneyDelta(dest.money_delta);
+              this.confirmPurchase(pp, dest)
+            });
+          if (dest.offspring) {
+            this.offspringSlide(dest.offspring);
+          }
         }
       ));
     this.addRestartTurnButton();
@@ -634,7 +630,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.initStatusBar(_('Choose a destination for the selected tile'));
     this.addRestartTurnButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-      let encElem = Elements.enclosureSpace(this.player_id, pep.space.enclosure_id, pep.space.pos);
+      let encElem = Elements.enclosureSpace(this.player_id, pep.space);
       encElem.classList.add(CSS.TARGETABLE);
       this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
@@ -660,10 +656,10 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
     discardables.forEach((dest: Destination) => {
       let space = dest.space;
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, space.enclosure_id, space.pos),
+        Elements.enclosureSpace(this.player_id, space),
         async (evt) => {
           await this.slideOutAndDestroy(
-            Elements.enclosureTile(this.player_id, space.enclosure_id, space.pos),
+            Elements.enclosureTile(this.player_id, space),
             $(IDS.OFF_BOARD)).then(() => {
               this.updateMoneyDelta(dest.money_delta);
               this.confirmDiscard(dest);
@@ -687,7 +683,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.addRestartTurnButton();
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, m.src.enclosure_id, m.src.pos),
+        Elements.enclosureSpace(this.player_id, m.src),
         (evt) => this.chooseDest(m)
       )
     });
@@ -698,8 +694,8 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.initStatusBar(_('Select a destination space'));
     this.addRestartTurnButton();
     pm.dests.forEach((dest: Destination) => {
-      let elem = Elements.enclosureTile(this.player_id, pm.src.enclosure_id, pm.src.pos);
-      let destElem = Elements.enclosureSpace(this.player_id, dest.space.enclosure_id, dest.space.pos)
+      let elem = Elements.enclosureTile(this.player_id, pm.src);
+      let destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
         (evt) => this.slide(elem, destElem)
           .then(() => {
@@ -875,13 +871,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private renderEnclosures(): void {
     for (let player_id in this.gamedatas.enclosures) {
-      this.gamedatas.enclosures[player_id]!.forEach(enc =>
-        enc.contents.forEach(es => {
-          if (es.tile) {
-            Elements.enclosureSpace(Number(player_id), enc.enclosure_id, es.pos).append(this.makeTileSpan(es.tile));
-          }
-        })
-      )
+      this.gamedatas.enclosures[player_id]!.forEach(es => {
+        if (es.tile) {
+          Elements.enclosureSpace(Number(player_id), es.space).append(this.makeTileSpan(es.tile));
+        }
+      })
     }
   }
 
@@ -953,7 +947,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private updateMoneys(moneys: Moneys): void {
     this.bankCounter.toValue(moneys.bank);
-    Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue[pv[1]]);
+    Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
   }
 
   private addMoney(player_id: number, delta: number): void {
@@ -1104,13 +1098,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         } else {
           anims.push(() => this.animationManager.slideAndAttach(
             Elements.truckTile(args.truck_id,del.truck_pos)!,
-            Elements.enclosureSpace(args.player_id, pl.enclosure_id, pl.enclosure_pos),
+            Elements.enclosureSpace(args.player_id, pl.space),
             {})
           );
-          if (pl.child_type) {
+          if (pl.offspring) {
             anims.push(() => {
-              let elem = this.makeTileSpan(pl.child_type!);
-              let parent = Elements.enclosureSpace(args.player_id, pl.child_enclosure_id, pl.child_enclosure_pos);
+              let elem = this.makeTileSpan(pl.offspring!.tile);
+              let parent = Elements.enclosureSpace(args.player_id, pl.offspring!.space);
               parent.appendChild(elem);
               return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
             });
@@ -1134,22 +1128,22 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       return;
     }
     await this.animationManager.slideAndAttach(
-      Elements.enclosureTile(args.player_id, args.src.enclosure_id, args.src.pos),
-      Elements.enclosureSpace(args.player_id, args.dest.enclosure_id, args.dest.pos),
+      Elements.enclosureTile(args.player_id, args.src),
+      Elements.enclosureSpace(args.player_id, args.dest),
       {}).then(() => this.updateMoneys(args.moneys));
   }
 
   private async notif_DiscardTile(args: {
     player_id: number,
     moneys: Moneys,
-    barn_pos: number
+    space: Space,
   }) {
     if (args.player_id == this.player_id) {
       return;
     }
     this.updateMoneys(args.moneys);
     await this.animationManager.slideOutAndDestroy(
-      Elements.enclosureTile(args.player_id, 0, args.barn_pos),
+      Elements.enclosureTile(args.player_id, args.space),
       $(IDS.OFF_BOARD),
       {});
   }
@@ -1157,18 +1151,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async notif_PurchaseTile(args: {
 			player_id: number,
 			from_player_id: number,
-			barn_pos: number,
-			enclosure_id: number,
-			enclosure_pos: number,
-			tile: string,
+      src: Space,
+      dest: Space,
 			moneys: Moneys,
     }) {
     if (args.player_id == this.player_id) {
       return;
     }
     await this.animationManager.slideAndAttach(
-      Elements.enclosureTile(args.from_player_id, 0, args.barn_pos),
-      Elements.enclosureSpace(args.player_id, args.enclosure_id, args.enclosure_pos),
+      Elements.enclosureTile(args.from_player_id, args.src),
+      Elements.enclosureSpace(args.player_id, args.dest),
       {}).then( () => {
         this.updateMoneys(args.moneys);
       });
@@ -1215,19 +1207,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     for (let i = 0; i < args.src_spaces.length; ++i) {
       let s = args.src_spaces[i]!;
       let d = args.dest_spaces[i]!;
-      let srcElem = Elements.enclosureTile(args.player_id, s.enclosure_id, s.pos);
+      let srcElem = Elements.enclosureTile(args.player_id, s);
       if (srcElem) {
         anims.push(() => this.animationManager.slideAndAttach(
           srcElem,
-          Elements.enclosureSpace(args.player_id, d.enclosure_id, d.pos),
+          Elements.enclosureSpace(args.player_id, d),
           {}
         ));
       }
-      let destElem = Elements.enclosureTile(args.player_id, d.enclosure_id, d.pos);
+      let destElem = Elements.enclosureTile(args.player_id, d);
       if (destElem) {
         anims.push(() => this.animationManager.slideAndAttach(
           destElem,
-          Elements.enclosureSpace(args.player_id, s.enclosure_id, s.pos),
+          Elements.enclosureSpace(args.player_id, s),
           {}));
       }
     }

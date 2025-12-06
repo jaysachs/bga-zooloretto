@@ -31,7 +31,7 @@ use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
-use Bga\Games\zooloretto\Model\Player;
+use Bga\Games\zooloretto\Model\Space;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
@@ -83,21 +83,16 @@ class Game extends \Bga\GameFramework\Table
 		$stock = $model->getStock();
 		$encs = [];
 		foreach ($model->getAllPlayers() as $player) {
-			$encs[$player->id] = array_map(
-				function (Enclosure $e) : array {
-					$contents = [];
-					foreach ($e->nonEmptyContents() as $pos => $tile) {
-						$contents[] = [
-							'pos' => $pos,
-							'tile' => $tile->type->value,
-						];
-					}
-					return [
-						'enclosure_id' => $e->id,
-						'contents' => $contents,
+			$contents = [];
+			foreach ($model->getEnclosuresForPlayer($player->id) as $e) {
+				foreach ($e->nonEmptyContents() as $pos => $tile) {
+					$contents[] = [
+						'space' => new Space($e->id, $pos)->serialize(),
+						'tile' => $tile->type->value,
 					];
-				},
-				$model->getEnclosuresForPlayer($player->id));
+				}
+			}
+			$encs[$player->id] = $contents;
 		}
 		$datas = [
             'trucks' => array_map(function (Truck $truck): array {

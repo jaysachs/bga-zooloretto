@@ -30,7 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 class Space {
     public function __construct(
         public readonly int $enclosure_id,
-        public readonly int $pos) { }
+        public /* readonly */ int $pos) { }
 
     public function __toString(): string
     {

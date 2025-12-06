@@ -76,7 +76,19 @@ class PlayerTurn extends AbstractState
 			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
+		$pxs = [];
 		$pex = $model->getPossibleExchanges();
+		if ($pex) {
+			foreach ($pex->exchanges as $px) {
+				$pxs[] = [
+					'src' => array_map(
+						fn ($p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
+					'dest' => array_map(
+						fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
+				];
+			}
+		}
+		/*
 		$px = array_map(fn (PossibleExchange $px) => [
 			'src' => [
 				'enclosure_id' => $px->src_enclosure_id,
@@ -89,7 +101,7 @@ class PlayerTurn extends AbstractState
 			'money_delta' => $pex->moneyDelta->serialize(),
 			'offspring' => array_map(fn (Offspring $s) => $s->serialize(), $px->offspring),
 		], ($pex ? $pex->exchanges : []));
-
+*/
 		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
 
 		return [
@@ -98,7 +110,7 @@ class PlayerTurn extends AbstractState
 			'possible_moves' => $pm,
 			'possible_purchases' => $pb,
 			'possible_discards' => $pd,
-			'possible_exchanges' => $px,
+			'possible_exchanges' => $pxs,
 			'can_expand' => $model->canExpand(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
@@ -116,8 +128,8 @@ class PlayerTurn extends AbstractState
 			array_map(fn ($pt) => new Delivery(
 				$truck_id,
 				intval($pt['truck_pos']),
-				intval($pt['enclosure_id']),
-				intval($pt['enclosure_pos'])),
+				new Space(intval($pt['enclosure_id']),
+						  intval($pt['enclosure_pos']))),
 			$placed_tiles));
 		$p = [];
 		foreach ($coins as $coin) {
@@ -127,18 +139,12 @@ class PlayerTurn extends AbstractState
 			];
 		}
 		foreach ($deliveries as $del) {
-			$opl = [
-				'enclosure_id' => $del->enclosure_id,
-				'enclosure_pos' => $del->enclosure_pos,
-			];
-			if ($del->offspring) {
-				$opl['child_enclosure_id'] = $del->offspring->childSpace->enclosure_id;
-				$opl['child_enclosure_pos'] = $del->offspring->childSpace->pos;
-				$opl['child_type'] = $del->offspring->child->type->value;
-			}
 			$p[$del->truck_pos] = [
 				'truck_pos' => $del->truck_pos,
-				'placement' => $opl,
+				'placement' => [
+					'space' => $del->space->serialize(),
+					'offspring' => $del->offspring ? $del->offspring->serialize() : null,
+				],
 			];
 		}
 		$p = array_values($p);
@@ -263,13 +269,11 @@ class PlayerTurn extends AbstractState
 		$player = $model->getActivePlayer();
 		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile}', [
 			'player_id' => $active_player_id,
-			'barn_pos' => $barn_pos,
-			'enclosure_id' => $enclosure_id,
-			'enclosure_pos' => $enclosure_pos,
+			'from_player_id' => $from_player_id,
+			'src' => new Space(0, $barn_pos),
+			'dest'  => new Space($enclosure_id, $enclosure_pos),
 			'tile' => $tile->type->value,
     		'moneys' => $model->currentMoneys()->serialize(),
-			'from_player_id' => $from_player_id,
-			'from_player_money' => $model->getPlayer($from_player_id)->money,
 		]);
 		return NextPlayer::class;
 	}
@@ -283,7 +287,7 @@ class PlayerTurn extends AbstractState
 			'player_id' => $active_player_id,
 			'tile' => $tile->type->value,
         	'moneys' => $model->currentMoneys()->serialize(),
-			'barn_pos' => $barn_pos,
+			'space' => new Space(0, $barn_pos),
 		]
 		);
 		return NextPlayer::class;
