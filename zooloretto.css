@@ -259,6 +259,15 @@ body.mobile_version {
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Disk.png');
+/*
+    These seem to be needed so slideOutAndDestroy shows it. Oddly, tiles don't seem to need it
+    when sOAD from the barn. */
+    /*
+    position: absolute;
+    aspect-ratio: 1.0;
+    width: calc(var(--zoo-tile-size));
+    height: auto;
+    */
 }
 
 /* offspring tiles are actually round */
