@@ -46,7 +46,7 @@ class ComputeScores extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel(0);
-        $scoreDetailsByPlayerId = $model->computeScores();
+        $scoreDetailsByPlayerId = $model->computeScores(true);
         // FIXME: include winner(s) in message?
         $this->notify->all('GameEnded', clienttranslate('Scoring completed'), [
             'endScores' => $scoreDetailsByPlayerId,
