@@ -754,9 +754,9 @@ class ZoolorettoHtml {
     elem.setAttribute(Attrs.EXTENSIONS, ""+player.purchased_extensions);
 
     return Html
-      .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard", "whiteblock" ] },
-        Html.div({ id: `zoo-playername-${player.player_id}`, classes: "zoo-playername"},
-          Html.p({ text: player.name, style: `color: #${player.color}`, classes: "player-name" })
+      .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard"] },
+        Html.div({ id: `zoo-playername-${player.player_id}`},
+          Html.span({ text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
         ),
         elem
       );

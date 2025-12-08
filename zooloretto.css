@@ -32,7 +32,7 @@ body.mobile_version {
     display : flex;
     flex-direction: row-reverse;
     column-gap: 0.5vw;
-    margin-right: 0.2vw;
+    margin: 0.8vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.05);
 }
@@ -162,17 +162,18 @@ body.mobile_version {
 /*
  * Player boards
  */
-
 #zoo-boards {
     flex: 10;
     display : flex;
     flex-direction: column;
+    row-gap: 2em;
+    column-gap: 2em;
 }
 
 .zoo-board {
 /*    margin: 2%; */
     /* FIXME: this is tied to the %ages of the board width, and also margins */
-    width: 73.74%;
+    width: 77.5%;
     /* this is important since enclosures are positioned relative to this. */
     position: relative;
     background: url('img/Board0.png') center / contain no-repeat;
@@ -208,12 +209,22 @@ body.mobile_version {
     width: auto;
     border-radius: 10px 10px;
     align-items: left;
+/*    margin-left: 10px; */
 }
 
 .zoo-playername {
+    /*
     padding-top: 0%;
     padding-bottom: 0%;
+*/
     text-align: left;
+    padding: 5px;
+    margin: 0.25em;
+    vertical-align: top;
+    border-left: 2px solid black;
+    border-top: 2px solid black;
+    border-right: 2px solid black;
+    border-radius: 6px 6px 0 0;
 }
 
 .zoo-moved {

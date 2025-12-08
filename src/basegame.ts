@@ -234,11 +234,11 @@ class Html {
     return this.makeElem('div', args, ...children);
   }
 
-  public static span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('span', args, ...children);
   }
 
-  public static p(args: {id?: string, text?: string, attrs?: Record<string, string>, style?: (string | string[]), classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
-    return this.makeElem('p', args, ...children);
+  public static p(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+      return this.makeElem('p', args, ...children);
   }
 }
