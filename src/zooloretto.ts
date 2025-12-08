@@ -771,12 +771,12 @@ class ZoolorettoHtml {
         Html.div({ id: 'zoo-shared-container' },
           Html.div({ id: 'zoo-stock-and-bank' },
             Html.div({ id: 'zoo-primary-pile' },
+              Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
               Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
-              Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" })
             ),
             Html.div({ id: 'zoo-endgame-pile' },
+              Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
               Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
-              Html.div({ id: IDS.ENDGAME_PILE_COUNT })
             ),
             Html.div({ id: 'zoo-bank' },
               Html.div({ id: IDS.BANK_MONEY, text: '27' })
@@ -969,27 +969,27 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   //
 
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
-    if (playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'), () => new DrawTileFlow(this).start(playState.lastround));
-    }
-    if (playState.available_trucks.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'), () => new TakeTruckFlow(this).start(playState.available_trucks));
-    }
-    if (playState.possible_moves.length > 0) {
-      this.statusBar.addActionButton(_('Move tile'), () => new MoveTileFlow(this).start(playState.possible_moves));
-    }
-    if (playState.possible_exchanges.length > 0) {
-      this.statusBar.addActionButton(_('Exchange animals'), () => new ExchangeFlow(this).start(playState.possible_exchanges));
-    }
-    if (playState.possible_purchases.length > 0) {
-      this.statusBar.addActionButton(_('Purchase tile'), () => new PurchaseTileFlow(this).start(playState.possible_purchases));
-    }
-    if (playState.possible_discards.length > 0) {
-      this.statusBar.addActionButton(_('Discard tile'), () => new DiscardTileFlow(this).start(playState.possible_discards));
-    }
-    if (playState.can_expand) {
-      this.statusBar.addActionButton(_('Expand zoo'), () => new ExpandZooFlow(this).start());
-    }
+    this.statusBar.addActionButton(_('Draw tile'),
+      () => new DrawTileFlow(this).start(playState.lastround),
+      { disabled: !playState.can_draw });
+    this.statusBar.addActionButton(_('Take truck'),
+      () => new TakeTruckFlow(this).start(playState.available_trucks),
+      { disabled: playState.available_trucks.length == 0});
+    this.statusBar.addActionButton(_('Move tile'),
+      () => new MoveTileFlow(this).start(playState.possible_moves),
+      { disabled: playState.possible_moves.length == 0 });
+    this.statusBar.addActionButton(_('Exchange animals'),
+      () => new ExchangeFlow(this).start(playState.possible_exchanges),
+      { disabled: playState.possible_exchanges.length == 0});
+    this.statusBar.addActionButton(_('Purchase tile'),
+      () => new PurchaseTileFlow(this).start(playState.possible_purchases),
+      { disabled: playState.possible_purchases.length == 0 });
+    this.statusBar.addActionButton(_('Discard tile'),
+      () => new DiscardTileFlow(this).start(playState.possible_discards),
+      { disabled: playState.possible_discards.length == 0 });
+    this.statusBar.addActionButton(_('Expand zoo'),
+      () => new ExpandZooFlow(this).start(),
+      { disabled: !playState.can_expand} );
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
