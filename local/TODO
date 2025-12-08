@@ -10,3 +10,40 @@
 * Format log messages with tile images (and hovercards).
 
 * Log messages for all significant events (either separate messages for moves/money/offspring, or compound ones).
+
+* Find bugs -- add "debug_" methods to help set up situations?
+ * could add new tiles with this so don't have to fish through stock.
+
+* UX: consider clicking on enclosures as a whole (for exchange, at least)?
+
+* UX: placing tiles from trucks seems like has an extra click:
+  1. click on "take truck"
+  2. click on truck
+  3. click on tile on truck
+  4. click on destination
+     go to 3 until done
+Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
+
+* User preference for auto-click confirm
+
+* UX: add "undo" to go back a step?
+
+* UX questions:
+  * boards separately scrollable, so keep trucks/stock on-screen always?
+  * Feedback on colors for highlighting
+  * Feedback on importance of "same size" tiles on boards vs. trucks/stock
+  * "slide-in" of children -- important? if so, where from?
+  * "slide-out" for discarded tiles (either off trucks or out of barn):
+    where is "the box"?
+  * boards layout:
+    * vertical flow
+    * grid (2 per row?)
+    * vertical (or other) flow with opponents "small" and "zoomable"?
+    * zoom-on-hover too annoying.
+    * tab-per-player panel like ArkNova?
+      * make this an option?
+  * Put trucks & stock at top instead of right?
+    * If so, keep on screen always?
+      * maybe ask this for trucks-on-right layout too ...
+  * Modal player aid?
+  * Keep all buttons but just disable the unchoosable ones?
