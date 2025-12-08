@@ -756,7 +756,7 @@ class ZoolorettoHtml {
     return Html
       .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard", "whiteblock" ] },
         Html.div({ id: `zoo-playername-${player.player_id}`, classes: "zoo-playername"},
-          Html.span({ text: player.name })
+          Html.p({ text: player.name, style: `color: #${player.color}`, classes: "player-name" })
         ),
         elem
       );

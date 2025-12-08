@@ -170,7 +170,7 @@ body.mobile_version {
 }
 
 .zoo-board {
-    margin: 2%;
+/*    margin: 2%; */
     /* FIXME: this is tied to the %ages of the board width, and also margins */
     width: 73.74%;
     /* this is important since enclosures are positioned relative to this. */
@@ -207,12 +207,13 @@ body.mobile_version {
     flex-direction: column;
     width: auto;
     border-radius: 10px 10px;
-    align-items: center;
+    align-items: left;
 }
 
 .zoo-playername {
     padding-top: 0%;
     padding-bottom: 0%;
+    text-align: left;
 }
 
 .zoo-moved {
