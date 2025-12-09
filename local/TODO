@@ -47,3 +47,7 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
       * maybe ask this for trucks-on-right layout too ...
   * Modal player aid?
   * Keep all buttons but just disable the unchoosable ones?
+
+Bugs:
+  * first draw from endgame pile notif not handled right on on-triggering player
+  * visual bug in barn -- 2nd (or last?) tile placed there has elongated height.
