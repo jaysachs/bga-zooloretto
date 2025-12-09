@@ -51,3 +51,6 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 Bugs:
   * first draw from endgame pile notif not handled right on on-triggering player
   * visual bug in barn -- 2nd (or last?) tile placed there has elongated height.
+  * Slightly more serious: if a player has a 2nd window open, they don't
+    process the notifs they generate. Need to only filter if actions
+    initiated from *this* window.
