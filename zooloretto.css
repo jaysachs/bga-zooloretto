@@ -35,19 +35,23 @@ body.mobile_version {
     margin: 0.8vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.05);
+    overflow: scroll;
+    height: 100vh;
 }
-
 
 /*
  * Shared components -- draw pile, bank money, trucks
  */
 
 #zoo-shared-container {
+    top: 0px;
+    position: sticky;
     padding: 0.2vw;
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin: 0 0.5vw 0 0.5vw;
+    margin: 0 3.5vw 0 0.5vw;
+    height: 50%;
 }
 
 #zoo-stock-and-bank {
@@ -207,9 +211,8 @@ body.mobile_version {
     display : flex;
     flex-direction: column;
     width: auto;
-    border-radius: 10px 10px;
+    padding-top: 10px;
     align-items: left;
-/*    margin-left: 10px; */
 }
 
 .zoo-playername {
