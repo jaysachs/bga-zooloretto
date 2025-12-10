@@ -119,6 +119,25 @@ body.mobile_version {
     top: 20%;
 }
 
+.zoo-flippee {
+    position: absolute;
+    backface-visibility: hidden;
+}
+.
+.zoo-flippee {
+    transform: rotateY(-180deg) !important;
+}
+
+.zoo-flipping.zoo-flippee[zoo-tile="back"] {
+    transform: rotateY(180deg) !important;
+    transition: transform 1s ease-in-out;
+}
+
+.zoo-flipping.zoo-flippee {
+    transform: rotateY(-360deg) !important;
+    transition: transform 1s ease-in-out;
+}
+
 .zoo-pile > span:nth-child(1) { left: 25%; top: 0; }
 .zoo-pile > span:nth-child(2) { left: 20%; top: 5%; }
 .zoo-pile > span:nth-child(3) { left: 15%; top: 10%; }
@@ -133,7 +152,7 @@ body.mobile_version {
     /* the 1.83 is related to the truck image dimensions, but also affects the flex layout with the boards, which affects the size of the tiles on the board. */
     height: auto;
     width: calc(var(--zoo-truck-width));
-    aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
+    aspect-ratio: calc(var(--zoo-truck-aspect-ratio)) !important;
 /*    min-width: calc(4 * (var(--zoo-tile-size))); */
     margin: 1vw 0 1vw 0;
 }
@@ -146,10 +165,9 @@ body.mobile_version {
     /* replicate these three here so we see it when it slides */
     height: auto;
     width: calc(var(--zoo-truck-width));
-    aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
+    aspect-ratio: calc(var(--zoo-truck-aspect-ratio)) !important;
     display: flex;
     background: url('img/Truck.png') center / contain no-repeat;
-    aspect-ratio: inherit;
 }
 
 /* truck cells */

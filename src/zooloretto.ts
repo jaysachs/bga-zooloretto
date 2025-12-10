@@ -821,12 +821,26 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super([]);
   }
 
-  private setSpanToTile(elem: HTMLElement, tile_type?: string) {
-    if (!tile_type) {
-      elem.removeAttribute(Attrs.TILE);
-    } else {
-      elem.setAttribute(Attrs.TILE, tile_type);
-    }
+  private async renderTileDraw(elem: HTMLElement, tile_type: string) {
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    let back = Html.span({classes: 'zoo-flippee' });
+    let front = Html.span({classes: 'zoo-flippee' });
+    back.classList.add('zoo-flippee');
+    back.setAttribute(Attrs.TILE, 'back');
+    front.setAttribute(Attrs.TILE, tile_type);
+    elem.removeAttribute(Attrs.TILE);
+    elem.appendChild(front);
+    elem.appendChild(back);
+    front.addEventListener('transitionend',
+                      async  () => {
+                          elem.setAttribute(Attrs.TILE, tile_type);
+                          back.remove();
+                          front.remove();
+                        });
+    return delay(10).then(() => {
+      back.classList.add('zoo-flipping');
+      front.classList.add('zoo-flipping');
+    });
   }
 
   private makeTileSpan(tile_type: string): HTMLElement {
@@ -846,7 +860,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.addStockTile('endgame');
     }
     if (this.gamedatas.drawntile) {
-      this.setSpanToTile(Elements.drawnTile(this.gamedatas.lastround), this.gamedatas.drawntile);
+      let top = Elements.drawnTile(this.gamedatas.lastround);
+      if (top) {
+        top.setAttribute(Attrs.TILE, this.gamedatas.drawntile);
+      }
     }
     if (!this.gamedatas.lastround) {
       $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK, classes: 'zoo-disk' }));
@@ -1012,7 +1029,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         });
     }
     else {
-      this.setSpanToTile(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
+      await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
     }
   }
 
