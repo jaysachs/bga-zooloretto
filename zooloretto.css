@@ -14,27 +14,35 @@
  */
 
 body {
-    /*
-      The right-side panel is a fixed 240px in width (yecch).
-      45.4% * (100vw - 240px) is width of board
-      9% of that is width of tile
-     */
-    --zoo-tile-size: calc(0.454 * (100vw - 240px) * 0.09);
+    /* inherent to the truck image */
     --zoo-truck-aspect-ratio: calc(473 / 175);
+
+    /* Goal of tile size of approx 4vw ... */
+    --zoo-tile-size: calc((100vw - 240px) / 20);
+
+    /* Trucks are 473 x 175. Tile spots are 108 wide in that image. */
+    --zoo-truck-width: calc(3 * var(--zoo-tile-size) *  473/(3 * 118) );
 }
 
 body.mobile_version {
-    /* right-side-width is 0px (effectively) */
-    --zoo-tile-size: calc(0.454 * 100vw * 0.09);
+    /* right-side-width is 0px */
+    --zoo-tile-size: calc(100vw / 20);
+}
+
+#zoo-game.zoo-2p {
+    --zoo-board-width: calc(var(--zoo-tile-size) / 9%);
 }
 
 #zoo-game {
+    --zoo-board-width: calc(var(--zoo-tile-size) * 11.6);
+/*    width: 100%; */
     display : flex;
+    align-items: flex-start;
+    justify-content: space-around;
     flex-direction: row-reverse;
-    column-gap: 0.5vw;
     margin: 0.8vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
-    --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.05);
+    --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
     overflow: scroll;
     height: 100vh;
 }
@@ -47,16 +55,19 @@ body.mobile_version {
     top: 0px;
     position: sticky;
     padding: 0.2vw;
-    flex: 1;
+    flex-shrink: 0;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    margin: 0 3.5vw 0 0.5vw;
+    margin: 0 10px 0 10px;
     height: 50%;
+    width: auto;
 }
 
 #zoo-stock-and-bank {
     display: flex;
     flex-direction: row;
+    margin: 1vw 0 1vw 0;
 }
 
 #zoo-bank {
@@ -83,24 +94,26 @@ body.mobile_version {
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: 5%;
-    top: 75%;
+    right: 10%;
+    top: 105%;
     text-align: right;
-    font-size: 0.9vw;
+    /* FIXME: revisit this. maybe just width */
+    font-size: calc(min(2.5vh,1.0vw));
 }
 
 .zoo-pile {
     position: relative;
     display: inline-block;
     aspect-ratio: 1.0;
-    width: calc(var(--zoo-tile-size) * 1.83);
+    width: calc(var(--zoo-tile-size));
     height: auto;
 }
 
 .zoo-pile > span {
     position: absolute;
     aspect-ratio: 1.0;
-    width: calc(1.244 * var(--zoo-tile-size));
+    /** 1.644 is in between what 2p and 2+p needs */
+    width: calc(var(--zoo-tile-size));
     height: auto;
     left: 5%;
     top: 20%;
@@ -118,8 +131,8 @@ body.mobile_version {
 .zoo-depot-space {
     /* FIXME: these are weird. Would like to do this some other way */
     /* the 1.83 is related to the truck image dimensions, but also affects the flex layout with the boards, which affects the size of the tiles on the board. */
-    height: calc(1.83 * (var(--zoo-tile-size)));
-    width: auto;
+    height: auto;
+    width: calc(var(--zoo-truck-width));
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
 /*    min-width: calc(4 * (var(--zoo-tile-size))); */
     margin: 1vw 0 1vw 0;
@@ -131,8 +144,8 @@ body.mobile_version {
 
 .zoo-truck {
     /* replicate these three here so we see it when it slides */
-    height: calc(1.83 * (var(--zoo-tile-size)));
-    width: auto;
+    height: auto;
+    width: calc(var(--zoo-truck-width));
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio));
     display: flex;
     background: url('img/Truck.png') center / contain no-repeat;
@@ -167,7 +180,9 @@ body.mobile_version {
  * Player boards
  */
 #zoo-boards {
-    flex: 10;
+    flex-shrink: 1.0;
+    width: 77.5%;
+    flex-grow: 0;
     display : flex;
     flex-direction: column;
     row-gap: 2em;
@@ -176,13 +191,13 @@ body.mobile_version {
 
 .zoo-board {
 /*    margin: 2%; */
-    /* FIXME: this is tied to the %ages of the board width, and also margins */
-    width: 77.5%;
     /* this is important since enclosures are positioned relative to this. */
     position: relative;
     background: url('img/Board0.png') center / contain no-repeat;
     transition: background-image 1s ease-in-out;
     aspect-ratio: 1;
+
+    width: calc(var(--zoo-board-width));
 }
 
 .zoo-board[zoo-extensions="1"] {
@@ -191,7 +206,8 @@ body.mobile_version {
 
 #zoo-game.zoo-2p .zoo-board {
     aspect-ratio: 1097 / 899 !important;
-    width: 90%;
+    width: calc(var(--zoo-board-width));
+    /* width: 100%; */
 }
 
 #zoo-game.zoo-2p .zoo-board[zoo-extensions="0"] {
@@ -208,7 +224,7 @@ body.mobile_version {
 
 
 .zoo-playerboard {
-    display : flex;
+    display: flex;
     flex-direction: column;
     width: auto;
     padding-top: 10px;
@@ -489,16 +505,11 @@ body.mobile_version {
 
 .zoo-cell {
     /* Note these are relative to the image size of the boards. */
-    width: 9%;
+    width: calc(var(--zoo-tile-size)) /* 9% */;
     height: auto;
-    aspect-ratio: 1.0;
+    aspect-ratio: 1.0 !important;
     position: absolute;
 }
-
-#zoo-game.zoo-2p .zoo-board .zoo-cell {
-    width: 7.38%;
-}
-
 
 
 #zoo-game.zoo-debug .zoo-cell { opacity: 0.5; }
@@ -509,25 +520,32 @@ body.mobile_version {
 #zoo-game.zoo-debug [zoo-enclosure="5"] .zoo-cell {  background-color: red; }
 
 
-#zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] {
+#zoo-game .zoo-board [zoo-enclosure="0"] {
     position: relative;
-    width: 28%;
     height: 50%;
     top: 50%;
-    left: 38%;
+
     display : grid;
-    column-gap: calc(var(--zoo-highlight-width) * 5);
-    row-gap: calc(var(--zoo-highlight-width) * 5);
+    column-gap: calc(var(--zoo-highlight-width) * 4);
+    row-gap: calc(var(--zoo-highlight-width) * 4);
     grid-template-columns: 1fr 1fr 1fr;
+
+    /* these differ for 2p boards */
+    width: 35%;
+    margin: 0.5vw;
+    left: 23.5%;
 }
 
-#zoo-game.zoo-2p .zoo-board [zoo-enclosure='0'] .zoo-cell {
-    display: inline-block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
+#zoo-game.zoo-2p .zoo-board [zoo-enclosure="0"] {
+    margin: 0.4vw;
+    width: 28%;
+    left: 38%;
+}
+
+[zoo-enclosure="0"] .zoo-cell {
     position: static;
 }
+
 
 /* FIXME: these depend on tile size! */
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
@@ -571,26 +589,6 @@ body.mobile_version {
 /* stall */
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='5'] .zoo-cell:nth-child(6) { left: 5.987490879%; top: 83.5%; }
 
-
-#zoo-game .zoo-board [zoo-enclosure='0'] {
-    position: relative;
-    width: 35%;
-    height: 50%;
-    top: 50%;
-    left: 23.5%;
-    display : grid;
-    column-gap: calc(var(--zoo-highlight-width) * 6);
-    row-gap: calc(var(--zoo-highlight-width) * 6);
-    grid-template-columns: 1fr 1fr 1fr;
-}
-
-#zoo-game .zoo-board [zoo-enclosure='0'] .zoo-cell {
-    display: inline-block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    position: static;
-}
 
 .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 41.7%; top: 10.3%; }
 .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(2) { left: 28.5%; top: 23.5%; }
