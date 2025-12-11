@@ -157,7 +157,7 @@ body.mobile_version {
     margin: 1vw 0 1vw 0;
 }
 
-#zoo-shared-container .zoo-depot-space:not(:has(div)) {
+#zoo-shared-container .zoo-depot-space {
     background: url('img/TruckSpot.png') center / contain no-repeat;
 }
 
