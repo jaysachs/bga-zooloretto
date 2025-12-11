@@ -180,40 +180,59 @@ class Model {
     }
 
     /**
-     * @param Delivery[] $deliveries
+     * @param Space[] $spaces keyed by truck position
      *
      * @return Delivery[]
     */
-    public function placeTilesInZooAndTakeTruck(int $truck_id, array $deliveries): array {
+    public function placeTilesInZooAndTakeTruck(int $truck_id, array $spaces): array {
+        $truck = $this->getTruck($truck_id);
+        if ($truck->taken_by) {
+            throw new ModelException("Truck {$truck_id} already taken by player {$truck->taken_by}");
+        }
         $encs = $this->getEnclosuresForPlayer();
         $barn = $encs[0];
         $toUpdate = [];
         $player = $this->getActivePlayer();
-        foreach ($deliveries as $delivery) {
-            $truck = $this->getTruck($truck_id);
-            $encl = $encs[$delivery->space->enclosure_id];
+        $deliveries = [];
+
+        foreach ($truck->getAllTiles() as $truck_pos => $tile) {
+            if ($tile->isEmpty() || $tile->type->isBlock()) {
+                continue;
+            }
+
+            if (!isset($spaces[$truck_pos])) {
+                if ($tile->type != TileType::COIN) {
+                    throw new ModelException("Unplaced non-coin {$tile->type->value} at position {$truck_pos} in truck {$truck_id}");
+                }
+                $deliveries[] = new Delivery($truck_pos, $tile);
+                continue;
+            }
+
+            $space = $spaces[$truck_pos];
+            $encl = $encs[$space->enclosure_id];
             $toUpdate[] = $encl;
-            $tile = $truck->removeTileAt($delivery->truck_pos);
+            $tile = $truck->removeTileAt($truck_pos);
+
             $placement = $encl->placeTile($tile);
             if ($placement->completedEnclosure) {
+                // FIXME: centralize the limiting here
                 $amt = min($this->ps->getBankMoney(), $encl->coin_bonus);
                 $this->payPlayer($player, $amt);
             }
             $pos = $placement->space->pos;
-            if ($pos <> $delivery->space->pos) {
+            if ($pos <> $space->pos) {
                 // FIXME: this exception should be correct but it isn't.
                 // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
-                $delivery->space->pos = $pos;
+                $space->pos = $pos;
             }
             $offspring = $encl->checkForOffspring($barn);
 
+            $deliveries[] = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
             if ($offspring) {
-                $delivery->offspring = $offspring;
                 $this->saveOffspring($offspring);
                 // FIXME: check fo completion bonus
 
                 // FIXME: return info on new child -- add to return value
-            } else {
             }
         }
         $player = $this->getActivePlayer();

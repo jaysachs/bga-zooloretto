@@ -27,14 +27,19 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-// FIXME: this is only used in the conversation between PlayerTurn and Model.
-//   That's not necessarily bad, but it's used as input and output, and the
-//   output needs more info (e.g. offspring). So maybe we need two separate classes?
 class Delivery {
     public function __construct(
-        public int $truck_id,
         public int $truck_pos,
-        public Space $space,
-        public ?Offspring $offspring = null,
+        public Tile $tile,
+        // $dest is null if this is a coin
+        public ?Destination $dest = null,
     ) {}
+
+    public function serialize(): array {
+        return [
+            'truck_pos' => $this->truck_pos,
+            'tile' => $this->tile->serialize(),
+            'dest' => $this->dest ? $this->dest->serialize() : null,
+        ];
+    }
 }

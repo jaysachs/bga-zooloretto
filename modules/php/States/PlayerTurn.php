@@ -33,7 +33,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
-use Bga\Games\zooloretto\Model\Offspring;
+use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -125,37 +125,19 @@ class PlayerTurn extends AbstractState
 		//    Or as a kind of Delivery.
 		$coins = $truck->coinPositions();
 
-		$deliveries = $model->placeTilesInZooAndTakeTruck($truck_id,
-			array_map(fn ($pt) => new Delivery(
-				$truck_id,
-				intval($pt['truck_pos']),
+		$pts = [];
+		foreach ($placed_tiles as $pt) {
+			$pts[$pt['truck_pos']] =
 				new Space(intval($pt['enclosure_id']),
-						  intval($pt['enclosure_pos']))),
-			$placed_tiles));
-		$p = [];
-		foreach ($coins as $coin) {
-			$p[$coin] = [
-				// 'truck_pos' => $coin,
-				'tile' => $truck->tileAt($coin)->serialize(),
-				// 'placement' => 'coin',
-			];
+						  intval($pt['enclosure_pos']));
 		}
-		foreach ($deliveries as $del) {
-			$p[$del->truck_pos] = [
-				// 'truck_pos' => $del->truck_pos,
-				'tile' => $truck->tileAt($del->truck_pos)->serialize(),
-				'placement' => [
-					'space' => $del->space->serialize(),
-					'offspring' => $del->offspring ? $del->offspring->serialize() : null,
-				],
-			];
-		}
-		$p = array_values($p);
+
+		$deliveries = $model->placeTilesInZooAndTakeTruck($truck_id, $pts);
 		// FIXME: give more details about placements in log
 		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} placed tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
-		  'deliveries' => $p,
+		  'deliveries' => array_map(fn ($d) => $d->serialize(), $deliveries),
 		  'moneys' => $model->currentMoneys()->serialize(),
 		]);
 		return NextPlayer::class;
