@@ -841,7 +841,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     const delay = ms => new Promise(res => setTimeout(res, ms));
     let back = Html.span({classes: 'zoo-flippee' });
     let front = Html.span({classes: 'zoo-flippee' });
-    back.classList.add('zoo-flippee');
     back.setAttribute(Attrs.TILE, 'back');
     front.setAttribute(Attrs.TILE, tile.type);
     elem.removeAttribute(Attrs.TILE);
