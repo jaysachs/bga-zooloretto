@@ -121,7 +121,8 @@ class PlayerTurn extends AbstractState
         $model = $this->createModel($active_player_id);
 		$truck = $model->getTruck($truck_id);
 
-		// FIXME: this should be returned as a structure from the model method. Or as a kind of Placement.
+		// FIXME: this should be returned as a structure from the model placetilesInZoo method.
+		//    Or as a kind of Delivery.
 		$coins = $truck->coinPositions();
 
 		$deliveries = $model->placeTilesInZooAndTakeTruck($truck_id,
@@ -134,13 +135,15 @@ class PlayerTurn extends AbstractState
 		$p = [];
 		foreach ($coins as $coin) {
 			$p[$coin] = [
-				'truck_pos' => $coin,
-				'placement' => 'coin',
+				// 'truck_pos' => $coin,
+				'tile' => $truck->tileAt($coin)->serialize(),
+				// 'placement' => 'coin',
 			];
 		}
 		foreach ($deliveries as $del) {
 			$p[$del->truck_pos] = [
-				'truck_pos' => $del->truck_pos,
+				// 'truck_pos' => $del->truck_pos,
+				'tile' => $truck->tileAt($del->truck_pos)->serialize(),
 				'placement' => [
 					'space' => $del->space->serialize(),
 					'offspring' => $del->offspring ? $del->offspring->serialize() : null,

@@ -57,7 +57,7 @@ interface Space {
 
 interface Offspring {
   space: Space;
-  tile: string;
+  tile: Tile;
 }
 
 interface Moneys {
@@ -143,8 +143,8 @@ interface PlayState {
 // notif_TakeTruckAndPlaceTiles
 
 interface Delivery {
-  truck_pos: number;
-  placement: EnclosurePlacement | 'coin';
+  tile: Tile;
+  placement: EnclosurePlacement | undefined;
 }
 
 interface EnclosurePlacement {
@@ -399,8 +399,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
   protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
     console.log("offspringSlide", offspring);
     if (offspring) {
-      let offspringElem = Html.span({});
-      offspringElem.setAttribute(Attrs.TILE, offspring.tile);
+      let offspringElem = this.game.makeTileSpan(offspring.tile);
       offspringElem.style.transform = 'rotate(0deg)';
       return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space));
     }
@@ -840,12 +839,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     back.setAttribute(Attrs.TILE, 'back');
     front.setAttribute(Attrs.TILE, tile.type);
     elem.removeAttribute(Attrs.TILE);
+    elem.id = IDS.tile(tile);
     elem.appendChild(front);
     elem.appendChild(back);
+    // FIXME: something wonky about the timing here.
     front.addEventListener('transitionend',
-                      async  () => {
+                        () => {
                           elem.setAttribute(Attrs.TILE, tile.type);
-                          elem.id = IDS.tile(tile);
                           back.remove();
                           front.remove();
                         });
@@ -855,8 +855,16 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     });
   }
 
-  private makeTileSpan(tile: Tile): HTMLElement {
-    return Html.span({ id: IDS.tile(tile), attrs: Attrs.tile(tile.type) });
+  makeTileSpan(tile: Tile): HTMLElement {
+    const id = IDS.tile(tile);
+    let elem = $(id);
+    if (elem) {
+      if (elem.getAttribute(Attrs.TILE) != tile.type) {
+        console.error("Found existing tile", elem, "with different type than ", tile);
+      }
+      return elem;
+    }
+    return Html.span({ id: id, attrs: Attrs.tile(tile.type) });
   }
 
   private makeTileBackSpan(): HTMLElement {
@@ -1042,6 +1050,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (args.drawn_from_endgame_pile && disk) {
       await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{})
         .then(() => {
+          // FIXME: want to use renderTileDraw or similar
           $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile));
           (this as any).addLastTurnBanner(_('This is the last round!'));
         });
@@ -1123,26 +1132,26 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (args.player_id != this.player_id) {
       args.deliveries.forEach(del => {
         let pl = del.placement;
-        if (pl == 'coin') {
+        if (!pl) {
           anims.push(() => this.animationManager.slideOutAndDestroy(
-            Elements.truckTile(args.truck_id, del.truck_pos)!,
+            Elements.tile(del.tile), // Elements.truckTile(args.truck_id, del.truck_pos)!,
             this.getPlayerPanelElement(args.player_id),
             {}
           ).then(() => this.addMoney(args.player_id, 1)));
         } else {
           anims.push(() => this.animationManager.slideAndAttach(
-            Elements.truckTile(args.truck_id,del.truck_pos)!,
+            // Elements.truckTile(args.truck_id,del.truck_pos)!,
+            Elements.tile(del.tile),
             Elements.enclosureSpace(args.player_id, pl.space),
             {})
           );
           if (pl.offspring) {
-            // anims.push(() => {
-            //   // FIXME
-            //   let elem = this.makeTileSpan(pl.offspring!.tile);
-            //   let parent = Elements.enclosureSpace(args.player_id, pl.offspring!.space);
-            //   parent.appendChild(elem);
-            //   return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-            // });
+            anims.push(() => {
+              let elem = this.makeTileSpan(pl.offspring!.tile);
+              let parent = Elements.enclosureSpace(args.player_id, pl.offspring!.space);
+              parent.appendChild(elem);
+              return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+            });
           }
         }
       });
