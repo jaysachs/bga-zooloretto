@@ -1196,17 +1196,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_EndRound(args: {
     truck_ids_returned: number[],
-    truck_dumped_pos: { truck_id: number, dumped_pos: number[] }[],
+    dumped_tiles: Tile[],
     last_round: boolean }
   ) {
 
     let anims: AnimationList = [];
-    args.truck_dumped_pos.forEach(t =>
-      t.dumped_pos.forEach(p =>
-        anims.push(() =>
-          this.slideOutAndDestroy(Elements.truckTile(t.truck_id, p)!, $(IDS.OFF_BOARD))
-        )
-      )
+    args.dumped_tiles.forEach(tile =>
+      anims.push(() => this.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
     );
     args.truck_ids_returned.forEach(tid =>
       anims.push(() => this.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))

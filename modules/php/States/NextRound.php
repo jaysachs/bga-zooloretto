@@ -48,25 +48,13 @@ class NextRound extends AbstractState
     public function onEnteringState(): mixed
     {
         $model = $this->createModel(0);
-        $truck_stuff = $model->prepareNextRound();
-        $dumped = [];
-        $returned = [];
-        foreach ($truck_stuff as $tid => $x) {
-            if ($x == null) {
-                $returned[] = $tid;
-            } else {
-                $dumped[] = [
-                    'truck_id' => $tid,
-                    'dumped_pos' => $x,
-                ];
-            }
-        }
+        $returned = $model->prepareNextRound();
         $this->notify->all(
             "EndRound",
             clienttranslate('Finishing the round'),
             [
-                'truck_dumped_pos' => $dumped,
-                'truck_ids_returned' => $returned,
+                'dumped_tiles' => array_map(fn ($t) => $t->serialize(), $returned->dumped_tiles),
+                'truck_ids_returned' => $returned->truck_ids,
                 'last_round' => $model->getStock()->inLastRound(),
             ]
         );

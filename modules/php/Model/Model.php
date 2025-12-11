@@ -275,10 +275,13 @@ class Model {
         return $trucks_available;
     }
 
-    /** @return array<int,array<int>> keyed by truck ID; if null, truck is returned, otherwise it's the positions dumped. */
-    public function prepareNextRound(): array {
+    public function prepareNextRound(): ReturnedTrucks {
         $players = $this->getAllPlayers();
         $result = [];
+        /** @var int[] */
+        $truck_ids = [];
+        /** @var Tile[]  */
+        $tiles = [];
         foreach ($this->getTrucks() as $truck) {
             $pid = $truck->taken_by;
             if ($pid > 0) {
@@ -287,16 +290,16 @@ class Model {
                 if ($taken != $truck->id) {
                     throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
                 }
-                $result[$truck->id] = [];
+                $truck_ids[] = $truck->id;
             }
             else {
-                $result[$truck->id] = $truck->dumpTiles();
+                $tiles = array_merge($tiles, $truck->dumpTiles());
             }
         }
         foreach ($this->getTrucks() as $truck) {
             $this->ps->updateTruck($truck);
         }
-        return $result;
+        return new ReturnedTrucks($truck_ids, $tiles);
     }
 
     public function canExpand(): bool {
