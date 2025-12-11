@@ -39,6 +39,16 @@ class Tile {
 
     public function __construct(public readonly int $id, public private(set) TileType $type) {}
 
+	public function serialize(): ?array {
+		if ($this->type == TileType::EMPTY) {
+			return null;
+		}
+		return [
+			"id" => $this->id,
+			"type" => $this->type->value,
+		];
+	}
+
 	/** @return Tile[] */
     public static function createInitialPool(int $player_count): array {
         $values = [];

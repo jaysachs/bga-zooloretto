@@ -7,10 +7,14 @@ interface ZPlayer extends Player {
   purchased_extensions: number;
 }
 
+interface Tile {
+  id: number;
+  type: string;
+}
+
 interface TruckSpace {
   pos: number;
-  // Empty string for empty.
-  tile: string;
+  tile: Tile | undefined;
 }
 
 interface Truck {
@@ -24,7 +28,7 @@ interface Truck {
 
 interface EnclosureContents {
   space: Space;
-  tile: string;
+  tile: Tile | undefined;
 }
 
 interface ZGamedatas extends Gamedatas<ZPlayer> {
@@ -185,6 +189,7 @@ class IDS {
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `playermoney-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
+  static tile(id: number): string { return `zoo-tile-${id}`; }
 }
 
 class CSS {
@@ -821,19 +826,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super([]);
   }
 
-  private async renderTileDraw(elem: HTMLElement, tile_type: string) {
+  private async renderTileDraw(elem: HTMLElement, tile: Tile) {
     const delay = ms => new Promise(res => setTimeout(res, ms));
     let back = Html.span({classes: 'zoo-flippee' });
     let front = Html.span({classes: 'zoo-flippee' });
     back.classList.add('zoo-flippee');
     back.setAttribute(Attrs.TILE, 'back');
-    front.setAttribute(Attrs.TILE, tile_type);
+    front.setAttribute(Attrs.TILE, tile.type);
     elem.removeAttribute(Attrs.TILE);
     elem.appendChild(front);
     elem.appendChild(back);
     front.addEventListener('transitionend',
                       async  () => {
-                          elem.setAttribute(Attrs.TILE, tile_type);
+                          elem.setAttribute(Attrs.TILE, tile.type);
+                          elem.id = IDS.tile(tile.id);
                           back.remove();
                           front.remove();
                         });
@@ -843,13 +849,17 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     });
   }
 
-  private makeTileSpan(tile_type: string): HTMLElement {
-    return Html.span({ attrs: Attrs.tile(tile_type) });
+  private makeTileSpan(tile: Tile): HTMLElement {
+    return Html.span({ id: IDS.tile(tile.id), attrs: Attrs.tile(tile.type) });
+  }
+
+  private makeTileBackSpan(): HTMLElement {
+    return Html.span({ attrs: Attrs.tile('back') });
   }
 
   private addStockTile(pile: 'primary' | 'endgame') {
     let elemId = pile == 'primary' ? IDS.PRIMARY_PILE_TILES : IDS.ENDGAME_PILE_TILES;
-    $(elemId).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+    $(elemId).insertAdjacentElement('afterbegin', this.makeTileBackSpan() );
   }
 
   private renderStock() : void {
@@ -1015,21 +1025,21 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_DrawTile(
     args: {
-      tile_type: string,
+      tile: Tile,
       drawn_from_endgame_pile: boolean,
     }
   ): Promise<void> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
-      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{ animationsActive: true})
+      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{})
         .then(() => {
-          $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile_type));
+          $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile));
           (this as any).addLastTurnBanner(_('This is the last round!'));
         });
     }
     else {
-      await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile_type);
+      await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
     }
   }
 
@@ -1042,11 +1052,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   ): void {
     if (args.drawn_from_endgame_pile) {
       if (args.endgame_pile_size >= 5) {
-        $(IDS.ENDGAME_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+        $(IDS.ENDGAME_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileBackSpan());
       }
     } else {
       if (args.primary_pile_size >= 5) {
-        $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileSpan('back')!);
+        $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileBackSpan());
       }
     }
     this.primaryStockCounter.toValue(args.primary_pile_size);
@@ -1089,9 +1099,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       purchased_extensions: number,
       moneys: Moneys,
     }) {
-    if (args.player_id == this.player_id) {
-      return;
-    }
     this.renderExtensions(args.player_id, args.purchased_extensions);
     this.updateMoneys(args.moneys);
   }
@@ -1119,12 +1126,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
             {})
           );
           if (pl.offspring) {
-            anims.push(() => {
-              let elem = this.makeTileSpan(pl.offspring!.tile);
-              let parent = Elements.enclosureSpace(args.player_id, pl.offspring!.space);
-              parent.appendChild(elem);
-              return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-            });
+            // anims.push(() => {
+            //   // FIXME
+            //   let elem = this.makeTileSpan(pl.offspring!.tile);
+            //   let parent = Elements.enclosureSpace(args.player_id, pl.offspring!.space);
+            //   parent.appendChild(elem);
+            //   return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+            // });
           }
         }
       });

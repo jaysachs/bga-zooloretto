@@ -186,7 +186,7 @@ class PlayerTurn extends AbstractState
 			clienttranslate('${player_name} drew a ${translatedval} tile.'),
 			[
 				'player_id' => $active_player_id,
-				'tile_type' => $tile->type->value,
+				'tile' => $tile->serialize(),
 				'drawn_from_endgame_pile' => $drawn_from_endgame_pile,
 				'primary_pile_size' => $amt($stock->primaryCount()),
 				'endgame_pile_size' => $amt($stock->endgameCount()),

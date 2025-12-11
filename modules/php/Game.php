@@ -88,7 +88,7 @@ class Game extends \Bga\GameFramework\Table
 				foreach ($e->nonEmptyContents() as $pos => $tile) {
 					$contents[] = [
 						'space' => new Space($e->id, $pos)->serialize(),
-						'tile' => $tile->type->value,
+						'tile' => $tile->serialize(),
 					];
 				}
 			}
@@ -102,7 +102,7 @@ class Game extends \Bga\GameFramework\Table
 					'taken_by_player_id' => $truck->taken_by,
 					'contents' => array_map(
 						function(Tile $tile, int $pos): array {
-							return ['pos' => $pos, 'tile' => $tile == null ? null : $tile->type->value ];
+							return ['pos' => $pos, 'tile' => $tile == null ? null : $tile->serialize() ];
 						},
 						$tiles,
 						array_keys($tiles)),
