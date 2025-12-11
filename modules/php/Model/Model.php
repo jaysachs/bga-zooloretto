@@ -391,7 +391,7 @@ class Model {
         return new PossibleMoves(Moneys::costPlayerDelta($this->player_id, Cost::MOVE), $result);
     }
 
-    public function moveTile(Space $src, Space $dest): void {
+    public function moveTile(Space $src, Space $dest): Tile {
         $pms = $this->getPossibleMoves();
         $found = false;
         foreach ($pms->moves as $pm) {
@@ -428,6 +428,7 @@ class Model {
         }
 
         $this->ps->updateEnclosures($this->player_id, $encs);
+        return $tile;
     }
 
     public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): Tile {
