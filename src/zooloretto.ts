@@ -204,7 +204,7 @@ class CSS {
 }
 
 class Elements {
-  static tile(tile: Tile): HTMLElement {
+  static tile(tile: Tile): HTMLElement | undefined {
     return $(IDS.tile(tile));
   }
 
@@ -228,7 +228,7 @@ class Elements {
     return $(IDS.enclosureSpace(player_id, space.enclosure_id, space.pos));
   }
 
-  static enclosureTile(player_id: number, space: Space) : HTMLElement {
+  static enclosureTile(player_id: number, space: Space) : HTMLElement | undefined {
     return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
@@ -503,7 +503,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
         Elements.enclosureSpace(this.player_id, dest.space),
         () => {
           this.slide(
-            Elements.enclosureTile(pp.from_player_id, pp.src),
+            Elements.enclosureTile(pp.from_player_id, pp.src)!,
             Elements.enclosureSpace(this.player_id, dest.space)).then( () => {
               this.updateMoneyDelta(dest.money_delta);
               this.confirmPurchase(pp, dest)
@@ -558,9 +558,7 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   override doStart(args: PlaceDrawnTileArgs) {
     console.log("starting PlaceDrawnTile flow", args);
     this.initStatusBar(_('Place the drawn tile'));
-    let elem = Elements.tile(args.tile); // was: Elements.drawnTile(args.drawn_from_endgame_pile);
-    console.log("elem", elem);
-    console.log("old", Elements.drawnTile(args.drawn_from_endgame_pile))
+    let elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
@@ -670,7 +668,7 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
         Elements.enclosureSpace(this.player_id, space),
         async () => {
           await this.slideOutAndDestroy(
-            Elements.enclosureTile(this.player_id, space),
+            Elements.enclosureTile(this.player_id, space)!,
             $(IDS.OFF_BOARD)).then(() => {
               this.updateMoneyDelta(dest.money_delta);
               this.confirmDiscard(dest);
@@ -708,7 +706,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
-        () => this.slide(elem, destElem)
+        () => this.slide(elem!, destElem)
           .then(() => {
             destElem.classList.remove(CSS.SELECTED);
             destElem.classList.add(CSS.MOVED);
@@ -843,13 +841,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     elem.id = IDS.tile(tile);
     elem.appendChild(front);
     elem.appendChild(back);
-    // FIXME: something wonky about the timing here.
-    front.addEventListener('transitionend',
-                        () => {
-                          elem.setAttribute(Attrs.TILE, tile.type);
-                          back.remove();
-                          front.remove();
-                        });
+    let fixup = () => {
+        elem.setAttribute(Attrs.TILE, tile.type);
+        back.remove();
+        front.remove();
+    }
+    // need to add to both events in case not visible, end not fired.
+    front.addEventListener('transitionend', fixup);
+    front.addEventListener('transitioncancel', fixup);
+    // FIXME: unclear why this delay is needed.
     return delay(10).then(() => {
       back.classList.add('zoo-flipping');
       front.classList.add('zoo-flipping');
@@ -1052,7 +1052,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
-      await this.animationManager.slideOutAndDestroy(disk, $(IDS.OFF_BOARD),{})
+      await this.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
         .then(() => {
           // FIXME: want to use renderTileDraw or similar
           $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile));
@@ -1091,10 +1091,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       endgame_pile_size: number,
     }
   ): Promise<void> {
-    await this.animationManager.slideOutAndDestroy(
+    await this.slideOutAndDestroy(
       Elements.drawnTile(args.drawn_from_endgame_pile),
-      $(IDS.OFF_BOARD),
-      {})
+      $(IDS.OFF_BOARD))
         .then(() => this.replenishPilesAndUpdateCounters(args));
   }
 
@@ -1107,14 +1106,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
     primary_pile_size: number,
     endgame_pile_size: number }) {
-//    if (this.player_id != args.player_id) {
-      await this.animationManager.slideAndAttach(
-        Elements.tile(args.tile),
-        Elements.truckSpace(args.truck_id, args.truck_pos),
-        {}).then(() => this.replenishPilesAndUpdateCounters(args));
-    // } else {
-    //   this.replenishPilesAndUpdateCounters(args);
-    // }
+      await this.slideAndAttach(
+        Elements.tile(args.tile)!,
+        Elements.truckSpace(args.truck_id, args.truck_pos))
+          .then(() => this.replenishPilesAndUpdateCounters(args));
   }
 
   private async notif_ExpandZoo(args: {
@@ -1133,36 +1128,34 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     deliveries: Delivery[]
   }) {
     let anims : AnimationList = [];
-    if (args.player_id != this.player_id) {
-      args.deliveries.forEach(delivery => {
-        let dest = delivery.dest;
-        if (!dest) {
-          // FIXME: if (dest.tile.type != 'Coin') log error ...
-          anims.push(() => this.animationManager.slideOutAndDestroy(
-            Elements.tile(delivery.tile), // Elements.truckTile(args.truck_id, del.truck_pos)!,
-            this.getPlayerPanelElement(args.player_id),
-            {}
-          ).then(() => this.addMoney(args.player_id, 1)));
-        } else {
-          anims.push(() => this.animationManager.slideAndAttach(
-            Elements.tile(delivery.tile),
-            Elements.enclosureSpace(args.player_id, dest.space),
-            {})
-          );
-          if (dest.offspring) {
-            anims.push(() => {
-              let elem = this.makeTileSpan(dest.offspring!.tile);
-              let parent = Elements.enclosureSpace(args.player_id, dest.offspring!.space);
-              parent.appendChild(elem);
-              return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-            });
-          }
+    args.deliveries.forEach(delivery => {
+      let dest = delivery.dest;
+      if (!dest) {
+        // FIXME: if (dest.tile.type != 'Coin') log error ...
+        anims.push(() => this.slideOutAndDestroy(
+          Elements.tile(delivery.tile),
+          this.getPlayerPanelElement(args.player_id),
+          {}
+        ).then(() => this.addMoney(args.player_id, 1)));
+      } else {
+        anims.push(() => this.slideAndAttach(
+          Elements.tile(delivery.tile)!,
+          Elements.enclosureSpace(args.player_id, dest.space))
+        );
+        if (dest.offspring) {
+          anims.push(() => {
+            let elem = this.makeTileSpan(dest.offspring!.tile);
+            let parent = Elements.enclosureSpace(args.player_id, dest.offspring!.space);
+            parent.appendChild(elem);
+            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+          });
         }
-      });
-    }
-    anims.push(() => this.animationManager.slideAndAttach(
+      }
+    });
+    anims.push(() => this.slideAndAttach(
         Elements.truck(args.truck_id),
-        $(IDS.takenTruck(args.player_id)), {}));
+        $(IDS.takenTruck(args.player_id))
+      ));
     await this.animationManager.playSequentially(anims)
       .then(() => this.updateMoneys(args.moneys));
   }
@@ -1173,10 +1166,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     dest: Space,
     moneys: Moneys,
   }) {
-    await this.animationManager.slideAndAttach(
-      Elements.tile(args.tile),
-      Elements.enclosureSpace(args.player_id, args.dest),
-      {}).then(() => this.updateMoneys(args.moneys));
+    await this.slideAndAttach(
+      Elements.tile(args.tile)!,
+      Elements.enclosureSpace(args.player_id, args.dest)
+    ).then(() => this.updateMoneys(args.moneys));
   }
 
   private async notif_DiscardTile(args: {
@@ -1184,14 +1177,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     space: Space,
   }) {
-    if (args.player_id == this.player_id) {
-      return;
-    }
     this.updateMoneys(args.moneys);
-    await this.animationManager.slideOutAndDestroy(
+    await this.slideOutAndDestroy(
       Elements.enclosureTile(args.player_id, args.space),
-      $(IDS.OFF_BOARD),
-      {});
+      $(IDS.OFF_BOARD));
   }
 
   private async notif_PurchaseTile(args: {
@@ -1201,15 +1190,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       dest: Space,
 			moneys: Moneys,
     }) {
-    if (args.player_id == this.player_id) {
-      return;
-    }
-    await this.animationManager.slideAndAttach(
-      Elements.enclosureTile(args.from_player_id, args.src),
-      Elements.enclosureSpace(args.player_id, args.dest),
-      {}).then( () => {
-        this.updateMoneys(args.moneys);
-      });
+    await this.slideAndAttach(
+      Elements.enclosureTile(args.from_player_id, args.src)!,
+      Elements.enclosureSpace(args.player_id, args.dest)
+    ).then(() => this.updateMoneys(args.moneys));
   }
 
   private async notif_EndRound(args: {
@@ -1221,13 +1205,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     args.truck_dumped_pos.forEach(t =>
       t.dumped_pos.forEach(p =>
         anims.push(() =>
-          this.animationManager.slideOutAndDestroy(
-            Elements.truckTile(t.truck_id, p)!, $(IDS.OFF_BOARD), {} )
+          this.slideOutAndDestroy(Elements.truckTile(t.truck_id, p)!, $(IDS.OFF_BOARD))
         )
       )
     );
     args.truck_ids_returned.forEach(tid =>
-      anims.push(() => this.animationManager.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid)), {}))
+      anims.push(() => this.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
@@ -1255,18 +1238,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let d = args.dest_spaces[i]!;
       let srcElem = Elements.enclosureTile(args.player_id, s);
       if (srcElem) {
-        anims.push(() => this.animationManager.slideAndAttach(
-          srcElem,
-          Elements.enclosureSpace(args.player_id, d),
-          {}
-        ));
+        anims.push(() => this.slideAndAttach(srcElem, Elements.enclosureSpace(args.player_id, d)));
       }
       let destElem = Elements.enclosureTile(args.player_id, d);
       if (destElem) {
-        anims.push(() => this.animationManager.slideAndAttach(
-          destElem,
-          Elements.enclosureSpace(args.player_id, s),
-          {}));
+        anims.push(() => this.slideAndAttach(destElem, Elements.enclosureSpace(args.player_id, s)));
       }
     }
     await this.animationManager.playParallel(anims).then(()=>this.updateMoneys(args.moneys));

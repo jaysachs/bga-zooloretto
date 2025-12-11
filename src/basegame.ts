@@ -153,6 +153,22 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     }
   }
 
+  slideAndAttach(elem: HTMLElement, newParent: HTMLElement, settings?: SlideAnimationSettings | undefined): Promise<any> {
+    if (elem.parentElement == newParent) {
+      return Promise.resolve();
+    }
+    return this.animationManager.slideAndAttach(elem, newParent, settings ?? {});
+  }
+
+  slideOutAndDestroy(elem?: HTMLElement | undefined,
+                     toElement?: HTMLElement | undefined,
+                     settings?: FloatingElementAnimationSettings | undefined): Promise<any> {
+    if (! elem) {
+      return Promise.resolve();
+    }
+    return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
+  }
+
   // utils
   debugStateInfo(): any {
     return "";
