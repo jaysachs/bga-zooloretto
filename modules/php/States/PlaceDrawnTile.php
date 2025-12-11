@@ -61,7 +61,7 @@ class PlaceDrawnTile extends AbstractState
         return [
             'available_spaces' => $available,
             'drawn_from_endgame_pile' => $stock->inLastRound(),
-            'tile' => $stock->drawn->type->value,
+            'tile' => $stock->drawn->serialize(),
         ];
     }
 
@@ -77,7 +77,7 @@ class PlaceDrawnTile extends AbstractState
 			[
 				'player_id' => $active_player_id,
                 'truck_id' => $truck_id,
-                'tile' => $tile->type->value,
+                'tile' => $tile->serialize(),
                 'truck_pos' => $truck_pos,
 				'translatedval' => $tile->type->translated(),
                 'primary_pile_size' => $stock->primaryCount(),

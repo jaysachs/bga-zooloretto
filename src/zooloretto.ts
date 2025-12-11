@@ -35,7 +35,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   primary_pile_size: number;
   endgame_pile_size: number;
   lastround: boolean;
-  drawntile: string;
+  drawntile: Tile | undefined;
   bank_money: number;
   // Should always be 3.
   trucks: Truck[];
@@ -81,7 +81,7 @@ interface TruckLocation {
 // PlaceDrawnTile state
 
 interface PlaceDrawnTileArgs {
-  tile: string,
+  tile: Tile,
   drawn_from_endgame_pile: boolean,
   available_spaces: TruckLocation[]
 };
@@ -189,7 +189,7 @@ class IDS {
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `playermoney-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
-  static tile(id: number): string { return `zoo-tile-${id}`; }
+  static tile(t : Tile): string { return `zoo-tile-${t.id}`; }
 }
 
 class CSS {
@@ -203,6 +203,10 @@ class CSS {
 }
 
 class Elements {
+  static tile(tile: Tile): HTMLElement {
+    return $(IDS.tile(tile));
+  }
+
   static drawnTile(endgame: boolean): HTMLElement {
     return $(endgame ? IDS.ENDGAME_PILE_TILES : IDS.PRIMARY_PILE_TILES).lastElementChild as HTMLElement;
   }
@@ -425,7 +429,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       src.forEach((p) => {
         if (Elements.enclosureTile(this.player_id, p)) {
           this.addSelectableOnclick(Elements.enclosureSpace(this.player_id, p),
-                                    (evt) => this.selectDestinationForExchange(pes));
+                                    () => this.selectDestinationForExchange(pes));
         }
       })
     });
@@ -438,7 +442,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       pe.dest.forEach(d =>
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, d),
-          (evt) =>  {
+          () =>  {
             let anims: AnimationList = [];
             for (let i = 0; i < pe.src.length; ++i) {
               let srcElem = Elements.enclosureTile(this.player_id, pe.src[i]!);
@@ -485,7 +489,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     possible_purchases.forEach((pp: PossiblePurchase) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.from_player_id, pp.src),
-          (evt) => this.selectDestinationForPurchase(pp)
+          () => this.selectDestinationForPurchase(pp)
         );
       });
     this.addRestartTurnButton();
@@ -497,7 +501,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     pp.dests.forEach((dest: Destination) =>
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
-        (evt) => {
+        () => {
           this.slide(
             Elements.enclosureTile(pp.from_player_id, pp.src),
             Elements.enclosureSpace(this.player_id, dest.space)).then( () => {
@@ -552,23 +556,25 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   constructor(g: ZoolorettoGame) { super(g); }
 
   override doStart(args: PlaceDrawnTileArgs) {
-    console.log("starting PlaceDrawnTile flow", this);
+    console.log("starting PlaceDrawnTile flow", args);
     this.initStatusBar(_('Place the drawn tile'));
-    let elem = Elements.drawnTile(args.drawn_from_endgame_pile);
+    let elem = Elements.tile(args.tile); // was: Elements.drawnTile(args.drawn_from_endgame_pile);
+    console.log("elem", elem);
+    console.log("old", Elements.drawnTile(args.drawn_from_endgame_pile))
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
-          (evt) => this.placeDrawnTile(elem, args.tile, truckLoc)));
+          () => this.placeDrawnTile(elem, args.tile, truckLoc)));
   }
 
-  private placeDrawnTile(tileElem: HTMLElement, tile: string, truckLoc: TruckLocation) {
+  private placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
     this.slide(tileElem, space).then(() => this.confirmPlaceDrawnTile(tile, truckLoc));
   }
 
-  private confirmPlaceDrawnTile(tile: string, tl: TruckLocation) {
+  private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
     this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
-        { tile: tile, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+        { tile: tile.type, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
     this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl);
     this.addRestartTurnButton();
   }
@@ -594,7 +600,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.truck_id = 0;
     availableTrucks.forEach((truck: AvailableTruck) => {
       this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
-        async (evt) => {
+        async () => {
           await this.playParallel(truck.coin_positions.map(pos =>
             () => this.slideOutAndDestroy(
               Elements.truckTile(truck.truck_id, pos)!,
@@ -622,7 +628,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       this.initStatusBar(_('Choose a tile to place from the selected truck'));
       pps.forEach((pp: PossiblePlacement) => {
         let elem = Elements.truckSpace(truck_id, pp.truck_pos);
-        this.addSelectableOnclick(elem, (evt) => {
+        this.addSelectableOnclick(elem, () => {
           elem.classList.add(CSS.SELECTED);
           this.chooseDestination(truck_id, pp, availableTrucks);
         });
@@ -662,7 +668,7 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
       let space = dest.space;
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
-        async (evt) => {
+        async () => {
           await this.slideOutAndDestroy(
             Elements.enclosureTile(this.player_id, space),
             $(IDS.OFF_BOARD)).then(() => {
@@ -689,7 +695,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
-        (evt) => this.chooseDest(m)
+        () => this.chooseDest(m)
       )
     });
   }
@@ -702,7 +708,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
-        (evt) => this.slide(elem, destElem)
+        () => this.slide(elem, destElem)
           .then(() => {
             destElem.classList.remove(CSS.SELECTED);
             destElem.classList.add(CSS.MOVED);
@@ -839,7 +845,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     front.addEventListener('transitionend',
                       async  () => {
                           elem.setAttribute(Attrs.TILE, tile.type);
-                          elem.id = IDS.tile(tile.id);
+                          elem.id = IDS.tile(tile);
                           back.remove();
                           front.remove();
                         });
@@ -850,7 +856,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private makeTileSpan(tile: Tile): HTMLElement {
-    return Html.span({ id: IDS.tile(tile.id), attrs: Attrs.tile(tile.type) });
+    return Html.span({ id: IDS.tile(tile), attrs: Attrs.tile(tile.type) });
   }
 
   private makeTileBackSpan(): HTMLElement {
@@ -872,7 +878,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (this.gamedatas.drawntile) {
       let top = Elements.drawnTile(this.gamedatas.lastround);
       if (top) {
-        top.setAttribute(Attrs.TILE, this.gamedatas.drawntile);
+        // FIXME: might be nicer to create this properly ...
+        top.setAttribute(Attrs.TILE, this.gamedatas.drawntile.type);
+        top.id = IDS.tile(this.gamedatas.drawntile);
       }
     }
     if (!this.gamedatas.lastround) {
@@ -1081,17 +1089,19 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     truck_id: number,
     truck_pos: number,
+    // FIXME: should we figure this out based on where tile is?
     drawn_from_endgame_pile: boolean,
+    tile: Tile,
     primary_pile_size: number,
     endgame_pile_size: number }) {
-    if (this.player_id != args.player_id) {
+//    if (this.player_id != args.player_id) {
       await this.animationManager.slideAndAttach(
-        Elements.drawnTile(args.drawn_from_endgame_pile),
+        Elements.tile(args.tile),
         Elements.truckSpace(args.truck_id, args.truck_pos),
         {}).then(() => this.replenishPilesAndUpdateCounters(args));
-    } else {
-      this.replenishPilesAndUpdateCounters(args);
-    }
+    // } else {
+    //   this.replenishPilesAndUpdateCounters(args);
+    // }
   }
 
   private async notif_ExpandZoo(args: {
