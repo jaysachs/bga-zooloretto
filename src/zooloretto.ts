@@ -1166,40 +1166,39 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     dest: Space,
     moneys: Moneys,
   }) {
+    this.updateMoneys(args.moneys);
     await this.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
-    ).then(() => this.updateMoneys(args.moneys));
+    );
   }
 
   private async notif_DiscardTile(args: {
-    player_id: number,
     moneys: Moneys,
-    space: Space,
+    tile: Tile,
   }) {
     this.updateMoneys(args.moneys);
-    await this.slideOutAndDestroy(
-      Elements.enclosureTile(args.player_id, args.space),
-      $(IDS.OFF_BOARD));
+    await this.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD));
   }
 
   private async notif_PurchaseTile(args: {
 			player_id: number,
-			from_player_id: number,
-      src: Space,
+      tile: Tile,
       dest: Space,
 			moneys: Moneys,
     }) {
+    this.updateMoneys(args.moneys);
     await this.slideAndAttach(
-      Elements.enclosureTile(args.from_player_id, args.src)!,
+      Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
-    ).then(() => this.updateMoneys(args.moneys));
+    );
   }
 
   private async notif_EndRound(args: {
     truck_ids_returned: number[],
     truck_dumped_pos: { truck_id: number, dumped_pos: number[] }[],
-    last_round: boolean }) {
+    last_round: boolean }
+  ) {
 
     let anims: AnimationList = [];
     args.truck_dumped_pos.forEach(t =>

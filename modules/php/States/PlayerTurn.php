@@ -203,9 +203,8 @@ class PlayerTurn extends AbstractState
 	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$src = new Space($src_id, $src_pos);
 		$dest = new Space($dest_id, $dest_pos);
-		$tile = $model->moveTile($src, $dest);
+		$tile = $model->moveTile(new Space($src_id, $src_pos), $dest);
 		$this->notify->all(
 			"MoveTile",
 			clienttranslate('${player_name} moved a tile'),
@@ -250,14 +249,14 @@ class PlayerTurn extends AbstractState
 	public function actPurchaseTile(int $active_player_id, int $from_player_id, int $barn_pos, int $enclosure_id, int $enclosure_pos): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$tile = $model->purchaseTile($from_player_id, $barn_pos, new Space($enclosure_id, $enclosure_pos));
-		$player = $model->getActivePlayer();
-		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile}', [
+		$dest = new Space($enclosure_id, $enclosure_pos);
+		$tile = $model->purchaseTile($from_player_id, $barn_pos, $dest);
+		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile_type}', [
 			'player_id' => $active_player_id,
 			'from_player_id' => $from_player_id,
-			'src' => new Space(0, $barn_pos),
-			'dest'  => new Space($enclosure_id, $enclosure_pos),
-			'tile' => $tile->type->value,
+			'dest'  => $dest->serialize(),
+			'tile' => $tile->serialize(),
+			'tile_type' => $tile->type->value,
     		'moneys' => $model->currentMoneys()->serialize(),
 		]);
 		return NextPlayer::class;
@@ -268,9 +267,10 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$tile = $model->discardBarnTile($barn_pos);
-		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile}',[
+		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile_type}',[
 			'player_id' => $active_player_id,
-			'tile' => $tile->type->value,
+			'tile' => $tile->serialize(),
+			'tile_type' => $tile->type->value,
         	'moneys' => $model->currentMoneys()->serialize(),
 			'space' => new Space(0, $barn_pos),
 		]
