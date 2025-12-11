@@ -856,6 +856,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   makeTileSpan(tile: Tile): HTMLElement {
+    if (tile.type == 'block' || tile.type == '') {
+      return this.makeTileBackSpan();
+    }
     const id = IDS.tile(tile);
     let elem = $(id);
     if (elem) {
