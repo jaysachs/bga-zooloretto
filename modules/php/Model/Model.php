@@ -557,8 +557,7 @@ class Model {
         $this->ps->updateTile($offspring->father);
     }
 
-    /** @return TileType[]  length 2 of the form [srctype, desttype] */
-    public function exchange(PossibleExchange $ex): array {
+    public function exchange(PossibleExchange $ex): CompletedExchange {
         $found = false;
         $pex = $this->getPossibleExchanges();
         if (!$pex) {
@@ -581,6 +580,9 @@ class Model {
         $se = $encs[$ex->src_enclosure_id];
         $de = $encs[$ex->dest_enclosure_id];
 
+        /** @var PlacedTile[] */
+        $placedTiles = [];
+
         $stype = TileType::EMPTY;
         $dtype = TileType::EMPTY;
         for ($p = 0; $p < count($ex->src_positions); $p++) {
@@ -594,11 +596,13 @@ class Model {
             }
             if (!$desttile->isEmpty()) {
                 $dtype = $desttile->type;
-                $se->placeTile($desttile, $ex->src_positions[$p]);
+                $placement = $se->placeTile($desttile, $ex->src_positions[$p]);
+                $placedTiles[] = new PlacedTile($desttile, $placement->space);
             }
             if (!$srctile->isEmpty()) {
                 $stype = $srctile->type;
-                $de->placeTile($srctile, $ex->dest_positions[$p]);
+                $placement = $de->placeTile($srctile, $ex->dest_positions[$p]);
+                $placedTiles[] = new PlacedTile($srctile, $placement->space);
             }
         }
 
@@ -606,17 +610,19 @@ class Model {
         $offspring = $se->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
+            $placedTiles[] = new PlacedTile($offspring->child, $offspring->childSpace);
         }
         $offspring = $de->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
+            $placedTiles[] = new PlacedTile($offspring->child, $offspring->childSpace);
         }
 
         // no check fo completion bonus in enclosures
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
 
-        return [$stype, $dtype];
+        return new CompletedExchange($ex->src_enclosure_id, $stype, $ex->dest_enclosure_id, $dtype, $placedTiles);
     }
 
     private ?int $_bankMoney = null;

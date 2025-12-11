@@ -219,6 +219,10 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
+	/**
+	 * @param int[] $src_positions
+	 * @param int[] $dest_positions
+	 */
 	public function actExchangeEnclosureAnimals(
 		int $active_player_id,
 		int $src_enclosure_id,
@@ -227,19 +231,16 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$animal_types = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
-
-		$to_spaces = fn($id, $ap) => array_map(fn ($p) => new Space($id, $p)->serialize(), $ap);
+		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
 
 		$this->notify->all('ExchangeEnclosureAnimals',
 		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
 			'player_id' => $active_player_id,
-			'src_enclosure_id' => $src_enclosure_id,
-			'src_spaces' => $to_spaces($src_enclosure_id, $src_positions),
-			'dest_enclosure_id' => $dest_enclosure_id,
-			'dest_spaces' => $to_spaces($dest_enclosure_id, $dest_positions),
-			'src_animal_type' => $animal_types[0]->value,
-			'dest_animal_type' => $animal_types[1]->value,
+			'src_enclosure_id' => $completedExchange->src_enclosure_id,
+			'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
+			'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
+			'src_animal_type' => $completedExchange->src_tile_type->value,
+			'dest_animal_type' => $completedExchange->dest_tile_type->value,
         	'moneys' => $model->currentMoneys()->serialize(),
 		]);
 		return NextPlayer::class;

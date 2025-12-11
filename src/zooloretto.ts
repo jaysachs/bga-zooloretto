@@ -55,6 +55,12 @@ interface Space {
   pos: number;
 }
 
+// FIXME: this and Offspring are ... the same.
+interface PlacedTile {
+  tile: Tile;
+  space: Space;
+}
+
 interface Offspring {
   space: Space;
   tile: Tile;
@@ -401,6 +407,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     console.log("offspringSlide", offspring);
     if (offspring) {
       let offspringElem = this.game.makeTileSpan(offspring.tile);
+      // FIXME: why needed?
       offspringElem.style.transform = 'rotate(0deg)';
       return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space));
     }
@@ -579,7 +586,7 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
 };
 
 
-type PlacedTile = {
+type TruckPlacement = {
   // truck_id is implicit
   truck_pos: number;
   enclosure_id: number;
@@ -587,7 +594,7 @@ type PlacedTile = {
 };
 
 class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
-  private placedTiles : PlacedTile[] = [];
+  private placedTiles : TruckPlacement[] = [];
   private truck_id: number;
   constructor(g : ZoolorettoGame) { super(g); }
 
@@ -1217,30 +1224,24 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_ExchangeEnclosureAnimals(args: {
     player_id: number,
-		src_enclosure_id: number,
-		src_spaces: Space[],
-		dest_enclosure_id: number,
-		dest_spaces: Space[],
+    placed_tiles: PlacedTile[],
     moneys: Moneys,
   }) {
-    if (args.player_id == this.player_id) {
-      return;
-    }
-    // FIXME: unify this with the body of ExchangeFlow::confirm
+    this.updateMoneys(args.moneys);
     let anims: AnimationList = [];
-    for (let i = 0; i < args.src_spaces.length; ++i) {
-      let s = args.src_spaces[i]!;
-      let d = args.dest_spaces[i]!;
-      let srcElem = Elements.enclosureTile(args.player_id, s);
-      if (srcElem) {
-        anims.push(() => this.slideAndAttach(srcElem, Elements.enclosureSpace(args.player_id, d)));
+    args.placed_tiles.forEach(pt =>  {
+      let elem = Elements.tile(pt.tile);
+      if (elem) {
+        anims.push(() => this.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
+      } else {
+        let elem = this.makeTileSpan(pt.tile);
+        // FIXME: needed?
+        elem.style.transform = 'rotate(0deg)';
+        // a created offspring, create and slide it in
+        anims.push(() => this.animationManager.slideIn(elem, $(IDS.OFF_BOARD), {}));
       }
-      let destElem = Elements.enclosureTile(args.player_id, d);
-      if (destElem) {
-        anims.push(() => this.slideAndAttach(destElem, Elements.enclosureSpace(args.player_id, s)));
-      }
-    }
-    await this.animationManager.playParallel(anims).then(()=>this.updateMoneys(args.moneys));
+    });
+    await this.animationManager.playParallel(anims);
   }
 
   private scoreSheet: ScoreSheet;
