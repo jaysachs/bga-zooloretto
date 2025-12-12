@@ -29,7 +29,7 @@ namespace Bga\Games\zooloretto\Model;
 
 class CompletedExchange {
     /**
-     * @param PlacedTile[] $placed_tiles
+     * @param PlacedTile[] $placedTiles
      */
     public function __construct(
         public readonly int $src_enclosure_id,

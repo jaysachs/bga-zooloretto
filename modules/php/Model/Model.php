@@ -186,7 +186,7 @@ class Model {
     */
     public function placeTilesInZooAndTakeTruck(int $truck_id, array $spaces): array {
         $truck = $this->getTruck($truck_id);
-        if ($truck->taken_by) {
+        if ($truck->taken_by > 0) {
             throw new ModelException("Truck {$truck_id} already taken by player {$truck->taken_by}");
         }
         $encs = $this->getEnclosuresForPlayer();
@@ -277,7 +277,6 @@ class Model {
 
     public function prepareNextRound(): ReturnedTrucks {
         $players = $this->getAllPlayers();
-        $result = [];
         /** @var int[] */
         $truck_ids = [];
         /** @var Tile[]  */
