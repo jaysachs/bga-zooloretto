@@ -39,6 +39,7 @@ class Tile {
 
     public function __construct(public readonly int $id, public private(set) TileType $type) {}
 
+	/** @return null|array<string,mixed> */
 	public function serialize(): ?array {
 		if ($this->type == TileType::EMPTY) {
 			return null;
@@ -74,7 +75,7 @@ class Tile {
 		for ($x = 23; $x <= 29; $x++) {
 			$values[] = new Tile($x, TileType::FLAMINGO);
 		}
-		for ($x = 39; $x <= 31; $x++) {
+		for ($x = 30; $x <= 31; $x++) {
 			$values[] = new Tile($x, TileType::FLAMINGO_MALE);
 		}
 		for ($x = 32; $x <= 33; $x++) {

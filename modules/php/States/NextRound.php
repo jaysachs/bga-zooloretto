@@ -34,7 +34,7 @@ use Bga\Games\zooloretto\Model\Truck;
 
 class NextRound extends AbstractState
 {
-    function __construct(private Game $game)
+    function __construct(Game $game)
     {
         parent::__construct(
             game: $game,

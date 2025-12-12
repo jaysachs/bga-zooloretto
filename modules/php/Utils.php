@@ -29,12 +29,17 @@ namespace Bga\Games\zooloretto;
 
 class Utils
 {
+    /**
+     * @template T of null|scalar|\Stringable|array<null|scalar|\Stringable>
+     * @param T[] $arr
+     */
     public static function arrayToString(array $arr, ?bool $keys = false): string {
         if ($keys) {
+            /** @var string[] */
             $arr = array_map(
-                /** @param array | mixed $k */
-                function ($k, $v) use (&$keys) {
-                    $ks = is_array($k) ? Utils::arrayToString($k, $keys) : "{$k}";
+                /** @param array|scalar|null $k */
+                function ($k, $v) use (&$keys) : string {
+                    $ks = "{$k}";
                     $vs = is_array($v) ? Utils::arrayToString($v, $keys) : "{$v}";
                     return "{$ks}=>{$vs}" ;
                 },
@@ -44,6 +49,10 @@ class Utils
         return "[" . implode(',', $arr) . "]";
     }
 
+    /**
+     * @template T
+     * @param T[] $arr
+     */
     public static function shuffle(array &$arr): void
     {
         $e = sizeof($arr) - 1;

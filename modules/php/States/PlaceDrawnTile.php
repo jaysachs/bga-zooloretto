@@ -36,7 +36,7 @@ use BgaSystemException;
 
 class PlaceDrawnTile extends AbstractState
 {
-    function __construct(private Game $game)
+    function __construct(Game $game)
     {
         parent::__construct(
             game: $game,
@@ -49,7 +49,7 @@ class PlaceDrawnTile extends AbstractState
 
     public function getArgs(int $active_player_id): array
     {
-        $model = new Model($this->game, $active_player_id);
+        $model = new Model($active_player_id);
         $available = [];
         foreach ($model->getTrucks() as $truck) {
             $pos = $truck->firstFreePosition();
@@ -90,7 +90,7 @@ class PlaceDrawnTile extends AbstractState
     }
 
     function zombie(int $player_id): mixed {
-        $model = new Model($this->game, $player_id);
+        $model = new Model($player_id);
         foreach ($model->getTrucks() as $truck) {
             $pos = $truck->firstFreePosition();
             if ($pos > 0) {

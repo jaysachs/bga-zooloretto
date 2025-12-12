@@ -34,8 +34,8 @@ class Stock {
     /**
      * The available tiles. Both arrays are keyed by the tile ID.
      *
-     * @param $tiles Tile[]
-     * @param $lastset Tile[]
+     * @param Tile[] $primary
+     * @param Tile[] $endgame
      */
     public function __construct(private array $primary, private array $endgame, public private(set) Tile $drawn) {
     }

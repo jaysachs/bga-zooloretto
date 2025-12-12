@@ -125,7 +125,7 @@ class PersistentStore {
                                          FROM tiles t
                                          INNER JOIN zglobals g ON t.id = g.drawn_tile");
         $drawn = Tile::empty();
-        if ($row <> null && count($row) > 0) {
+        if (count($row) > 0) {
             $drawn = $tileFromRow($row[0]);
         }
         $select = function (string $tblname) use (&$tileFromRow): array {
@@ -154,11 +154,16 @@ class PersistentStore {
                 LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
                 LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
                 ORDER BY tr.id');
-            return array_map(function (array $row) : Truck {
-                $tile = function(int $pos) use (&$row): ?Tile {
+            return array_map(
+                /**
+                 * @template T of string|int|null
+                 * @param int[] $row
+                 */
+                function (array $row) : Truck {
+                $tile = function(int $pos) use (&$row): Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                /** @var string | int | null */
+                /** @var string|int|null */
                 $taken_by = $row['taken_by'];
                 if ($taken_by !== null) { $taken_by = intval($taken_by); }
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);

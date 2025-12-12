@@ -80,7 +80,7 @@ class Player {
         $this->received += $amount;
     }
 
-    /** @param $amount int | Cost */
+    /** @param int | Cost $val */
     public function payMoney(mixed $val): void {
         $amount = is_int($val) ? intval($val) : $val->amount();
 

@@ -28,7 +28,6 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use \Bga\GameFramework\Table;
-use Bga\Games\zooloretto\Utils;
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
@@ -36,7 +35,7 @@ use Bga\Games\zooloretto\Utils;
 */
 
 class Model {
-    public function __construct(private Table $game, private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
+    public function __construct(private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
     }
 
     /** @param int[] $player_ids */

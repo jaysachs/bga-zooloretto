@@ -33,7 +33,7 @@ use Bga\Games\zooloretto\Game;
 
 class NextPlayer extends AbstractState
 {
-    function __construct(private Game $game)
+    function __construct(Game $game)
     {
         parent::__construct(
             game: $game,
@@ -53,7 +53,7 @@ class NextPlayer extends AbstractState
 		// $this->game->giveExtraTime($initial_player_id);
 		$player_id = 0;
 		do {
-			$player_id = $this->game->activeNextPlayer();
+			$player_id = intval($this->game->activeNextPlayer());
 			if (! $players[$player_id]->truck_taken) {
                 $this->giveExtraTime($player_id);
 				return PlayerTurn::class;

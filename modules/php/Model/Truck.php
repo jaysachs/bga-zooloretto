@@ -32,10 +32,10 @@ use \Bga\Games\zooloretto\Utils;
 class Truck {
     public const int CAPACITY = 3;
 
-    /** @var Tile[] */
+    /** @var array<int, Tile> */
     private array $tiles;
 
-    /** @param $tiles Tile[] */
+    /** @param array<int, Tile> $tiles */
     public function __construct(
         public readonly int $id,
         ?array $tiles = null,
@@ -75,7 +75,7 @@ class Truck {
         return 0;
     }
 
-    /** @return Tile[] indexed by position */
+    /** @return array<int, Tile> indexed by position */
     public function getAllTiles(): array {
         $result = [];
         $pos = 1;
@@ -179,7 +179,7 @@ class Truck {
     }
 
     public function freeSpaces(): int {
-        return array_reduce($this->tiles, fn ($s, Tile $t): int => ($s + ($t->isEmpty() ? 1 : 0)), 0);
+        return array_reduce($this->tiles, fn (int $s, Tile $t): int => ($s + ($t->isEmpty() ? 1 : 0)), 0);
     }
 
     /**

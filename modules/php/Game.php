@@ -79,7 +79,7 @@ class Game extends \Bga\GameFramework\Table
     */
 	protected function getAllDatas(): array
 	{
-		$model = new Model($this, intval($this->getActivePlayerId()));
+		$model = new Model(intval($this->getActivePlayerId()));
 		$stock = $model->getStock();
 		$encs = [];
 		foreach ($model->getAllPlayers() as $player) {
@@ -125,7 +125,7 @@ class Game extends \Bga\GameFramework\Table
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 		}
 		$isEndScore = intval($this->gamestate->state_id()) >= 99;
-  		$datas['endScores'] = $isEndScore ? new Model($this, 0)->computeScores() : null;
+  		$datas['endScores'] = $isEndScore ? new Model(0)->computeScores() : null;
 
         return $datas;
 	}
@@ -185,11 +185,12 @@ class Game extends \Bga\GameFramework\Table
 
 	}
 
-	protected function setupNewGame($players, $options = array())
+	protected function setupNewGame($players, $options = array()): mixed
 	{
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
         Utils::shuffle($default_colors);
+		$query_values = [];
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
             $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
@@ -255,7 +256,7 @@ class Game extends \Bga\GameFramework\Table
 	#[Debug(reload: true)]
 	public function debug_fillTrucks(): void {
 		$player_id = intval($this->getActivePlayerId());
-		$model = new Model($this, $player_id);
+		$model = new Model($player_id);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
@@ -271,7 +272,7 @@ class Game extends \Bga\GameFramework\Table
 
 	#[Debug(reload: true)]
 	public function debug_drawN(int $n): void {
-		$model = new Model($this, 0);
+		$model = new Model(0);
 		$stock = $model->getStock();
 		while ($n-- > 0) {
 			$stock = $model->drawTile();

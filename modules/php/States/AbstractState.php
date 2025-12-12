@@ -35,7 +35,7 @@ use Bga\Games\zooloretto\Model\Model;
 abstract class AbstractState extends GameState
 {
     function __construct(
-        private Game $game,
+        protected Game $game,
         int $id,
         StateType $type,
         ?string $description = '',
@@ -53,7 +53,7 @@ abstract class AbstractState extends GameState
     }
 
     protected function createModel(int $player_id): Model {
-        return new Model($this->game, $player_id);
+        return new Model($player_id);
     }
 
     protected function giveExtraTime(int $player_id, ?int $specificTime = null): void {

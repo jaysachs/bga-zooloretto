@@ -39,7 +39,7 @@ use Bga\Games\zooloretto\Model\Space;
 
 class PlayerTurn extends AbstractState
 {
-	function __construct(private Game $game)
+	function __construct(Game $game)
 	{
 		parent::__construct(
 			game: $game,
@@ -71,7 +71,7 @@ class PlayerTurn extends AbstractState
 			'from_player_id' => $b->from_player_id,
 			'src' => $b->move->src->serialize(),
 			'money_delta' => $b->moneyDelta->serialize(),
-			'dests' => array_map(fn ($d) => $d->serialize($d), $b->move->dests),
+			'dests' => array_map(fn ($d) => $d->serialize(), $b->move->dests),
 		], $model->getPurchaseableTiles());
 
 		$pxs = [];

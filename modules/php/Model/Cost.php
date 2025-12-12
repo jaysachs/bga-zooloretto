@@ -41,7 +41,6 @@ enum Cost: string {
             self::EXPAND => 3,
             self::MOVE => 1,
             self::PURCHASE => 2,
-            default => 0
         };
     }
 }

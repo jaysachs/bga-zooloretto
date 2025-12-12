@@ -133,6 +133,7 @@ enum TileType: string {
         };
     }
 
+    /** @return TileType[] */
     public static function allCanonicalAnimals() : array {
         return [
             TileType::CAMEL,
