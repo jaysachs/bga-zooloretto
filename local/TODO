@@ -51,9 +51,10 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 Bugs / to test:
   * first draw from endgame pile notif not handled right on on-triggering player
   * visual bug in barn -- 2nd (or last?) tile placed there has elongated height.
+    * caused because end up with flipping front/back spans still existing!
   * Slightly more serious: if a player has a 2nd window open, they don't
     process the notifs they generate. Need to only filter if actions
     initiated from *this* window.
-  * We do not properly return / render offspring from Move actions.
+  * We do not properly return / render offspring from Move or Purchase actions.
   * Need to test offspring on exchanges
   * Need to test offspring "overflowing" into barn
