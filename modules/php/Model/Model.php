@@ -113,6 +113,7 @@ class Model {
         return $stock;
     }
 
+    /** @var null|list<Truck> */
     private ?array $_trucks = null;
 
     /** @return Truck[] */
@@ -156,14 +157,13 @@ class Model {
         );
     }
 
-
-    /** @var array<int,Enclosure[]> keyed by player_id */
+    /** @var array<int,list<Enclosure>> keyed by player_id */
     private $_enclosures = [];
 
     /**
      * Returns enclosure mapped by enclosure_id.
      *
-     * @return Enclosure[]
+     * @return list<Enclosure>
      */
     public function getEnclosuresForPlayer(?int $player_id = 0) : array {
         if ($player_id === null || $player_id === 0) {
@@ -322,7 +322,7 @@ class Model {
         return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
     }
 
-    /** return Destination[] positions in barn that are discardable */
+    /** @return Destination[] positions in barn that are discardable */
     public function getDiscardables(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
             return [];
@@ -657,7 +657,8 @@ class Model {
         $this->incBankMoney(-$amt);
     }
 
-    private function computeScore(Player $player): mixed {
+    /** @return array<string,int> */
+    private function computeScore(Player $player): array {
         $detail = [
             'player_id' => $player->id,
             'money' => $player->money,
@@ -723,7 +724,7 @@ class Model {
         return $detail;
     }
 
-    /** @return array<int,array> */
+    /** @return array<int,array<string,int>> */
     public function computeScores(?bool $persist = false): array {
         $scores = [];
         foreach ($this->getAllPlayers() as $player) {

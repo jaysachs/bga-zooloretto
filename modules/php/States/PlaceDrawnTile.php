@@ -47,6 +47,7 @@ class PlaceDrawnTile extends AbstractState
         );
     }
 
+    /** @return array<string,mixed> */
     public function getArgs(int $active_player_id): array
     {
         $model = new Model($active_player_id);

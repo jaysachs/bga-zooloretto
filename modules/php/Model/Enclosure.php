@@ -43,7 +43,7 @@ class Enclosure {
         return self::create(3+$extension_number, 5, 1, 1, 9, 5);
     }
 
-    /** @return Enclosure[] */
+    /** @return list<Enclosure> */
     public static function forPlayer(Player $player): array {
         $encs = [
             self::barn(),

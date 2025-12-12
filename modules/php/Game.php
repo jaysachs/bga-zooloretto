@@ -48,15 +48,21 @@ class Game extends \Bga\GameFramework\Table
 	{
 		parent::__construct();
 
-		$this->notify->addDecorator(function (string $message, array $args): array {
+		$this->notify->addDecorator(
+			/**
+			 * @param array<string,array|string|int> $args
+			 * @return array<string,array|string|int>
+			 */
+			function (string $message, array $args): array {
 			if (isset($args['player_id'])) {
 				/** @var string[] | null */
 				$i18n = null;
 				if (isset($args['i18n'])) {
+					/** @var array<string,mixed> */
 					$i18n = $args['i18n'];
 				}
 				if (!isset($args['player_name']) && str_contains($message, '${player_name}')) {
-					$args['player_name'] = $this->getPlayerNameById($args['player_id']);
+					$args['player_name'] = $this->getPlayerNameById(intval($args['player_id']));
 					if ($i18n != null) {
 						$i18n[] = 'player_name';
 					}
@@ -77,6 +83,7 @@ class Game extends \Bga\GameFramework\Table
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
+	/** @return array<string,mixed> */
 	protected function getAllDatas(): array
 	{
 		$model = new Model(intval($this->getActivePlayerId()));
@@ -157,7 +164,7 @@ class Game extends \Bga\GameFramework\Table
 
     */
 
-	function upgradeTableDb($from_version)
+	function upgradeTableDb($from_version): void
 	{
 		// $from_version is the current version of this game database, in numerical form.
 		// For example, if the game was running with a release of your game named "140430-1345",

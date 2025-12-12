@@ -44,7 +44,7 @@ class PersistentStore {
         $this->db->Execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
     }
 
-    /** @param $tilepool Tile[] */
+    /** @param list<Tile> $tilepool  */
     public function insertTiles(array $tilepool): void {
         // Insert overall tile -> type map.
         $this->db->execute("INSERT INTO tiles (id, type) VALUES "
@@ -61,7 +61,7 @@ class PersistentStore {
 
     }
 
-    /** @param $trucks Truck[] */
+    /** @param list<Truck> $trucks */
     public function insertTrucks(array $trucks): void {
         $values = [];
         foreach ($trucks as $truck) {
@@ -119,7 +119,9 @@ class PersistentStore {
     }
 
     public function retrieveStock(): Stock {
-        $tileFromRow = function(array $row): Tile { return new Tile(intval($row["tile_id"]), TileType::from($row["type"])); };
+        $tileFromRow = function(array $row): Tile {
+            return new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
+        };
 
         $row = $this->db->getObjectList("SELECT t.id AS tile_id, t.type AS type, drawn_tile
                                          FROM tiles t
@@ -128,6 +130,7 @@ class PersistentStore {
         if (count($row) > 0) {
             $drawn = $tileFromRow($row[0]);
         }
+        /** @var \Closure(string): list<Tile> */
         $select = function (string $tblname) use (&$tileFromRow): array {
             return array_map(
                 $tileFromRow,
@@ -145,7 +148,7 @@ class PersistentStore {
         $this->db->execute("DELETE FROM endgame_stock WHERE tile_id = $id");
     }
 
-    /** @return Truck[] */
+    /** @return list<Truck> */
     public function retrieveTrucks(): array {
             $rows = $this->db->getObjectList(
                 'SELECT tr.id, tr.taken_by, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3
@@ -157,13 +160,12 @@ class PersistentStore {
             return array_map(
                 /**
                  * @template T of string|int|null
-                 * @param int[] $row
+                 * @param T[] $row
                  */
                 function (array $row) : Truck {
                 $tile = function(int $pos) use (&$row): Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                /** @var string|int|null */
                 $taken_by = $row['taken_by'];
                 if ($taken_by !== null) { $taken_by = intval($taken_by); }
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
@@ -180,8 +182,8 @@ class PersistentStore {
     }
 
     /**
-     * @param Enclosure[] $encs
-     * @return Enclosure[]
+     * @param list<Enclosure> $encs
+     * @return list<Enclosure>
      */
     public function populateEnclosures(int $player_id, array $encs) : array {
         $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, t.type

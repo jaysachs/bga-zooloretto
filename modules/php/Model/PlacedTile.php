@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 class PlacedTile {
     public function __construct(public readonly Tile $tile, public readonly Space $space) {}
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'tile' => $this->tile->serialize(),

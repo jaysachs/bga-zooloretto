@@ -37,6 +37,7 @@ class AvailableTruck {
         public private(set) PossiblePlacement $placement,
         public private(set) array $coin_positions) { }
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
 			'truck_id' => $this->truck_id,

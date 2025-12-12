@@ -35,6 +35,7 @@ class Delivery {
         public ?Destination $dest = null,
     ) {}
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'truck_pos' => $this->truck_pos,

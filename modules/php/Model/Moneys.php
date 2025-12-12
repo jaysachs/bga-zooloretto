@@ -51,6 +51,7 @@ class Moneys {
            && $this->players == $other->players;
     }
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'bank' => $this->bank,

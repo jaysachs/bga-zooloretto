@@ -32,6 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
+use Bga\Games\zooloretto\Model\PlacementsForTruckPos;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -53,6 +54,7 @@ class PlayerTurn extends AbstractState
 	public function onEnteringState(int $active_player_id): void {
 	}
 
+    /** @return array<string,mixed> */
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
@@ -86,20 +88,6 @@ class PlayerTurn extends AbstractState
 				];
 			}
 		}
-		/*
-		$px = array_map(fn (PossibleExchange $px) => [
-			'src' => [
-				'enclosure_id' => $px->src_enclosure_id,
-				'positions' => $px->src_positions,
-			],
-			'dest' => [
-				'enclosure_id' => $px->dest_enclosure_id,
-				'positions' => $px->dest_positions,
-			],
-			'money_delta' => $pex->moneyDelta->serialize(),
-			'offspring' => array_map(fn (Offspring $s) => $s->serialize(), $px->offspring),
-		], ($pex ? $pex->exchanges : []));
-*/
 		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
 
 		return [
@@ -114,6 +102,7 @@ class PlayerTurn extends AbstractState
 		];
 	}
 
+	/** @param list<array<string,int>> $placed_tiles */
 	#[PossibleAction]
 	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
         $model = $this->createModel($active_player_id);
@@ -154,11 +143,11 @@ class PlayerTurn extends AbstractState
 		}
 
 		// FIXME: pull from options
-		$show_counts = false;
+		// $show_counts = false;
 		// FIXME: make a method?
-		$amt = function (int $count) use (&$show_counts) : int {
-			if ($count <= 5 || $show_counts) { return $count; }
-			else return 200;
+		$amt = function (int $count) /* use (&$show_counts) */ : int {
+			if ($count <= 5 /* || $show_counts */) { return $count; }
+			return $count; // 200
 		};
 
 		$drawn_from_endgame_pile = $stock->inLastRound();
@@ -216,11 +205,11 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
-	#[PossibleAction]
 	/**
-	 * @param int[] $src_positions
-	 * @param int[] $dest_positions
+	 * @param list<int> $src_positions
+	 * @param list<int> $dest_positions
 	 */
+	#[PossibleAction]
 	public function actExchangeEnclosureAnimals(
 		int $active_player_id,
 		int $src_enclosure_id,
@@ -289,22 +278,21 @@ class PlayerTurn extends AbstractState
 
 		$truck = $model->getAvailableTrucks()[0];
 		$pl = $truck->placement->placements[0];
-		$pt = [];
-		do {
-			$pt[] = [
+		$placedTiles = [];
+		while (true) {
+			$placedTiles[] = [
 				'truck_pos' => $pl->truck_pos,
 				'enclosure_id' => $pl->next[0]->space->enclosure_id,
 				'enclosure_pos' => $pl->next[0]->space->pos,
 			];
-			$pn = null;
-			if ($pl->next) {
-				$x = $pl->next[0];
-				if ($x->next) {
-					$pn = $x->next[0];
-				}
+			if (count($pl->next) == 0) {
+				break;
 			}
-			$pl = $pn;
-		} while ($pl);
-		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->truck_id, $pt);
+			if ($pl->next[0]->next == null) {
+				break;
+			}
+			$pl = $pl->next[0]->next->placements[0];
+		};
+		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->truck_id, $placedTiles);
 	}
 }

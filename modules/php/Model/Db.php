@@ -30,7 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 
 interface Db
 {
-    /** @return string[][] */
+    /** @return list<(string|null)[]> */
     public function getObjectList(string $sql): array;
 
     /** @return string[] */

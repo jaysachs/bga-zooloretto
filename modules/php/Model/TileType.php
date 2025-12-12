@@ -102,7 +102,9 @@ enum TileType: string {
     case EMPTY = '';
 
     public function isSameSpecies(TileType $other): bool {
-        return $this->isAnimal()
+        return $this != self::EMPTY
+            && $other != self::EMPTY
+            && $this->isAnimal()
             && $other->isAnimal()
             && strval($this->value)[0] == strval($other->value)[0];
     }

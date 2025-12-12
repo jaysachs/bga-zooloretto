@@ -50,7 +50,7 @@ class Tile {
 		];
 	}
 
-	/** @return Tile[] */
+	/** @return list<Tile> */
     public static function createInitialPool(int $player_count): array {
         $values = [];
 		for ($x = 1; $x <= 7; $x++) {

@@ -12,7 +12,7 @@ TS_STUBS=$(WORK)/bga-framework.d.ts
 TESTSTUBS=$(WORK)/test/module/table/table.game.php
 JS=$(GAME).js
 COLORMAP=src/colormap.ts
-PHPSTAN_LEVEL=5
+PHPSTAN_LEVEL=10
 
 .PHONY: build test phpstan deploy clean
 

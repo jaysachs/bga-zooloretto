@@ -85,7 +85,7 @@ class Truck {
         return $result;
     }
 
-    /** return int[] */
+    /** @return list<int> */
     public function coinPositions(): array {
         $result = [];
         for ($pos = 0; $pos < count($this->tiles); $pos++) {

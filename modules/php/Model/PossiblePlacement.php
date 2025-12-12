@@ -36,6 +36,7 @@ class PlacementForEnclosure {
         public ?Offspring $offspring = null,
         public ?Moneys $moneyDelta = null) {}
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'space' => $this->space->serialize(),
@@ -47,16 +48,17 @@ class PlacementForEnclosure {
 }
 
 class PlacementsForTruckPos {
-    /** @param PlacementForEnclosure[] $next */
+    /** @param list<PlacementForEnclosure> $next */
     public function __construct(
         public int $truck_pos = 0,
         public TileType $tile_type = TileType::EMPTY,
-        private array $next = []) {}
+        public array $next = []) {}
 
     public function addNext(PlacementForEnclosure $p2): void {
         $this->next[] = $p2;
     }
 
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'truck_pos' => $this->truck_pos,
@@ -67,7 +69,7 @@ class PlacementsForTruckPos {
 }
 
 class PossiblePlacement {
-    /** @param PlacementsForTruckPos[] $placements */
+    /** @param list<PlacementsForTruckPos> $placements */
     public function __construct(public array $placements = []) {}
 
 
@@ -75,12 +77,13 @@ class PossiblePlacement {
         $this->placements[] = $p1;
     }
 
+    /** @return list<mixed> */
     public function serialize(): array {
         return array_map(fn (PlacementsForTruckPos $p) => $p->serialize(), $this->placements);
     }
 
 
-    /** @param Enclosure[] $enclosures */
+    /** @param list<Enclosure> $enclosures */
     private static function getPlacementsForEnclosure(int $player_id, Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): PlacementForEnclosure {
         $pfe = new PlacementForEnclosure(new Space($eid,$enclosure_pos));
 
@@ -101,7 +104,7 @@ class PossiblePlacement {
         return $pfe;
     }
 
-    /** @param Enclosure[] $enclosures */
+    /** @param list<Enclosure> $enclosures */
     private static function getPlacementForTruckPos(int $player_id, Truck $truck, int $truck_pos, array $enclosures): PlacementsForTruckPos {
         $tile = $truck->removeTileAt($truck_pos);
         $pftp = new PlacementsForTruckPos();
@@ -117,7 +120,7 @@ class PossiblePlacement {
         return $pftp;
     }
 
-    /** @param Enclosure[] $enclosures */
+    /** @param list<Enclosure> $enclosures */
     public static function possiblePlacementFor(int $player_id, Truck $truck, array $enclosures): PossiblePlacement {
         $pp = new PossiblePlacement();
         foreach ($truck->getAllTiles() as $pos => $tile) {

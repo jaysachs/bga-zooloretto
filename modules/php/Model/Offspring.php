@@ -48,7 +48,8 @@ class Offspring {
             && $this->enclosureCompleted == $other->enclosureCompleted;
     }
 
-    public function serialize(): mixed {
+    /** @return array<string,mixed> */
+    public function serialize(): array {
         return [
 			'space' => $this->childSpace->serialize(),
 			'tile' => $this->child->serialize(),
