@@ -1189,14 +1189,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_PurchaseTile(args: {
 			player_id: number,
-      tile: Tile,
-      dest: Space,
+      placed_tiles: PlacedTile[],
 			moneys: Moneys,
     }) {
     this.updateMoneys(args.moneys);
-    await this.slideAndAttach(
-      Elements.tile(args.tile)!,
-      Elements.enclosureSpace(args.player_id, args.dest)
+    await this.animationManager.playSequentially(
+      args.placed_tiles.map(pt =>
+        () => this.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+      )
     );
   }
 

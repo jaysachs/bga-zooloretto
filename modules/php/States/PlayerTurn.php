@@ -251,14 +251,17 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$dest = new Space($enclosure_id, $enclosure_pos);
-		$tile = $model->purchaseTile($from_player_id, $barn_pos, $dest);
-		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile_type}', [
+		$pts = $model->purchaseTile($from_player_id, $barn_pos, $dest);
+		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile_type} from ${seller_player_name}', [
 			'player_id' => $active_player_id,
-			'from_player_id' => $from_player_id,
-			'dest'  => $dest->serialize(),
-			'tile' => $tile->serialize(),
-			'tile_type' => $tile->type->value,
+			'seller_player_id' => $from_player_id,
+			'seller_player_name' => $this->game->getPlayerNameById($from_player_id),
+			'tile_type' => $pts[0]->tile->type->value,
+			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $pts),
     		'moneys' => $model->currentMoneys()->serialize(),
+			'i18n' => [
+				'seller_player_name',
+			]
 		]);
 		return NextPlayer::class;
 	}
