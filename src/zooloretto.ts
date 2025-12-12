@@ -1105,19 +1105,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.endgameStockCounter.toValue(args.endgame_pile_size);
   }
 
-  private async notif_DebugPlace(
-    args: {
-      drawn_from_endgame_pile: boolean,
-      primary_pile_size: number,
-      endgame_pile_size: number,
-    }
-  ): Promise<void> {
-    await this.slideOutAndDestroy(
-      Elements.drawnTile(args.drawn_from_endgame_pile),
-      $(IDS.OFF_BOARD))
-        .then(() => this.replenishPilesAndUpdateCounters(args));
-  }
-
   private async notif_PlaceDrawnTileInTruck(args: {
     player_id: number,
     truck_id: number,

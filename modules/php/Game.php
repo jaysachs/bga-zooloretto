@@ -27,8 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\GameFramework\Actions\Debug;
 use Bga\Games\zooloretto\Model\DefaultDb;
-use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Space;
@@ -247,78 +247,29 @@ class Game extends \Bga\GameFramework\Table
     }
     */
 
-	public function debug_setState(int $state): void {
-		$this->gamestate->jumpToState($state);
-	}
-
+	#[Debug(reload: true)]
 	public function debug_setMoney(int $player_id, int $amount): void {
 		new DefaultDb()->execute("UPDATE player SET money = $amount WHERE player_id=$player_id");
 	}
 
-	public function debug_placeTile(int $truck_id, int $pos): void {
-		$model = new Model($this, 0);
-		$tile = $model->placeDrawnTileOnTruck($truck_id, $pos);
-		$this->notify->all(
-			"PlaceTile",
-			clienttranslate( '${player_name} placed the ${translatedval} tile on space ${pos} of truck ${truck_id}.'),
-			[
-				'player_id' => $this->getActivePlayerId(),
-				'tile_id' => $tile->id,
-				'val' => $tile->type->value,
-                'truck_id' => $truck_id,
-                'pos' => $pos,
-				'translatedval' => $tile->type->translated(),
-				'i18n' => [ 'translatedval' ],
-			]
-		);
-	}
-
+	#[Debug(reload: true)]
 	public function debug_fillTrucks(): void {
 		$player_id = intval($this->getActivePlayerId());
 		$model = new Model($this, $player_id);
 		$trucks = $model->getTrucks();
-		$stock = $model->getStock();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
-			$this->notify->all(
-				"DrawTile",
-				// FIXME: render the tile image in the log (in addition? instead?)
-				'debug drew a ${translatedval} tile.',
-				[
-					'player_id' => 0,
-					'drawn_from_endgame_pile' => $stock->inLastRound(),
-					'primary_pile_size' => $stock->primaryCount(),
-					'endgame_pile_size' => $stock->endgameCount(),
-					'tile_type' => $drawn->type->value,
-					'translatedval' => $drawn->type->translated(),
-					'i18n' => ['translatedval']
-			]);
 			foreach ($trucks as $truck) {
 				$p = $truck->firstFreePosition();
 				if ($p > 0) {
 					$model->placeDrawnTileOnTruck($truck->id, $p);
-					$this->notify->all(
-						"PlaceDrawnTileInTruck",
-						'debug placed the drawn ${translatedval} tile on space ${truck_pos} of truck ${truck_id}.',
-						[
-							// 'player_id' => 0,
-							'tile_id' => $drawn->id,
-							'val' => $drawn->type->value,
-							'truck_id' => $truck->id,
-							'truck_pos' => $p,
-							'translatedval' => $drawn->type->translated(),
-							'primary_pile_size' => $stock->primaryCount(),
-							'endgame_pile_size' => $stock->endgameCount(),
-							'i18n' => [ 'translatedval' ],
-						]
-
-					);
 					break;
 				}
 			}
 		}
 	}
 
+	#[Debug(reload: true)]
 	public function debug_drawN(int $n): void {
 		$model = new Model($this, 0);
 		$stock = $model->getStock();
@@ -326,21 +277,6 @@ class Game extends \Bga\GameFramework\Table
 			$stock = $model->drawTile();
 			$drawn = $stock->drawn;
 			$stock->removeDrawnTile();
-			$this->notify->all(
-			"DrawTile",
-			// FIXME: render the tile image in the log (in addition? instead?)
-			'debug drew a ${tile_type} tile.',
-			[
-				// 'player_id' => 0,
-				'tile_type' => $drawn->type->value,
-				'drawn_from_endgame_pile' => $stock->inLastRound(),
-			]);
-			$this->notify->all('DebugPlace', 'debug placed tile offboard',
-			[
-				'primary_pile_size' => $stock->primaryCount(),
-				'endgame_pile_size' => $stock->endgameCount(),
-				'drawn_from_endgame_pile' => $stock->inLastRound(),
-			]);
 		}
 		new PersistentStore()->updateStock($stock);
 	}
