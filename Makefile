@@ -10,11 +10,11 @@ WORK=work
 STUBS=$(WORK)/module/table/table.game.php
 TS_STUBS=$(WORK)/bga-framework.d.ts
 TESTSTUBS=$(WORK)/test/module/table/table.game.php
-PSALM_CONFIG=psalm.xml
 JS=$(GAME).js
 COLORMAP=src/colormap.ts
+PHPSTAN_LEVEL=5
 
-.PHONY: build test psalm psalm-info deploy clean
+.PHONY: build test phpstan deploy clean
 
 build: $(JS) $(STUBS) # $(STATS)
 
@@ -45,11 +45,8 @@ $(TESTSTUBS): $(WORK) _ide_helper.php Makefile
 test: build $(TESTSTUBS)
 	phpunit --bootstrap misc/autoload.php misc --testdox
 
-psalm: build $(STUBS) $(PSALM_CONFIG)
-	psalm -c $(PSALM_CONFIG) modules/php
-
-psalm-info: build $(STUBS) $(PSALM_CONFIG)
-	psalm --show-info=true -c $(PSALM_CONFIG) modules/php
+phpstan: build $(STUBS)
+	phpstan --autoload-file=$(STUBS) --level=$(PHPSTAN_LEVEL) --memory-limit=1G analyse modules/php/Model modules/php modules/php/States
 
 deploy: test
 	lftp -e 'cd $(GAME); mirror -R --exclude .vscode/ --exclude .git/ --exclude work/ --exclude local/ --exclude bga-framework.d.ts --exclude _ide_helper.php; exit' $(SFTP)
