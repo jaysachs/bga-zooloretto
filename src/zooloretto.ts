@@ -836,6 +836,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
+    if (!this.bgaAnimationsActive()) {
+      elem.setAttribute(Attrs.TILE, tile.type);
+    }
     const delay = ms => new Promise(res => setTimeout(res, ms));
     let back = Html.span({classes: 'zoo-flippee' });
     let front = Html.span({classes: 'zoo-flippee' });
@@ -1319,7 +1322,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   ///////
-  // private zcardSalt: number = 0;
   readonly special_log_args = {
     tile_type: (args: any) => `<span ${Attrs.TILE}='${args.tile_type}' title='${_(args.tile_description)}'></span>`,
   };
