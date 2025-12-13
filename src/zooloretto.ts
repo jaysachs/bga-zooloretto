@@ -342,7 +342,6 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     if (!elem) {
       return;
     }
-    console.log("marking selected", elem);
     this.marked.push(elem);
     elem.classList.add(CSS.SELECTED);
   }
@@ -367,7 +366,6 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected clearMarked() {
-    console.log("clearing marked", this.marked);
     this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED));
   }
 
