@@ -155,7 +155,7 @@ class PlayerTurn extends AbstractState
 		$this->notify->all(
 			"DrawTile",
 			// FIXME: render the tile image in the log (in addition? instead?)
-			clienttranslate('${player_name} drew a ${tile_type} tile.'),
+			clienttranslate('${player_name} drew a ${tile_type}.'),
 			[
 				'player_id' => $active_player_id,
 				'tile' => $tile->serialize(),

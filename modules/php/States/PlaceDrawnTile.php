@@ -74,7 +74,7 @@ class PlaceDrawnTile extends AbstractState
         $stock = $model->getStock();
 		$this->notify->all(
 			"PlaceDrawnTileInTruck",
-			clienttranslate( '${player_name} placed the drawn ${tile_type} tile on space ${truck_pos} of truck ${truck_id}.'),
+			clienttranslate( '${player_name} placed ${tile_type} onto truck ${truck_id}.'),
 			[
 				'player_id' => $active_player_id,
                 'truck_id' => $truck_id,
