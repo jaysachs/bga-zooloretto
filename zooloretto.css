@@ -724,8 +724,8 @@ body.mobile_version {
 
 
 .zoo-score-sheet {
-    position: fixed;
-    top: 25%;
+    position: absolute;
+    top: 10%;
     left: 25%;
     width: 50%;
     height: auto;
