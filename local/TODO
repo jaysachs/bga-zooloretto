@@ -42,3 +42,29 @@ Bugs / to test:
   * Need to test offspring "overflowing" into barn
   * Flipping draw tile when window not visible doesn't do transition,
     so can't depend on that to mutate stuff.
+
+* Statistics
+  * Points for completed enclosures
+  * Points for near-complete enclosures
+  * Points for incomplete enclosures with stalls
+  * Points for different stalls
+  * Penalty for animals left in barn
+  * Penalty for stalls left in barn (combine with prev?)
+  * Offspring generated
+  * Offspring generated into barn
+  * Offspring generated that completed an enclosure (worth tracking?)
+  * Tiles purchased
+  * Tiles sold
+  * Number of exchange actions
+  * Number of exchange actions with barn
+  * Number of discarded tiles
+  * Number of moved stalls (not from barn)
+  * Number of moved animals
+  * Number of moved stalls from barn
+  * Number of expansions purchased
+  * Number of tiles drawn
+  * Number of trucks taken
+  * Number of tiles taken from trucks
+  * Number of tiles taken from truck into barn
+  * Number of coin tiles acquired
+  * Coins gained from completion bonuses
