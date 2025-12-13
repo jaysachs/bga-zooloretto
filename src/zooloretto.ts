@@ -104,7 +104,6 @@ interface PossibleEnclosurePlacement {
 }
 interface PossiblePlacement {
   truck_pos: number;
-  tile_type: string;
   encs: PossibleEnclosurePlacement[];
 }
 
@@ -165,7 +164,6 @@ interface EnclosurePlacement {
 //
 
 class Attrs {
-  // FIXME: rename value to have zoo- prefix.
   static readonly ENCLOSURE : string = 'zoo-enclosure';
   static readonly EXTENSIONS : string = 'zoo-extensions';
   static readonly TILE : string = 'zoo-tile';
@@ -853,6 +851,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         front.remove();
     }
     // need to add to both events in case not visible, end not fired.
+    // FIXME: in fact, neither are fired if it's not visible from the beginning .. ?!?
     front.addEventListener('transitionend', fixup);
     front.addEventListener('transitioncancel', fixup);
     // FIXME: unclear why this delay is needed.
