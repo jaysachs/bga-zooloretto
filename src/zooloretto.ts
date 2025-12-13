@@ -1322,12 +1322,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   ///////
   // private zcardSalt: number = 0;
   readonly special_log_args = {
-    /*
-      piece: (args: any) => `<span ${Attrs.PIECE}='${this.pieceVal(args.piece, args.player_id)}'></span>`,
-      city: (args: any) => `<span ${Attrs.PIECE}='${this.pieceVal(args.city, 0)}'></span>`,
-      zcard: (args: any) => `<span id='logzcard_${this.zcardSalt++}' ${Attrs.ZTYPE}='${args.zcard}'></span>`,
-      original_piece: (args: any) => `<span ${Attrs.PIECE}='${this.pieceVal(args.original_piece, args.player_id)}'></span>`,
-      */
+    tile_type: (args: any) => `<span ${Attrs.TILE}='${args.tile_type}' title='${_(args.tile_description)}'></span>`,
   };
 
   override bgaFormatText(log: string, args: any): { log: string, args: any } {

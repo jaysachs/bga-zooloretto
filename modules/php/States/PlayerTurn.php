@@ -155,15 +155,16 @@ class PlayerTurn extends AbstractState
 		$this->notify->all(
 			"DrawTile",
 			// FIXME: render the tile image in the log (in addition? instead?)
-			clienttranslate('${player_name} drew a ${translatedval} tile.'),
+			clienttranslate('${player_name} drew a ${tile_type} tile.'),
 			[
 				'player_id' => $active_player_id,
 				'tile' => $tile->serialize(),
 				'drawn_from_endgame_pile' => $drawn_from_endgame_pile,
 				'primary_pile_size' => $amt($stock->primaryCount()),
 				'endgame_pile_size' => $amt($stock->endgameCount()),
-				'translatedval' => $tile->type->translated(),
-				'i18n' => ['translatedval']
+				'tile_type' => $tile->type->value,
+				'tile_description' => $tile->type->translated(),
+				'i18n' => ['tile_description']
 			]
 		);
 		return PlaceDrawnTile::class;
@@ -194,12 +195,18 @@ class PlayerTurn extends AbstractState
 		$tile = $model->moveTile(new Space($src_id, $src_pos), $dest);
 		$this->notify->all(
 			"MoveTile",
-			clienttranslate('${player_name} moved a tile'),
+			// FIXME: need to handle barn ...
+			clienttranslate('${player_name} moved a ${tile_type} tile from enclosure ${src_enclosure} to ${dest_enclosure}'),
 			[
 				'player_id' => $active_player_id,
 				'tile' => $tile->serialize(),
 				'dest' => $dest->serialize(),
         		'moneys' => $model->currentMoneys()->serialize(),
+				'src_enclosure' => $src_id,
+				'dest_enclosure' => $dest_id,
+				'tile_type' => $tile->type->value,
+				'tile_description' => $tile->type->translated(),
+				'i18n' => ['tile_description']
 			]
 		);
 		return NextPlayer::class;
@@ -221,14 +228,21 @@ class PlayerTurn extends AbstractState
 		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
 
 		$this->notify->all('ExchangeEnclosureAnimals',
-		    '${player_name} exchanged ${src_animal_type} and ${dest_animal_type} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
+			// FIXME: need to handle barn
+		    '${player_name} exchanged ${src_tile_description} and ${dest_tile_description} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
 			'player_id' => $active_player_id,
-			'src_enclosure_id' => $completedExchange->src_enclosure_id,
 			'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
-			'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
-			'src_animal_type' => $completedExchange->src_tile_type->value,
-			'dest_animal_type' => $completedExchange->dest_tile_type->value,
+			'src_enclosure_id' => $completedExchange->src_enclosure_id,
         	'moneys' => $model->currentMoneys()->serialize(),
+			'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
+			'src_tile_type' => $completedExchange->src_tile_type->translated(),
+			'dest_tile_type' => $completedExchange->dest_tile_type->translated(),
+			'src_tile_description' => $completedExchange->src_tile_type->translated(),
+			'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
+			'i18n' => [
+				'src_tile_description',
+				'dest_tile_description',
+			]
 		]);
 		return NextPlayer::class;
 	}
@@ -243,10 +257,12 @@ class PlayerTurn extends AbstractState
 			'player_id' => $active_player_id,
 			'seller_player_id' => $from_player_id,
 			'seller_player_name' => $this->game->getPlayerNameById($from_player_id),
-			'tile_type' => $pts[0]->tile->type->value,
+			'tile_type' => $pts[0]->tile->type->translated(),
 			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $pts),
     		'moneys' => $model->currentMoneys()->serialize(),
+			'tile_description' => $pts[0]->tile->type->translated(),
 			'i18n' => [
+				'tile_description',
 				'seller_player_name',
 			]
 		]);
@@ -262,8 +278,12 @@ class PlayerTurn extends AbstractState
 			'player_id' => $active_player_id,
 			'tile' => $tile->serialize(),
 			'tile_type' => $tile->type->value,
+			'tile_description' => $tile->type->translated(),
         	'moneys' => $model->currentMoneys()->serialize(),
 			'space' => new Space(0, $barn_pos),
+			'i18n' => [
+				'tile_description',
+			]
 		]
 		);
 		return NextPlayer::class;

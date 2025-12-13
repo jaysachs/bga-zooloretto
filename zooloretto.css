@@ -753,3 +753,13 @@ th.bga-score-sheet_player-name {
 .bga-score-sheet_entry-label, .bga-score-sheet_player-score-entry {
     height: auto !important;
 }
+
+.log [zoo-tile] {
+    height: 2.0em;
+    width: 2.0em;
+    vertical-align: bottom;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+}
