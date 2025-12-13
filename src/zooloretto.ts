@@ -307,15 +307,25 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.game.statusBar.setTitle(title, args);
   }
 
-  protected addConfirmActionButton(bgaAction: string, args: any, autoclick? : boolean) {
-    this.game.statusBar.addActionButton(
-      _('Confirm'),
-      () => {
+  protected confirmationsEnabled(): boolean {
+    // FIXME: process gamepreferences.json and create constants/accessors/etc
+    return this.game.bga.userPreferences.get(100) > 0;
+  }
+
+  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
+    let doAct = () => {
         this.clearMarked();
         this.game.statusBar.removeActionButtons();
         this.game.bgaPerformAction(bgaAction, args);
-      },
-      { autoclick: (autoclick === undefined) || autoclick });
+    };
+    if (this.confirmationsEnabled())  {
+      await doAct();
+    } else {
+      this.game.statusBar.addActionButton(
+        _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
+      );
+      this.addRestartTurnButton();
+    }
   }
 
   protected addRestartTurnButton(onCancel?: CallableFunction): void {
@@ -474,13 +484,12 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 
   private confirmExchange(pe: PossibleExchange) {
     this.initStatusBar(_("Confirm exchange"));
-    this.addConfirmActionButton("actExchangeEnclosureAnimals", {
+    this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
   		src_enclosure_id : pe.src[0]!.enclosure_id,
 		  src_positions: JSON.stringify(pe.src.map((s) => s.pos)),
 		  dest_enclosure_id: pe.dest[0]!.enclosure_id,
       dest_positions: JSON.stringify(pe.dest.map((s) => s.pos)),
     });
-    this.addRestartTurnButton();
   }
 }
 
@@ -521,13 +530,12 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
 
   private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
     this.initStatusBar(_("Confirm purchase"));
-    this.addConfirmActionButton('actPurchaseTile', {
+    this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.from_player_id,
       barn_pos: pp.src.pos,
       enclosure_id: dest.space.enclosure_id,
       enclosure_pos: dest.space.pos
     });
-    this.addRestartTurnButton();
   }
 }
 
@@ -539,8 +547,7 @@ class ExpandZooFlow extends ZooFlow {
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
     this.pushUndoAnim(() => this.game.renderExtensions(this.player_id, current));
-    this.addConfirmActionButton('actExpandZoo', {});
-    this.addRestartTurnButton();
+    this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
 };
 
@@ -550,8 +557,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
     this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmActionButton('actDrawTile', {});
-    this.addRestartTurnButton();
+    this.addConfirmAndRestartActionButtons('actDrawTile', {});
   }
 };
 
@@ -576,8 +582,7 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
     this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
         { tile: tile.type, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
-    this.addConfirmActionButton('actPlaceDrawnTileInTruck', tl);
-    this.addRestartTurnButton();
+    this.addConfirmAndRestartActionButtons('actPlaceDrawnTileInTruck', tl);
   }
 };
 
@@ -596,7 +601,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
   override doStart(availableTrucks: AvailableTruck[]) {
     this.initStatusBar(_('Select a truck'));
-    this.addRestartTurnButton(/* () => this.cleanup() */);
+    this.addRestartTurnButton();
     this.placedTiles = [];
     this.truck_id = 0;
     availableTrucks.forEach((truck: AvailableTruck) => {
@@ -618,7 +623,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.truck_id = truck_id;
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
-      this.addConfirmActionButton(
+      this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,
           placed_tiles: JSON.stringify(this.placedTiles),
@@ -634,8 +639,8 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
           this.chooseDestination(truck_id, pp, availableTrucks);
         });
       });
+      this.addRestartTurnButton();
     }
-    this.addRestartTurnButton();
   }
 
   private chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[]) {
@@ -682,8 +687,7 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
 
   private confirmDiscard(dest: Destination) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmActionButton('actDiscardTile', { barn_pos: dest.space.pos });
-    this.addRestartTurnButton();
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: dest.space.pos });
   }
 }
 
@@ -722,10 +726,9 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   private async confirmMove(src: Space, dest: Destination) {
     await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
-    this.addConfirmActionButton('actMoveTile', {
+    this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
     });
-    this.addRestartTurnButton();
   }
 }
 
