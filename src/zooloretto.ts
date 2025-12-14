@@ -313,7 +313,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
-    let doAct = () => {
+    let doAct = async () => {
         this.clearMarked();
         this.game.statusBar.removeActionButtons();
         this.game.bgaPerformAction(bgaAction, args);

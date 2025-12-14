@@ -252,19 +252,32 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$dest = new Space($enclosure_id, $enclosure_pos);
-		$pts = $model->purchaseTile($from_player_id, $barn_pos, $dest);
+		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
+		$purchased = $result['tiles'][0];
 		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile_type} from ${player_name2}', [
 			'player_id' => $active_player_id,
 			'player_id2' => $from_player_id,
-			'tile_type' => $pts[0]->tile->type->translated(),
-			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $pts),
+			'tile_type' => $purchased->tile->type->translated(),
+			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
     		'moneys' => $model->currentMoneys()->serialize(),
-			'tile_description' => $pts[0]->tile->type->translated(),
+			'tile_description' => $purchased->tile->type->translated(),
 			'i18n' => [
 				'tile_description',
 				'seller_player_name',
 			]
 		]);
+		if ($result['offspring'] !== null) {
+			$this->notify->all('PurchaseTileOffspring', '${player_name} placement generated an offspring',[
+				'player_id' => $active_player_id,
+				'offspring' => $result['offspring']->serialize(),
+			]);
+		}
+		if ($result['enclosureBonus'] !== null) {
+			$this->notify->all('EnclosureBonus', '${player_name} completed an enclosure and received ${bonus} coins', [
+				'player_id' => $active_player_id,
+				'bonus' => $result['enclosureBonus'],
+			]);
+		}
 		return NextPlayer::class;
 	}
 

@@ -451,7 +451,7 @@ class Model {
         return $tile;
     }
 
-    /** @return PlacedTile[] */
+    /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosureBonus: int|null} */
     public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): array {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
@@ -471,8 +471,11 @@ class Model {
             throw new ModelException("Illegal purchase {$seller_player_id} {$barn_pos} {$target}");
         }
 
-        /** @var PlacedTile[] */
-        $result = [];
+        $result = [
+            'tiles' => [],
+            'offspring' => null,
+            'enclosureBonus' => null,
+        ];
         $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
@@ -487,7 +490,7 @@ class Model {
 
         $tile = $seller_barn->takeTileAt($src->pos);
         $placement = $enc->placeTile($tile, $target->pos);
-        $result[] = new PlacedTile($tile, $placement->space);
+        $result['tiles'][] = new PlacedTile($tile, $placement->space);
         $enclosureCompleted = $placement->completedEnclosure;
 
         $offspring = $enc->checkForOffspring($buyer_barn);
@@ -501,10 +504,12 @@ class Model {
             if ($offspring->enclosureCompleted) {
                 $enclosureCompleted = true;
             }
-            $result[] = new PlacedTile($offspring->child, $offspring->childSpace);
+            $result['offspring'] = $offspring;
+            $result['tiles'][] = new PlacedTile($offspring->child, $offspring->childSpace);
         }
         if ($enclosureCompleted) {
             $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
+            $result['enclosureBonus'] = $amt;
             $this->payPlayer($player, $amt);
         }
 
