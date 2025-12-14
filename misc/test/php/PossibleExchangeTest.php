@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zooloretto\Model\{Enclosure, Offspring, PossibleExchange, Space, Tile, TileType};
+use PHPUnit\Framework\TestCase;
 
 final class PossibleExchangeTest extends TestCase
 {
@@ -103,25 +103,25 @@ final class PossibleExchangeTest extends TestCase
             $this->pe(1, [1,2,3], 0, [3,4,6]),
             $this->pe(1, [1,2,3], 0, [7,4,6]),
             $this->pe(1, [1,2,3], 2, [1,2,3],
-                [new Offspring(new Tile(306, TileType::CAMEL_KID),
-                               new Tile(6, TileType::CAMEL_FEMALE_R),
-                               new Tile(8, TileType::CAMEL_MALE_R),
-                               new Space(2, 4),
-                               true)]),
+                [new Offspring(
+                    new PlacedTile(new Tile(306, TileType::CAMEL_KID), new Space(2, 4)),
+                    new Tile(6, TileType::CAMEL_FEMALE_R),
+                    new Tile(8, TileType::CAMEL_MALE_R),
+                    true)]),
             $this->pe(2, [1,2], 0, [1,5],
-                [new Offspring(new Tile(301, TileType::CAMEL_KID),
-                               new Tile(1, TileType::CAMEL_FEMALE_R),
-                               new Tile(4, TileType::CAMEL_MALE_R),
-                               new Space(2, 3),
-                               false)]),
+                [new Offspring(
+                    new PlacedTile(new Tile(301, TileType::CAMEL_KID),new Space(2, 3)),
+                    new Tile(1, TileType::CAMEL_FEMALE_R),
+                    new Tile(4, TileType::CAMEL_MALE_R),
+                    false)]),
             $this->pe(2, [1], 0, [3]),
             $this->pe(2, [1], 0, [7]),
             $this->pe(2, [1,2,3], 1, [1,2,3],
-                [new Offspring(new Tile(306, TileType::CAMEL_KID),
-                               new Tile(6, TileType::CAMEL_FEMALE_R),
-                               new Tile(8, TileType::CAMEL_MALE_R),
-                               new Space(2, 4),
-                               true)]),
+                [new Offspring(
+                    new PlacedTile(new Tile(306, TileType::CAMEL_KID),new Space(2, 4)),
+                    new Tile(6, TileType::CAMEL_FEMALE_R),
+                    new Tile(8, TileType::CAMEL_MALE_R),
+                    true)]),
         ], PossibleExchange::getPossibleExchanges($encs));
 
     }

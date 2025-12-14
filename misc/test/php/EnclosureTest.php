@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zooloretto\Model\{Enclosure, Offspring, Placement, Space, Tile, TileType};
+use PHPUnit\Framework\TestCase;
 
 final class EnclosureTest extends TestCase
 {
@@ -97,10 +97,9 @@ final class EnclosureTest extends TestCase
         $e->placeTile(new Tile(4, TileType::CAMEL_MALE));
         $this->assertEquals(
             new Offspring(
-                new Tile(303, TileType::CAMEL_KID),
+                new PlacedTile(new Tile(303, TileType::CAMEL_KID), new Space(1, 3)),
                 new Tile(3, TileType::CAMEL_FEMALE_R),
                 new Tile(4, TileType::CAMEL_MALE_R),
-                new Space(1, 3),
                 false),
             $e->checkForOffspring($barn));
         $this->assertNull($e->checkForOffspring($barn));
@@ -109,10 +108,9 @@ final class EnclosureTest extends TestCase
         $e->placeTile(new Tile(6, TileType::ELEPHANT_FEMALE));
         $this->assertEquals(
             new Offspring(
-                new Tile(306, TileType::ELEPHANT_KID),
+                new PlacedTile(new Tile(306, TileType::ELEPHANT_KID), new Space(0, 3)),
                 new Tile(6, TileType::ELEPHANT_FEMALE_R),
                 new Tile(5, TileType::ELEPHANT_MALE_R),
-                new Space(0, 3),
                 false),
             $e->checkForOffspring($barn));
         $this->assertEquals(new Tile(306, TileType::ELEPHANT_KID), $barn->tileAt(3));

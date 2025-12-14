@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zooloretto\Model\{Enclosure, Moneys, Offspring, PlacementForEnclosure, PlacementsForTruckPos, PossiblePlacement, Space, Tile, TileType, Truck};
+use PHPUnit\Framework\TestCase;
 
 function e(int $x, int $y, $z = null, ?Offspring $offspring = null, ?Moneys $moneyDelta = null) {
     return new PlacementForEnclosure(new Space($x, $y), $z, $offspring, $moneyDelta);
@@ -165,8 +165,9 @@ final class PossiblePlacementTest extends TestCase
         $truck->placeTileAt($father, 2);
 
         $kid = function($eid, $pos, $comp = false) use(&$rm, &$rf) : Offspring {
-            return new Offspring(new Tile($rm->id+300, TileType::CAMEL_KID),
-                                 $rm, $rf, new Space($eid, $pos), $comp);
+            return new Offspring(
+                new PlacedTile(new Tile($rm->id+300, TileType::CAMEL_KID), new Space($eid, $pos)),
+                $rm, $rf, $comp);
         };
 
         $expected = p([
