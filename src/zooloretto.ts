@@ -62,8 +62,7 @@ interface PlacedTile {
 }
 
 interface Offspring {
-  space: Space;
-  tile: Tile;
+  placed_tile: PlacedTile;
 }
 
 interface Moneys {
@@ -412,10 +411,10 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
   protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
     console.log("offspringSlide", offspring);
     if (offspring) {
-      let offspringElem = this.game.makeTileSpan(offspring.tile);
+      let offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
       // FIXME: why needed?
       offspringElem.style.transform = 'rotate(0deg)';
-      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.space));
+      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space));
     }
     return Promise.resolve();
   }
@@ -1155,8 +1154,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         );
         if (dest.offspring) {
           anims.push(() => {
-            let elem = this.makeTileSpan(dest.offspring!.tile);
-            let parent = Elements.enclosureSpace(args.player_id, dest.offspring!.space);
+            let elem = this.makeTileSpan(dest.offspring!.placed_tile.tile);
+            let parent = Elements.enclosureSpace(args.player_id, dest.offspring!.placed_tile.space);
             parent.appendChild(elem);
             return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
           });

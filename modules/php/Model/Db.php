@@ -33,7 +33,7 @@ interface Db
     /** @return list<array<string,string>> */
     public function getObjectList(string $sql): array;
 
-    /** @return array<string,string> */
+    /** @return list<string> */
     public function getSingleFieldList(string $sql): array;
 
     public function execute(string $sql): void;

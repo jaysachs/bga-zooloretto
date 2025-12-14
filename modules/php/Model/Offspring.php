@@ -29,30 +29,27 @@ namespace Bga\Games\zooloretto\Model;
 
 class Offspring {
     public function __construct(
-        public readonly Tile $child,
+        public readonly PlacedTile $child,
         public readonly Tile $mother,
         public readonly Tile $father,
-        public readonly Space $childSpace,
         public readonly bool $enclosureCompleted) {}
 
     public function __toString()
     {
-        return "Offspring(child={$this->child},mother={$this->mother},father={$this->father},space={$this->childSpace})";
+        return "Offspring(child={$this->child},mother={$this->mother},father={$this->father})";
     }
 
     public function equals(Offspring $other): bool {
         return $this->child == $other->child
             && $this->mother == $other->mother
             && $this->father == $other->father
-            && $this->childSpace == $other->childSpace
             && $this->enclosureCompleted == $other->enclosureCompleted;
     }
 
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
-			'space' => $this->childSpace->serialize(),
-			'tile' => $this->child->serialize(),
+			'placed_tile' => $this->child->serialize(),
 		];
 
     }

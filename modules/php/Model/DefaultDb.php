@@ -42,7 +42,7 @@ class DefaultDb implements Db
         return Table::getObjectListFromDB($sql, false);
     }
 
-    /** @return array<string,string> */
+    /** @return list<string> */
     #[\Override]
     public function getSingleFieldList(string $sql): array
     {

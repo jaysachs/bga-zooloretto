@@ -37,4 +37,9 @@ class PlacedTile {
             'space' => $this->space->serialize(),
         ];
     }
+
+    public function __toString()
+    {
+        return "PlacedTile{tile={$this->tile},space={$this->space}";
+    }
 }

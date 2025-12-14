@@ -497,7 +497,7 @@ class Model {
         $toUpdate = [$enc];
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $te = $offspring->childSpace->enclosure_id;
+            $te = $offspring->child->space->enclosure_id;
             if ($te <> $enc->id) {
                 $toUpdate[] = $encs[$te];
             }
@@ -505,7 +505,7 @@ class Model {
                 $enclosureCompleted = true;
             }
             $result['offspring'] = $offspring;
-            $result['tiles'][] = new PlacedTile($offspring->child, $offspring->childSpace);
+            $result['tiles'][] = $offspring->child;
         }
         if ($enclosureCompleted) {
             $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
@@ -563,7 +563,7 @@ class Model {
 
     private function saveOffspring(Offspring $offspring): void {
         // new child inserted
-        $this->ps->insertTiles([$offspring->child]);
+        $this->ps->insertTiles([$offspring->child->tile]);
         // update parents, marked reproduced.
         $this->ps->updateTile($offspring->mother);
         $this->ps->updateTile($offspring->father);
@@ -622,12 +622,12 @@ class Model {
         $offspring = $se->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $placedTiles[] = new PlacedTile($offspring->child, $offspring->childSpace);
+            $placedTiles[] = $offspring->child;
         }
         $offspring = $de->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
-            $placedTiles[] = new PlacedTile($offspring->child, $offspring->childSpace);
+            $placedTiles[] = $offspring->child;
         }
 
         // no check fo completion bonus in enclosures
