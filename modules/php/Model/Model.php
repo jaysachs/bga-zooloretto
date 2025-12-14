@@ -214,9 +214,7 @@ class Model {
 
             $placement = $encl->placeTile($tile);
             if ($placement->completedEnclosure) {
-                // FIXME: centralize the limiting here
-                $amt = min($this->ps->getBankMoney(), $encl->coin_bonus);
-                $this->payPlayer($player, $amt);
+                $this->payPlayer($player, $encl->coin_bonus);
             }
             $pos = $placement->space->pos;
             if ($pos <> $space->pos) {
@@ -439,8 +437,7 @@ class Model {
         $placement = $destenc->placeTile($tile, $dest->pos);
         $amt = null;
         if ($placement->completedEnclosure) {
-            $amt = min($this->ps->getBankMoney(), $destenc->coin_bonus);
-            $this->payPlayer($player, $amt);
+            $amt = $this->payPlayer($player, $destenc->coin_bonus);
         }
 
         $offspring = $destenc->checkForOffspring($encs[0]);
@@ -510,9 +507,7 @@ class Model {
             $result['tiles'][] = $offspring->child;
         }
         if ($enclosureCompleted) {
-            $amt = min($this->ps->getBankMoney(), $enc->coin_bonus);
-            $result['enclosureBonus'] = $amt;
-            $this->payPlayer($player, $amt);
+            $result['enclosureBonus'] = $this->payPlayer($player, $enc->coin_bonus);
         }
 
         // Update the selling player first, to avoid violating uniqueness constraint in DB.
@@ -658,10 +653,12 @@ class Model {
         $this->incBankMoney($cost->amount());
     }
 
-    private function payPlayer(Player $player, int $amt) : void {
+    private function payPlayer(Player $player, int $amt) : int {
+        $amt = min($this->ps->getBankMoney(), $amt);
         $player->receiveMoney($amt);
         $this->ps->updatePlayer($player);
         $this->incBankMoney(-$amt);
+        return $amt;
     }
 
     /** @return array<string,int> */
