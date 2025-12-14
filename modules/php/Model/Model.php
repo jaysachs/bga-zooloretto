@@ -249,7 +249,7 @@ class Model {
         return $deliveries;
     }
 
-    private function getPossiblePlacements(Truck $truck): PossiblePlacement {
+    private function getPossiblePlacement(Truck $truck): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
             $this->player_id,
             $truck,
@@ -262,13 +262,17 @@ class Model {
 		$player = $this->getActivePlayer();
 
 		$trucks_available = [];
-		if (!$player->truck_taken) {
-			foreach ($this->getTrucks() as $truck) {
-				if ($truck->canBeTaken()) {
-					$trucks_available[] = new AvailableTruck($player->id, $truck->id, $this->getPossiblePlacements($truck), $truck->coinPositions());
-				}
-			}
-		}
+        if ($player->truck_taken) {
+            return $trucks_available;
+        }
+
+        foreach ($this->getTrucks() as $truck) {
+            if ($truck->canBeTaken()) {
+                $coin_positions = $truck->coinPositions();
+                $money_delta = Moneys::giftPlayerDelta($player->id, count($coin_positions));
+                $trucks_available[] = new AvailableTruck($money_delta, $truck->id, $this->getPossiblePlacement($truck), $coin_positions);
+            }
+        }
         return $trucks_available;
     }
 
