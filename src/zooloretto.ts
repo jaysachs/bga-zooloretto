@@ -858,7 +858,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     front.addEventListener('transitionend', fixup);
     front.addEventListener('transitioncancel', fixup);
     // FIXME: unclear why this delay is needed.
-    return delay(10).then(() => {
+    await delay(10).then(() => {
       back.classList.add('zoo-flipping');
       front.classList.add('zoo-flipping');
     });
@@ -1082,9 +1082,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           (this as any).addLastTurnBanner(_('This is the last round!'));
         });
     }
-    else {
-      await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
-    }
+    await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
   }
 
   private replenishPilesAndUpdateCounters(

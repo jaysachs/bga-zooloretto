@@ -731,28 +731,30 @@
                       const delay = ms => new Promise(res => setTimeout(res, ms));
                       async function drawTile() {
                           let p = document.getElementById('zoo-primary-pile-tiles');
-                          let e = p.lastElementChild;
-                          let b = document.createElement('span');
-                          let f = document.createElement('span');
-                          b.classList.add('zoo-flippee');
-                          b.setAttribute('zoo-tile', 'back');
-                          f.classList.add('zoo-flippee');
-                          f.setAttribute('zoo-tile', 'CF');
+                          let elem = p.lastElementChild;
+                          let back = document.createElement('span');
+                          let front = document.createElement('span');
+                          back.classList.add('zoo-flippee');
+                          back.setAttribute('zoo-tile', 'back');
+                          front.classList.add('zoo-flippee');
+                          front.setAttribute('zoo-tile', 'CF');
 
                           // e.style="transform-style: preserve-3d;";
-                          e.removeAttribute('zoo-tile');
-                          e.appendChild(f);
-                          e.appendChild(b);
+                          elem.removeAttribute('zoo-tile');
+                          elem.appendChild(front);
+                          elem.appendChild(back);
                           console.log("about to add event listener");
-                          f.addEventListener('transitionend',
-                                            async  () => {
-                                                e.setAttribute('zoo-tile', 'CF');
-                                                b.remove();
-                                                f.remove();
-                                             });
-                          await delay(1000);
-                          b.classList.add('zoo-flipping');
-                          f.classList.add('zoo-flipping');
+                          let fixup = async () => {
+                              elem.setAttribute('zoo-tile', 'CF');
+                              back.remove();
+                              front.remove();
+                          };
+                          front.addEventListener('transitioncancel', fixup);
+                          front.addEventListener('transitionend', fixup);
+                          await delay(100).then(() => {
+                              back.classList.add('zoo-flipping');
+                              front.classList.add('zoo-flipping');
+                          });
                       }
                       function togglePlayerBoards() {
                           let s = document.getElementById('ebd-body').classList;
