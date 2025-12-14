@@ -9,6 +9,9 @@
   * It's a question: separate notifs for
     * completing enclosure
     * offspring produced
+  * Need to rework model for server objects to properly do this for take truck placements
+
+* Rework model objects
 
 * Use "Enclosure 1", "Enclosure 2", ..., "Barn", "truck 1", truck 2", ... as translatable strings?
 
@@ -25,7 +28,7 @@
      go to 3 until done
 Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 
-* User preference for auto-click confirm
+* Generate PHP/TS classes from user preferences?
 
 * UX: add "undo" to go back a step?
 
