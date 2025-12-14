@@ -225,7 +225,7 @@ class Enclosure {
         return $stallTypes;
     }
 
-    /** @return int[] positions of animals */
+    /** @return list<int> positions of animals */
     public function filledAnimalPositions(?TileType $animal = null): array {
         if ($animal) {
             if (!$animal->isAnimal() || $animal->canonicalType() != $animal) {

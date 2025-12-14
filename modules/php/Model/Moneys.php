@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use \Bga\Games\zooloretto\Utils;
+
 class Moneys {
     /** @param int[] $players keyed by player_id */
     public function __construct(
@@ -57,5 +59,10 @@ class Moneys {
             'bank' => $this->bank,
             'players' => $this->players,
         ];
+    }
+
+    public function __toString(): string
+    {
+        return "Moneys{bank:{$this->bank},players:" . Utils::arrayToString($this->players) . "}";
     }
 }

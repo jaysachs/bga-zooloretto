@@ -552,14 +552,15 @@ class Model {
         return $result;
     }
 
-    public function getPossibleExchanges() : ?PossibleExchanges {
+    /** @return list<PossibleExchange> */
+    public function getPossibleExchanges() : array {
         if (! $this->getActivePlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
-            return null;
+            return [];
         }
-        return new PossibleExchanges(
-            Moneys::costPlayerDelta($this->player_id, Cost::EXCHANGE),
-            PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer()));
+        return PossibleExchange::getPossibleExchanges(
+            $this->getEnclosuresForPlayer(),
+            Moneys::costPlayerDelta($this->player_id, Cost::EXCHANGE));
     }
 
     private function saveOffspring(Offspring $offspring): void {
@@ -572,11 +573,8 @@ class Model {
 
     public function exchange(PossibleExchange $ex): CompletedExchange {
         $found = false;
-        $pex = $this->getPossibleExchanges();
-        if (!$pex) {
-            throw new ModelException("No exchanges possible");
-        }
-        foreach ($pex->exchanges as $px) {
+        $pxs = $this->getPossibleExchanges();
+        foreach ($pxs as $px) {
             if ($ex->matches($px)) {
                 $found = true;
                 break;

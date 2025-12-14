@@ -32,6 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
+use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
@@ -77,16 +78,16 @@ class PlayerTurn extends AbstractState
 		], $model->getPurchaseableTiles());
 
 		$pxs = [];
-		$pex = $model->getPossibleExchanges();
-		if ($pex) {
-			foreach ($pex->exchanges as $px) {
-				$pxs[] = [
-					'src' => array_map(
-						fn ($p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
-					'dest' => array_map(
-						fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
-				];
-			}
+		foreach ($model->getPossibleExchanges() as $px) {
+			$pxs[] = [
+				'money_delta' => $px->moneyDelta->serialize(),
+				'offspring' => array_map(
+					fn ($o) => $o->serialize(), $px->offspring),
+				'src' => array_map(
+					fn ($p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
+				'dest' => array_map(
+					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
+			];
 		}
 		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
 
@@ -230,7 +231,7 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
+		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys(0)));
 
 		$this->notify->all('ExchangeEnclosureAnimals',
 			// FIXME: need to handle barn
