@@ -183,7 +183,7 @@ class Model {
      *
      * @return Delivery[]
     */
-    public function placeTilesInZooAndTakeTruck(int $truck_id, array $spaces): array {
+    public function takeTruckAndPlaceTiles(int $truck_id, array $spaces): array {
         $truck = $this->getTruck($truck_id);
         if ($truck->taken_by > 0) {
             throw new ModelException("Truck {$truck_id} already taken by player {$truck->taken_by}");
@@ -411,7 +411,8 @@ class Model {
         return new PossibleMoves(Moneys::costPlayerDelta($this->player_id, Cost::MOVE), $result);
     }
 
-    public function moveTile(Space $src, Space $dest): Tile {
+    /** @return array{tile: Tile, offspring: Offspring|null, enclosureBonus: int|null} */
+    public function moveTile(Space $src, Space $dest): array {
         $pms = $this->getPossibleMoves();
         $found = false;
         foreach ($pms->moves as $pm) {
@@ -436,6 +437,7 @@ class Model {
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
         $placement = $destenc->placeTile($tile, $dest->pos);
+        $amt = null;
         if ($placement->completedEnclosure) {
             $amt = min($this->ps->getBankMoney(), $destenc->coin_bonus);
             $this->payPlayer($player, $amt);
@@ -448,7 +450,7 @@ class Model {
         }
 
         $this->ps->updateEnclosures($this->player_id, $encs);
-        return $tile;
+        return [ 'tile' => $tile, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
     }
 
     /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosureBonus: int|null} */
@@ -592,7 +594,7 @@ class Model {
         $se = $encs[$ex->src_enclosure_id];
         $de = $encs[$ex->dest_enclosure_id];
 
-        /** @var PlacedTile[] */
+        /** @var list<PlacedTile> */
         $placedTiles = [];
 
         $stype = TileType::EMPTY;
@@ -607,12 +609,12 @@ class Model {
                 $desttile = $de->takeTileAt($ex->dest_positions[$p]);
             }
             if (!$desttile->isEmpty()) {
-                $dtype = $desttile->type;
+                $dtype = $desttile->type->canonicalType();
                 $placement = $se->placeTile($desttile, $ex->src_positions[$p]);
                 $placedTiles[] = new PlacedTile($desttile, $placement->space);
             }
             if (!$srctile->isEmpty()) {
-                $stype = $srctile->type;
+                $stype = $srctile->type->canonicalType();
                 $placement = $de->placeTile($srctile, $ex->dest_positions[$p]);
                 $placedTiles[] = new PlacedTile($srctile, $placement->space);
             }
@@ -634,7 +636,7 @@ class Model {
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
 
-        return new CompletedExchange($ex->src_enclosure_id, $stype, $ex->dest_enclosure_id, $dtype, $placedTiles);
+        return new CompletedExchange($ex->src_enclosure_id, $stype, $ex->dest_enclosure_id, $dtype, $placedTiles, $offspring);
     }
 
     private ?int $_bankMoney = null;

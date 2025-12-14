@@ -32,7 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
-use Bga\Games\zooloretto\Model\PlacementsForTruckPos;
+use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
@@ -119,7 +119,9 @@ class PlayerTurn extends AbstractState
 						  intval($pt['enclosure_pos']));
 		}
 
-		$deliveries = $model->placeTilesInZooAndTakeTruck($truck_id, $pts);
+		// FIXME: need to rework what we get back here. At a minimum, each delivery should say
+		//   whether it completed an enclosure and what that bonus was.
+		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $pts);
 		// FIXME: give more details about placements in log
 		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} placed tiles from truck ${truck_id}', [
 		  'player_id' => $active_player_id,
@@ -192,7 +194,8 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$dest = new Space($dest_id, $dest_pos);
-		$tile = $model->moveTile(new Space($src_id, $src_pos), $dest);
+		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
+		$tile = $result['tile'];
 		$this->notify->all(
 			"MoveTile",
 			// FIXME: need to handle barn ...
@@ -209,6 +212,8 @@ class PlayerTurn extends AbstractState
 				'i18n' => ['tile_description']
 			]
 		);
+		$this->notifyOffspring($active_player_id, $result['offspring']);
+		$this->notifyBonus($active_player_id, $result['enclosureBonus']);
 		return NextPlayer::class;
 	}
 
@@ -244,6 +249,9 @@ class PlayerTurn extends AbstractState
 				'dest_tile_description',
 			]
 		]);
+
+		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
+
 		return NextPlayer::class;
 	}
 
@@ -254,10 +262,10 @@ class PlayerTurn extends AbstractState
 		$dest = new Space($enclosure_id, $enclosure_pos);
 		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$purchased = $result['tiles'][0];
-		$this->notify->all('PurchaseTile', '${player_name} purchased tile ${tile_type} from ${player_name2}', [
+		$this->notify->all('PurchaseTile', '${player_name} purchased ${tile_type} from ${player_name2}', [
 			'player_id' => $active_player_id,
 			'player_id2' => $from_player_id,
-			'tile_type' => $purchased->tile->type->translated(),
+			'tile_type' => $purchased->tile->type->value,
 			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
     		'moneys' => $model->currentMoneys()->serialize(),
 			'tile_description' => $purchased->tile->type->translated(),
@@ -266,19 +274,33 @@ class PlayerTurn extends AbstractState
 				'seller_player_name',
 			]
 		]);
-		if ($result['offspring'] !== null) {
-			$this->notify->all('PurchaseTileOffspring', '${player_name} placement generated an offspring',[
-				'player_id' => $active_player_id,
-				'offspring' => $result['offspring']->serialize(),
-			]);
-		}
-		if ($result['enclosureBonus'] !== null) {
+		$this->notifyOffspring($active_player_id, $result['offspring']);
+		$this->notifyBonus($active_player_id, $result['enclosureBonus']);
+
+		return NextPlayer::class;
+	}
+
+	private function notifyBonus(int $active_player_id, ?int $bonus): void {
+		if ($bonus !== null) {
 			$this->notify->all('EnclosureBonus', '${player_name} completed an enclosure and received ${bonus} coins', [
 				'player_id' => $active_player_id,
-				'bonus' => $result['enclosureBonus'],
+				'bonus' => $bonus,
 			]);
 		}
-		return NextPlayer::class;
+	}
+
+	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
+		if ($offspring !== null) {
+			$this->notify->all('PurchaseTileOffspring', '${player_name} produced an offspring ${tile_type}',[
+				'player_id' => $active_player_id,
+				'offspring' => $offspring->serialize(),
+				'tile_type' => $offspring->child->tile->type->value,
+				'tile_description' => $offspring->child->tile->type->translated(),
+				'i18n' => [
+					'tile_description',
+				]
+			]);
+		}
 	}
 
 	#[PossibleAction]
