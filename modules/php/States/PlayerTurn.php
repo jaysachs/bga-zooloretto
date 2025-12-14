@@ -102,11 +102,6 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
         $model = $this->createModel($active_player_id);
-		$truck = $model->getTruck($truck_id);
-
-		// FIXME: this should be returned as a structure from the model placetilesInZoo method.
-		//    Or as a kind of Delivery.
-		$coins = $truck->coinPositions();
 
 		$pts = [];
 		foreach ($placed_tiles as $pt) {

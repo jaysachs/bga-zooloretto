@@ -38,7 +38,7 @@ class Model {
     public function __construct(private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
     }
 
-    /** @param int[] $player_ids */
+    /** @param list<int> $player_ids */
     public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
         $tilepool = Tile::createInitialPool($player_count);
@@ -78,7 +78,7 @@ class Model {
         return $this->getPlayer($this->player_id);
     }
 
-    public function getPlayer(int $id): Player {
+    private function getPlayer(int $id): Player {
         $players = $this->getAllPlayers();
         if (isset($players[$id])) {
             return $players[$id];
@@ -116,7 +116,7 @@ class Model {
     /** @var null|list<Truck> */
     private ?array $_trucks = null;
 
-    /** @return Truck[] */
+    /** @return list<Truck> */
     public function getTrucks(): array {
         if ($this->_trucks == null) {
             $this->_trucks = $this->ps->retrieveTrucks();
@@ -124,7 +124,7 @@ class Model {
         return $this->_trucks;
     }
 
-    public function getTruck(int $truck_id): Truck {
+    private function getTruck(int $truck_id): Truck {
         foreach ($this->getTrucks() as $truck) {
             if ($truck->id == $truck_id) {
                 return $truck;
@@ -179,9 +179,9 @@ class Model {
     }
 
     /**
-     * @param Space[] $spaces keyed by truck position
+     * @param array<int,Space> $spaces keyed by truck position
      *
-     * @return Delivery[]
+     * @return list<Delivery>
     */
     public function takeTruckAndPlaceTiles(int $truck_id, array $spaces): array {
         $truck = $this->getTruck($truck_id);
@@ -257,7 +257,7 @@ class Model {
         );
     }
 
-    /** @return AvailableTruck[] */
+    /** @return list<AvailableTruck> */
     public function getAvailableTrucks(): array {
 		$player = $this->getActivePlayer();
 
@@ -328,7 +328,7 @@ class Model {
         return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
     }
 
-    /** @return Destination[] positions in barn that are discardable */
+    /** @return list<Destination> positions in barn that are discardable */
     public function getDiscardables(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
             return [];
@@ -525,7 +525,7 @@ class Model {
         return $result;
     }
 
-    /** @return PossibleBuy[] */
+    /** @return list<PossibleBuy> */
     public function getPurchaseableTiles(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::PURCHASE)) {
             return [];
@@ -533,7 +533,7 @@ class Model {
         // FIXME: We need to gather up all the Buys into an object, and attach
         //   a MoneyDelta there for the purchase price.
         $enclosures = $this->getEnclosuresForPlayer();
-        /** @var PossibleBuy[] */
+        /** @var list<PossibleBuy> */
         $result = [];
         foreach ($this->getAllPlayers() as $player) {
             if ($player->id == $this->player_id) {
@@ -668,78 +668,11 @@ class Model {
         return $amt;
     }
 
-    /** @return array<string,int> */
-    private function computeScore(Player $player): array {
-        $detail = [
-            'player_id' => $player->id,
-            'money' => $player->money,
-            'full_enclosures' => 0,
-            'full_enclosure_points' => 0,
-            'near_full_enclosures' => 0,
-            'near_full_enclosure_points' => 0,
-            'other_enclosures' => 0,
-            'other_enclosure_points' => 0,
-            'barn_stall_types' => 0,
-            'barn_animal_types' => 0,
-            'barn_stall_points' => 0,
-            'barn_animal_points' => 0,
-            'stall_points' => 0,
-        ];
-        $encs = $this->getEnclosuresForPlayer($player->id);
-        $stall_types = [];
-        foreach ($encs as $enc) {
-            if ($enc->isBarn()) {
-                $barnAnimalTypes = [];
-                $barnStallTypes = [];
-                foreach ($enc->nonEmptyContents() as $tile) {
-                    if ($tile->type->isAnimal()) {
-                        $barnAnimalTypes[$tile->type->value] = 1;
-                    } else { // if $tile->type->isStall() {
-                        $barnStallTypes[$tile->type->value] = 1;
-                    }
-                }
-                $detail['barn_stall_types'] = count($barnStallTypes);
-                $detail['barn_animal_types'] = count($barnAnimalTypes);
-                $detail['barn_stall_points'] = -2 * count($barnStallTypes);
-                $detail['barn_animal_points'] = -2 * count($barnAnimalTypes);
-            } else {
-                switch ($enc->emptyAnimalCount()) {
-                    case 0:
-                        $detail['full_enclosures']++;
-                        $detail['full_enclosure_points'] += $enc->completion_points;
-                        break;
-                    case 1:
-                        $detail['near_full_enclosures']++;
-                        $detail['near_full_enclosure_points'] += $enc->near_completion_points;
-                        break;
-                    default:
-                        if (count($enc->stallTypes()) > 0) {
-                            $detail['other_enclosures']++;
-                            $detail['other_enclosure_points'] += count($enc->filledAnimalPositions());
-                            foreach (array_keys($enc->stallTypes()) as $st) {
-                                $stall_types[$st] = 1;
-                            }
-                        }
-                };
-            }
-        }
-        $detail['stall_points'] = 2 * count($stall_types);
-        $detail['total'] =
-              $detail['full_enclosure_points']
-            + $detail['near_full_enclosure_points']
-            + $detail['other_enclosure_points']
-            + $detail['stall_points']
-            + $detail['barn_stall_points']
-            + $detail['barn_animal_points'];
-
-        return $detail;
-    }
-
     /** @return array<int,array<string,int>> */
     public function computeScores(?bool $persist = false): array {
         $scores = [];
         foreach ($this->getAllPlayers() as $player) {
-            $details = $this->computeScore($player);
+            $details = Scorer::scoreForPlayer($player, $this->getEnclosuresForPlayer($player->id));
             $scores[$player->id] = $details;
             if ($persist) {
                 $this->ps->updateScore($player->id, $details['total']);
