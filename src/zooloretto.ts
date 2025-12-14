@@ -55,15 +55,15 @@ interface Space {
   pos: number;
 }
 
-// FIXME: this and Offspring are ... the same.
 interface PlacedTile {
   tile: Tile;
   space: Space;
   money_delta: Moneys | null;
-  enclosure_completed: boolean;
+  completed_enclosure: boolean;
 }
 
 interface Offspring {
+  // This should include the mother and father so we can "flash" highlight them.
   placed_tile: PlacedTile;
 }
 
@@ -117,13 +117,7 @@ interface AvailableTruck {
 }
 
 interface PossibleMove {
-  src: Space;
-  money_delta: Moneys;
-  dests: Destination[];
-}
-
-interface PossiblePurchase {
-  from_player_id: number;
+  src_player_id: number;
   src: Space;
   money_delta: Moneys;
   dests: Destination[];
@@ -144,7 +138,7 @@ interface PlayState {
   possible_discards: PlacedTile[];
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
-  possible_purchases: PossiblePurchase[];
+  possible_purchases: PossibleMove[];
 }
 
 // notif_TakeTruckAndPlaceTiles
@@ -495,21 +489,21 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   }
 }
 
-class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
+class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
   constructor(g: ZoolorettoGame) { super(g); }
 
-  protected override doStart(possible_purchases: PossiblePurchase[]) {
+  protected override doStart(possible_purchases: PossibleMove[]) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
-    possible_purchases.forEach((pp: PossiblePurchase) => {
+    possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
-          Elements.enclosureSpace(pp.from_player_id, pp.src),
+          Elements.enclosureSpace(pp.src_player_id, pp.src),
           () => this.selectDestinationForPurchase(pp)
         );
       });
     this.addRestartTurnButton();
   }
 
-  private selectDestinationForPurchase(pp: PossiblePurchase) {
+  private selectDestinationForPurchase(pp: PossibleMove) {
     this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
     pp.dests.forEach((dest: Destination) =>
@@ -517,7 +511,7 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
         Elements.enclosureSpace(this.player_id, dest.space),
         () => {
           this.slide(
-            Elements.enclosureTile(pp.from_player_id, pp.src)!,
+            Elements.enclosureTile(pp.src_player_id, pp.src)!,
             Elements.enclosureSpace(this.player_id, dest.space)).then( () => {
               this.updateMoneyDelta(dest.money_delta);
               this.confirmPurchase(pp, dest)
@@ -530,10 +524,10 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase[]> {
     this.addRestartTurnButton();
   }
 
-  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
+  private confirmPurchase(pp: PossibleMove, dest: Destination) {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
-      from_player_id: pp.from_player_id,
+      from_player_id: pp.src_player_id,
       barn_pos: pp.src.pos,
       enclosure_id: dest.space.enclosure_id,
       enclosure_pos: dest.space.pos

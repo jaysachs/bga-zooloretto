@@ -31,8 +31,7 @@ class Offspring {
     public function __construct(
         public readonly PlacedTile $child,
         public readonly Tile $mother,
-        public readonly Tile $father,
-        public readonly bool $enclosureCompleted) {}
+        public readonly Tile $father) {}
 
     public function __toString()
     {
@@ -43,7 +42,7 @@ class Offspring {
         return $this->child == $other->child
             && $this->mother == $other->mother
             && $this->father == $other->father
-            && $this->enclosureCompleted == $other->enclosureCompleted;
+            ;
     }
 
     /** @return array<string,mixed> */

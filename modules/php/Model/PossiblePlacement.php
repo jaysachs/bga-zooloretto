@@ -94,7 +94,7 @@ class PossiblePlacement {
         $offspring = $enc->checkForOffspring($clones[0]);
         $pfe->offspring = $offspring;
 
-        if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
+        if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
             $pfe->moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
         }
 

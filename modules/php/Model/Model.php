@@ -362,7 +362,7 @@ class Model {
             $pl = $enc->placeTile($tile, $ap);
             $offspring = $enc->checkForOffspring($buyer_barn);
             $moneyDelta = null;
-            if ($pl->completedEnclosure || ($offspring && $offspring->enclosureCompleted)) {
+            if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
                 $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
             }
             return new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
@@ -395,7 +395,7 @@ class Model {
                 }
             }
             if (count($dests) > 0) {
-                $result[] = new PossibleMove($src, $dests, $moneyDelta);
+                $result[] = new PossibleMove($this->player_id, $src, $dests, $moneyDelta);
             }
         }
         // or stall from one (non-barn) enclosure to another
@@ -415,7 +415,7 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $result[] = new PossibleMove($src, $dests, $moneyDelta);
+                    $result[] = new PossibleMove($this->player_id, $src, $dests, $moneyDelta);
                 }
             }
         }
@@ -462,15 +462,15 @@ class Model {
         return [ 'tile' => $tile, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
     }
 
-    /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosureBonus: int|null} */
+    /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosure_bonus: int|null} */
     public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): array {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
 
         $found = null;
         foreach ($this->getPurchaseableTiles() as $pt) {
-            if ($pt->from_player_id == $seller_player_id && $pt->move->src == $src) {
-                foreach ($pt->move->dests as $dest) {
+            if ($pt->src_player_id == $seller_player_id && $pt->src == $src) {
+                foreach ($pt->dests as $dest) {
                     if ($dest->space == $target) {
                         $found = $dest;
                         break 2;
@@ -485,7 +485,7 @@ class Model {
         $result = [
             'tiles' => [],
             'offspring' => null,
-            'enclosureBonus' => null,
+            'enclosure_bonus' => null,
         ];
         $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
@@ -502,7 +502,7 @@ class Model {
         $tile = $seller_barn->takeTileAt($src->pos);
         $placement = $enc->placeTile($tile, $target->pos);
         $result['tiles'][] = new PlacedTile($tile, $placement->space);
-        $enclosureCompleted = $placement->completedEnclosure;
+        $completed_enclosure = $placement->completedEnclosure;
 
         $offspring = $enc->checkForOffspring($buyer_barn);
         $toUpdate = [$enc];
@@ -512,14 +512,14 @@ class Model {
             if ($te <> $enc->id) {
                 $toUpdate[] = $encs[$te];
             }
-            if ($offspring->enclosureCompleted) {
-                $enclosureCompleted = true;
+            if ($offspring->child->completedEnclosure) {
+                $completed_enclosure = true;
             }
             $result['offspring'] = $offspring;
             $result['tiles'][] = $offspring->child;
         }
-        if ($enclosureCompleted) {
-            $result['enclosureBonus'] = $this->payPlayer($player, $enc->coin_bonus);
+        if ($completed_enclosure) {
+            $result['enclosure_bonus'] = $this->payPlayer($player, $enc->coin_bonus);
         }
 
         // Update the selling player first, to avoid violating uniqueness constraint in DB.
@@ -528,7 +528,7 @@ class Model {
         return $result;
     }
 
-    /** @return list<PossibleBuy> */
+    /** @return list<PossibleMove> */
     public function getPurchaseableTiles(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::PURCHASE)) {
             return [];
@@ -536,7 +536,7 @@ class Model {
         // FIXME: We need to gather up all the Buys into an object, and attach
         //   a MoneyDelta there for the purchase price.
         $enclosures = $this->getEnclosuresForPlayer();
-        /** @var list<PossibleBuy> */
+        /** @var list<PossibleMove> */
         $result = [];
         foreach ($this->getAllPlayers() as $player) {
             if ($player->id == $this->player_id) {
@@ -553,7 +553,7 @@ class Model {
                 }
                 if (count($dests) > 0) {
                     $delta = new Moneys(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
-                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($seller_barn->id, $pos), $dests, new Moneys(0)));
+                    $result[] = new PossibleMove($player->id, new Space($seller_barn->id, $pos), $dests, $delta);
                 }
             }
         }

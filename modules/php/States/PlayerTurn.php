@@ -65,12 +65,7 @@ class PlayerTurn extends AbstractState
 
 		$pms = array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves());
 
-		$pb = array_map(fn (PossibleBuy $b) => [
-			'from_player_id' => $b->from_player_id,
-			'src' => $b->move->src->serialize(),
-			'money_delta' => $b->moneyDelta->serialize(),
-			'dests' => array_map(fn ($d) => $d->serialize(), $b->move->dests),
-		], $model->getPurchaseableTiles());
+		$pb = array_map(fn (PossibleMove $b) => $b->serialize(), $model->getPurchaseableTiles());
 
 		$pxs = [];
 		foreach ($model->getPossibleExchanges() as $px) {
@@ -266,7 +261,7 @@ class PlayerTurn extends AbstractState
 			]
 		]);
 		$this->notifyOffspring($active_player_id, $result['offspring']);
-		$this->notifyBonus($active_player_id, $result['enclosureBonus']);
+		$this->notifyBonus($active_player_id, $result['enclosure_bonus']);
 
 		return NextPlayer::class;
 	}

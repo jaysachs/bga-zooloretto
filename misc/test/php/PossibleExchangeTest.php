@@ -110,24 +110,21 @@ final class PossibleExchangeTest extends TestCase
             $this->pe(1, [1,2,3], 0, [7,4,6]),
             $this->pe(1, [1,2,3], 2, [1,2,3],
                 [new Offspring(
-                    new PlacedTile(new Tile(306, TileType::CAMEL_KID), new Space(2, 4)),
+                    new PlacedTile(new Tile(306, TileType::CAMEL_KID), new Space(2, 4), true),
                     new Tile(6, TileType::CAMEL_FEMALE_R),
-                    new Tile(8, TileType::CAMEL_MALE_R),
-                    true)]),
+                    new Tile(8, TileType::CAMEL_MALE_R))]),
             $this->pe(2, [1,2], 0, [1,5],
                 [new Offspring(
-                    new PlacedTile(new Tile(301, TileType::CAMEL_KID),new Space(2, 3)),
+                    new PlacedTile(new Tile(301, TileType::CAMEL_KID),new Space(2, 3), false),
                     new Tile(1, TileType::CAMEL_FEMALE_R),
-                    new Tile(4, TileType::CAMEL_MALE_R),
-                    false)]),
+                    new Tile(4, TileType::CAMEL_MALE_R))]),
             $this->pe(2, [1], 0, [3]),
             $this->pe(2, [1], 0, [7]),
             $this->pe(2, [1,2,3], 1, [1,2,3],
                 [new Offspring(
-                    new PlacedTile(new Tile(306, TileType::CAMEL_KID),new Space(2, 4)),
+                    new PlacedTile(new Tile(306, TileType::CAMEL_KID),new Space(2, 4), true),
                     new Tile(6, TileType::CAMEL_FEMALE_R),
-                    new Tile(8, TileType::CAMEL_MALE_R),
-                    true)]),
+                    new Tile(8, TileType::CAMEL_MALE_R))]),
         ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
 
     }
