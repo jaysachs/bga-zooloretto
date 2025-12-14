@@ -28,18 +28,23 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 class PlacedTile {
-    public function __construct(public readonly Tile $tile, public readonly Space $space) {}
+    public function __construct(
+        public readonly Tile $tile,
+        public readonly Space $space,
+        public bool $completedEnclosure = false,
+    ) {}
 
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'tile' => $this->tile->serialize(),
             'space' => $this->space->serialize(),
+            'completed_enclosure' => $this->completedEnclosure,
         ];
     }
 
     public function __toString()
     {
-        return "PlacedTile{tile={$this->tile},space={$this->space}";
+        return "PlacedTile{tile={$this->tile},space={$this->space},completed_enclosure={$this->completedEnclosure}}";
     }
 }

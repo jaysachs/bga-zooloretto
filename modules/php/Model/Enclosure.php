@@ -264,23 +264,22 @@ class Enclosure {
      * positions 1 through 4 inclusive are for animals, and positions 5 and 6 are for stalls.
      *
      * position 0 means "nextavailable"
-     * @return Placement
      */
-    public function placeTile(Tile $tile, int $pos = 0): Placement {
+    public function placeTile(Tile $tile, int $pos = 0): PlacedTile {
         if (!$tile->type->isPlaceable()) {
             throw new ModelException("Can only place animals and stills in enclosures, not {$tile->type->value}");
         }
         if ($this->isBarn()) {
             // barns never completed
-            return new Placement(new Space($this->id, $this->doPlaceTile($tile, $pos, 1, $this->total_capacity)));
+            return new PlacedTile($tile, new Space($this->id, $this->doPlaceTile($tile, $pos, 1, $this->total_capacity)));
         }
         if ($tile->type->isAnimal()) {
             $pos = $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
-            return new Placement(new Space($this->id, $pos), $this->allAnimalPositionsFilled());
+            return new PlacedTile($tile, new Space($this->id, $pos), $this->allAnimalPositionsFilled());
         }
         if ($tile->type->isStall()) {
             // stalls do not complete
-            return new Placement(new Space($this->id, $this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity)));
+            return new PlacedTile($tile, new Space($this->id, $this->doPlaceTile($tile, $pos, $this->animal_capacity + 1, $this->total_capacity)));
         }
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
