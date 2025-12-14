@@ -53,8 +53,8 @@ class NextRound extends AbstractState
             "EndRound",
             clienttranslate('Finishing the round'),
             [
-                'dumped_tiles' => array_map(fn ($t) => $t->serialize(), $returned->dumped_tiles),
-                'truck_ids_returned' => $returned->truck_ids,
+                'dumped_tiles' => array_map(fn ($t) => $t->serialize(), $returned['dumpedTiles']),
+                'truck_ids_returned' => $returned['truck_ids'],
                 'last_round' => $model->getStock()->inLastRound(),
             ]
         );

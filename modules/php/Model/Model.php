@@ -272,12 +272,13 @@ class Model {
         return $trucks_available;
     }
 
-    public function prepareNextRound(): ReturnedTrucks {
+    /** @return array{truck_ids: list<int>, dumpedTiles: list<Tile>} */
+    public function prepareNextRound(): array {
         $players = $this->getAllPlayers();
-        /** @var int[] */
+        /** @var list<int> */
         $truck_ids = [];
-        /** @var Tile[]  */
-        $tiles = [];
+        /** @var list<Tile>  */
+        $dumped = [];
         foreach ($this->getTrucks() as $truck) {
             $pid = $truck->taken_by;
             if ($pid > 0) {
@@ -289,13 +290,16 @@ class Model {
                 $truck_ids[] = $truck->id;
             }
             else {
-                $tiles = array_merge($tiles, $truck->dumpTiles());
+                $dumped = array_merge($dumped, $truck->dumpTiles());
             }
         }
         foreach ($this->getTrucks() as $truck) {
             $this->ps->updateTruck($truck);
         }
-        return new ReturnedTrucks($truck_ids, $tiles);
+        return [
+            'truck_ids' => $truck_ids,
+            'dumpedTiles' => $dumped,
+        ];
     }
 
     public function canExpand(): bool {

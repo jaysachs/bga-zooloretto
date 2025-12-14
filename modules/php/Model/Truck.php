@@ -107,7 +107,7 @@ class Truck {
         return $amt;
     }
 
-    /** @return Tile[] the tiles emptied. */
+    /** @return list<Tile> the tiles emptied. */
     public function dumpTiles(): array {
         if ($this->taken_by !== null) {
             throw new ModelException("Cannot dump a non-taken truck");
