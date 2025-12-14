@@ -63,12 +63,7 @@ class PlayerTurn extends AbstractState
 			fn (AvailableTruck $at) => $at->serialize(),
 			$model->getAvailableTrucks());
 
-		$pms = $model->getPossibleMoves();
-		$pm = array_map(fn (PossibleMove $pm) => [
-			'src' => $pm->src->serialize(),
-			'money_delta' => $pms->moneyDelta->serialize(),
-			'dests' => array_map(fn ($d) => $d->serialize(), $pm->dests),
-		], $pms->moves);
+		$pms = array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves());
 
 		$pb = array_map(fn (PossibleBuy $b) => [
 			'from_player_id' => $b->from_player_id,
@@ -89,14 +84,14 @@ class PlayerTurn extends AbstractState
 					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
 			];
 		}
-		$pd = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
+		$pds = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
 
 		return [
 			'can_draw' => $model->canDraw(),
 			'available_trucks' => $available_trucks,
-			'possible_moves' => $pm,
+			'possible_moves' => $pms,
 			'possible_purchases' => $pb,
-			'possible_discards' => $pd,
+			'possible_discards' => $pds,
 			'possible_exchanges' => $pxs,
 			'can_expand' => $model->canExpand(),
 			'lastround' => $model->getStock()->inLastRound(),

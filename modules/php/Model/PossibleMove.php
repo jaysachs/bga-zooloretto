@@ -34,5 +34,16 @@ class PossibleMove {
      */
     public function __construct(
         public readonly Space $src,
-        public readonly array $dests) { }
+        public readonly array $dests,
+        public readonly Moneys $money_delta
+    ) { }
+
+    /** @return array<string,mixed> */
+    public function serialize(): array {
+        return [
+            'src' => $this->src->serialize(),
+			'money_delta' => $this->money_delta->serialize(),
+			'dests' => array_map(fn ($d) => $d->serialize(), $this->dests),
+        ];
+    }
 }

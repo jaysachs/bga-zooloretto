@@ -363,10 +363,12 @@ class Model {
         return null;
     }
 
-    public function getPossibleMoves(): PossibleMoves {
+    /** @return list<PossibleMove> */
+    public function getPossibleMoves(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::MOVE)) {
-            return new PossibleMoves(new Moneys(0, []), []);
+            return [];
         }
+        $moneyDelta = Moneys::costPlayerDelta($this->player_id, Cost::MOVE);
         $result = [];
         $enclosures = $this->getEnclosuresForPlayer();
         $barn = $enclosures[0];
@@ -386,7 +388,7 @@ class Model {
                 }
             }
             if (count($dests) > 0) {
-                $result[] = new PossibleMove($src, $dests);
+                $result[] = new PossibleMove($src, $dests, $moneyDelta);
             }
         }
         // or stall from one (non-barn) enclosure to another
@@ -406,18 +408,17 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $result[] = new PossibleMove($src, $dests);
+                    $result[] = new PossibleMove($src, $dests, $moneyDelta);
                 }
             }
         }
-        return new PossibleMoves(Moneys::costPlayerDelta($this->player_id, Cost::MOVE), $result);
+        return $result;
     }
 
     /** @return array{tile: Tile, offspring: Offspring|null, enclosureBonus: int|null} */
     public function moveTile(Space $src, Space $dest): array {
-        $pms = $this->getPossibleMoves();
         $found = false;
-        foreach ($pms->moves as $pm) {
+        foreach ($this->getPossibleMoves() as $pm) {
             if ($pm->src == $src) {
                 foreach ($pm->dests as $d) {
                     if ($d->space == $dest) {
@@ -545,7 +546,7 @@ class Model {
                 }
                 if (count($dests) > 0) {
                     $delta = new Moneys(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
-                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($seller_barn->id, $pos), $dests));
+                    $result[] = new PossibleBuy($player->id, $delta, new PossibleMove(new Space($seller_barn->id, $pos), $dests, new Moneys(0)));
                 }
             }
         }
