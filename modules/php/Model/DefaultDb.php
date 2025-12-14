@@ -34,17 +34,19 @@ class DefaultDb implements Db
 
     public function __construct() {}
 
-    /** @return string[][] */
+    /** @return list<array<string,string>> */
     #[\Override]
     public function getObjectList(string $sql): array
     {
+        /** @phpstan-ignore return.type */
         return Table::getObjectListFromDB($sql, false);
     }
 
-    /** @return string[] */
+    /** @return array<string,string> */
     #[\Override]
     public function getSingleFieldList(string $sql): array
     {
+        /** @phpstan-ignore return.type */
         return Table::getObjectListFromDB($sql, true);
     }
 

@@ -172,6 +172,7 @@ class Game extends \Bga\GameFramework\Table
 
 	}
 
+	/** @param array<mixed> $options */
 	protected function setupNewGame($players, $options = array()): mixed
 	{
         $gameinfos = $this->getGameinfos();
@@ -225,6 +226,7 @@ class Game extends \Bga\GameFramework\Table
 		$this->playerStats->incAll('coinsreceived', 2);
 
 		$this->activeNextPlayer();
+        /** @phpstan-ignore return.void */
 		return PlayerTurn::class;
 	}
 

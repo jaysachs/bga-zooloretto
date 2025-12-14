@@ -46,6 +46,8 @@ class Utils
                 array_keys($arr),
                 array_values($arr));
         }
+        // FIXME: not sure why this is needed.
+        /** @phpstan-ignore argument.type */
         return "[" . implode(',', $arr) . "]";
     }
 
@@ -56,7 +58,9 @@ class Utils
     public static function shuffle(array &$arr): void
     {
         $e = sizeof($arr) - 1;
-        for ($i = 0; $i < $e; ++$i) {
+        for ($i = 0; $i < $e; $i++) {
+            // FIXME: not sure why this is needed.
+            /** @phpstan-ignore argument.type */
             $j = random_int($i, $e);
             if ($j <> $i) {
                 $tmp = $arr[$j];

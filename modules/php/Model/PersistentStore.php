@@ -94,7 +94,7 @@ class PersistentStore {
 
     public function getBankMoney(): int {
         $row = $this->db->getSingleFieldList("SELECT bank_money FROM zglobals");
-        return intval($row[0]);
+        return intval($row['bank_money']);
     }
 
     /** @return Player[] */
@@ -118,22 +118,24 @@ class PersistentStore {
         return $players;
     }
 
-    public function retrieveStock(): Stock {
-        $tileFromRow = function(array $row): Tile {
-            return new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
-        };
+    /** @param array<string,string> $row */
+    private function tileFromRow(array $row): Tile {
+        return new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
 
+    }
+
+    public function retrieveStock(): Stock {
         $row = $this->db->getObjectList("SELECT t.id AS tile_id, t.type AS type, drawn_tile
                                          FROM tiles t
                                          INNER JOIN zglobals g ON t.id = g.drawn_tile");
         $drawn = Tile::empty();
         if (count($row) > 0) {
-            $drawn = $tileFromRow($row[0]);
+            $drawn = $this->tileFromRow($row[0]);
         }
         /** @var \Closure(string): list<Tile> */
-        $select = function (string $tblname) use (&$tileFromRow): array {
+        $select = function (string $tblname): array {
             return array_map(
-                $tileFromRow,
+                $this->tileFromRow(...),
                 $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type
                                           FROM $tblname p
                                           INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
@@ -159,15 +161,13 @@ class PersistentStore {
                 ORDER BY tr.id');
             return array_map(
                 /**
-                 * @template T of string|int|null
-                 * @param T[] $row
+                 * @param array<string,string> $row
                  */
                 function (array $row) : Truck {
                 $tile = function(int $pos) use (&$row): Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                $taken_by = $row['taken_by'];
-                if ($taken_by !== null) { $taken_by = intval($taken_by); }
+                $taken_by = isset($row["taken_by"]) ? intval($row['taken_by']) : 0;
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
             }, $rows);
     }
