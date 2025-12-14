@@ -59,6 +59,8 @@ interface Space {
 interface PlacedTile {
   tile: Tile;
   space: Space;
+  money_delta: Moneys | null;
+  enclosure_completed: boolean;
 }
 
 interface Offspring {
@@ -101,6 +103,7 @@ interface PossibleEnclosurePlacement {
   offspring: Offspring | undefined;
   money_delta: Moneys | undefined;
 }
+
 interface PossiblePlacement {
   truck_pos: number;
   encs: PossibleEnclosurePlacement[];
@@ -138,7 +141,7 @@ interface PlayState {
   can_draw: boolean;
   can_expand: boolean;
   available_trucks: AvailableTruck[];
-  possible_discards: Destination[];
+  possible_discards: PlacedTile[];
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossiblePurchase[];
@@ -662,14 +665,14 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<Destination[]> {
+class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
   constructor(g : ZoolorettoGame) { super(g); }
 
-  override doStart(discardables: Destination[]) {
+  override doStart(discardables: PlacedTile[]) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
     this.addRestartTurnButton();
 
-    discardables.forEach((dest: Destination) => {
+    discardables.forEach((dest: PlacedTile) => {
       let space = dest.space;
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
@@ -677,14 +680,15 @@ class DiscardTileFlow extends ZooFlow<Destination[]> {
           await this.slideOutAndDestroy(
             Elements.enclosureTile(this.player_id, space)!,
             $(IDS.OFF_BOARD)).then(() => {
-              this.updateMoneyDelta(dest.money_delta);
+              // should always have money delta
+              this.updateMoneyDelta(dest.money_delta!);
               this.confirmDiscard(dest);
             })
         });
     });
   }
 
-  private confirmDiscard(dest: Destination) {
+  private confirmDiscard(dest: PlacedTile) {
     this.initStatusBar(_('Confirm discard'));
     this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: dest.space.pos });
   }

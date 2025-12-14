@@ -32,6 +32,7 @@ class PlacedTile {
         public readonly Tile $tile,
         public readonly Space $space,
         public bool $completedEnclosure = false,
+        public readonly ?Moneys $money_delta = null,
     ) {}
 
     /** @return array<string,mixed> */
@@ -39,6 +40,7 @@ class PlacedTile {
         return [
             'tile' => $this->tile->serialize(),
             'space' => $this->space->serialize(),
+            'money_delta' => $this->money_delta ? $this->money_delta->serialize() : null,
             'completed_enclosure' => $this->completedEnclosure,
         ];
     }
