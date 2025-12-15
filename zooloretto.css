@@ -119,25 +119,6 @@ body.mobile_version {
     top: 20%;
 }
 
-.zoo-flippee {
-    position: absolute;
-    backface-visibility: hidden;
-}
-
-.zoo-flippee {
-    transform: rotateY(-180deg) !important;
-}
-
-.zoo-flipping.zoo-flippee[zoo-tile="back"] {
-    transform: rotateY(180deg) !important;
-    transition: transform 1s ease-in-out;
-}
-
-.zoo-flipping.zoo-flippee:not([zoo-tile="back"]) {
-    transform: rotateY(-360deg) !important;
-    transition: transform 1s ease-in-out;
-}
-
 .zoo-pile > span:nth-child(1) { left: 25%; top: 0; }
 .zoo-pile > span:nth-child(2) { left: 20%; top: 5%; }
 .zoo-pile > span:nth-child(3) { left: 15%; top: 10%; }

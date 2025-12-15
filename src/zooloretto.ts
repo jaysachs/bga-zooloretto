@@ -855,30 +855,54 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
     if (!this.bgaAnimationsActive()) {
       elem.setAttribute(Attrs.TILE, tile.type);
+      return;
     }
     const delay = ms => new Promise(res => setTimeout(res, ms));
-    let back = Html.span({classes: 'zoo-flippee' });
-    let front = Html.span({classes: 'zoo-flippee' });
-    back.setAttribute(Attrs.TILE, 'back');
-    front.setAttribute(Attrs.TILE, tile.type);
+
+    let back = this.makeTileBackSpan();
+    let front = this.makeTileSpan(tile);
     elem.removeAttribute(Attrs.TILE);
     elem.id = IDS.tile(tile);
+
+    const noflip = '';
+    const revflip = ' rotateY(-180deg)';
+    const fwdflip = ' rotateY(180deg)';
+
+    back.style.transform = noflip;
+    front.style.transform = revflip;
+    const flipStyles = {
+      'backface-visibility': 'hidden',
+      position: 'absolute',
+      transition: 'transform 1s',
+    };
+    Object.assign(back.style, flipStyles);
+    Object.assign(front.style, flipStyles);
+
     elem.appendChild(front);
     elem.appendChild(back);
-    let fixup = () => {
-        elem.setAttribute(Attrs.TILE, tile.type);
-        back.remove();
-        front.remove();
-    }
-    // need to add to both events in case not visible, end not fired.
-    // FIXME: in fact, neither are fired if it's not visible from the beginning .. ?!?
-    front.addEventListener('transitionend', fixup);
-    front.addEventListener('transitioncancel', fixup);
-    // FIXME: unclear why this delay is needed.
-    await delay(10).then(() => {
-      back.classList.add('zoo-flipping');
-      front.classList.add('zoo-flipping');
-    });
+
+    const lift = 'scale(1.3,1.3) translate(-20px,20px) ';
+    await delay(1)
+        .then(_ => Promise.all([
+            this.animateTransform(front, lift + revflip),
+            this.animateTransform(back, lift + noflip),
+        ]))
+        .then(_ => delay(100))
+        .then(_ => Promise.all([
+            this.animateTransform(front, lift + noflip),
+            this.animateTransform(back, lift + fwdflip),
+        ]))
+        .then(_=> delay(100))
+        .then(_ => Promise.all([
+            this.animateTransform(front, noflip),
+            this.animateTransform(back, fwdflip),
+        ]))
+        .then(_ => delay(100))
+        .then(_ => {
+            elem.setAttribute('zoo-tile', 'ZF');
+            back.remove();
+            front.remove();
+        });
   }
 
   makeTileSpan(tile: Tile): HTMLElement {

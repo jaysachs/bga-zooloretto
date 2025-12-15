@@ -169,6 +169,26 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
   }
 
+  transitionEndPromise(element: HTMLElement) : Promise<any> {
+    return new Promise(resolve => {
+        element.addEventListener('transitionend', function f(event) {
+            if (event.target !== element) return;
+            element.removeEventListener('transitionend', f);
+            resolve(null);
+        });
+    });
+  }
+
+  private requestAnimationFramePromise(): Promise<any> {
+      return new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  animateTransform(element : HTMLElement, transform: string) {
+      Object.assign(element.style, { transform: transform });
+      return this.transitionEndPromise(element)
+      // .then(_ => requestAnimationFramePromise(element));
+  }
+
   // utils
   debugStateInfo(): any {
     return "";

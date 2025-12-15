@@ -731,7 +731,7 @@
                       const delay = ms => new Promise(res => setTimeout(res, ms));
 
                       function requestAnimationFramePromise(y) {
-                          return new Promise(resolve => requestAnimationFrame(resolve()));
+                          return new Promise(resolve => requestAnimationFrame(resolve));
                       }
 
                       function transitionEndPromise(element) {
