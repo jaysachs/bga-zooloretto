@@ -63,8 +63,9 @@ interface PlacedTile {
 }
 
 interface Offspring {
-  // This should include the mother and father so we can "flash" highlight them.
   placed_tile: PlacedTile;
+  mother: Tile;
+  father: Tile;
 }
 
 interface Moneys {
@@ -200,7 +201,8 @@ class CSS {
   static readonly SELECTED = 'zoo-selected';
   static readonly MOVED = 'zoo-moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
-  static readonly PILE = 'zoo-pile'
+  static readonly PILE = 'zoo-pile';
+  static readonly PARENT = 'zoo-parent';
 }
 
 class Elements {
@@ -372,7 +374,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected clearMarked() {
-    this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED));
+    this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED, CSS.PARENT));
   }
 
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
@@ -411,7 +413,8 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
       let offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
       // FIXME: why needed?
       offspringElem.style.transform = 'rotate(0deg)';
-      return this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space));
+      return this.game.flashParents(offspring)
+        .then(() => this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space)));
     }
     return Promise.resolve();
   }
@@ -833,6 +836,22 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super([]);
   }
 
+  async flashParents(offspring: Offspring) {
+    let on = async () => {
+      Elements.tile(offspring.mother)?.classList.add(CSS.PARENT);
+      Elements.tile(offspring.father)?.classList.add(CSS.PARENT);
+      await this.wait(250);
+    }
+    let off = async () => {
+      Elements.tile(offspring.mother)?.classList.remove(CSS.PARENT);
+      Elements.tile(offspring.father)?.classList.remove(CSS.PARENT);
+      await this.wait(250);
+    }
+    this.animationManager.playSequentially([
+      on, off, on, off,
+    ]);
+  }
+
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
     if (!this.bgaAnimationsActive()) {
       elem.setAttribute(Attrs.TILE, tile.type);
@@ -1149,9 +1168,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
           Elements.enclosureSpace(args.player_id, dest.space))
         );
         if (dest.offspring) {
+          let offspring = dest.offspring!;
+          anims.push(() => this.flashParents(offspring));
           anims.push(() => {
-            let elem = this.makeTileSpan(dest.offspring!.placed_tile.tile);
-            let parent = Elements.enclosureSpace(args.player_id, dest.offspring!.placed_tile.space);
+            let elem = this.makeTileSpan(offspring.placed_tile.tile);
+            let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
             parent.appendChild(elem);
             return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
           });

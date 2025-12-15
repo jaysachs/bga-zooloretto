@@ -49,6 +49,8 @@ class Offspring {
     public function serialize(): array {
         return [
 			'placed_tile' => $this->child->serialize(),
+            'mother' => $this->mother->serialize(),
+            'father' => $this->father->serialize(),
 		];
 
     }
