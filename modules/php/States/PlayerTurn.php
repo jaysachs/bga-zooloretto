@@ -128,6 +128,8 @@ class PlayerTurn extends AbstractState
 						'tile_description'
 					]
 				]);
+				// FIXME: Destination (or Delivery?) should have completedEnclosure
+				//    also should have specific moneyDelta for that
 				// if ($del->dest->completedEnclosure) {
 				// 	$this->notify->all('PlaceTruckTileCompleted', '${player_name} completed enclosure ${enclosure_id} and gained ${coins} bonus coins', [
 				// 		'player_id' => $active_player_id,
@@ -140,6 +142,7 @@ class PlayerTurn extends AbstractState
 				$coins++;
 			}
 		}
+		// FIXME: probably want a specific moneyDelta for the completion bonus
 		if ($coins > 0) {
 			$this->notify->all('PlaceTruckCoins', '${player_name} gained ${coins} coins', [
 			  'player_id' => $active_player_id,
