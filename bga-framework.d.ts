@@ -437,7 +437,7 @@ declare class Dialogs {
    * @param {string} text message will be shown to user, use _() to translate
    * @return {Promise<boolean>} the result of the user choice
    */
-  confirmationDialog(text: string): Promise<boolean>;
+  confirmation(text: string): Promise<boolean>;
 
   /**
    * You can use this dialog to give user a choice with small amount of options.
@@ -447,6 +447,20 @@ declare class Dialogs {
    * @return {Promise<string | null>} the key of the selected choice, or null if closed
    */
   multipleChoice(text: string, choices: { [value: number]: string }): Promise<string | null>;
+}
+
+interface Bga<G = Gamedatas> {
+  gameui: GameGui<G>;
+  statusBar: StatusBar;
+  images: Images;
+  sounds: Sounds;
+  userPreferences: UserPreferences;
+  players: Players;
+  actions: Actions;
+  notifications: Notifications;
+  gameArea: GameArea;
+  playerPanels: PlayerPanels;
+  dialogs: Dialogs;
 }
 
 declare class GameGui<G = Gamedatas> {
@@ -489,18 +503,7 @@ declare class GameGui<G = Gamedatas> {
    */
   scoreCtrl: {[player_id: number]: Counter};
 
-  bga: {
-    statusBar: StatusBar;
-    images: Images;
-    sounds: Sounds;
-    userPreferences: UserPreferences;
-    players: Players;
-    actions: Actions;
-    notifications: Notifications;
-    gameArea: GameArea;
-    playerPanels: PlayerPanels;
-    dialogs: Dialogs;
-  }
+  bga: Bga;
 
   statusBar: StatusBar;
   sounds: Sounds;

@@ -1042,6 +1042,11 @@ namespace Bga\GameFramework {
             public array $args = [],
         ) {}
     }
+    
+    abstract class Debug {
+        public function playUntil(callable $fn): void {
+        }
+    }
 
     abstract class Table
     {
@@ -1104,6 +1109,11 @@ namespace Bga\GameFramework {
          * Access the underlying PlayerCounter object for player_score_aux.
          */
         readonly public \Bga\GameFramework\Components\Counters\PlayerCounter $playerScoreAux;
+
+        /**
+         * Access the underlying Debug object.
+         */
+        readonly public \Bga\GameFramework\Debug $debug;
 
         /**
          * Default constructor.
