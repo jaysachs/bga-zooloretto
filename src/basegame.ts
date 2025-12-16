@@ -186,7 +186,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     front.style.transform = revflip;
     const flipStyles = {
       'backface-visibility': 'hidden',
-      transition: 'transform 1s',
+      transition: 'transform 0.5s',
     };
     Object.assign(back.style, flipStyles);
     Object.assign(front.style, flipStyles);
@@ -197,13 +197,11 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
           this.animateTransform(front, lift + revflip),
           this.animateTransform(back, lift + noflip),
         ]))
-        .then(_ => this.delay(100))
         // Now flip the front and back faces
         .then(_ => Promise.all([
           this.animateTransform(front, lift + noflip),
           this.animateTransform(back, lift + fwdflip),
         ]))
-        .then(_=> this.delay(100))
         // Then return them, flipped, to original location and size
         .then(_ => Promise.all([
           this.animateTransform(front, noflip),
