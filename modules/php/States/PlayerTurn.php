@@ -109,12 +109,44 @@ class PlayerTurn extends AbstractState
 		//   whether it completed an enclosure and what that bonus was.
 		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $pts);
 		// FIXME: give more details about placements in log
-		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} placed tiles from truck ${truck_id}', [
+		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} took truck ${truck_id}', [
 		  'player_id' => $active_player_id,
 		  'truck_id' => $truck_id,
 		  'deliveries' => array_map(fn ($d) => $d->serialize(), $deliveries),
 		  'moneys' => $model->currentMoneys()->serialize(),
 		]);
+		$coins = 0;
+		foreach ($deliveries as $del) {
+			if ($del->dest !== null) {
+				$this->notify->all('PlaceTruckTile', '${player_name} placed ${tile_type} into enclosure ${enclosure_id}',[
+				    'player_id' => $active_player_id,
+					'truck_id' => $truck_id,
+					'tile_type' => $del->tile->type->value,
+					'tile_description' => $del->tile->type->translated(),
+					'enclosure_id' => $del->dest->space->enclosure_id,
+					'i18n' => [
+						'tile_description'
+					]
+				]);
+				// if ($del->dest->completedEnclosure) {
+				// 	$this->notify->all('PlaceTruckTileCompleted', '${player_name} completed enclosure ${enclosure_id} and gained ${coins} bonus coins', [
+				// 		'player_id' => $active_player_id,
+				// 		'truck_id' => $truck_id,
+				// 		'enclosure_id' => $del->dest->space->enclosure_id,
+				// 		'coins' => $del->dest->moneyDelta->players[$active_player_id],
+				// 	]);
+				// }
+			} else {
+				$coins++;
+			}
+		}
+		if ($coins > 0) {
+			$this->notify->all('PlaceTruckCoins', '${player_name} gained ${coins} coins', [
+			  'player_id' => $active_player_id,
+			  'truck_id' => $truck_id,
+			  'coins' => $coins,
+			]);
+		}
 		return NextPlayer::class;
 	}
 
