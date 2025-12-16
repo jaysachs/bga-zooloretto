@@ -145,16 +145,12 @@ interface PlayState {
 // notif_TakeTruckAndPlaceTiles
 
 interface Delivery {
-  truck_pos: number;
   tile: Tile;
-  dest: EnclosurePlacement | undefined;
+  dest: {
+    space: Space;
+    offspring: Offspring | undefined;
+  } | undefined;
 }
-
-interface EnclosurePlacement {
-  space: Space;
-  offspring: Offspring | undefined;
-}
-
 
 //
 // HTML structures

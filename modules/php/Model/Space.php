@@ -30,7 +30,11 @@ namespace Bga\Games\zooloretto\Model;
 class Space {
     public function __construct(
         public readonly int $enclosure_id,
-        public /* readonly */ int $pos) { }
+        public readonly int $pos) {
+            if ($pos < 1) {
+                throw new ModelException("enclosure positions must be > 0, got {$pos}");
+            }
+    }
 
     public function __toString(): string
     {

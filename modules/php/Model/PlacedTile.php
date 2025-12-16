@@ -45,6 +45,14 @@ class PlacedTile {
         ];
     }
 
+    public function equals(PlacedTile $other): bool {
+        return $this->tile == $other->tile
+            && $this->space == $other->space
+            && $this->completedEnclosure == $other->completedEnclosure
+            && $this->money_delta == $other->money_delta
+            ;
+    }
+
     public function __toString()
     {
         return "PlacedTile{tile={$this->tile},space={$this->space},completed_enclosure={$this->completedEnclosure}}";

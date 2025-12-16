@@ -36,13 +36,15 @@ class Destination {
 
     public function __toString(): string
     {
-        return "es(encid:{$this->space},offspring:{$this->offspring})";
+        return "dest(space:{$this->space},offspring:{$this->offspring},delta:{$this->moneyDelta})";
     }
 
     public function equals(Destination $other): bool
     {
-        return $this->space == $other->space && $this->offspring == $other->offspring
-         && $this->moneyDelta == $other->moneyDelta;
+        return $this->space == $other->space
+            && $this->offspring == $other->offspring
+            && $this->moneyDelta == $other->moneyDelta
+            ;
     }
 
     public function serialize(): mixed {

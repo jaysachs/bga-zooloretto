@@ -203,7 +203,7 @@ class Model {
                 if ($tile->type != TileType::COIN) {
                     throw new ModelException("Unplaced non-coin {$tile->type->value} at position {$truck_pos} in truck {$truck_id}");
                 }
-                $deliveries[] = new Delivery($truck_pos, $tile);
+                $deliveries[] = new Delivery($tile);
                 continue;
             }
 
@@ -219,12 +219,12 @@ class Model {
             $pos = $placement->space->pos;
             if ($pos <> $space->pos) {
                 // FIXME: this exception should be correct but it isn't.
-                // throw new ModelException("put {$truck_id}:{$placement->truck_pos} into {$placement->enclosure_id}:{$placement->enclosure_pos} but it went in {$pos}");
-                $space->pos = $pos;
+                throw new ModelException("put {$truck_id}:{$truck_pos} into {$placement->space->enclosure_id}:{$placement->space->pos} but it went in {$pos}");
+                // $space->pos = $pos;
             }
             $offspring = $encl->checkForOffspring($barn);
 
-            $deliveries[] = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
+            $deliveries[] = new Delivery($tile, new Destination($space, $offspring));
             if ($offspring) {
                 $this->saveOffspring($offspring);
                 // FIXME: check fo completion bonus

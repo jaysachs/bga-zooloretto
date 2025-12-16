@@ -30,7 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 class PossibleMove {
     /**
      * @param Space $src
-     * @param Destination[] $dests
+     * @param list<Destination> $dests
      */
     public function __construct(
         public readonly int $src_player_id,

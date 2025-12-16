@@ -43,8 +43,6 @@ Bugs / to test:
     * caused because end up with flipping front/back spans still existing!
   * Need to test offspring on exchanges
   * Need to test offspring "overflowing" into barn
-  * Flipping draw tile when window not visible doesn't do transition,
-    so can't depend on that to mutate stuff.
 
 * Statistics
   * Points for completed enclosures
