@@ -169,6 +169,48 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
   }
 
+  delay(ms: number): Promise<any> {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-20px,20px)') : Promise<any> {
+    if (!this.bgaAnimationsActive()) {
+      return Promise.resolve(null);
+    }
+    const noflip = '';
+    const revflip = ' rotateY(-180deg)';
+    const fwdflip = ' rotateY(180deg)';
+
+    // Initial states: the back of the tile is not flipped but the front face is
+    back.style.transform = noflip;
+    front.style.transform = revflip;
+    const flipStyles = {
+      'backface-visibility': 'hidden',
+      transition: 'transform 1s',
+    };
+    Object.assign(back.style, flipStyles);
+    Object.assign(front.style, flipStyles);
+
+    await this.delay(1)
+        // First just "lift" the tile faces up. flips are same as initial
+        .then(_ => Promise.all([
+          this.animateTransform(front, lift + revflip),
+          this.animateTransform(back, lift + noflip),
+        ]))
+        .then(_ => this.delay(100))
+        // Now flip the front and back faces
+        .then(_ => Promise.all([
+          this.animateTransform(front, lift + noflip),
+          this.animateTransform(back, lift + fwdflip),
+        ]))
+        .then(_=> this.delay(100))
+        // Then return them, flipped, to original location and size
+        .then(_ => Promise.all([
+          this.animateTransform(front, noflip),
+          this.animateTransform(back, fwdflip),
+        ]))
+    }
+
   transitionEndPromise(element: HTMLElement) : Promise<any> {
     return new Promise(resolve => {
         element.addEventListener('transitionend', function f(event) {

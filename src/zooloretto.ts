@@ -853,60 +853,24 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
-    if (!this.bgaAnimationsActive()) {
-      elem.setAttribute(Attrs.TILE, tile.type);
-      return;
-    }
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-
+    // Create the front and back of the tile to flip
     let back = this.makeTileBackSpan();
     let front = this.makeTileSpan(tile);
+    // so they're "above" the actual tile
+    front.style.position = 'absolute';
+    back.style.position = 'absolute';
+    // "hide" the original tile
     elem.removeAttribute(Attrs.TILE);
-    elem.id = IDS.tile(tile);
-
-    const noflip = '';
-    const revflip = ' rotateY(-180deg)';
-    const fwdflip = ' rotateY(180deg)';
-
-    // Initial states: the back of the tile is not flipped but the front face is
-    back.style.transform = noflip;
-    front.style.transform = revflip;
-    const flipStyles = {
-      'backface-visibility': 'hidden',
-      position: 'absolute',
-      transition: 'transform 1s',
-    };
-    Object.assign(back.style, flipStyles);
-    Object.assign(front.style, flipStyles);
-
+    // Need them in the document
     elem.appendChild(front);
     elem.appendChild(back);
 
-    const lift = 'scale(1.3,1.3) translate(-20px,20px) ';
-    await delay(1)
-        // First just "lift" the tile faces up. flips are same as initial
-        .then(_ => Promise.all([
-          this.animateTransform(front, lift + revflip),
-          this.animateTransform(back, lift + noflip),
-        ]))
-        .then(_ => delay(100))
-        // Now flip the front and back faces
-        .then(_ => Promise.all([
-          this.animateTransform(front, lift + noflip),
-          this.animateTransform(back, lift + fwdflip),
-        ]))
-        .then(_=> delay(100))
-        // Then return them, flipped, to original location and size
-        .then(_ => Promise.all([
-          this.animateTransform(front, noflip),
-          this.animateTransform(back, fwdflip),
-        ]))
-        // Finally, delete the ephemeral faces and set the actual span to the tile.
-        .then(_ => {
-          elem.setAttribute(Attrs.TILE, tile.type);
-          back.remove();
-          front.remove();
-        });
+    await this.flip(front, back).then(_ => {
+      elem.id = IDS.tile(tile);
+      elem.setAttribute(Attrs.TILE, tile.type);
+      back.remove();
+      front.remove();
+    });
   }
 
   makeTileSpan(tile: Tile): HTMLElement {
