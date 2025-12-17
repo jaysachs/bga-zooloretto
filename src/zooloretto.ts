@@ -1127,19 +1127,24 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   ///////
   readonly special_log_args = {
-    tile_type: (args: any) => `<span ${Attrs.TILE}='${args.tile_type}' title='${_(args.tile_description)}'></span>`,
-    src_tile_type: (args: any) => `<span ${Attrs.TILE}='${args.src_tile_type}' title='${_(args.src_tile_description)}'></span>`,
-    dest_tile_type: (args: any) => `<span ${Attrs.TILE}='${args.dest_tile_type}' title='${_(args.dest_tile_description)}'></span>`,
-    coins: (args: any) => `<span>${args.coins}</span><span class='zoo-money-label' title='${_("coins")}'></span>`
+    tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.tile_type), title: _(args.tile_description)}),
+    src_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.src_tile_type), title: _(args.src_tile_description)}),
+    dest_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.dest_tile_type), title: _(args.dest_tile_description)}),
+    coins: (args: any) => Html.span({text: ""+args.coins},
+        Html.span({classes: 'zoo-money-label', title: _("coins")}))
   };
 
   override bgaFormatText(log: string, args: any): { log: string, args: any } {
     try {
+      let shadowParent = Html.span({});
       if (log && args && !args.processed) {
         args.processed = true;
         for (const key in this.special_log_args) {
           if (key in args) {
-            args[key] = this.special_log_args[key](args);
+            let e = this.special_log_args[key](args);
+            shadowParent.appendChild(e);
+            args[key] = shadowParent.getHTML();
+            e.remove();
           }
         }
       }
