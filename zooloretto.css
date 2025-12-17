@@ -158,7 +158,7 @@ body.mobile_version {
     height: 68%;
     width: auto;
     aspect-ratio: 1.0 !important;
-    top: 16%;
+    margin-top: 5%;
 }
 
 /* These don't depend on tile size, just the relative dimension of trucks.
@@ -510,8 +510,8 @@ body.mobile_version {
 
 .zoo-cell {
     /* Note these are relative to the image size of the boards. */
-    width: calc(var(--zoo-tile-size)) /* 9% */;
-    height: auto;
+    height: calc(var(--zoo-tile-size)) /* 9% */;
+    width: auto;
     aspect-ratio: 1.0 !important;
     position: absolute;
 }
@@ -526,7 +526,7 @@ body.mobile_version {
 
 
 #zoo-game .zoo-board [zoo-enclosure="0"] {
-    position: relative;
+    position: absolute;
     height: 50%;
     top: 50%;
 
