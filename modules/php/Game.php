@@ -44,7 +44,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 class Game extends \Bga\GameFramework\Table
 {
 
-	private Stats $stats;
+	public Stats $stats;
 	public function __construct()
 	{
 		parent::__construct();

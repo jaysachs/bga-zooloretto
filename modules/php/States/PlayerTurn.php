@@ -31,6 +31,7 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Stats;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Moneys;
@@ -120,6 +121,8 @@ class PlayerTurn extends AbstractState
 				'truck',
 			]
 		]);
+
+		$this->game->stats->PLAYER_TRUCKSTAKEN->inc($active_player_id);
 		$coins = 0;
 		foreach ($deliveries as $del) {
 			if ($del->dest !== null) {
@@ -135,6 +138,11 @@ class PlayerTurn extends AbstractState
 						'enclosure',
 					]
 				]);
+			    $this->game->stats->PLAYER_TILESTAKENFROMTRUCKS->inc($active_player_id);
+				if ($del->dest->space->enclosure_id == 0) {
+    				$this->game->stats->PLAYER_TILESTAKEFROMTRUCKSINTOBARN->inc($active_player_id);
+				}
+
 				// FIXME: Destination (or Delivery?) should have completedEnclosure
 				//    also should have specific moneyDelta for that
 				// if ($del->dest->completedEnclosure) {
@@ -156,6 +164,7 @@ class PlayerTurn extends AbstractState
 			  'truck_id' => $truck_id,
 			  'coins' => $coins,
 			]);
+			$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id, $coins);
 		}
 		return NextPlayer::class;
 	}
@@ -186,6 +195,7 @@ class PlayerTurn extends AbstractState
 				'i18n' => ['tile_description']
 			]
 		);
+		$this->game->stats->PLAYER_TILESDRAWN->inc($active_player_id);
 		return PlaceDrawnTile::class;
 	}
 
@@ -203,6 +213,7 @@ class PlayerTurn extends AbstractState
 	  		    'moneys' => $model->currentMoneys()->serialize(),
 			]
 		);
+		$this->game->stats->PLAYER_EXPANSIONSPURCHASED->inc($active_player_id);
 		return NextPlayer::class;
 	}
 
@@ -235,6 +246,14 @@ class PlayerTurn extends AbstractState
 				]
 			]
 		);
+		if ($tile->type->isAnimal()) {
+			$this->game->stats->PLAYER_MOVEDANIMALS->inc($active_player_id);
+		} else {
+			$this->game->stats->PLAYER_MOVEDSTALLS->inc($active_player_id);
+			if ($src_id == 0) {
+				$this->game->stats->PLAYER_MOVEDSTALLSFROMBARN->inc($active_player_id);
+			}
+		}
 		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notifyBonus($active_player_id, $dest_id, $result['enclosureBonus']);
 		return NextPlayer::class;
@@ -277,6 +296,10 @@ class PlayerTurn extends AbstractState
 			]
 		]);
 
+		$this->game->stats->PLAYER_EXCHANGEACTIONS->inc($active_player_id);
+		if ($src_enclosure_id == 0 || $dest_enclosure_id == 0) {
+			$this->game->stats->PLAYER_EXCHANGEACTIONSWITHBARN->inc($active_player_id);
+		}
 		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
 
 		return NextPlayer::class;
@@ -303,6 +326,8 @@ class PlayerTurn extends AbstractState
 				'seller_player_name',
 			]
 		]);
+		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
+		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
 		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notifyBonus($active_player_id, $enclosure_id, $result['enclosure_bonus']);
 
@@ -311,6 +336,7 @@ class PlayerTurn extends AbstractState
 
 	private function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
 		if ($bonus !== null) {
+			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
 			$this->notify->all('EnclosureBonus', '${player_name} completed ${enclosure} and received ${bonus} coins', [
 				'player_id' => $active_player_id,
 				'enclosure' => Enclosure::translated($enclosure_id),
@@ -324,6 +350,7 @@ class PlayerTurn extends AbstractState
 
 	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
 		if ($offspring !== null) {
+			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
 			$this->notify->all('PurchaseTileOffspring', '${player_name} produced an offspring ${tile_type}',[
 				'player_id' => $active_player_id,
 				'offspring' => $offspring->serialize(),
@@ -351,8 +378,8 @@ class PlayerTurn extends AbstractState
 			'i18n' => [
 				'tile_description',
 			]
-		]
-		);
+		]);
+		$this->game->stats->PLAYER_DISCARDEDTILES->inc($active_player_id);
 		return NextPlayer::class;
 	}
 

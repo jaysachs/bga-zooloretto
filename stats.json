@@ -188,7 +188,7 @@
             "name": "Number of coin tiles acquired",
             "type": "int"
         },
-        "competionBonusCoins": {
+        "completionBonusCoins": {
             "id": 57,
             "name": "Coins gained from completion bonuses",
             "type": "int"
