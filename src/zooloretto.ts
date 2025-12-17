@@ -779,6 +779,10 @@ class ZoolorettoHtml {
 
     return Html
       .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
+        Html.div({id: 'zoo-boards' },
+          this.playerBoardDiv(currentPlayer),
+          ... otherplayers.map((p) => this.playerBoardDiv(p))
+        ),
         Html.div({ id: 'zoo-shared-container' },
           Html.div({ id: 'zoo-stock-and-bank' },
             Html.div({ id: 'zoo-primary-pile' },
@@ -802,10 +806,6 @@ class ZoolorettoHtml {
               )
             )
           )
-        ),
-        Html.div({id: 'zoo-boards' },
-          this.playerBoardDiv(currentPlayer),
-          ... otherplayers.map((p) => this.playerBoardDiv(p))
         ),
         // Html.div({id: 'zoo-playeraid' }),
         Html.div({id: IDS.SCORE_SHEET})

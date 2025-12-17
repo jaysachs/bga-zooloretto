@@ -39,7 +39,7 @@ body.mobile_version {
     display : flex;
     align-items: flex-start;
     justify-content: space-around;
-    flex-direction: row-reverse;
+    flex-direction: row;
     margin: 0.8vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
