@@ -2,9 +2,6 @@
 
 * Handle rare exchange-triggers-two-offspring-in-one-enclosure case.
 
-* Do we need to hide tile counts, really? if players put them in piles of 10, easy to count.
-  * if we do, can we still give e.g. approx percentage left (like T&E)?
-
 * Log messages for all significant events (either separate messages for moves/money/offspring, or compound ones).
   * It's a question: separate notifs for
     * completing enclosure
