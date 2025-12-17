@@ -386,7 +386,7 @@ class Model {
         // animal or stall from barn
         foreach ($barn->nonEmptyContents() as $pos => $tile) {
             $src = new Space($barn->id, $pos);
-            /** @var Destination[] */
+            /** @var list<Destination> */
             $dests = [];
             foreach ($enclosures as $enc) {
                 $dest = $this->makePossibleDest($enc, $tile, $barn);
@@ -401,7 +401,7 @@ class Model {
         // or stall from one (non-barn) enclosure to another
         foreach ($enclosures as $enc) {
             foreach ($enc->nonEmptyContents() as $pos => $tile) {
-                /** @var Destination[] */
+                /** @var list<Destination> */
                 $dests = [];
                 $src = new Space($enc->id, $pos);
                 if ($tile->type->isStall()) {
