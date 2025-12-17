@@ -168,11 +168,6 @@
             "name": "Number of tiles drawn",
             "type": "int"
         },
-        "trucksTaken": {
-            "id": 53,
-            "name": "Number of trucks taken",
-            "type": "int"
-        },
         "tilesTakenFromTrucks": {
             "id": 54,
             "name": "Number of tiles taken from trucks",

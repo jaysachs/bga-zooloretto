@@ -122,7 +122,6 @@ class PlayerTurn extends AbstractState
 			]
 		]);
 
-		$this->game->stats->PLAYER_TRUCKSTAKEN->inc($active_player_id);
 		$coins = 0;
 		foreach ($deliveries as $del) {
 			if ($del->dest !== null) {
