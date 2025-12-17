@@ -29,6 +29,7 @@
         "src/bga-animations.d.ts",
         "src/bga-score-sheet.d.ts",
         "src/colormap.ts",
+        "src/html.ts",
         "src/basegame.ts",
         "src/zooloretto.ts",
         "src/define.ts"
