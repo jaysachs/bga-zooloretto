@@ -96,7 +96,7 @@ class Game extends \Bga\GameFramework\Table
 				];
 			}, $model->getTrucks()),
             'enclosures' => $encs,
-            'primary_pile_size' => $stock->primaryCount(),
+            'primary_pile_size' => $this->stockCount($stock->primaryCount()),
             'endgame_pile_size' => $stock->endgameCount(),
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->serialize(),
             'lastround' => $stock->inLastRound(),
@@ -228,6 +228,12 @@ class Game extends \Bga\GameFramework\Table
 		$this->activeNextPlayer();
         /** @phpstan-ignore return.void */
 		return PlayerTurn::class;
+	}
+
+	public function stockCount(int $count): int {
+		$show_remaining = $this->tableOptions->get(100) === 2;
+		if ($count <= 15 || $show_remaining) { return $count; }
+		return 1000;
 	}
 
 	/*

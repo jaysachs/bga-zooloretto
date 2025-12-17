@@ -82,8 +82,8 @@ class PlaceDrawnTile extends AbstractState
                 'truck_pos' => $truck_pos,
                 'tile_type' => $tile->type->value,
 				'tile_description' => $tile->type->translated(),
-                'primary_pile_size' => $stock->primaryCount(),
-                'endgame_pile_size' => $stock->endgameCount(),
+				'primary_pile_size' => $this->stockCount($stock->primaryCount()),
+				'endgame_pile_size' => $stock->endgameCount(),
                 'drawn_from_endgame_pile' => $stock->inLastRound(),
 				'i18n' => [ 'tile_description' ],
 			]

@@ -63,4 +63,8 @@ abstract class AbstractState extends GameState
     protected function activeNextPlayer(): void {
         $this->game->activeNextPlayer();
     }
+
+    protected function stockCount(int $count): int {
+        return $this->game->stockCount($count);
+    }
 }

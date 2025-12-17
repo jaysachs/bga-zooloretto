@@ -956,7 +956,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.bankCounter = new ebg.counter();
     this.bankCounter.create(IDS.BANK_MONEY, { value: this.gamedatas.bank_money });
     this.primaryStockCounter = new ebg.counter();
-    this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: this.gamedatas.primary_pile_size });
+    this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: this.gamedatas.primary_pile_size == 1000 ? null : this.gamedatas.primary_pile_size });
     this.endgameStockCounter = new ebg.counter();
     this.endgameStockCounter.create(IDS.ENDGAME_PILE_COUNT, { value: this.gamedatas.endgame_pile_size });
     this.renderStock();
@@ -1106,7 +1106,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileBackSpan());
       }
     }
-    this.primaryStockCounter.toValue(args.primary_pile_size);
+    if (args.primary_pile_size != 1000) {
+      this.primaryStockCounter.toValue(args.primary_pile_size);
+    }
     this.endgameStockCounter.toValue(args.endgame_pile_size);
   }
 
