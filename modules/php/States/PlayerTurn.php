@@ -38,6 +38,7 @@ use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\Truck;
 
 class PlayerTurn extends AbstractState
 {
@@ -109,11 +110,15 @@ class PlayerTurn extends AbstractState
 		//   whether it completed an enclosure and what that bonus was.
 		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $pts);
 		// FIXME: give more details about placements in log
-		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} took truck ${truck_id}', [
-		  'player_id' => $active_player_id,
-		  'truck_id' => $truck_id,
-		  'deliveries' => array_map(fn ($d) => $d->serialize(), $deliveries),
-		  'moneys' => $model->currentMoneys()->serialize(),
+		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} took ${truck}', [
+			'player_id' => $active_player_id,
+			'truck_id' => $truck_id,
+			'truck' => Truck::translated($truck_id),
+			'deliveries' => array_map(fn ($d) => $d->serialize(), $deliveries),
+			'moneys' => $model->currentMoneys()->serialize(),
+			'i18n' => [
+				'truck',
+			]
 		]);
 		$coins = 0;
 		foreach ($deliveries as $del) {

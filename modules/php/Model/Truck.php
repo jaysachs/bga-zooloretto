@@ -214,4 +214,13 @@ class Truck {
     {
         return "Truck(id=$this->id,tiles=" . Utils::arrayToString($this->tiles) . ")";
     }
+
+    public static function translated(int $truck_id): string {
+        return match ($truck_id) {
+            1 => clienttranslate("truck 1"),
+            2 => clienttranslate("truck 2"),
+            3 => clienttranslate("truck 3"),
+            default => "??"
+        };
+    }
 }
