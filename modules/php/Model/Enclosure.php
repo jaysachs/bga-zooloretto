@@ -324,4 +324,20 @@ class Enclosure {
         $contents = Utils::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);
         return "Enclosure(id=$this->id,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
     }
+
+    public function translatedId(): string {
+        return self::translated($this->id);
+    }
+
+    public static function translated(int $enclosure_id): string {
+        return match ($enclosure_id) {
+            0 => clienttranslate("the barn"),
+            1 => clienttranslate("enclosure 1"),
+            2 => clienttranslate("enclosure 2"),
+            3 => clienttranslate("enclosure 3"),
+            4 => clienttranslate("enclosure 4"),
+            5 => clienttranslate("enclosure 5"),
+            default => "??"
+        };
+    }
 }

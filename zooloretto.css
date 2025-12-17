@@ -743,10 +743,22 @@ th.bga-score-sheet_player-name {
 
 .log [zoo-tile] {
     height: 2.0em;
-    width: 2.0em;
+    width: auto;
+    aspect-ratio: 1;
     vertical-align: bottom;
     display: inline-block;
     margin: 0;
     padding: 0;
     background-color: transparent;
+}
+
+.log .zoo-money-label {
+    height: 2.0em;
+    width: auto;
+    aspect-ratio: 1;
+    vertical-align: bottom;
+    display: inline-block;
+    background-image: url('img/Money.png');
+    background-size: contain;
+    background-repeat: no-repeat;
 }

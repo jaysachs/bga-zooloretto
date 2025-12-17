@@ -1331,6 +1331,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   ///////
   readonly special_log_args = {
     tile_type: (args: any) => `<span ${Attrs.TILE}='${args.tile_type}' title='${_(args.tile_description)}'></span>`,
+    src_tile_type: (args: any) => `<span ${Attrs.TILE}='${args.src_tile_type}' title='${_(args.src_tile_description)}'></span>`,
+    dest_tile_type: (args: any) => `<span ${Attrs.TILE}='${args.dest_tile_type}' title='${_(args.dest_tile_description)}'></span>`,
+    coins: (args: any) => `<span>${args.coins}</span><span class='zoo-money-label' title='${_("coins")}'></span>`
   };
 
   override bgaFormatText(log: string, args: any): { log: string, args: any } {

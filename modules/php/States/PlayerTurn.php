@@ -32,9 +32,9 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
+use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
-use Bga\Games\zooloretto\Model\PossibleBuy;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
@@ -118,14 +118,16 @@ class PlayerTurn extends AbstractState
 		$coins = 0;
 		foreach ($deliveries as $del) {
 			if ($del->dest !== null) {
-				$this->notify->all('PlaceTruckTile', '${player_name} placed ${tile_type} into enclosure ${enclosure_id}',[
+				$this->notify->all('PlaceTruckTile', '${player_name} placed ${tile_type} into ${enclosure}',[
 				    'player_id' => $active_player_id,
 					'truck_id' => $truck_id,
 					'tile_type' => $del->tile->type->value,
 					'tile_description' => $del->tile->type->translated(),
+					'enclosure' => Enclosure::translated($del->dest->space->enclosure_id),
 					'enclosure_id' => $del->dest->space->enclosure_id,
 					'i18n' => [
-						'tile_description'
+						'tile_description',
+						'enclosure',
 					]
 				]);
 				// FIXME: Destination (or Delivery?) should have completedEnclosure
@@ -144,7 +146,7 @@ class PlayerTurn extends AbstractState
 		}
 		// FIXME: probably want a specific moneyDelta for the completion bonus
 		if ($coins > 0) {
-			$this->notify->all('PlaceTruckCoins', '${player_name} gained ${coins} coins', [
+			$this->notify->all('PlaceTruckCoins', '${player_name} gained ${coins}', [
 			  'player_id' => $active_player_id,
 			  'truck_id' => $truck_id,
 			  'coins' => $coins,
@@ -209,21 +211,27 @@ class PlayerTurn extends AbstractState
 		$this->notify->all(
 			"MoveTile",
 			// FIXME: need to handle barn ...
-			clienttranslate('${player_name} moved a ${tile_type} tile from enclosure ${src_enclosure} to ${dest_enclosure}'),
+			clienttranslate('${player_name} moved a ${tile_type} tile from ${src_enclosure} to ${dest_enclosure}'),
 			[
 				'player_id' => $active_player_id,
 				'tile' => $tile->serialize(),
 				'dest' => $dest->serialize(),
         		'moneys' => $model->currentMoneys()->serialize(),
-				'src_enclosure' => $src_id,
-				'dest_enclosure' => $dest_id,
+				'src_enclosure_id' => $src_id,
+				'src_enclosure' => Enclosure::translated($src_id),
+				'dest_enclosure_id' => $dest_id,
+				'dest_enclosure' => Enclosure::translated($dest_id),
 				'tile_type' => $tile->type->value,
 				'tile_description' => $tile->type->translated(),
-				'i18n' => ['tile_description']
+				'i18n' => [
+					'tile_description',
+					'src_enclosure',
+					'dest_enclosure',
+				]
 			]
 		);
 		$this->notifyOffspring($active_player_id, $result['offspring']);
-		$this->notifyBonus($active_player_id, $result['enclosureBonus']);
+		$this->notifyBonus($active_player_id, $dest_id, $result['enclosureBonus']);
 		return NextPlayer::class;
 	}
 
@@ -244,19 +252,23 @@ class PlayerTurn extends AbstractState
 
 		$this->notify->all('ExchangeEnclosureAnimals',
 			// FIXME: need to handle barn
-		    '${player_name} exchanged ${src_tile_description} and ${dest_tile_description} between enclosures ${src_enclosure_id} and ${dest_enclosure_id}', [
+		    '${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}', [
 			'player_id' => $active_player_id,
 			'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
 			'src_enclosure_id' => $completedExchange->src_enclosure_id,
+			'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
         	'moneys' => $model->currentMoneys()->serialize(),
 			'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
-			'src_tile_type' => $completedExchange->src_tile_type->translated(),
-			'dest_tile_type' => $completedExchange->dest_tile_type->translated(),
+			'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
+			'src_tile_type' => $completedExchange->src_tile_type,
+			'dest_tile_type' => $completedExchange->dest_tile_type,
 			'src_tile_description' => $completedExchange->src_tile_type->translated(),
 			'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
 			'i18n' => [
 				'src_tile_description',
 				'dest_tile_description',
+				'src_enclosure',
+				'dest_enclosure',
 			]
 		]);
 
@@ -272,29 +284,35 @@ class PlayerTurn extends AbstractState
 		$dest = new Space($enclosure_id, $enclosure_pos);
 		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$purchased = $result['tiles'][0];
-		$this->notify->all('PurchaseTile', '${player_name} purchased ${tile_type} from ${player_name2}', [
+		$this->notify->all('PurchaseTile', '${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}', [
 			'player_id' => $active_player_id,
 			'player_id2' => $from_player_id,
 			'tile_type' => $purchased->tile->type->value,
 			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
     		'moneys' => $model->currentMoneys()->serialize(),
+			'enclosure' => Enclosure::translated($enclosure_id),
 			'tile_description' => $purchased->tile->type->translated(),
 			'i18n' => [
 				'tile_description',
+				'enclosure',
 				'seller_player_name',
 			]
 		]);
 		$this->notifyOffspring($active_player_id, $result['offspring']);
-		$this->notifyBonus($active_player_id, $result['enclosure_bonus']);
+		$this->notifyBonus($active_player_id, $enclosure_id, $result['enclosure_bonus']);
 
 		return NextPlayer::class;
 	}
 
-	private function notifyBonus(int $active_player_id, ?int $bonus): void {
+	private function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
 		if ($bonus !== null) {
-			$this->notify->all('EnclosureBonus', '${player_name} completed an enclosure and received ${bonus} coins', [
+			$this->notify->all('EnclosureBonus', '${player_name} completed ${enclosure} and received ${bonus} coins', [
 				'player_id' => $active_player_id,
+				'enclosure' => Enclosure::translated($enclosure_id),
 				'bonus' => $bonus,
+				'i18n' => [
+					'enclosure'
+				]
 			]);
 		}
 	}
