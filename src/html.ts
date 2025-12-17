@@ -1,5 +1,9 @@
+interface AttrLike {
+    toRecord(): Record<string, string>;
+}
+
 class Html {
-  public static makeElem(ty: string, args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
+  public static makeElem(ty: string, args: {id?: string, text?: string, attrs?: Record<string, string> | AttrLike , classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
     let e = document.createElement(ty);
     if (args.id) { e.id = args.id; }
     if (args.classes) {
@@ -14,21 +18,25 @@ class Html {
       e.innerText = args.text;
     }
     if (args.attrs) {
-      Object.keys(args.attrs).forEach(k => e.setAttribute(k, args.attrs![k]!));
+      var r = args.attrs;
+      if (typeof ((args.attrs) as any).toRecord == "function") {
+        r = (args.attrs as AttrLike).toRecord();
+      }
+      Object.keys(r).forEach(k => e.setAttribute(k, r![k]!));
     }
     children.forEach(c => c && e.appendChild(c));
     return e;
   }
 
-  public static div(args: {id?: string, text?: string, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static div(args: {id?: string, text?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('div', args, ...children);
   }
 
-  public static span(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static span(args: {id?: string, text?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
     return this.makeElem('span', args, ...children);
   }
 
-  public static p(args: {id?: string, text?: string, attrs?: Record<string, string>, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+  public static p(args: {id?: string, text?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
       return this.makeElem('p', args, ...children);
   }
 }

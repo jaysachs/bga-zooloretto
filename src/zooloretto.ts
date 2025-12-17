@@ -156,15 +156,36 @@ interface Delivery {
 // HTML structures
 //
 
-class Attrs {
-  static readonly ENCLOSURE : string = 'zoo-enclosure';
-  static readonly EXTENSIONS : string = 'zoo-extensions';
-  static readonly TILE : string = 'zoo-tile';
+class Attrs implements AttrLike {
+  toRecord(): Record<string, string> {
+    return this.r;
+  }
+  private r: any = {};
 
-  static tile(tile_type: string): Record<string, string> {
-    let a = {};
-    a[Attrs.TILE] = tile_type;
-    return a;
+  static readonly EXTENSIONS ='zoo-extensions';
+  static readonly TILE ='zoo-tile';
+  static readonly ENCLOSURE ='zoo-enclosure';
+  static enclosure(enc : number): Attrs {
+    return new Attrs().enclosure(enc);
+  }
+  enclosure(enc : number): Attrs {
+    this.r[Attrs.ENCLOSURE] = "" + enc;
+    return this;
+  }
+  static extensions(ext: number): Attrs {
+    return new Attrs().extensions(ext);
+  }
+  extensions(ext: number): Attrs {
+    this.r[Attrs.EXTENSIONS] = ""+ext;
+    return this;
+  }
+
+  static tile(tile_type: string) : Attrs {
+    return new Attrs().tile(tile_type);
+  }
+  tile(tile_type: string): Attrs {
+    this.r[Attrs.TILE] = tile_type;
+    return this;
   }
 }
 
@@ -746,30 +767,24 @@ class ZoolorettoHtml {
     if (!player) { return undefined; }
 
     let enclosure = (e: number, n: number): HTMLElement => {
-      let elem = Html.div({id: IDS.enclosure(player.player_id, e) },
+      return Html.div({id: IDS.enclosure(player.player_id, e), attrs: Attrs.enclosure(e) },
         ... ZoolorettoHtml.range(1, n).map(i => Html.div({ id: IDS.enclosureSpace(player.player_id, e, i), classes: "zoo-cell"} ))
       );
-      elem.setAttribute(Attrs.ENCLOSURE, ""+e);
-      return elem;
     };
-
-    let elem = Html
-      .div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ]},
-        enclosure(0, 20), // the barn
-        enclosure(1, 6),
-        enclosure(2, 6),
-        enclosure(3, 7),
-        enclosure(4, 6),
-        this.twoPlayer ? enclosure(5, 6) : undefined
-      );
-    elem.setAttribute(Attrs.EXTENSIONS, ""+player.purchased_extensions);
 
     return Html
       .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard"] },
         Html.div({ id: `zoo-playername-${player.player_id}`},
           Html.span({ text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
         ),
-        elem
+        Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)},
+          enclosure(0, 20), // the barn
+          enclosure(1, 6),
+          enclosure(2, 6),
+          enclosure(3, 7),
+          enclosure(4, 6),
+          this.twoPlayer ? enclosure(5, 6) : undefined
+        )
       );
   }
 
