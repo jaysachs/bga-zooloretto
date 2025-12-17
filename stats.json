@@ -102,14 +102,95 @@
             "name": "Total Coins",
             "type": "int"
         },
-        "coinsspent": {
-            "id": 29,
-            "name": "Coins Spent",
+
+        "offspringProduced": {
+            "id": 40,
+            "name": "Offspring produced",
             "type": "int"
         },
-        "coinsreceived": {
-            "id": 30,
-            "name": "Coins Received",
+        "offspringProducedInBarn": {
+            "id": 41,
+            "name": "Offspring produced into barn",
+            "type": "int"
+        },
+        "offspringCompletedEnclosures": {
+            "id": 42,
+            "name": "Offspring produced that completed an enclosure",
+            "type": "int"
+        },
+        "tilesPurchased": {
+            "id": 43,
+            "name": "Tiles purchased",
+            "type": "int"
+        },
+        "tilesSold": {
+            "id": 44,
+            "name": "Tiles sold",
+            "type": "int"
+        },
+        "exchangeActions": {
+            "id": 45,
+            "name": "Number of exchange actions",
+            "type": "int"
+        },
+        "exchangeActionsWithBarn": {
+            "id": 46,
+            "name": "Number of exchange actions with barn",
+            "type": "int"
+        },
+        "discardedTiles": {
+            "id": 47,
+            "name": "Number of discarded tiles",
+            "type": "int"
+        },
+        "movedStalls": {
+            "id": 48,
+            "name": "Number of moved stalls (not from barn)",
+            "type": "int"
+        },
+        "movedAnimals": {
+            "id": 49,
+            "name": "Number of moved animals",
+            "type": "int"
+        },
+        "movedStallsFromBarn": {
+            "id": 50,
+            "name": "Number of moved stalls from barn",
+            "type": "int"
+        },
+        "expansionsPurchased": {
+            "id": 51,
+            "name": "Number of expansions purchased",
+            "type": "int"
+        },
+        "tilesDrawn": {
+            "id": 52,
+            "name": "Number of tiles drawn",
+            "type": "int"
+        },
+        "trucksTaken": {
+            "id": 53,
+            "name": "Number of trucks taken",
+            "type": "int"
+        },
+        "tilesTakenFromTrucks": {
+            "id": 54,
+            "name": "Number of tiles taken from trucks",
+            "type": "int"
+        },
+        "tilesTakeFromTrucksIntoBarn": {
+            "id": 55,
+            "name": "Number of tiles taken from truck into barn",
+            "type": "int"
+        },
+        "coinTilesAcquired": {
+            "id": 56,
+            "name": "Number of coin tiles acquired",
+            "type": "int"
+        },
+        "competionBonusCoins": {
+            "id": 57,
+            "name": "Coins gained from completion bonuses",
             "type": "int"
         }
     }

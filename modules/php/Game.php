@@ -44,12 +44,14 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 class Game extends \Bga\GameFramework\Table
 {
 
+	private Stats $stats;
 	public function __construct()
 	{
 		parent::__construct();
 
 		$logDecorator = new LogDecorator(\Closure::fromCallable($this->getPlayerNameById(...)));
 		$this->notify->addDecorator($logDecorator->playerNames(...));
+ 		$this->stats = Stats::createForGame($this);
 
 		$this->initGameStateLabels([]);
 	}
@@ -201,29 +203,8 @@ class Game extends \Bga\GameFramework\Table
 		// self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
 		self::reloadPlayersBasicInfos();
 
+		$this->stats->initAll(array_keys($players));
 		Model::createNewGame(array_keys($players));
-		$this->playerStats->init([
-			'full1',
-			'full2',
-			'full3',
-			'full4',
-			'part1',
-			'part2',
-			'part3',
-			'part4',
-			'encstall1',
-			'encstall2',
-			'encstall3',
-			'encstall4',
-			'stalls',
-			'leftinbarn',
-			'totalpoints',
-			'totalcoins',
-			'coinsspent',
-			'coinsreceived'
-		], 0);
-
-		$this->playerStats->incAll('coinsreceived', 2);
 
 		$this->activeNextPlayer();
         /** @phpstan-ignore return.void */

@@ -16,7 +16,7 @@ PHPSTAN_LEVEL=10
 
 .PHONY: build test phpstan deploy clean
 
-build: $(JS) $(STUBS) # $(STATS)
+build: $(JS) $(STUBS) $(STATS)
 
 $(JS): $(COLORMAP) src/*.ts tsconfig.json $(TS_STUBS)
 	npm run build:ts
