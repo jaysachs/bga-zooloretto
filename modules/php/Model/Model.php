@@ -227,6 +227,7 @@ class Model {
             $deliveries[] = new Delivery($tile, new Destination($space, $offspring));
             if ($offspring) {
                 $this->saveOffspring($offspring);
+                $toUpdate[] = $barn;
                 // FIXME: check fo completion bonus
 
                 // FIXME: return info on new child -- add to return value

@@ -207,7 +207,7 @@ class PersistentStore {
         return $encs;
     }
 
-    /** @param Enclosure[] $enclosures */
+    /** @param list<Enclosure> $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
         if (count($enclosures) == 0) {
             return;
