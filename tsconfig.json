@@ -32,6 +32,7 @@
         "src/colormap.ts",
         "src/html.ts",
         "src/basegame.ts",
+        "src/flow.ts",
         "src/zhtml.ts",
         "src/zooloretto.ts",
         "src/define.ts"
