@@ -318,8 +318,8 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected initStatusBar(title: string, args?: any) {
-    this.game.statusBar.removeActionButtons();
-    this.game.statusBar.setTitle(title, args);
+    this.game.bga.statusBar.removeActionButtons();
+    this.game.bga.statusBar.setTitle(title, args);
   }
 
   protected confirmationsEnabled(): boolean {
@@ -330,13 +330,13 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
     let doAct = async () => {
         this.clearMarked();
-        this.game.statusBar.removeActionButtons();
-        this.game.bgaPerformAction(bgaAction, args);
+        this.game.bga.statusBar.removeActionButtons();
+        this.game.bga.actions.performAction(bgaAction, args);
     };
     if (this.confirmationsEnabled())  {
       await doAct();
     } else {
-      this.game.statusBar.addActionButton(
+      this.game.bga.statusBar.addActionButton(
         _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
       );
       this.addRestartTurnButton();
@@ -344,10 +344,10 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected addRestartTurnButton(onCancel?: CallableFunction): void {
-    this.game.statusBar.addActionButton(_('Restart turn'),
+    this.game.bga.statusBar.addActionButton(_('Restart turn'),
         () => {
           this.rollback().then(() => {
-            this.game.statusBar.removeActionButtons();
+            this.game.bga.statusBar.removeActionButtons();
             onCancel && onCancel();
             this.game.restoreServerGameState();
           })
@@ -403,7 +403,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected getPlayerPanelElement(player_id: number): HTMLElement {
-    return this.game.getPlayerPanelElement(player_id);
+    return this.game.bga.playerPanels.getElement(player_id);
   }
 }
 
@@ -843,24 +843,13 @@ class ZoolorettoHtml {
 
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
-  constructor() {
-    super([]);
+  animations: Animations;
+  constructor(bga: Bga<ZGamedatas>) {
+    super(bga, []);
   }
 
   async flashParents(offspring: Offspring) {
-    let on = async () => {
-      Elements.tile(offspring.mother)?.classList.add(CSS.PARENT);
-      Elements.tile(offspring.father)?.classList.add(CSS.PARENT);
-      await this.wait(250);
-    }
-    let off = async () => {
-      Elements.tile(offspring.mother)?.classList.remove(CSS.PARENT);
-      Elements.tile(offspring.father)?.classList.remove(CSS.PARENT);
-      await this.wait(250);
-    }
-    this.animationManager.playSequentially([
-      on, off, on, off,
-    ]);
+    this.animations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
@@ -876,7 +865,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     elem.appendChild(front);
     elem.appendChild(back);
 
-    await this.flip(front, back).then(_ => {
+    await this.animations.flip(front, back).then(_ => {
       elem.id = IDS.tile(tile);
       elem.setAttribute(Attrs.TILE, tile.type);
       back.remove();
@@ -961,9 +950,9 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private setupHtml(twoPlayer: boolean): void {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
-    this.getGameAreaElement().appendChild(zhtml.baseStructure());
+    this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(this.gamedatas.players)) {
-      this.getPlayerPanelElement(player.player_id).appendChild(zhtml.playerPanel(player));
+      this.bga.playerPanels.getElement(player.player_id).appendChild(zhtml.playerPanel(player));
       let counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
@@ -981,7 +970,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   override setup(gamedatas: ZGamedatas) {
     super.setup(gamedatas);
-
+    this.animations = new Animations(this.animationManager);
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
     this.setupHtml(twoPlayer);
     this.setupNotifications();
@@ -994,21 +983,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private setupNotifications(): void {
-    this.bgaSetupPromiseNotifications({ logger: console.log, onEnd: this.addTooltipsToLog.bind(this) });
-    // Notifications to ignore
-    this.notifqueue.setIgnoreNotificationCheck(
-      'NOTINUSE',
-      (notif: any) => (notif.args.player_id == this.player_id));
-  }
-
-  private addTooltipsToLog() {
-    /*
-      const elements = document.querySelectorAll(`[${Attrs.ZTYPE}]:not([${Attrs.TT_PROCESSED}])`);
-      elements.forEach(ele => {
-        ele.setAttribute(Attrs.TT_PROCESSED, '');  // prevents tooltips being re-added to previous log entries
-        this.addTooltip(ele.id, this.zcardTooltips[ele.attribute(Attrs.ZTYPE)!], '');
-      });
-      */
+    this.bga.notifications.setupPromiseNotifications({ logger: console.log });
   }
 
   public updateMoneyDelta(delta: Moneys): void {
@@ -1046,37 +1021,37 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private alwaysOfferAllButtons: boolean = false;
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
     if (this.alwaysOfferAllButtons || playState.can_draw) {
-      this.statusBar.addActionButton(_('Draw tile'),
+      this.bga.statusBar.addActionButton(_('Draw tile'),
         () => new DrawTileFlow(this).start(playState.lastround),
         { disabled: !playState.can_draw });
     }
     if (this.alwaysOfferAllButtons || playState.available_trucks.length > 0) {
-      this.statusBar.addActionButton(_('Take truck'),
+      this.bga.statusBar.addActionButton(_('Take truck'),
         () => new TakeTruckFlow(this).start(playState.available_trucks),
         { disabled: playState.available_trucks.length == 0});
     }
     if (this.alwaysOfferAllButtons || playState.possible_moves.length > 0) {
-      this.statusBar.addActionButton(_('Move tile'),
+      this.bga.statusBar.addActionButton(_('Move tile'),
         () => new MoveTileFlow(this).start(playState.possible_moves),
         { disabled: playState.possible_moves.length == 0});
     }
     if (this.alwaysOfferAllButtons || playState.possible_exchanges.length > 0) {
-      this.statusBar.addActionButton(_('Exchange animals'),
+      this.bga.statusBar.addActionButton(_('Exchange animals'),
         () => new ExchangeFlow(this).start(playState.possible_exchanges),
         { disabled: playState.possible_exchanges.length == 0});
     }
     if (this.alwaysOfferAllButtons || playState.possible_purchases.length > 0) {
-      this.statusBar.addActionButton(_('Purchase tile'),
+      this.bga.statusBar.addActionButton(_('Purchase tile'),
         () => new PurchaseTileFlow(this).start(playState.possible_purchases),
         { disabled: playState.possible_purchases.length == 0 });
     }
     if (this.alwaysOfferAllButtons || playState.possible_discards.length > 0) {
-      this.statusBar.addActionButton(_('Discard tile'),
+      this.bga.statusBar.addActionButton(_('Discard tile'),
         () => new DiscardTileFlow(this).start(playState.possible_discards),
         { disabled: playState.possible_discards.length == 0 });
     }
     if (this.alwaysOfferAllButtons || playState.can_expand) {
-      this.statusBar.addActionButton(_('Expand zoo'),
+      this.bga.statusBar.addActionButton(_('Expand zoo'),
         () => new ExpandZooFlow(this).start(),
         { disabled: !playState.can_expand} );
     }
@@ -1095,7 +1070,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
-      await this.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
+      await this.animations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
         .then(() => {
           // FIXME: want to use renderTileDraw or similar
           $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile));
@@ -1136,7 +1111,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
     primary_pile_size: number,
     endgame_pile_size: number }) {
-      await this.slideAndAttach(
+      await this.animations.slideAndAttach(
         Elements.tile(args.tile)!,
         Elements.truckSpace(args.truck_id, args.truck_pos))
           .then(() => this.replenishPilesAndUpdateCounters(args));
@@ -1162,13 +1137,13 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       let dest = delivery.dest;
       if (!dest) {
         // FIXME: if (dest.tile.type != 'Coin') log error ...
-        anims.push(() => this.slideOutAndDestroy(
+        anims.push(() => this.animations.slideOutAndDestroy(
           Elements.tile(delivery.tile),
           this.getPlayerPanelElement(args.player_id),
           {}
         ).then(() => this.addMoney(args.player_id, 1)));
       } else {
-        anims.push(() => this.slideAndAttach(
+        anims.push(() => this.animations.slideAndAttach(
           Elements.tile(delivery.tile)!,
           Elements.enclosureSpace(args.player_id, dest.space))
         );
@@ -1184,7 +1159,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         }
       }
     });
-    anims.push(() => this.slideAndAttach(
+    anims.push(() => this.animations.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
       ));
@@ -1199,7 +1174,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     moneys: Moneys,
   }) {
     this.updateMoneys(args.moneys);
-    await this.slideAndAttach(
+    await this.animations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
     );
@@ -1210,7 +1185,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
   }) {
     this.updateMoneys(args.moneys);
-    await this.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD));
+    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD));
   }
 
   private async notif_PurchaseTile(args: {
@@ -1221,7 +1196,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
-        () => this.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+        () => this.animations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
     );
   }
@@ -1234,10 +1209,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     let anims: AnimationList = [];
     args.dumped_tiles.forEach(tile =>
-      anims.push(() => this.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
+      anims.push(() => this.animations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
     );
     args.truck_ids_returned.forEach(tid =>
-      anims.push(() => this.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))
+      anims.push(() => this.animations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
@@ -1257,7 +1232,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     args.placed_tiles.forEach(pt =>  {
       let elem = Elements.tile(pt.tile);
       if (elem) {
-        anims.push(() => this.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
+        anims.push(() => this.animations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
       } else {
         let elem = this.makeTileSpan(pt.tile);
         // FIXME: needed?

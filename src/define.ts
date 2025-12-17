@@ -8,5 +8,5 @@ define([
 ], function (declare, gamegui, counter, BgaAnimations, BgaScoreSheet) {
   (window as any).BgaAnimations = BgaAnimations;
   (window as any).BgaScoreSheet = BgaScoreSheet;
-  declare('bgagame.zooloretto', ebg.core.gamegui, new ZoolorettoGame());
+  declare('bgagame.zooloretto', ebg.core.gamegui, new ZoolorettoGame(gamegui));
 });

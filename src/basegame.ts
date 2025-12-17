@@ -9,7 +9,7 @@ GameGui = /** @class */ (function () {
 /** Class that extends default bga core game class with more functionality
  */
 
-abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
+abstract class BaseGame<T extends Gamedatas> extends GameGui<T> /* implements Bga<T> */ {
   protected currentState: string | null;
   protected currentStateArgs: any;
   animationManager: AnimationManager;
@@ -17,8 +17,9 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   private currentPlayerWasActive: boolean;
   private readonly clientStateNames: string[];
 
-  constructor(clientStateNames: string[]) {
-    super();
+  constructor(bga: Bga<T>, clientStateNames: string[]) {
+    super(/* bga */);
+    Object.assign(this, bga);
     console.log('game constructor');
 
     this.currentState = null;
@@ -85,11 +86,6 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     console.log("Wired up state change methods", wiredUp);
   }
 
-  override bgaPerformAction(action: string, args?: any, params?: { lock?: boolean; checkAction?: boolean; checkPossibleActions?: boolean; }): Promise<any> {
-    console.debug("action", action, args);
-    return (this as any).inherited(arguments).then(() => console.debug("action completed", action, args));
-  }
-
   protected reenterCurrentState() {
     console.debug("reenterCurrentState", this.currentState, this.currentStateArgs);
     if (!this.currentState) {
@@ -101,7 +97,7 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
   }
 
   override onEnteringState(stateName: string, args: any) {
-    console.debug('onEnteringState: ' + stateName, args, this.debugStateInfo());
+    console.debug('onEnteringState: ' + stateName, args);
     this.currentState = stateName;
     // Call appropriate method
     args = args ? args.args : null; // this method has extra wrapper for args for some reason
@@ -143,100 +139,14 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
       return;
     }
     this.pendingUpdate = false;
-    if (gameui.isCurrentPlayerActive() && this.currentPlayerWasActive == false) {
-      console.debug('onUpdateActionButtons: ' + stateName, args, this.debugStateInfo());
+    if (this.bga.players.isCurrentPlayerActive() && this.currentPlayerWasActive == false) {
+      console.debug('onUpdateActionButtons: ' + stateName, args);
       this.currentPlayerWasActive = true;
       // Call appropriate method
       this.maybeCallFn(this.onUpdateActionButtonsFn(stateName), args);
     } else {
       this.currentPlayerWasActive = false;
     }
-  }
-
-  slideAndAttach(elem: HTMLElement, newParent: HTMLElement, settings?: SlideAnimationSettings | undefined): Promise<any> {
-    if (elem.parentElement == newParent) {
-      return Promise.resolve();
-    }
-    return this.animationManager.slideAndAttach(elem, newParent, settings ?? {});
-  }
-
-  slideOutAndDestroy(elem?: HTMLElement | undefined,
-                     toElement?: HTMLElement | undefined,
-                     settings?: FloatingElementAnimationSettings | undefined): Promise<any> {
-    if (! elem) {
-      return Promise.resolve();
-    }
-    return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
-  }
-
-  delay(ms: number): Promise<any> {
-    return new Promise(res => setTimeout(res, ms));
-  }
-
-  async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-20px,20px)') : Promise<any> {
-    if (!this.bgaAnimationsActive()) {
-      return Promise.resolve(null);
-    }
-    const noflip = '';
-    const revflip = ' rotateY(-180deg)';
-    const fwdflip = ' rotateY(180deg)';
-
-    // Initial states: the back of the tile is not flipped but the front face is
-    back.style.transform = noflip;
-    front.style.transform = revflip;
-    const flipStyles = {
-      'backface-visibility': 'hidden',
-      transition: 'transform 0.5s',
-    };
-    Object.assign(back.style, flipStyles);
-    Object.assign(front.style, flipStyles);
-
-    await this.delay(1)
-        // First just "lift" the tile faces up. flips are same as initial
-        .then(_ => Promise.all([
-          this.animateTransform(front, lift + revflip),
-          this.animateTransform(back, lift + noflip),
-        ]))
-        // Now flip the front and back faces
-        .then(_ => Promise.all([
-          this.animateTransform(front, lift + noflip),
-          this.animateTransform(back, lift + fwdflip),
-        ]))
-        // Then return them, flipped, to original location and size
-        .then(_ => Promise.all([
-          this.animateTransform(front, noflip),
-          this.animateTransform(back, fwdflip),
-        ]))
-    }
-
-  transitionEndPromise(element: HTMLElement) : Promise<any> {
-    return new Promise(resolve => {
-        element.addEventListener('transitionend', function f(event) {
-            if (event.target !== element) return;
-            element.removeEventListener('transitionend', f);
-            resolve(null);
-        });
-    });
-  }
-
-  private requestAnimationFramePromise(): Promise<any> {
-      return new Promise(resolve => requestAnimationFrame(resolve));
-  }
-
-  animateTransform(element : HTMLElement, transform: string) {
-      Object.assign(element.style, { transform: transform });
-      return this.transitionEndPromise(element)
-      // .then(_ => requestAnimationFramePromise(element));
-  }
-
-  // utils
-  debugStateInfo(): any {
-    return "";
-    // return {
-    //   isCurrentPlayerActive: gameui.isCurrentPlayerActive(),
-    //   instantaneousMode: gameui.instantaneousMode,
-    //   replayMode: typeof g_replayFrom != 'undefined',
-    // };
   }
 
   /**
@@ -265,17 +175,11 @@ abstract class BaseGame<T extends Gamedatas> extends GameGui<T> {
     return (anythis[methodName]) ? methodName : undefined;
   }
 
-  // Returns the index of the given element among its parent's child elements
-  // Returns 0 if no parent.
+  /**
+  * Returns the index of the given element among its parent's child elements or -1 if no parent.
+  */
   protected indexInParent(el: Element): number {
-    const parentEl = el.parentElement;
-    if (!parentEl) { return 0; }
-    for (let i = 0; i < parentEl.childElementCount; ++i) {
-      if (el == parentEl.children[i]) {
-        return i;
-      }
-    }
-    throw new Error("element not found among its parent's children: ${el}");
+    return Array.from(el.parentElement?.children ?? []).findIndex(e => e == el);
   }
 
   protected async notif_debug(args: any) {
