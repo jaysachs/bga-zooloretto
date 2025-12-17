@@ -47,6 +47,17 @@ class ComputeScores extends AbstractState
     {
         $model = $this->createModel(0);
         $scoreDetailsByPlayerId = $model->computeScores(true);
+        foreach ($scoreDetailsByPlayerId as $pid => $scores) {
+            $this->game->stats->PLAYER_TOTALPOINTS->set($pid, $scores['total']);
+            $this->game->stats->PLAYER_STALLPOINTS->set($pid, $scores['stall_points']);
+            $this->game->stats->PLAYER_BARNPENALTY->set($pid, $scores['barn_stall_points'] + $scores['barn_animal_points']);
+            $this->game->stats->PLAYER_POINTSFORFULLENCLOSURES->set($pid, $scores['full_enclosure_points']);
+            $this->game->stats->PLAYER_POINTSFORNEARFULLENCLOSURES->set($pid, $scores['near_full_enclosure_points']);
+            $this->game->stats->PLAYER_POINTSFORINCOMPLETEENCLOSURES->set($pid, $scores['other_enclosure_points']);
+            $this->game->stats->PLAYER_FULLENCLOSURES->set($pid, $scores['full_enclosures']);
+            $this->game->stats->PLAYER_NEARFULLENCLOSURES->set($pid, $scores['near_full_enclosures']);
+            $this->game->stats->PLAYER_INCOMPLETEENCLOSURES->set($pid, $scores['other_enclosures']);
+        }
         // FIXME: include winner(s) in message?
         $this->notify->all('GameEnded', clienttranslate('Scoring completed'), [
             'endScores' => $scoreDetailsByPlayerId,

@@ -207,6 +207,7 @@ class Game extends \Bga\GameFramework\Table
 		Model::createNewGame(array_keys($players));
 
 		$this->activeNextPlayer();
+        $this->stats->TABLE_TURNS_NUMBER->inc();
         /** @phpstan-ignore return.void */
 		return PlayerTurn::class;
 	}

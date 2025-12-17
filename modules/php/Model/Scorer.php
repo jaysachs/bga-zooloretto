@@ -30,7 +30,7 @@ namespace Bga\Games\zooloretto\Model;
 class Scorer {
     /**
      * @param array<int,Enclosure> $encs
-     * @return array<string,int>
+     * @return array{'player_id':int,'money':int,'full_enclosures':int,'full_enclosure_points':int,'near_full_enclosures':int,'near_full_enclosure_points':int,'other_enclosures':int,'other_enclosure_points':int,'barn_stall_types':int,'barn_animal_types':int,'barn_stall_points':int,'barn_animal_points':int,'stall_points':int,'total':int}
      */
     public static function scoreForPlayer(Player $player, array $encs): array {
         $detail = [

@@ -59,7 +59,6 @@ class NextPlayer extends AbstractState
 				return PlayerTurn::class;
 			}
 		} while ($player_id != $initial_player_id);
-
 		return NextRound::class;
     }
 }

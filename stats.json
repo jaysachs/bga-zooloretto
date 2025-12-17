@@ -82,12 +82,12 @@
             "name": "Points for Enclosure 5 with Stalls",
             "type": "int"
         },
-        "stalls": {
+        "stallPoints": {
             "id": 25,
             "name": "Points for different Stalls",
             "type": "int"
         },
-        "leftinbarn": {
+        "barnPenalty": {
             "id": 26,
             "name": "Negative Points for Animals/Stalls left in Barn",
             "type": "int"
@@ -191,6 +191,36 @@
         "completionBonusCoins": {
             "id": 57,
             "name": "Coins gained from completion bonuses",
+            "type": "int"
+        },
+        "pointsForFullEnclosures": {
+            "id": 58,
+            "name": "Total points for completely full enclosures",
+            "type": "int"
+        },
+        "pointsForNearFullEnclosures": {
+            "id": 59,
+            "name": "Total points for nearly full enclosures",
+            "type": "int"
+        },
+        "pointsForIncompleteEnclosures": {
+            "id": 60,
+            "name": "Total points for incomplete enclosures with stalls",
+            "type": "int"
+        },
+        "fullEnclosures": {
+            "id": 61,
+            "name": "Number of completely full enclosures",
+            "type": "int"
+        },
+        "nearFullEnclosures": {
+            "id": 62,
+            "name": "Number of nearly full enclosures",
+            "type": "int"
+        },
+        "incompleteEnclosures": {
+            "id": 63,
+            "name": "Number of incomplete enclosures with stalls",
             "type": "int"
         }
     }

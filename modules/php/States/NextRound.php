@@ -61,6 +61,7 @@ class NextRound extends AbstractState
         if ($model->getStock()->inLastRound()) {
             return ComputeScores::class;
         }
+        $this->game->stats->TABLE_TURNS_NUMBER->inc();
         return PlayerTurn::class;
     }
 }
