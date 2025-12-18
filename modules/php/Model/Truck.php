@@ -96,17 +96,6 @@ class Truck {
         return $result;
     }
 
-    public function takeCoins(): int {
-        $amt = 0;
-        foreach ($this->tiles as $i => $tile) {
-            if ($tile->type == TileType::COIN) {
-                $amt++;
-                $this->tiles[$i] = Tile::empty();
-            }
-        }
-        return $amt;
-    }
-
     /** @return list<Tile> the tiles emptied. */
     public function dumpTiles(): array {
         if ($this->taken_by !== null) {
@@ -124,11 +113,11 @@ class Truck {
 
     public function returnTruck(): int {
         if ($this->taken_by === null) {
-            throw new ModelException("Cannot return a non-taken truck");
+            throw new ModelException("Cannot return a non-taken truck {$this}");
         }
         foreach ($this->tiles as $tile) {
             if (!$tile->isEmpty() && !$tile->type->isBlock()) {
-                throw new ModelException("Cannot return a non-empty truck");
+                throw new ModelException("Cannot return a non-empty truck {$this}");
             }
         }
         $pid = $this->taken_by;
@@ -158,13 +147,6 @@ class Truck {
         }
         return false;
     }
-
-    // public function tileAt(int $pos): Tile {
-    //     if ($pos <= 0 || $pos > self::CAPACITY) {
-    //         throw new ModelException("Cannot get tile in position $pos of truck");
-    //     }
-    //     return $this->tiles[$pos-1];
-    // }
 
     public function removeTileAt(int $pos): Tile {
         if ($pos <= 0 || $pos > self::CAPACITY) {
@@ -212,7 +194,7 @@ class Truck {
 
     public function __toString(): string
     {
-        return "Truck(id=$this->id,tiles=" . Utils::arrayToString($this->tiles) . ")";
+        return "Truck(id={$this->id},taken_by={$this->taken_by},tiles=" . Utils::arrayToString($this->tiles) . ")";
     }
 
     public static function translated(int $truck_id): string {

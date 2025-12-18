@@ -33,12 +33,14 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
+use Bga\Games\zooloretto\Model\Destination;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Truck;
 
 class PlayerTurn extends AbstractState
@@ -95,22 +97,23 @@ class PlayerTurn extends AbstractState
 		];
 	}
 
-	/** @param list<array<string,int>> $placed_tiles */
+	/** @param list<array<string,int>> $delivery_requests */
 	#[PossibleAction]
-	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $placed_tiles): mixed {
+	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $delivery_requests): mixed {
         $model = $this->createModel($active_player_id);
 
-		$pts = [];
-		foreach ($placed_tiles as $pt) {
-			$pts[$pt['truck_pos']] =
-				new Space(intval($pt['enclosure_id']),
-						  intval($pt['enclosure_pos']));
-		}
+		$drs = array_map(
+			fn ($dr) => [
+				'truck_pos' => intval($dr['truck_pos']),
+				'space' => new Space(intval($dr['enclosure_id']), intval($dr['enclosure_pos'])),
+			],
+			$delivery_requests
+		);
 
 		// FIXME: need to rework what we get back here. At a minimum, each delivery should say
 		//   whether it completed an enclosure and what that bonus was.
 		/** @var list<Delivery> */
-		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $pts);
+		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $drs);
 		// FIXME: give more details about placements in log
 
 		$this->notify->all('SelectTruck', '${player_name} selected ${truck}', [

@@ -145,6 +145,7 @@ interface PlayState {
 // notif_TakeTruckAndPlaceTiles
 
 interface Delivery {
+  truck_pos: number;
   tile: Tile;
   dest: {
     space: Space;
@@ -390,7 +391,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,
-          placed_tiles: JSON.stringify(this.placedTiles),
+          delivery_requests: JSON.stringify(this.placedTiles),
         }
       );
     }

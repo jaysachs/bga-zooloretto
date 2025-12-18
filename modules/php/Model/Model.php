@@ -177,11 +177,13 @@ class Model {
     }
 
     /**
-     * @param array<int,Space> $spaces keyed by truck position
+     * FIXME: consider input as just a list of tile ID + space pairs, instead of truck pos.
+     *
+     *  @param list<array{truck_pos:int,space:Space}> $in_deliveries should not have coins
      *
      * @return list<Delivery>
     */
-    public function takeTruckAndPlaceTiles(int $truck_id, array $spaces): array {
+    public function takeTruckAndPlaceTiles(int $truck_id, array $in_deliveries): array {
         $truck = $this->getTruck($truck_id);
         if ($truck->taken_by > 0) {
             throw new ModelException("Truck {$truck_id} already taken by player {$truck->taken_by}");
@@ -190,54 +192,52 @@ class Model {
         $barn = $encs[0];
         $toUpdate = [];
         $player = $this->getActivePlayer();
-        $deliveries = [];
+        /** @var array<int,Delivery> */
+        $result = [];
 
-        foreach ($truck->getAllTiles() as $truck_pos => $tile) {
-            if ($tile->isEmpty() || $tile->type->isBlock()) {
-                continue;
-            }
+        // first handle coins, which should not be part of delivery_requests
+        $coins = 0;
+        foreach ($truck->coinPositions() as $coin_pos) {
+            $tile = $truck->removeTileAt($coin_pos);
+            $result[$coin_pos] = new Delivery($coin_pos, $tile);
+            // assert tile is coin
+            $coins++;
+        }
 
-            if (!isset($spaces[$truck_pos])) {
-                if ($tile->type != TileType::COIN) {
-                    throw new ModelException("Unplaced non-coin {$tile->type->value} at position {$truck_pos} in truck {$truck_id}");
-                }
-                $deliveries[] = new Delivery($tile);
-                continue;
-            }
-
-            $space = $spaces[$truck_pos];
-            $encl = $encs[$space->enclosure_id];
-            $toUpdate[] = $encl;
+        foreach ($in_deliveries as $delivery) {
+            $truck_pos = $delivery['truck_pos'];
+            $space = $delivery['space'];
             $tile = $truck->removeTileAt($truck_pos);
+            // if we were passed in a tile id, we could verify, but we're not.
+            if ($tile->type == TileType::COIN) {
+                throw new ModelException("tile at {$truck_id}:{$truck_pos} is a coin but had a non-null destination {$space}");
+            } else {
+                $encl = $encs[$space->enclosure_id];
+                $toUpdate[] = $encl;
+                $placement = $encl->placeTile($tile);
+                if ($placement->completedEnclosure) {
+                    $this->payPlayer($player, $encl->coin_bonus);
+                }
+                $pos = $placement->space->pos;
+                if ($pos <> $space->pos) {
+                    throw new ModelException("put {$truck_id}:{truck_pos} into {$space->enclosure_id}:{$space->pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
+                }
+                $offspring = $encl->checkForOffspring($barn);
 
-            $placement = $encl->placeTile($tile);
-            if ($placement->completedEnclosure) {
-                $this->payPlayer($player, $encl->coin_bonus);
-            }
-            $pos = $placement->space->pos;
-            if ($pos <> $space->pos) {
-                // FIXME: this exception should be correct but it isn't.
-                throw new ModelException("put {$truck_id}:{$truck_pos} into {$placement->space->enclosure_id}:{$placement->space->pos} but it went in {$pos}");
-                // $space->pos = $pos;
-            }
-            $offspring = $encl->checkForOffspring($barn);
+                $result[$truck_pos] = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
+                if ($offspring) {
+                    $this->saveOffspring($offspring);
+                    $toUpdate[] = $barn;
+                    // FIXME: check fo completion bonus
 
-            $deliveries[] = new Delivery($tile, new Destination($space, $offspring));
-            if ($offspring) {
-                $this->saveOffspring($offspring);
-                $toUpdate[] = $barn;
-                // FIXME: check fo completion bonus
-
-                // FIXME: return info on new child -- add to return value
+                    // FIXME: return info on new child -- add to return value
+                }
             }
         }
-        $player = $this->getActivePlayer();
+
         $player->takeTruck($truck_id);
 
-        $truck = $this->getTruck($truck_id);
-        $amt = $truck->takeCoins();
-
-        $player->receiveMoney($amt);
+        $player->receiveMoney($coins);
         $this->ps->updatePlayer($player);
 
         $truck->taken_by = $this->player_id;
@@ -245,7 +245,8 @@ class Model {
 
         $this->ps->updateEnclosures($this->player_id, $toUpdate);
 
-        return $deliveries;
+        // ensure sorted by position
+        return array_values($result);
     }
 
     private function getPossiblePlacement(Truck $truck): PossiblePlacement {
