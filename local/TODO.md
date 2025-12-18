@@ -29,7 +29,8 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 
 * UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
 
-*Bug: after placing an animal that generates an offspring, the active player sees the parent flash again.
+* Bug: after placing an animal that generates an offspring, the active player sees the parent flash again.
+
 * Bug: need to process deliveries in the order they were presented, and *return them in that order with the coins happening up front (or at end, or interspersed)*
 
 * Bug: there are cases where (I think in move tile) that selected/selectable/onclick are not getting properly reset.
