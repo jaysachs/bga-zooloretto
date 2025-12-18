@@ -741,6 +741,11 @@ th.bga-score-sheet_player-name {
     height: auto !important;
 }
 
+
+/*
+ * Icons in log
+ */
+
 .log [zoo-tile] {
     height: 2.0em;
     width: auto;
