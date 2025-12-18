@@ -25,20 +25,20 @@ class Animations {
         return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
     }
 
-    async flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2) {
-        let on = async () => {
+    flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {
+        let on = () => {
             elems.forEach(e => e?.classList.add(css));
-            await this.wait(250);
+            return this.wait(250);
         }
-        let off = async () => {
+        let off =  () => {
             elems.forEach(e => e?.classList.remove(css));
-            await this.wait(250);
+            return this.wait(250);
         }
         let anims: AnimationList = [];
         for (let i = 0; i < iterations; ++i) {
             anims.push(on, off);
         }
-        this.animationManager.playSequentially(anims);
+        return this.animationManager.playSequentially(anims);
     }
 
 

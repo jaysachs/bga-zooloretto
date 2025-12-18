@@ -504,8 +504,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super(bga, []);
   }
 
-  async flashParents(offspring: Offspring) {
-    this.animations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
+  flashParents(offspring: Offspring) : Promise<any> {
+    return this.animations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile) {
