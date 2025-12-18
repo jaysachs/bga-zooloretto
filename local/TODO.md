@@ -27,6 +27,13 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 
 * UX: add "undo" to go back a step?
 
+* UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
+
+*Bug: after placing an animal that generates an offspring, the active player sees the parent flash again.
+* Bug: need to process deliveries in the order they were presented, and *return them in that order with the coins happening up front (or at end, or interspersed)*
+
+* Bug: there are cases where (I think in move tile) that selected/selectable/onclick are not getting properly reset.
+
 * UX questions:
   * Feedback on colors for highlighting
   * Put trucks & stock at top instead of right? for mobile, yes.
@@ -37,7 +44,7 @@ Bugs / to test:
     * caused because end up with flipping front/back spans still existing!
   * Need to test offspring on exchanges
   * Need to test offspring "overflowing" into barn
-
+  * Undo a placement that generates offspring doesn't "go back" far enough. Refrehs fixes it.
 
 Bugs:
   * Need to notify offspring and completion bonus(es) when taketruckplacetiles.
