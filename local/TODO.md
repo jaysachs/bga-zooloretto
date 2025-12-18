@@ -10,8 +10,6 @@
 
 * Rework model objects
 
-* Use "Enclosure 1", "Enclosure 2", ..., "Barn", "truck 1", truck 2", ... as translatable strings?
-
 * Find bugs -- add "debug_" methods to help set up situations?
  * could add new tiles with this so don't have to fish through stock.
 
@@ -35,34 +33,26 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
   * Modal player aid?
 
 Bugs / to test:
-  * first draw from endgame pile notif not handled right on on-triggering player
   * visual bug in barn -- 2nd (or last?) tile placed there has elongated height.
     * caused because end up with flipping front/back spans still existing!
   * Need to test offspring on exchanges
   * Need to test offspring "overflowing" into barn
 
-* Statistics
-  * Points for completed enclosures
-  * Points for near-complete enclosures
-  * Points for incomplete enclosures with stalls
-  * Points for different stalls
-  * Penalty for animals left in barn
-  * Penalty for stalls left in barn (combine with prev?)
-  * Offspring generated
-  * Offspring generated into barn
-  * Offspring generated that completed an enclosure (worth tracking?)
-  * Tiles purchased
-  * Tiles sold
-  * Number of exchange actions
-  * Number of exchange actions with barn
-  * Number of discarded tiles
-  * Number of moved stalls (not from barn)
-  * Number of moved animals
-  * Number of moved stalls from barn
-  * Number of expansions purchased
-  * Number of tiles drawn
-  * Number of trucks taken
-  * Number of tiles taken from trucks
-  * Number of tiles taken from truck into barn
-  * Number of coin tiles acquired
-  * Coins gained from completion bonuses
+
+Bugs:
+  * Need to notify offspring and completion bonus(es) when taketruckplacetiles.
+
+Improvements:
+  * When only one action just do it (?)
+    * if only one option for each of remaining truck tiles, place them
+    * if only one option for drawn tile, put it in that truck space
+    * if only one option for tile to move, pre-select it
+    * if only one option for moved to to go, move it
+    * if only one option to exchange enclosures, exchange them
+    * if only one option to purchase a tile, purchase it
+    * if only one option for a purchased tile to go, put it there
+    * etc etc
+    * Maybe don't do this if no confirmation stage, though.
+  * Consider clicking on the stock pile as a "Draw"
+  * Consider clicking on a truck space as a "select truck and tile"
+  * Consider clicking on any space in an enclosure as "that's the destination"
