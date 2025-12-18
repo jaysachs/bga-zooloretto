@@ -29,8 +29,6 @@ namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Tile;
-use Bga\Games\zooloretto\Model\Truck;
 
 class NextRound extends AbstractState
 {

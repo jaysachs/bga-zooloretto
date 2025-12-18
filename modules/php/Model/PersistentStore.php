@@ -27,10 +27,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-use \Bga\GameFramework\Db\Globals;
-use \Bga\GameFramework\Table;
-
-
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
   mutations should not be made directly on those objects.
