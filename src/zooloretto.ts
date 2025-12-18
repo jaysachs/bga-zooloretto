@@ -728,9 +728,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     if (args.drawn_from_endgame_pile && disk) {
       await this.animations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
         .then(() => {
-          // FIXME: want to use renderTileDraw or similar
-          $(IDS.ENDGAME_PILE_TILES).appendChild(this.makeTileSpan(args.tile));
-          (this as any).addLastTurnBanner(_('This is the last round!'));
+          this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
         });
     }
     await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
