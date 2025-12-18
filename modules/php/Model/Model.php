@@ -235,12 +235,11 @@ class Model {
             }
         }
 
-        $player->takeTruck($truck_id);
+        $player->takeTruck($truck);
 
         $player->receiveMoney($coins);
         $this->ps->updatePlayer($player);
 
-        $truck->taken_by = $this->player_id;
         $this->ps->updateTruck($truck);
 
         $this->ps->updateEnclosures($this->player_id, $toUpdate);

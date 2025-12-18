@@ -39,7 +39,7 @@ class Truck {
     public function __construct(
         public readonly int $id,
         ?array $tiles = null,
-        public ?int $taken_by = null) {
+        public private(set) ?int $taken_by = null) {
         if ($this->taken_by === 0) {
             $this->taken_by = null;
         }

@@ -65,11 +65,12 @@ class Player {
         return $t;
     }
 
-    public function takeTruck(int $truck_id): void {
+    public function takeTruck(Truck $truck): void {
         if ($this->truck_taken) {
             throw new ModelException("Truck already taken by player $this->id");
         }
-        $this->truck_taken = $truck_id;
+        $this->truck_taken = $truck->id;
+        $truck->setTakenBy($this->id);
     }
 
     public function receiveMoney(int $amount): void {
