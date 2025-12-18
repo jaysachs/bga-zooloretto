@@ -31,8 +31,8 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Stats;
 use Bga\Games\zooloretto\Model\AvailableTruck;
+use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
@@ -109,27 +109,42 @@ class PlayerTurn extends AbstractState
 
 		// FIXME: need to rework what we get back here. At a minimum, each delivery should say
 		//   whether it completed an enclosure and what that bonus was.
+		/** @var list<Delivery> */
 		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $pts);
 		// FIXME: give more details about placements in log
-		$this->notify->all('TakeTruckAndPlaceTiles', '${player_name} took ${truck}', [
+
+		$this->notify->all('SelectTruck', '${player_name} selected ${truck}', [
 			'player_id' => $active_player_id,
 			'truck_id' => $truck_id,
 			'truck' => Truck::translated($truck_id),
-			'deliveries' => array_map(fn ($d) => $d->serialize(), $deliveries),
-			'moneys' => $model->currentMoneys()->serialize(),
 			'i18n' => [
 				'truck',
 			]
 		]);
 
-		$coins = 0;
+		// Send individual notifs for each tile
 		foreach ($deliveries as $del) {
-			if ($del->dest !== null) {
+			if ($del->dest === null) {
+				// coins
+				$this->notify->all('PlaceTruckTile', '${player_name} gained a ${tile_type}',[
+				    'player_id' => $active_player_id,
+					'truck_id' => $truck_id,
+					'delivery' => $del->serialize(),
+					'tile_type' => $del->tile->type->value,
+					'tile_description' => $del->tile->type->translated(),
+					'i18n' => [
+						'tile_description',
+					]
+				]);
+				$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id);
+			}
+			else {
 				$this->notify->all('PlaceTruckTile', '${player_name} placed ${tile_type} into ${enclosure}',[
 				    'player_id' => $active_player_id,
 					'truck_id' => $truck_id,
 					'tile_type' => $del->tile->type->value,
 					'tile_description' => $del->tile->type->translated(),
+					'delivery' => $del->serialize(),
 					'enclosure' => Enclosure::translated($del->dest->space->enclosure_id),
 					'enclosure_id' => $del->dest->space->enclosure_id,
 					'i18n' => [
@@ -152,19 +167,16 @@ class PlayerTurn extends AbstractState
 				// 		'coins' => $del->dest->moneyDelta->players[$active_player_id],
 				// 	]);
 				// }
-			} else {
-				$coins++;
 			}
 		}
 		// FIXME: probably want a specific moneyDelta for the completion bonus
-		if ($coins > 0) {
-			$this->notify->all('PlaceTruckCoins', '${player_name} gained ${coins}', [
-			  'player_id' => $active_player_id,
-			  'truck_id' => $truck_id,
-			  'coins' => $coins,
-			]);
-			$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id, $coins);
-		}
+
+		$this->notify->all("TakeTruck", "", [
+			'player_id' => $active_player_id,
+			'truck_id' => $truck_id,
+			'moneys' => $model->currentMoneys()->serialize(),
+		]);
+
 		return NextPlayer::class;
 	}
 

@@ -780,45 +780,49 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoneys(args.moneys);
   }
 
-  private async notif_TakeTruckAndPlaceTiles(args: {
+  private async notif_PlaceTruckTile(args: {
+      player_id: number,
+      truck_id: number,
+      delivery: Delivery,
+  }) {
+    let dest = args.delivery.dest;
+    if (!dest) {
+      // coin
+      await this.animations.slideOutAndDestroy(
+        Elements.tile(args.delivery.tile),
+          this.bga.playerPanels.getElement(args.player_id),
+          {}
+        ).then(() => this.addMoney(args.player_id, 1));
+    }
+    else {
+      let anims : AnimationList = [];
+      anims.push(() => this.animations.slideAndAttach(
+        Elements.tile(args.delivery.tile)!,
+        Elements.enclosureSpace(args.player_id, dest.space))
+      );
+      if (dest.offspring) {
+        let offspring = dest.offspring!;
+        anims.push(() => this.flashParents(offspring));
+        anims.push(() => {
+          let elem = this.makeTileSpan(offspring.placed_tile.tile);
+          let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+          parent.appendChild(elem);
+          return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+        });
+      }
+      await this.animationManager.playSequentially(anims);
+    }
+  }
+
+  private async notif_TakeTruck(args: {
     player_id: number,
     truck_id: number,
     moneys: Moneys,
-    deliveries: Delivery[]
   }) {
-    let anims : AnimationList = [];
-    args.deliveries.forEach(delivery => {
-      let dest = delivery.dest;
-      if (!dest) {
-        // FIXME: if (dest.tile.type != 'Coin') log error ...
-        anims.push(() => this.animations.slideOutAndDestroy(
-          Elements.tile(delivery.tile),
-          this.getPlayerPanelElement(args.player_id),
-          {}
-        ).then(() => this.addMoney(args.player_id, 1)));
-      } else {
-        anims.push(() => this.animations.slideAndAttach(
-          Elements.tile(delivery.tile)!,
-          Elements.enclosureSpace(args.player_id, dest.space))
-        );
-        if (dest.offspring) {
-          let offspring = dest.offspring!;
-          anims.push(() => this.flashParents(offspring));
-          anims.push(() => {
-            let elem = this.makeTileSpan(offspring.placed_tile.tile);
-            let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
-            parent.appendChild(elem);
-            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-          });
-        }
-      }
-    });
-    anims.push(() => this.animations.slideAndAttach(
+    await this.animations.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
-      ));
-    await this.animationManager.playSequentially(anims)
-      .then(() => this.updateMoneys(args.moneys));
+      ).then(() => this.updateMoneys(args.moneys));
   }
 
   private async notif_MoveTile(args: {
