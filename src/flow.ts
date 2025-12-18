@@ -132,6 +132,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   }
 
   protected clearMarked() {
+    // FIXME: should this just clear them everywhere?
     this.marked.forEach(e => e.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED, CSS.PARENT));
   }
 

@@ -400,7 +400,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       pps.forEach((pp: PossiblePlacement) => {
         let elem = Elements.truckSpace(truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, () => {
-          elem.classList.add(CSS.SELECTED);
+          this.markSelected(elem);
           this.chooseDestination(truck_id, pp, availableTrucks);
         });
       });
@@ -413,7 +413,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     this.addRestartTurnButton();
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
       let encElem = Elements.enclosureSpace(this.player_id, pep.space);
-      encElem.classList.add(CSS.TARGETABLE);
+      this.markTargetable(encElem);
       this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
@@ -481,8 +481,9 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
-            destElem.classList.remove(CSS.SELECTED);
+            // FIXME: is this line needed?
             destElem.classList.add(CSS.MOVED);
+            this.markMoved(destElem);
             this.confirmMove(pm.src, dest);
           })
       )
