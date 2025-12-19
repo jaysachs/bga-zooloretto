@@ -421,7 +421,7 @@ class Model {
         return $result;
     }
 
-    /** @return array{tile: Tile, offspring: Offspring|null, enclosureBonus: int|null} */
+    /** @return array{placed_tile: PlacedTile, offspring: Offspring|null, enclosureBonus: int|null} */
     public function moveTile(Space $src, Space $dest): array {
         $found = false;
         foreach ($this->getPossibleMoves() as $pm) {
@@ -458,7 +458,7 @@ class Model {
         }
 
         $this->ps->updateEnclosures($this->player_id, $encs);
-        return [ 'tile' => $tile, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
+        return [ 'placed_tile' => $placement, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
     }
 
     /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosure_bonus: int|null} */

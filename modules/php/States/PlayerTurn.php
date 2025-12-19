@@ -33,14 +33,13 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
-use Bga\Games\zooloretto\Model\Destination;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
+use Bga\Games\zooloretto\Model\PlacedTile;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
-use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\Truck;
 
 class PlayerTurn extends AbstractState
@@ -159,7 +158,7 @@ class PlayerTurn extends AbstractState
 				if ($del->dest->space->enclosure_id == 0) {
     				$this->game->stats->PLAYER_TILESTAKEFROMTRUCKSINTOBARN->inc($active_player_id);
 				}
-
+				$this->notifyOffspring($active_player_id, $del->dest->offspring);
 				// FIXME: Destination (or Delivery?) should have completedEnclosure
 				//    also should have specific moneyDelta for that
 				// if ($del->dest->completedEnclosure) {
@@ -237,7 +236,8 @@ class PlayerTurn extends AbstractState
         $model = $this->createModel($active_player_id);
 		$dest = new Space($dest_id, $dest_pos);
 		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
-		$tile = $result['tile'];
+		$placed_tile = $result['placed_tile'];
+		$tile = $placed_tile->tile;
 		$this->notify->all(
 			"MoveTile",
 			// FIXME: need to handle barn ...
@@ -365,7 +365,7 @@ class PlayerTurn extends AbstractState
 	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
 		if ($offspring !== null) {
 			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
-			$this->notify->all('PurchaseTileOffspring', '${player_name} produced an offspring ${tile_type}',[
+			$this->notify->all('Offspring', '${player_name} produced an offspring ${tile_type}',[
 				'player_id' => $active_player_id,
 				'offspring' => $offspring->serialize(),
 				'tile_type' => $offspring->child->tile->type->value,
@@ -374,6 +374,10 @@ class PlayerTurn extends AbstractState
 					'tile_description',
 				]
 			]);
+			$m = $offspring->child->money_delta;
+			if ($m) {
+				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
+			}
 		}
 	}
 
