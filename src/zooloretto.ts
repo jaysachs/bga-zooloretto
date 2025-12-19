@@ -174,13 +174,15 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
   }
 
   protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
-    console.log("offspringSlide", offspring);
     if (offspring) {
-      let offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
-      // FIXME: why needed?
-      offspringElem.style.transform = 'rotate(0deg)';
-      return this.game.flashParents(offspring)
-        .then(() => this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space)));
+      // if it's already on-screen, skip animation.
+      if (!$(IDS.tile(offspring.placed_tile.tile))) {
+        let offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
+        // FIXME: why needed?
+        offspringElem.style.transform = 'rotate(0deg)';
+        return this.game.flashParents(offspring)
+          .then(() => this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space)));
+      }
     }
     return Promise.resolve();
   }
