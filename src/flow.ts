@@ -1,71 +1,70 @@
-type Continuation = {
+type Op = () => Promise<any>;
+
+interface NamedOp {
   desc: string;
-  thing: () => Promise<any>;
+  op: Op;
+}
+
+type Continuation = {
+  op: NamedOp;
   mark: number;
 }
 
+type OpList = Op[];
+
 class UndoStack {
-    private ops: { description: string, anim: ((() => Promise<any>) | (() => any))}[] = [];
+    private ops: NamedOp[] = [];
     private continuations: Continuation[] = [];
     private current: Continuation | undefined;
-    private consumer: (AnimationList) => any;
-    constructor(consumer: (AnimationList) => any) {
+    private consumer: (OpList) => any;
+    constructor(consumer: (OpList) => any) {
       this.consumer = consumer;
     }
 
     private async undoTo(mark: number) {
-      let anims: AnimationList = [];
+      let anims: OpList = [];
       while (this.ops.length > mark) {
-        let da = this.ops.pop()!
-        anims.push(da.anim);
+        anims.push(this.ops.pop()!.op);
       }
-      // while (this.continuations.pop()?.mark! > this.ops.length) { }
       await this.consumer(anims);
     }
 
-    push(description: string, anim: (() => Promise<any>) | (() => any)): void {
-      this.ops.push({description: description, anim: anim});
+    private remove(x: Continuation) {
+      // FIXME: can change to allow "jump" undos
+      this.current = this.continuations.pop();
+      if (this.current !== x) {
+        console.error("Undo remove expected top of ", x, "but found", this.current);
+      }
     }
 
-    undo() : (() => Promise<any>) | undefined {
+    pushOp(op : NamedOp): void {
+      this.ops.push(op);
+    }
+
+    undo() : Op | undefined {
       let x = this.continuations.at(-1);
       if (x) {
-        console.log("found undo to ", x);
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
-        return async () => { console.log("undoing", x); this.remove(x); this.undoTo(x.mark).then(() => x.thing()) };
+        return async () => { this.remove(x); this.undoTo(x.mark).then(() => x.op.op()) };
       } else {
         console.error("Nowhere to undo to!");
         return undefined;
       }
     }
 
-    private remove(x: {desc: string, thing: () => Promise<any>; mark: number}) {
-      // FIXME: can change to allow "jump" undos.
-      // FIXME: verify x is at the top
-      this.current = this.continuations.pop();
-      // let i = this.continuations.indexOf(x);
-      // if (i > 0) {
-      //   // this.continuations = this.continuations.slice(0, i);
-      // }
-    }
-
-    async callUndoably(desc: string, thing: () => Promise<any>) {
-      console.log("callUndably", desc, this.current);
+    async callUndoably(desc: string, thing: Op) {
       if (this.current !== undefined) {
-        console.log("pushing", this.current);
         this.continuations.push(this.current);
-        console.log("now have", this.continuations);
-      } else {
-        console.log("current undefined");
       }
-      this.current = {desc: desc, mark: this.ops.length, thing: thing};
-      console.log("setting", this.current);
+      this.current = {op: { desc: desc, op: thing }, mark: this.ops.length};
       await thing();
     }
 
-    async rollback()  {
+    async reset()  {
       this.undoTo(0);
+      this.current = undefined;
+      this.continuations = [];
     }
 }
 
@@ -81,8 +80,8 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.player_id = g.player_id;
   }
 
-  protected pushUndoAnim(desc: string, anim: (() => Promise<any>) | (() => any)): void {
-    this.undoStack.push(desc, anim );
+  protected pushUndoOp(desc: string, anim: Op): void {
+    this.undoStack.pushOp({ desc: desc, op: anim });
   }
 
   start(args?: T) {
@@ -97,7 +96,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   protected abstract doStart(args?: T);
 
-  protected async playParallel(anims: AnimationList) {
+  protected async playParallel(anims: OpList) {
     await this.game.animationManager.playParallel(anims);
   }
 
@@ -111,13 +110,13 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   protected async slide(elem: HTMLElement, newParent: HTMLElement) {
     let currParent = elem.parentElement as HTMLElement;
-    this.pushUndoAnim(`slide:${this.strElem(elem)}`, () => this.game.animationManager.slideAndAttach(elem, currParent, {}));
+    this.pushUndoOp(`slide:${this.strElem(elem)}`, () => this.game.animationManager.slideAndAttach(elem, currParent, {}));
     await this.game.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
   }
 
   protected async slideIn(elem: HTMLElement, newParent: HTMLElement) {
-    this.pushUndoAnim(`sideIn:$${this.strElem(elem)}`, () => this.game.animationManager.slideOutAndDestroy(elem, $(IDS.OFF_BOARD), {}));
+    this.pushUndoOp(`sideIn:$${this.strElem(elem)}`, () => this.game.animationManager.slideOutAndDestroy(elem, $(IDS.OFF_BOARD), {}));
     newParent.appendChild(elem);
     await this.game.animationManager.slideIn(elem, $(IDS.OFF_BOARD), { });
   }
@@ -125,7 +124,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {
     let backup = elem.cloneNode() as HTMLElement;
     let parent = elem.parentElement as HTMLElement;
-    this.pushUndoAnim(`slideOutAndDestroy:${this.strElem(elem)}`, async () => {
+    this.pushUndoOp(`slideOutAndDestroy:${this.strElem(elem)}`, async () => {
       parent.appendChild(backup);
       await this.game.animationManager.slideIn(backup, toElem, {});
     });
@@ -137,7 +136,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.inUndo = true;
     this.onClickAbortController.abort();
     this.onClickAbortController = new AbortController();
-    await this.undoStack.rollback().then(() => {
+    await this.undoStack.reset().then(() => {
       this.inUndo = false;
     });
   }
@@ -179,7 +178,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     let undoReturn = this.undoStack.undo();
     if (undoReturn) {
       this.game.bga.statusBar.addActionButton(_('Undo'),
-        async () => { console.log("in undo"); this.clearOnclicks(); await undoReturn() },
+        async () => { this.clearOnclicks(); await undoReturn() },
         { color: "secondary"});
     }
   }
@@ -187,7 +186,6 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   private clearOnclicks(): void {
     this.onClickAbortController.abort();
     this.onClickAbortController = new AbortController();
-    // console.log("clearOnclicksDone", this.undoStack);
   }
 
   private marked: HTMLElement[] = [];
@@ -199,7 +197,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.marked.push(elem);
     let c = elem.className;
     elem.classList.add(classToAdd);
-    this.pushUndoAnim(`markClass:${classToAdd}:${c} ${this.strElem(elem)}`, () => elem.className = c);
+    this.pushUndoOp(`markClass:${classToAdd}:${c} ${this.strElem(elem)}`, async () => elem.className = c);
   }
 
   protected markSelected(elem: HTMLElement | undefined) {
@@ -221,16 +219,17 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   private inUndo: boolean = false;
 
   private clearMarked() {
-    // console.log("clearMarked", this);
     while (this.marked.length > 0) {
       let elem = this.marked.pop()!;
       if (!this.inUndo) {
         let c = elem.className;
-        this.undoStack.push(`clearMarkedNotUndo:${this.strElem(elem)}:[${c}]`, () => elem.className = c);
+        this.undoStack.pushOp({
+          desc: `clearMarkedNotUndo:${this.strElem(elem)}:[${c}]`,
+          op: async () => { elem.className = c }
+        })
       }
       elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED, CSS.PARENT);
     }
-    // console.log("clearMarkedDone", this);
   }
 
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
@@ -238,7 +237,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     elem.addEventListener(
       "click",
       async (ev: MouseEvent) => {
-        console.log(`clicked on ${this.strElem(elem)}`);
+        console.debug(`clicked on ${this.strElem(elem)}`);
         this.clearOnclicks();
         this.clearMarked();
         this.markSelected(elem);

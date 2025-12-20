@@ -169,7 +169,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     if (! moneyDelta) {
       return;
     }
-    this.pushUndoAnim('updateMoneyDelta', () => this.game.updateMoneyDelta(this.negate(moneyDelta)));
+    this.pushUndoOp('updateMoneyDelta', async () => this.game.updateMoneyDelta(this.negate(moneyDelta)));
     this.game.updateMoneyDelta(moneyDelta);
   }
 
@@ -313,7 +313,7 @@ class ExpandZooFlow extends ZooFlow {
     this.initStatusBar(_('Expand zoo?'));
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
-    this.pushUndoAnim('expandZoo', () => this.game.renderExtensions(this.player_id, current));
+    this.pushUndoOp('expandZoo', async () => this.game.renderExtensions(this.player_id, current));
     this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
 };
@@ -504,40 +504,39 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
 class MainFlow extends ZooFlow<PlayState> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  private alwaysOfferAllButtons: boolean = false;
   protected override doStart(playState: PlayState) {
     this.initStatusBar(_("You must take an action"));
-    if (this.alwaysOfferAllButtons || playState.can_draw) {
+    if (playState.can_draw) {
       this.game.bga.statusBar.addActionButton(_('Draw tile'),
         () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround),
         { disabled: !playState.can_draw });
     }
-    if (this.alwaysOfferAllButtons || playState.available_trucks.length > 0) {
+    if (playState.available_trucks.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Take truck'),
         () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks),
         { disabled: playState.available_trucks.length == 0});
     }
-    if (this.alwaysOfferAllButtons || playState.possible_moves.length > 0) {
+    if (playState.possible_moves.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Move tile'),
         () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves),
         { disabled: playState.possible_moves.length == 0});
     }
-    if (this.alwaysOfferAllButtons || playState.possible_exchanges.length > 0) {
+    if (playState.possible_exchanges.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Exchange animals'),
         () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges),
         { disabled: playState.possible_exchanges.length == 0});
     }
-    if (this.alwaysOfferAllButtons || playState.possible_purchases.length > 0) {
+    if (playState.possible_purchases.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Purchase tile'),
         () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases),
         { disabled: playState.possible_purchases.length == 0 });
     }
-    if (this.alwaysOfferAllButtons || playState.possible_discards.length > 0) {
+    if (playState.possible_discards.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Discard tile'),
         () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards),
         { disabled: playState.possible_discards.length == 0 });
     }
-    if (this.alwaysOfferAllButtons || playState.can_expand) {
+    if (playState.can_expand) {
       this.game.bga.statusBar.addActionButton(_('Expand zoo'),
         () => new ExpandZooFlow(this.game, this.undoStack).start(),
         { disabled: !playState.can_expand} );
@@ -699,6 +698,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
+  // FIXME: consider making async to permit animations
   private updateMoneys(moneys: Moneys): void {
     this.bankCounter.toValue(moneys.bank);
     Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
@@ -708,6 +708,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.moneyCounter[player_id]!.incValue(delta);
   }
 
+  // FIXME: consider making this async to allow for animation
   renderExtensions(player_id : number, extensions: number): void {
     let elem = $(IDS.boardId(player_id));
     elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
