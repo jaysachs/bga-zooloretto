@@ -42,6 +42,9 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
   // keyed by player_id
   enclosures: EnclosureContents[][];
   endScores: any;
+
+  // name is translated/able
+  tile_translations: { type: string, name: string }[];
 }
 
 //
@@ -332,23 +335,31 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(args: PlaceDrawnTileArgs) {
-    console.log("starting PlaceDrawnTile flow", args);
-    this.initStatusBar(_('Place the drawn tile'));
+    this.initStatusBar(_('Place ${tile_type} in an available truck'),
+        { tile_type: args.tile.type,
+          tile_description: this.game.tileTranslations.get(args.tile.type) });
     let elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
-          () => this.placeDrawnTile(elem, args.tile, truckLoc)));
+          () =>
+              this.callUndoably("chooseTiletoPlace",
+                () => this.placeDrawnTile(elem, args.tile, truckLoc))));
   }
 
-  private placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
+  private async placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
     this.slide(tileElem, space).then(() => this.confirmPlaceDrawnTile(tile, truckLoc));
   }
 
   private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
-    this.initStatusBar(_('Place tile ${tile} in truck ${truck_id} space ${truck_pos}?'),
-        { tile: tile.type, truck_id: tl.truck_id, truck_pos: tl.truck_pos });
+    this.game.gamedatas.tile_translations;
+    console.log(this.game.tileTranslations);
+    this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
+        { tile_type: tile.type,
+          tile_description: this.game.tileTranslations.get(tile.type),
+          truck_id: tl.truck_id });
+    // FIXME: restart doesn't re-highlight the truck spaces.
     this.addConfirmAndRestartActionButtons('actPlaceDrawnTileInTruck', tl);
   }
 };
@@ -671,6 +682,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.renderEnclosures();
   }
 
+  tileTranslations = new Map<string, string>();;
+  private setupTranslations(): void {
+    this.gamedatas.tile_translations.forEach(v => this.tileTranslations.set(v.type, v.name));
+  }
+
   override setup(gamedatas: ZGamedatas) {
     super.setup(gamedatas);
     this.animations = new Animations(this.animationManager);
@@ -678,6 +694,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.setupHtml(twoPlayer);
     this.setupNotifications();
     this.setupScoreSheet();
+    this.setupTranslations();
     if (gamedatas.lastround) {
       (this as any).addLastTurnBanner(_('This is the last round!'));
     }

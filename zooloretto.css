@@ -746,7 +746,8 @@ th.bga-score-sheet_player-name {
  * Icons in log
  */
 
-.log [zoo-tile] {
+.log [zoo-tile],
+#pagemaintitletext [zoo-tile] {
     height: 2.0em;
     width: auto;
     aspect-ratio: 1;
