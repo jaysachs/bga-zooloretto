@@ -169,7 +169,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     if (! moneyDelta) {
       return;
     }
-    this.pushUndoAnim(() => this.game.updateMoneyDelta(this.negate(moneyDelta)));
+    this.pushUndoAnim('updateMoneyDelta', () => this.game.updateMoneyDelta(this.negate(moneyDelta)));
     this.game.updateMoneyDelta(moneyDelta);
   }
 
@@ -190,7 +190,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
-  constructor(g: ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   protected override doStart(possible_exchanges: PossibleExchange[]) {
     let exchangesBySrc : PossibleExchange[][] = [];
@@ -213,7 +213,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         }
       })
     });
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
@@ -246,7 +246,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         )
       )
     );
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
   }
 
   private confirmExchange(pe: PossibleExchange) {
@@ -261,7 +261,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 }
 
 class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
@@ -271,7 +271,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
           () => this.selectDestinationForPurchase(pp)
         );
       });
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
   }
 
   private selectDestinationForPurchase(pp: PossibleMove) {
@@ -292,7 +292,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
           }
         }
       ));
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
   }
 
   private confirmPurchase(pp: PossibleMove, dest: Destination) {
@@ -307,19 +307,19 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
 }
 
 class ExpandZooFlow extends ZooFlow {
-  constructor(g: ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart() {
     this.initStatusBar(_('Expand zoo?'));
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
-    this.pushUndoAnim(() => this.game.renderExtensions(this.player_id, current));
+    this.pushUndoAnim('expandZoo', () => this.game.renderExtensions(this.player_id, current));
     this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
 };
 
 class DrawTileFlow extends ZooFlow<boolean> {
-  constructor(g: ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
@@ -329,7 +329,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
 };
 
 class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
-  constructor(g: ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(args: PlaceDrawnTileArgs) {
     console.log("starting PlaceDrawnTile flow", args);
@@ -361,16 +361,16 @@ type TruckPlacement = {
   enclosure_pos: number;
 };
 
+var globalUndoStack: any;
+
 class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
-  private placedTiles : TruckPlacement[] = [];
-  private truck_id: number;
-  constructor(g : ZoolorettoGame) { super(g); }
+
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(availableTrucks: AvailableTruck[]) {
+    console.log("starting TakeTruckFlow", this);
     this.initStatusBar(_('Select a truck'));
-    this.addRestartTurnButton();
-    this.placedTiles = [];
-    this.truck_id = 0;
+
     availableTrucks.forEach((truck: AvailableTruck) => {
       this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
         async () => {
@@ -380,20 +380,20 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
               this.getPlayerPanelElement(this.player_id))))
             .then(() => {
               this.updateMoneyDelta(truck.money_delta);
-              this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks);
+              this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks, []));
             });
         });
     });
+    this.addRestartAndUndoButtons();
   }
 
-  private chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availableTrucks: AvailableTruck[]) {
-    this.truck_id = truck_id;
+  private async chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availableTrucks: AvailableTruck[],   placedTiles : TruckPlacement[]) {
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,
-          delivery_requests: JSON.stringify(this.placedTiles),
+          delivery_requests: JSON.stringify(placedTiles),
         }
       );
     }
@@ -401,41 +401,41 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
       this.initStatusBar(_('Choose a tile to place from the selected truck'));
       pps.forEach((pp: PossiblePlacement) => {
         let elem = Elements.truckSpace(truck_id, pp.truck_pos);
-        this.addSelectableOnclick(elem, () => {
-          this.markSelected(elem);
-          this.chooseDestination(truck_id, pp, availableTrucks);
+        this.addSelectableOnclick(elem, async () => {
+          this.callUndoably("chooseDest", () => this.chooseDestination(truck_id, pp, availableTrucks, placedTiles));
         });
       });
-      this.addRestartTurnButton();
+      this.addRestartAndUndoButtons();
     }
   }
 
-  private chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[]) {
+  private async chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[], placedTiles : TruckPlacement[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
-    this.addRestartTurnButton();
+
     pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
       let encElem = Elements.enclosureSpace(this.player_id, pep.space);
-      this.markTargetable(encElem);
-      this.addSelectableOnclick(encElem, (evt:MouseEvent) => {
+      // this.markTargetable(encElem);
+      this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(pep.offspring).then( () => {
             this.updateMoneyDelta(pep.money_delta);
-            this.placedTiles.push({ truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-            this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks);
+            placedTiles = Array.prototype.concat(placedTiles, { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
+            this.callUndoably("chooseTileToPlace2", () => this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks, placedTiles));
           });
         });
       });
     });
+    this.addRestartAndUndoButtons();
   }
 };
 
 class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
-  constructor(g : ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(discardables: PlacedTile[]) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
 
     discardables.forEach((dest: PlacedTile) => {
       let space = dest.space;
@@ -460,11 +460,11 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
 }
 
 class MoveTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g : ZoolorettoGame) { super(g); }
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(possibleMoves: PossibleMove[]) {
     this.initStatusBar(_('Select a tile to move'));
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
@@ -476,7 +476,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   private chooseDest(pm: PossibleMove) {
     this.updateMoneyDelta(pm.money_delta);
     this.initStatusBar(_('Select a destination space'));
-    this.addRestartTurnButton();
+    this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
@@ -498,6 +498,50 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
     });
+  }
+}
+
+class MainFlow extends ZooFlow<PlayState> {
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+
+  private alwaysOfferAllButtons: boolean = false;
+  protected override doStart(playState: PlayState) {
+    this.initStatusBar(_("You must take an action"));
+    if (this.alwaysOfferAllButtons || playState.can_draw) {
+      this.game.bga.statusBar.addActionButton(_('Draw tile'),
+        () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround),
+        { disabled: !playState.can_draw });
+    }
+    if (this.alwaysOfferAllButtons || playState.available_trucks.length > 0) {
+      this.game.bga.statusBar.addActionButton(_('Take truck'),
+        () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks),
+        { disabled: playState.available_trucks.length == 0});
+    }
+    if (this.alwaysOfferAllButtons || playState.possible_moves.length > 0) {
+      this.game.bga.statusBar.addActionButton(_('Move tile'),
+        () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves),
+        { disabled: playState.possible_moves.length == 0});
+    }
+    if (this.alwaysOfferAllButtons || playState.possible_exchanges.length > 0) {
+      this.game.bga.statusBar.addActionButton(_('Exchange animals'),
+        () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges),
+        { disabled: playState.possible_exchanges.length == 0});
+    }
+    if (this.alwaysOfferAllButtons || playState.possible_purchases.length > 0) {
+      this.game.bga.statusBar.addActionButton(_('Purchase tile'),
+        () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases),
+        { disabled: playState.possible_purchases.length == 0 });
+    }
+    if (this.alwaysOfferAllButtons || playState.possible_discards.length > 0) {
+      this.game.bga.statusBar.addActionButton(_('Discard tile'),
+        () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards),
+        { disabled: playState.possible_discards.length == 0 });
+    }
+    if (this.alwaysOfferAllButtons || playState.can_expand) {
+      this.game.bga.statusBar.addActionButton(_('Expand zoo'),
+        () => new ExpandZooFlow(this.game, this.undoStack).start(),
+        { disabled: !playState.can_expand} );
+    }
   }
 }
 
@@ -678,47 +722,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   // Entry point for player turn
   //
 
-  private alwaysOfferAllButtons: boolean = false;
+
   private onUpdateActionButtons_PlayerTurn(playState: PlayState): void {
-    if (this.alwaysOfferAllButtons || playState.can_draw) {
-      this.bga.statusBar.addActionButton(_('Draw tile'),
-        () => new DrawTileFlow(this).start(playState.lastround),
-        { disabled: !playState.can_draw });
-    }
-    if (this.alwaysOfferAllButtons || playState.available_trucks.length > 0) {
-      this.bga.statusBar.addActionButton(_('Take truck'),
-        () => new TakeTruckFlow(this).start(playState.available_trucks),
-        { disabled: playState.available_trucks.length == 0});
-    }
-    if (this.alwaysOfferAllButtons || playState.possible_moves.length > 0) {
-      this.bga.statusBar.addActionButton(_('Move tile'),
-        () => new MoveTileFlow(this).start(playState.possible_moves),
-        { disabled: playState.possible_moves.length == 0});
-    }
-    if (this.alwaysOfferAllButtons || playState.possible_exchanges.length > 0) {
-      this.bga.statusBar.addActionButton(_('Exchange animals'),
-        () => new ExchangeFlow(this).start(playState.possible_exchanges),
-        { disabled: playState.possible_exchanges.length == 0});
-    }
-    if (this.alwaysOfferAllButtons || playState.possible_purchases.length > 0) {
-      this.bga.statusBar.addActionButton(_('Purchase tile'),
-        () => new PurchaseTileFlow(this).start(playState.possible_purchases),
-        { disabled: playState.possible_purchases.length == 0 });
-    }
-    if (this.alwaysOfferAllButtons || playState.possible_discards.length > 0) {
-      this.bga.statusBar.addActionButton(_('Discard tile'),
-        () => new DiscardTileFlow(this).start(playState.possible_discards),
-        { disabled: playState.possible_discards.length == 0 });
-    }
-    if (this.alwaysOfferAllButtons || playState.can_expand) {
-      this.bga.statusBar.addActionButton(_('Expand zoo'),
-        () => new ExpandZooFlow(this).start(),
-        { disabled: !playState.can_expand} );
-    }
+    globalUndoStack = new UndoStack(this.animationManager.playSequentially);
+    new MainFlow(this, globalUndoStack).start(playState);
   }
 
   private onUpdateActionButtons_PlaceDrawnTile(args: PlaceDrawnTileArgs): void {
-    new PlaceDrawnTileFlow(this).start(args);
+    new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)).start(args);
   }
 
   private async notif_DrawTile(
