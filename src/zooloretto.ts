@@ -519,38 +519,31 @@ class MainFlow extends ZooFlow<PlayState> {
     this.initStatusBar(_("You must take an action"));
     if (playState.can_draw) {
       this.game.bga.statusBar.addActionButton(_('Draw tile'),
-        () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround),
-        { disabled: !playState.can_draw });
+        () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
     }
     if (playState.available_trucks.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Take truck'),
-        () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks),
-        { disabled: playState.available_trucks.length == 0});
+        () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
     }
     if (playState.possible_moves.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Move tile'),
-        () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves),
-        { disabled: playState.possible_moves.length == 0});
+        () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
     }
     if (playState.possible_exchanges.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Exchange animals'),
-        () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges),
-        { disabled: playState.possible_exchanges.length == 0});
+        () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
     }
     if (playState.possible_purchases.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Purchase tile'),
-        () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases),
-        { disabled: playState.possible_purchases.length == 0 });
+        () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
     }
     if (playState.possible_discards.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Discard tile'),
-        () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards),
-        { disabled: playState.possible_discards.length == 0 });
+        () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
     }
     if (playState.can_expand) {
       this.game.bga.statusBar.addActionButton(_('Expand zoo'),
-        () => new ExpandZooFlow(this.game, this.undoStack).start(),
-        { disabled: !playState.can_expand} );
+        () => new ExpandZooFlow(this.game, this.undoStack).start());
     }
   }
 }
