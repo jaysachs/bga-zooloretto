@@ -1,4 +1,8 @@
-* Final score sheet rendering
+* Optimize DB schema / access:
+  * Combine endgame & primary stock into one table
+    * Only retrieve top tile, and total count
+    * Have a boolean column to say if drawn (don't use global)
+    * Then only need one select for the whole thing
 
 * Handle rare exchange-triggers-two-offspring-in-one-enclosure case.
 
@@ -41,7 +45,6 @@ Bugs:
   * "Ghost" "moved" highlights remain.
 
 Improvements:
-  * Implement undos for remaining flows.
   * When only one action just do it (?)
     * if only one option for each of remaining truck tiles, place them
     * if only one option for drawn tile, put it in that truck space
@@ -55,3 +58,5 @@ Improvements:
   * Consider clicking on the stock pile as a "Draw"
   * Consider clicking on a truck space as a "select truck and tile"
   * Consider clicking on any space in an enclosure as "that's the destination"
+
+* Automatic placement into enclosures? How can that really be good except in trivial cases? I guess with a "restart turn" it can be flawed.
