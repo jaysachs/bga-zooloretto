@@ -62,9 +62,10 @@ class UndoStack {
     }
 
     async reset()  {
-      this.undoTo(0);
-      this.current = undefined;
-      this.continuations = [];
+      await this.undoTo(0).then(() => {
+        this.current = undefined;
+        this.continuations = [];
+      });
     }
 }
 
