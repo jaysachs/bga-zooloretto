@@ -42,7 +42,7 @@ class Animations {
     }
 
 
-    async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-20px,20px)'): Promise<any> {
+    async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
         if (!this.animationManager.animationsActive()) {
             return Promise.resolve(null);
         }
