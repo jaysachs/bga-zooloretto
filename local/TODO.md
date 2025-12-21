@@ -25,8 +25,6 @@ Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
 
 * Generate PHP/TS classes from user preferences?
 
-* UX: add "undo" to go back a step?
-
 * UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
 
 * UX questions:
@@ -40,9 +38,10 @@ To test:
 
 Bugs:
   * Need to notify offspring and completion bonus(es) when taketruckplacetiles.
-  * Undo a placement that generates offspring doesn't "go back" far enough. Refrehs fixes it.
+  * "Ghost" "moved" highlights remain.
 
 Improvements:
+  * Implement undos for remaining flows.
   * When only one action just do it (?)
     * if only one option for each of remaining truck tiles, place them
     * if only one option for drawn tile, put it in that truck space
