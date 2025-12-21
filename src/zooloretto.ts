@@ -835,13 +835,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       );
       if (dest.offspring) {
         let offspring = dest.offspring!;
-        anims.push(() => this.flashParents(offspring));
-        anims.push(() => {
-          let elem = this.makeTileSpan(offspring.placed_tile.tile);
-          let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
-          parent.appendChild(elem);
-          return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
-        });
+        if (!$(IDS.tile(offspring.placed_tile.tile))) {
+          anims.push(() => this.flashParents(offspring));
+          anims.push(() => {
+            let elem = this.makeTileSpan(offspring.placed_tile.tile);
+            let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+            parent.appendChild(elem);
+            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+          });
+        }
       }
       await this.animationManager.playSequentially(anims);
     }
