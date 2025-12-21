@@ -46,7 +46,7 @@ class UndoStack {
       if (x) {
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
-        return async () => { this.remove(x); await this.undoTo(x.mark).then(() => x.op.op()) };
+        return async () => { this.remove(x); this.undoTo(x.mark).then(() => x.op.op()) };
       } else {
         console.error("Nowhere to undo to!");
         return undefined;
@@ -101,12 +101,16 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     await this.game.animationManager.playParallel(anims);
   }
 
-  protected strElem(elem: HTMLElement | undefined): string {
-    if (!elem) { return "undefined"; }
-    if (elem.id) { return "#" + elem.id; }
-    if (elem.parentElement?.id) { return "#" + elem.parentElement.id + ">" + elem.tagName; }
-    if (elem.parentElement?.parentElement?.id) { return "#" + elem.parentElement.parentElement.id + ">" + elem.parentElement.tagName + ">" + elem.tagName; }
-    return elem.tagName;
+  protected strElem(el: HTMLElement | undefined): string {
+    if (!el) { return "undefined"; }
+    var elem : HTMLElement | null = el;
+    var s = "";
+    while (elem) {
+      if (elem.id) { return "#" + elem.id + s; }
+      s = ">" + elem.tagName + s;
+      elem = elem.parentElement;
+    }
+    return s;
   }
 
   protected async slide(elem: HTMLElement, newParent: HTMLElement) {
@@ -154,8 +158,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
     let doAct = async () => {
-        // this.clearMarked();
-        this.game.bga.statusBar.removeActionButtons();
+        this.clearMarked();
         await this.game.bga.actions.performAction(bgaAction, args);
     };
     if (this.confirmationsEnabled())  {
