@@ -211,8 +211,9 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       let src = pes[0]!.src;
       src.forEach((p) => {
         if (Elements.enclosureTile(this.player_id, p)) {
-          this.addSelectableOnclick(Elements.enclosureSpace(this.player_id, p),
-                                    () => this.selectDestinationForExchange(pes));
+          this.addSelectableOnclick(
+            Elements.enclosureSpace(this.player_id, p),
+            () => this.callUndoably("selectExchangeDest", async () => this.selectDestinationForExchange(pes)));
         }
       })
     });
@@ -220,7 +221,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
-    this.initStatusBar(_("Select the destingation enclosure for the exchange"));
+    this.initStatusBar(_("Select the destination enclosure for the exchange"));
     pes.forEach((pe : PossibleExchange) =>
       pe.dest.forEach(d =>
         this.addSelectableOnclick(
@@ -244,7 +245,8 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
               pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             }
             this.updateMoneyDelta(pe.money_delta);
-            this.playParallel(anims).then(() => this.confirmExchange(pe));
+            this.playParallel(anims)
+              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(pe)));
           }
         )
       )
@@ -271,7 +273,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => this.selectDestinationForPurchase(pp)
+          () => this.callUndoably("selectPurcaseDest", async () => this.selectDestinationForPurchase(pp))
         );
       });
     this.addRestartAndUndoButtons();
@@ -284,12 +286,10 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
         () => {
-          this.slide(
-            Elements.enclosureTile(pp.src_player_id, pp.src)!,
-            Elements.enclosureSpace(this.player_id, dest.space)).then( () => {
-              this.updateMoneyDelta(dest.money_delta);
-              this.confirmPurchase(pp, dest)
-            });
+          this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
+                     Elements.enclosureSpace(this.player_id, dest.space))
+            .then(() => this.updateMoneyDelta(dest.money_delta))
+            .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
           if (dest.offspring) {
             this.offspringSlide(dest.offspring);
           }
@@ -458,7 +458,7 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
             $(IDS.OFF_BOARD)).then(() => {
               // should always have money delta
               this.updateMoneyDelta(dest.money_delta!);
-              this.confirmDiscard(dest);
+              this.callUndoably("confirmDiscard", async () => this.confirmDiscard(dest));
             })
         });
     });
@@ -479,7 +479,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
-        () => this.chooseDest(m)
+        () => this.callUndoably("chooseMoveDest", async () => this.chooseDest(m))
       )
     });
   }
@@ -497,7 +497,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
             // FIXME: is this line needed?
             destElem.classList.add(CSS.MOVED);
             this.markMoved(destElem);
-            this.confirmMove(pm.src, dest);
+            this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
           })
       )
     });
