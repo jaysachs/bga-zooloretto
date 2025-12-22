@@ -53,7 +53,7 @@ class Utils
 
     /**
      * @template T
-     * @param T[] $arr
+     * @param array<int,T> $arr
      */
     public static function shuffle(array &$arr): void
     {

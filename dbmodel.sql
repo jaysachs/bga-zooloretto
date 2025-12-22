@@ -47,25 +47,20 @@ CREATE TABLE IF NOT EXISTS `trucks` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-CREATE TABLE IF NOT EXISTS `primary_stock` (
+
+CREATE TABLE IF NOT EXISTS `stock` (
   `tile_id` int(10) unsigned NOT NULL,
   `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  -- ideally we'd set a constraint on this saying only one row could have it.
+  `drawn` int(1) unsigned,
   FOREIGN KEY (`tile_id`) REFERENCES `tiles`(`id`),
+  -- FIXME: would like an index on tile_id since we update/delete by it.
   PRIMARY KEY (`seq_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE IF NOT EXISTS `endgame_stock` (
-  `tile_id` int(10) unsigned NOT NULL,
-  `seq_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  FOREIGN KEY (`tile_id`) REFERENCES `tiles`(`id`),
-  PRIMARY KEY (`seq_id`)
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `zglobals` (
   `id` int(10) unsigned NOT NULL DEFAULT 0,
   `bank_money` int(10) unsigned NOT NULL,
-  `drawn_tile` int(10) unsigned,
-  FOREIGN KEY (`drawn_tile`) REFERENCES `tiles`(`id`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

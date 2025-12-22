@@ -31,13 +31,17 @@ use Bga\Games\zooloretto\Utils;
 
 class Stock {
 
+    /** @var list<Tile> */
+    private array $primary;
+    /** @var list<Tile> */
+    private array $endgame;
+
     /**
-     * The available tiles. Both arrays are keyed by the tile ID.
-     *
-     * @param Tile[] $primary
-     * @param Tile[] $endgame
+     * @param list<Tile> $undrawn_tiles
      */
-    public function __construct(private array $primary, private array $endgame, public private(set) Tile $drawn) {
+    public function __construct(array $undrawn_tiles, public private(set) Tile $drawn) {
+        $this->endgame = array_splice($undrawn_tiles, -self::LASTSET_SIZE);
+        $this->primary  = $undrawn_tiles;
     }
 
     public function primaryCount(): int {
@@ -92,13 +96,11 @@ class Stock {
         return count($this->endgame) < self::LASTSET_SIZE;
     }
 
-    /** @param Tile[] $pool */
+    /** @param list<Tile> $pool */
     public static function create(array $pool): Stock {
-        $values = array_values($pool);
-
-        Utils::shuffle($values);
-        $lastset = array_splice($values, 0, self::LASTSET_SIZE);
-
-        return new Stock($values, $lastset, Tile::empty());
+        Utils::shuffle($pool);
+        /** @var list<Tile> */
+        $values = $pool;
+        return new Stock($values, Tile::empty());
     }
 }

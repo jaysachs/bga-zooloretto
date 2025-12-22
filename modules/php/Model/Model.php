@@ -39,6 +39,7 @@ class Model {
     /** @param list<int> $player_ids */
     public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
+        /** @var list<Tile> */
         $tilepool = Tile::createInitialPool($player_count);
 		$stock = Stock::create($tilepool);
 

@@ -48,15 +48,6 @@ class PersistentStore {
                                                     $tilepool)));
     }
 
-    public function insertStock(Stock $stock): void {
-        // Insert stock piles
-		$this->db->execute("INSERT INTO primary_stock (tile_id) VALUES "
-                           . implode(',', array_map(fn ($i) => "($i)", $stock->primaryIds())));
-		$this->db->execute("INSERT INTO endgame_stock (tile_id) VALUES "
-                           . implode(',', array_map(fn ($i) => "($i)", $stock->endgameIds())));
-
-    }
-
     /** @param list<Truck> $trucks */
     public function insertTrucks(array $trucks): void {
         $values = [];
@@ -114,36 +105,46 @@ class PersistentStore {
         return $players;
     }
 
-    /** @param array<string,string> $row */
-    private function tileFromRow(array $row): Tile {
-        return new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
+
+    public function insertStock(Stock $stock): void {
+		$this->db->execute(
+            "INSERT INTO stock (tile_id) VALUES "
+             . implode(',', array_map(fn ($i) => "({$i})",
+                    array_merge($stock->primaryIds(), $stock->endgameIds()))));
 
     }
 
     public function retrieveStock(): Stock {
-        $row = $this->db->getObjectList("SELECT t.id AS tile_id, t.type AS type, drawn_tile
-                                         FROM tiles t
-                                         INNER JOIN zglobals g ON t.id = g.drawn_tile");
         $drawn = Tile::empty();
-        if (count($row) > 0) {
-            $drawn = $this->tileFromRow($row[0]);
+        $rows = $this->db->getObjectList(
+            "SELECT s.seq_id AS seq_id, s.tile_id AS tile_id, t.type AS type, s.drawn AS drawn
+             FROM stock s
+             INNER JOIN tiles t ON t.id = s.tile_id ORDER BY s.seq_id"
+        );
+        $tiles = [];
+        foreach ($rows as $row) {
+            $tile = new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
+            if (intval($row["drawn"]) === 1) {
+                $drawn = $tile;
+            } else {
+                $tiles[] = $tile;
+            }
         }
-        /** @var \Closure(string): list<Tile> */
-        $select = function (string $tblname): array {
-            return array_map(
-                $this->tileFromRow(...),
-                $this->db->getObjectList("SELECT p.tile_id AS tile_id, t.type AS type
-                                          FROM $tblname p
-                                          INNER JOIN tiles t ON t.id = p.tile_id ORDER BY p.seq_id"));
-        };
-        return new Stock($select('primary_stock'), $select('endgame_stock'), $drawn);
+        return new Stock($tiles, $drawn);
     }
 
     public function updateStock(Stock $stock): void {
-        $id = $stock->drawn->id;
-        $this->db->execute("UPDATE zglobals SET drawn_tile = {$id}");
-        $this->db->execute("DELETE FROM primary_stock WHERE tile_id = $id");
-        $this->db->execute("DELETE FROM endgame_stock WHERE tile_id = $id");
+        // could just brute-force delete it all and re-insert, but let's be smart;
+        //   this is only called when a tile is drawn or when it's moved to a truck
+        //   (i.e. removed from the stock)
+        $tile_id = $stock->drawn->id;
+        if ($tile_id) {
+            // tile was drawn
+            $this->db->execute("UPDATE stock SET drawn = 1 WHERE tile_id = {$tile_id}");
+        } else {
+            // tile moved to truck
+            $this->db->execute("DELETE FROM stock WHERE drawn = 1");
+        }
     }
 
     /** @return list<Truck> */

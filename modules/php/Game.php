@@ -178,6 +178,7 @@ class Game extends \Bga\GameFramework\Table
 	protected function setupNewGame($players, $options = array()): mixed
 	{
         $gameinfos = $this->getGameinfos();
+		/** @var list<string> */
         $default_colors = $gameinfos['player_colors'];
         Utils::shuffle($default_colors);
 		$query_values = [];

@@ -54,6 +54,7 @@ class Animations {
         back.style.transform = noflip;
         front.style.transform = revflip;
         const flipStyles = {
+            'z-index': 100,
             'backface-visibility': 'hidden',
             transition: 'transform 0.5s',
         };
