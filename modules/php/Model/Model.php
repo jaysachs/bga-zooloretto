@@ -41,7 +41,7 @@ class Model {
         $player_count = count($player_ids);
         /** @var list<Tile> */
         $tilepool = Tile::createInitialPool($player_count);
-		$stock = Stock::create($tilepool);
+        $ps->insertStock($tilepool);
 
         // Now add "tiles" that should not be part of stock
         // NOTE: we hardcode insertion of the "block", excluding it from the pool
@@ -51,7 +51,6 @@ class Model {
         $tilepool[] = Tile::empty();
 
         $ps->insertTiles($tilepool);
-        $ps->insertStock($stock);
         // Trucks
         $trucks = [];
         if ($player_count == 2) {

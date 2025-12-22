@@ -105,12 +105,11 @@ class PersistentStore {
         return $players;
     }
 
-
-    public function insertStock(Stock $stock): void {
+    /** @param list<Tile> $tiles */
+    public function insertStock(array $tiles): void {
 		$this->db->execute(
             "INSERT INTO stock (tile_id) VALUES "
-             . implode(',', array_map(fn ($i) => "({$i})",
-                    array_merge($stock->primaryIds(), $stock->endgameIds()))));
+             . implode(',', array_map(fn ($t) => "({$t->id})", $tiles)));
 
     }
 
