@@ -51,7 +51,7 @@ class Model {
         $tilepool = array_merge($stockpool, [$block, Tile::empty()]);
 
         $ps->insertTiles($tilepool);
-        $ps->insertStock($tilepool);
+        $ps->insertStock($stockpool);
 
         // Trucks
         $trucks = [];
