@@ -50,6 +50,7 @@ class Scorer {
         ];
         $stall_types = [];
         foreach ($encs as $enc) {
+            $sts = $enc->stallTypes();
             if ($enc->isBarn()) {
                 $barnAnimalTypes = [];
                 $barnStallTypes = [];
@@ -65,6 +66,9 @@ class Scorer {
                 $detail['barn_stall_points'] = -2 * count($barnStallTypes);
                 $detail['barn_animal_points'] = -2 * count($barnAnimalTypes);
             } else {
+                foreach (array_keys($sts) as $st) {
+                    $stall_types[$st] = 1;
+                }
                 switch ($enc->emptyAnimalCount()) {
                     case 0:
                         $detail['full_enclosures']++;
@@ -75,14 +79,11 @@ class Scorer {
                         $detail['near_full_enclosure_points'] += $enc->near_completion_points;
                         break;
                     default:
-                        if (count($enc->stallTypes()) > 0) {
+                        if (count($sts) > 0) {
                             $detail['other_enclosures']++;
                             $detail['other_enclosure_points'] += count($enc->filledAnimalPositions());
-                            foreach (array_keys($enc->stallTypes()) as $st) {
-                                $stall_types[$st] = 1;
-                            }
                         }
-                };
+                }
             }
         }
         $detail['stall_points'] = 2 * count($stall_types);
