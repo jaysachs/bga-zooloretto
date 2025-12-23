@@ -40,17 +40,17 @@ class Model {
     public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
         /** @var list<Tile> */
-        $tilepool = Tile::createInitialPool($player_count);
-        $ps->insertStock($tilepool);
+        $stockpool = Tile::createInitialPool($player_count);
 
         // Now add "tiles" that should not be part of stock
         // NOTE: we hardcode insertion of the "block", excluding it from the pool
         // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
         $block = new Tile(10000, TileType::BLOCK);
-        $tilepool[] = $block;
-        $tilepool[] = Tile::empty();
+        $tilepool = array_merge($stockpool, [$block, Tile::empty()]);
 
         $ps->insertTiles($tilepool);
+        $ps->insertStock($tilepool);
+
         // Trucks
         $trucks = [];
         if ($player_count == 2) {
