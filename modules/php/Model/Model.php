@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Utils;
+
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
   mutations should not be made directly on those objects.
@@ -41,7 +43,7 @@ class Model {
         $player_count = count($player_ids);
         /** @var list<Tile> */
         $stockpool = Tile::createInitialPool($player_count);
-
+        Utils::shuffle($stockpool);
         // Now add "tiles" that should not be part of stock
         // NOTE: we hardcode insertion of the "block", excluding it from the pool
         // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
