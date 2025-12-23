@@ -216,8 +216,7 @@ class Enclosure {
     /** @return array<string,int> */
     public function stallTypes(): array {
         $stallTypes = [];
-        for ($i = 1; $i <= $this->stall_capacity; $i++) {
-            $t = $this->contents[$this->animal_capacity + $i];
+        foreach ($this->nonEmptyContents() as $t) {
             if ($t->type->isStall()) {
                 $stallTypes[$t->type->value] = 1;
             }
