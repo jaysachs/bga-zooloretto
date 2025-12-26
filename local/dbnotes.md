@@ -123,18 +123,20 @@ foreach ($db->getObjectList("SELECT * FROM tiles ORDER BY location,x,y") as $row
 }
 
 To update enclosures after an exchange:
-  update all tiles in those enclosures
+  update location of all tiles in those enclosures
 To update enclosures after a move:
-  update all tiles in those enclosures
+  update location of all tiles in those enclosures
 To update enclosures after a purchase:
-  update all tiles in those enclosures
+  update location of all tiles in those enclosures
+To update after a discard:
+  update location of discarded tile
 To update expand:
   update player
 To update after taking a truck:
   update all tiles that were in the truck
     (coins need to be marked removed -- "O" for offboard
 To dump tiles from a truck
-  update all tiles that were in that truck
+  update location of all tiles that were in that truck
 To update after a tile drawn
   update that tile
 
