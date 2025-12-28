@@ -18,7 +18,7 @@ interface TruckSpace {
 }
 
 interface Truck {
-  taken_by_player_id: number;
+  taken_by_player_id: number | null;
   truck_id: number;
   // Should always be 3. null means empty.
   // FIXME: Need to be careful about 0- and 1- based; probably best to be consistent
