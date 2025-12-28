@@ -84,8 +84,27 @@ class PersistentStore {
         return intval($row[0]);
     }
 
-    /** @return Player[] */
-    public function retrievePlayers(): array {
+    /** @return array{players: array<int,Player>,trucks: list<Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock} */
+    public function retrieveAll(): array {
+        $players = $this->retrievePlayers();
+        $pencs = [];
+        foreach ($players as $player) {
+            $encs = Enclosure::forPlayer($player);
+            $this->populateEnclosures($player->id, $encs);
+            $pencs[$player->id] = $encs;
+        }
+        $trucks = $this->retrieveTrucks();
+        $stock = $this->retrieveStock();
+        return [
+            "players" => $players,
+            "trucks" => $trucks,
+            "stock" => $stock,
+            "enclosures" => $pencs,
+        ];
+    }
+
+    /** @return array<int,Player> */
+    private function retrievePlayers(): array {
         $players = [];
         $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken
                                           FROM player");
@@ -103,7 +122,10 @@ class PersistentStore {
         return $players;
     }
 
-    /** @param list<Tile> $tiles */
+    /**
+     * FIXME: this should be list<Tile>
+     * @param array<int,Tile> $tiles
+     */
     public function insertStock(array $tiles): void {
 		$this->db->execute(
             "INSERT INTO stock (tile_id) VALUES "
@@ -111,7 +133,7 @@ class PersistentStore {
 
     }
 
-    public function retrieveStock(): Stock {
+    private function retrieveStock(): Stock {
         $drawn = Tile::empty();
         $rows = $this->db->getObjectList(
             "SELECT s.seq_id AS seq_id, s.tile_id AS tile_id, t.type AS type, s.drawn AS drawn
@@ -145,7 +167,7 @@ class PersistentStore {
     }
 
     /** @return list<Truck> */
-    public function retrieveTrucks(): array {
+    private function retrieveTrucks(): array {
             $rows = $this->db->getObjectList(
                 'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.truck_taken AS taken
                 FROM trucks AS tr
@@ -202,7 +224,7 @@ class PersistentStore {
         return $encs;
     }
 
-    /** @param list<Enclosure> $enclosures */
+    /** @param array<int,Enclosure> $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
         if (count($enclosures) == 0) {
             return;

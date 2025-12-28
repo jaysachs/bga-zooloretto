@@ -83,7 +83,7 @@ class PossiblePlacement {
     }
 
 
-    /** @param list<Enclosure> $enclosures */
+    /** @param array<int,Enclosure> $enclosures */
     private static function getPlacementsForEnclosure(int $player_id, Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): PlacementForEnclosure {
         $pfe = new PlacementForEnclosure(new Space($eid,$enclosure_pos));
 
@@ -104,7 +104,7 @@ class PossiblePlacement {
         return $pfe;
     }
 
-    /** @param list<Enclosure> $enclosures */
+    /** @param array<int,Enclosure> $enclosures */
     private static function getPlacementForTruckPos(int $player_id, Truck $truck, int $truck_pos, array $enclosures): PlacementsForTruckPos {
         $tile = $truck->removeTileAt($truck_pos);
         $pftp = new PlacementsForTruckPos();
@@ -120,7 +120,7 @@ class PossiblePlacement {
         return $pftp;
     }
 
-    /** @param list<Enclosure> $enclosures */
+    /** @param array<int,Enclosure> $enclosures */
     public static function possiblePlacementFor(int $player_id, Truck $truck, array $enclosures): PossiblePlacement {
         $pp = new PossiblePlacement();
         foreach ($truck->getAllTiles() as $pos => $tile) {

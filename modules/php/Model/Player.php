@@ -95,14 +95,15 @@ class Player {
         $this->spent += $amount;
     }
 
-    public function addExtension(): void {
+    /** @return int the number of the extension */
+    public function addExtension(): int {
         if ($this->money < Cost::EXPAND->amount()) {
 			throw new ModelException("Insufficient funds to buy enclosure");
 		}
         if ($this->purchased_extensions >= $this->extension_limit) {
 			throw new ModelException("No space for new enclosures");
 		}
-        $this->purchased_extensions++;
+        return ++$this->purchased_extensions;
     }
 
     public function canAfford(Cost $cost): bool {

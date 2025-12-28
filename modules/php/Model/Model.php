@@ -47,8 +47,10 @@ class Model {
         // Now add "tiles" that should not be part of stock
         // NOTE: we hardcode insertion of the "block", excluding it from the pool
         // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
-        $block = new Tile(10000, TileType::BLOCK);
-        $tilepool = array_merge($stockpool, [$block, Tile::empty()]);
+        $block1 = new Tile(10001, TileType::BLOCK);
+        $block2 = new Tile(10002, TileType::BLOCK);
+        $block3 = new Tile(10003, TileType::BLOCK);
+        $tilepool = array_merge($stockpool, [$block1, $block2, $block3, Tile::empty()]);
 
         $ps->insertTiles($tilepool);
         $ps->insertStock($stockpool);
@@ -57,8 +59,8 @@ class Model {
         $trucks = [];
         if ($player_count == 2) {
             $trucks[] = new Truck(1);
-            $trucks[] = new Truck(2, [Tile::empty(), Tile::empty(), $block]);
-            $trucks[] = new Truck(3, [Tile::empty(), $block, $block]);
+            $trucks[] = new Truck(2, [Tile::empty(), Tile::empty(), $block1]);
+            $trucks[] = new Truck(3, [Tile::empty(), $block2, $block3]);
         }
         else {
 			for ($x = 1; $x <= $player_count; $x++) {
@@ -86,24 +88,23 @@ class Model {
         throw new ModelException("attempt to retrieve unknown player $id");
     }
 
-    /** @var Player[] */
-    private ?array $_players = null;
+    /** @var null|array{stock:Stock,players:array<int,Player>,trucks:list<Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    private ?array $_data = null;
+    /** @return array{stock:Stock,players:array<int,Player>,trucks:list<Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    private function retrieveAll(): array {
+        if ($this->_data === null) {
+            $this->_data = $this->ps->retrieveAll();
+        }
+        return $this->_data;
+    }
 
     /** @return Player[] */
     public function getAllPlayers(): array {
-        if ($this->_players == null) {
-            $this->_players = $this->ps->retrievePlayers();
-        }
-        return $this->_players;
+        return $this->retrieveAll()["players"];
     }
 
-    private ?Stock $_stock = null;
-
     public function getStock(): Stock {
-        if ($this->_stock == null) {
-            $this->_stock = $this->ps->retrieveStock();
-        }
-        return $this->_stock;
+        return $this->retrieveAll()["stock"];
     }
 
     public function drawTile(): Stock {
@@ -113,15 +114,9 @@ class Model {
         return $stock;
     }
 
-    /** @var null|list<Truck> */
-    private ?array $_trucks = null;
-
     /** @return list<Truck> */
     public function getTrucks(): array {
-        if ($this->_trucks == null) {
-            $this->_trucks = $this->ps->retrieveTrucks();
-        }
-        return $this->_trucks;
+        return $this->retrieveAll()["trucks"];
     }
 
     private function getTruck(int $truck_id): Truck {
@@ -157,25 +152,16 @@ class Model {
         );
     }
 
-    /** @var array<int,list<Enclosure>> keyed by player_id */
-    private $_enclosures = [];
-
     /**
      * Returns enclosure mapped by enclosure_id.
      *
-     * @return list<Enclosure>
+     * @return array<int,Enclosure>
      */
     public function getEnclosuresForPlayer(?int $player_id = 0) : array {
         if ($player_id === null || $player_id === 0) {
             $player_id = $this->player_id;
         }
-        if (isset($this->_enclosures[$player_id])) {
-            return $this->_enclosures[$player_id];
-        }
-        $player = $this->getPlayer($player_id);
-        $encs = $this->ps->populateEnclosures($player_id, Enclosure::forPlayer($player));
-        $this->_enclosures[$player_id] = $encs;
-        return $encs;
+        return $this->retrieveAll()["enclosures"][$player_id];
     }
 
     /**
@@ -319,13 +305,12 @@ class Model {
     public function expandZoo(): Player {
         $player = $this->getActivePlayer();
 
-        $player->addExtension();
+        $extnum = $player->addExtension();
         $this->chargePlayer($player, Cost::EXPAND);
         $this->ps->updatePlayer($player);
 
-        // $enc = Enclosure::extension($player->purchased_extensions);
-        // clear cache of enclosures per player
-        unset($this->_enclosures[$this->player_id]);
+        $this->retrieveAll()["enclosures"][$this->player_id][] =
+            Enclosure::extension($extnum);
 
         return $player;
     }
