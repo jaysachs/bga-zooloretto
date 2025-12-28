@@ -33,7 +33,7 @@ class Player {
         public private(set) int $money,
         int $num_players,
         public private(set) int $purchased_extensions,
-        public private(set) int $truck_taken) {
+        public private(set) ?int $truck_taken) {
         $this->extension_limit = $num_players == 2 ? 2 : 1;
     }
 
@@ -57,16 +57,16 @@ class Player {
     }
 
     public function returnTruck(): int {
-        if (!$this->truck_taken) {
+        if ($this->truck_taken === null) {
             throw new ModelException("No truck taken by player $this->id");
         }
         $t = $this->truck_taken;
-        $this->truck_taken = 0;
+        $this->truck_taken = null;
         return $t;
     }
 
     public function takeTruck(Truck $truck): void {
-        if ($this->truck_taken) {
+        if ($this->truck_taken !== null) {
             throw new ModelException("Truck already taken by player $this->id");
         }
         $this->truck_taken = $truck->id;
