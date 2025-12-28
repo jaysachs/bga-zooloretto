@@ -447,7 +447,7 @@ class Model {
             $this->saveOffspring($offspring);
         }
 
-        $this->ps->updateEnclosures($this->player_id, $encs);
+        $this->ps->updateEnclosures($this->player_id, [$srcenc, $destenc, $encs[0]]);
         return [ 'placed_tile' => $placement, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
     }
 
@@ -499,6 +499,7 @@ class Model {
             $this->saveOffspring($offspring);
             $te = $offspring->child->space->enclosure_id;
             if ($te <> $enc->id) {
+                // it's the barn.
                 $toUpdate[] = $encs[$te];
             }
             if ($offspring->child->completedEnclosure) {
@@ -511,8 +512,6 @@ class Model {
             $result['enclosure_bonus'] = $this->payPlayer($player, $enc->coin_bonus);
         }
 
-        // Update the selling player first, to avoid violating uniqueness constraint in DB.
-        $this->ps->updateEnclosures($seller_player_id, [$seller_barn]);
         $this->ps->updateEnclosures($this->player_id, $toUpdate);
         return $result;
     }

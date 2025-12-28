@@ -229,17 +229,27 @@ class PersistentStore {
         $this->db->execute("DELETE FROM tiles WHERE id = {$tile->id}");
     }
 
-    /** @param array<int,Enclosure> $enclosures */
+    /** @param list<Enclosure> $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
         if (count($enclosures) == 0) {
             return;
         }
-        $seen = [];
-        foreach ($enclosures as $enclosure) {
-            if (isset($seen[$enclosure->id])) {
-                continue;
+        // uniquify
+        $toUpdate = [];
+        foreach ($enclosures as $enc) {
+            if (!isset($toUpdate[$enc->id])) {
+                $toUpdate[$enc->id] = $enc;
+                // FIXME: optimization potential: only need to do this for exchanges.
+                // Could instead remove unique constraint
+                $this->db->execute(
+                    "UPDATE tiles
+                     SET location = '', player_id = NULL, loc_id = NULL, loc_pos = NULL
+                     WHERE player_id = {$player_id} AND loc_id = {$enc->id}"
+                );
             }
-            $seen[$enclosure->id] = true;
+        }
+
+        foreach ($toUpdate as $enclosure) {
             foreach ($enclosure->nonEmptyContents() as $pos => $t) {
                 $this->db->execute(
                     "UPDATE tiles
