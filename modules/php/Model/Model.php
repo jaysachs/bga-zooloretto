@@ -284,6 +284,7 @@ class Model {
         $truck_ids = [];
         /** @var list<Tile>  */
         $dumped = [];
+        $pids = [];
         foreach ($this->getTrucks() as $truck) {
             $pid = $truck->taken_by;
             if ($pid > 0) {
@@ -293,10 +294,14 @@ class Model {
                     throw new ModelException("Truck {$truck->id} taken by {$truck->taken_by} but that player has no truck");
                 }
                 $truck_ids[] = $truck->id;
+                $pids[] = $pid;
             }
             else {
                 $dumped = array_merge($dumped, $truck->dumpTiles());
             }
+        }
+        foreach ($pids as $pid) {
+            $this->ps->updatePlayer($players[$pid]);
         }
         foreach ($this->getTrucks() as $truck) {
             $this->ps->updateTruck($truck);

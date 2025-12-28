@@ -71,7 +71,7 @@ class PersistentStore {
 
     public function updatePlayer(Player $player): void {
         $this->db->execute("UPDATE player
-                            SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions}
+                            SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions}, truck_taken = {$player->truck_taken}
                             WHERE player_id = {$player->id}");
     }
 
@@ -87,10 +87,8 @@ class PersistentStore {
     /** @return Player[] */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT p.player_id, p.money, p.purchased_extensions, t.id AS truck_taken
-                                          FROM player AS p
-                                          LEFT OUTER JOIN trucks AS t
-                                          ON p.player_id = t.taken_by");
+        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken
+                                          FROM player");
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
@@ -149,21 +147,22 @@ class PersistentStore {
     /** @return list<Truck> */
     public function retrieveTrucks(): array {
             $rows = $this->db->getObjectList(
-                'SELECT tr.id, tr.taken_by, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3
+                'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.truck_taken AS taken
                 FROM trucks AS tr
                 LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
                 LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
                 LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
+                LEFT OUTER JOIN player as p ON p.truck_taken = tr.id
                 ORDER BY tr.id');
             return array_map(
                 /**
                  * @param array<string,string> $row
                  */
                 function (array $row) : Truck {
-                $tile = function(int $pos) use (&$row): Tile {
+                    $tile = function(int $pos) use (&$row): Tile {
                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                 };
-                $taken_by = isset($row["taken_by"]) ? intval($row['taken_by']) : 0;
+                $taken_by = isset($row["taken"]) ? intval($row['taken']) : 0;
                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
             }, $rows);
     }

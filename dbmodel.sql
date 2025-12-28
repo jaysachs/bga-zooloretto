@@ -33,14 +33,11 @@ CREATE TABLE IF NOT EXISTS `tiles` (
 
 CREATE TABLE IF NOT EXISTS `trucks` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  -- which player id took it, or NULL if still available
-  `taken_by` int(10) unsigned,
   -- NULL is empty; 0 is "blocked off"
   `tile_id1` int(10) unsigned NOT NULL DEFAULT 0,
   `tile_id2` int(10) unsigned NOT NULL DEFAULT 0,
   `tile_id3` int(10) unsigned NOT NULL DEFAULT 0,
   -- FIXME: this requires null take_by
-  FOREIGN KEY (`taken_by`) REFERENCES `player`(`player_id`),
   FOREIGN KEY (`tile_id1`) REFERENCES `tiles`(`id`),
   FOREIGN KEY (`tile_id2`) REFERENCES `tiles`(`id`),
   FOREIGN KEY (`tile_id3`) REFERENCES `tiles`(`id`),
@@ -79,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `enclosure_contents` (
   UNIQUE (`tile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- For players, we need (a) money and (b) how many extensions were bought
 ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD COLUMN `truck_taken` int(10) unsigned;
+ALTER TABLE `player` ADD FOREIGN KEY (`truck_taken`) REFERENCES `trucks`(`id`);
