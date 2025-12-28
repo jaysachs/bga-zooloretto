@@ -69,10 +69,25 @@ class PersistentStore {
         ");
     }
 
+    private static function nullableIntStr(?int $val): string {
+        if ($val === null) { return "NULL"; }
+        return "{$val}";
+    }
+
+    private static function nullableIntVal(?string $val): ?int {
+        if ($val === null) { return null; }
+        return intval($val);
+    }
+
     public function updatePlayer(Player $player): void {
-        $this->db->execute("UPDATE player
-                            SET money = {$player->money}, purchased_extensions = {$player->purchased_extensions}, truck_taken = {$player->truck_taken}
-                            WHERE player_id = {$player->id}");
+        $taken = self::nullableIntStr($player->truck_taken);
+        $this->db->execute(
+            "UPDATE player
+             SET money = {$player->money},
+                 purchased_extensions = {$player->purchased_extensions},
+                 truck_taken = {$taken}
+             WHERE player_id = {$player->id}"
+        );
     }
 
     public function setBankMoney(int $money): void {
@@ -110,7 +125,7 @@ class PersistentStore {
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
-            $taken = intval($row["truck_taken"]);
+            $taken = self::nullableIntVal($row["truck_taken"]);
             $players[$id] = new Player(
                 $id,
                 intval($row["money"]),
@@ -167,33 +182,36 @@ class PersistentStore {
 
     /** @return list<Truck> */
     private function retrieveTrucks(): array {
-            $rows = $this->db->getObjectList(
-                'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.truck_taken AS taken
-                FROM trucks AS tr
-                LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
-                LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
-                LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
-                LEFT OUTER JOIN player as p ON p.truck_taken = tr.id
-                ORDER BY tr.id');
-            return array_map(
-                /**
-                 * @param array<string,string> $row
-                 */
-                function (array $row) : Truck {
-                    $tile = function(int $pos) use (&$row): Tile {
-                    return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
-                };
-                $taken_by = isset($row["taken"]) ? intval($row['taken']) : 0;
-                return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
-            }, $rows);
+        $rows = $this->db->getObjectList(
+            'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.player_id AS taken_by
+             FROM trucks AS tr
+             LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
+             LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
+             LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
+             LEFT OUTER JOIN player as p ON p.truck_taken = tr.id
+             ORDER BY tr.id');
+         return array_map(
+             /**
+              * @param array<string,string> $row
+              */
+             function (array $row) : Truck {
+                 $tile = function(int $pos) use (&$row): Tile {
+                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
+                 };
+                 $taken_by = self::nullableIntVal($row["taken_by"]);
+                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
+             },
+             $rows
+         );
     }
 
     public function updateTruck(Truck $truck): void {
         $tiles = $truck->getAllTiles();
-        $taken_by = $truck->taken_by ?? "NULL";
         $this->db->execute(
             "UPDATE trucks
-             SET tile_id1={$tiles[1]->id}, tile_id2={$tiles[2]->id}, tile_id3={$tiles[3]->id}, taken_by={$taken_by}
+             SET tile_id1={$tiles[1]->id},
+                 tile_id2={$tiles[2]->id},
+                 tile_id3={$tiles[3]->id}
              WHERE id = {$truck->id}");
     }
 
