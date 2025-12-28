@@ -44,30 +44,29 @@ class Model {
         /** @var list<Tile> */
         $stockpool = Tile::createInitialPool($player_count);
         Utils::shuffle($stockpool);
-        // Now add "tiles" that should not be part of stock
-        // NOTE: we hardcode insertion of the "block", excluding it from the pool
-        // FIXME: (re)-evaluate this choice of distinguished tile ID, and also reusing the same tile.
-        $block1 = new Tile(10001, TileType::BLOCK);
-        $block2 = new Tile(10002, TileType::BLOCK);
-        $block3 = new Tile(10003, TileType::BLOCK);
-        $tilepool = array_merge($stockpool, [$block1, $block2, $block3, Tile::empty()]);
-
-        $ps->insertTiles($tilepool);
         $ps->insertStock($stockpool);
 
         // Trucks
-        $trucks = [];
-        if ($player_count == 2) {
-            $trucks[] = new Truck(1);
-            $trucks[] = new Truck(2, [Tile::empty(), Tile::empty(), $block1]);
-            $trucks[] = new Truck(3, [Tile::empty(), $block2, $block3]);
-        }
-        else {
-			for ($x = 1; $x <= $player_count; $x++) {
-                $trucks[] = new Truck($x);
+        $trucks = Truck::forPlayerCount($player_count);
+
+        $lastBlock = 10000;
+        $trucks[2]->placeTileAt(new Tile($lastBlock++, TileType::BLOCK), 3);
+        $trucks[3]->placeTileAt(new Tile($lastBlock++, TileType::BLOCK), 2);
+        $trucks[3]->placeTileAt(new Tile($lastBlock++, TileType::BLOCK), 3);
+
+        $extras = [];
+        foreach ($trucks as $truck) {
+            foreach ($truck->getAllTiles() as $tile) {
+                if (!$tile->isEmpty()) {
+                    $extras[] = $tile;
+                }
             }
         }
-        $ps->insertTrucks($trucks);
+        $ps->insertTiles($extras);
+
+        foreach ($trucks as $truck) {
+            $ps->updateTruck($truck);
+        }
         $ps->setBankMoney(30 - 2 * $player_count);
 
         foreach ($player_ids as $player_id) {
@@ -88,9 +87,9 @@ class Model {
         throw new ModelException("attempt to retrieve unknown player $id");
     }
 
-    /** @var null|array{stock:Stock,players:array<int,Player>,trucks:list<Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    /** @var null|array{stock:Stock,players:array<int,Player>,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
     private ?array $_data = null;
-    /** @return array{stock:Stock,players:array<int,Player>,trucks:list<Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    /** @return array{stock:Stock,players:array<int,Player>,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
     private function retrieveAll(): array {
         if ($this->_data === null) {
             $this->_data = $this->ps->retrieveAll();
@@ -114,7 +113,7 @@ class Model {
         return $stock;
     }
 
-    /** @return list<Truck> */
+    /** @return array<int,Truck> */
     public function getTrucks(): array {
         return $this->retrieveAll()["trucks"];
     }
@@ -137,7 +136,6 @@ class Model {
         $tile = $stock->removeDrawnTile();
         $truck->placeTileAt($tile, $pos);
 
-        $this->ps->updateStock($stock);
         $this->ps->updateTruck($truck);
 
         return $tile;
@@ -190,6 +188,7 @@ class Model {
             $result[$coin_pos] = new Delivery($coin_pos, $tile);
             // assert tile is coin
             $coins++;
+            $this->ps->deleteTile($tile);
         }
 
         foreach ($in_deliveries as $delivery) {
@@ -263,7 +262,7 @@ class Model {
         return $trucks_available;
     }
 
-    /** @return array{truck_ids: list<int>, dumpedTiles: list<Tile>} */
+    /** @return array{truck_ids: list<int>, dumped_tiles: list<Tile>} */
     public function prepareNextRound(): array {
         $players = $this->getAllPlayers();
         /** @var list<int> */
@@ -286,15 +285,15 @@ class Model {
                 $dumped = array_merge($dumped, $truck->dumpTiles());
             }
         }
+        foreach ($dumped as $tile) {
+            $this->ps->deleteTile($tile);
+        }
         foreach ($pids as $pid) {
             $this->ps->updatePlayer($players[$pid]);
         }
-        foreach ($this->getTrucks() as $truck) {
-            $this->ps->updateTruck($truck);
-        }
         return [
             'truck_ids' => $truck_ids,
-            'dumpedTiles' => $dumped,
+            'dumped_tiles' => $dumped,
         ];
     }
 
@@ -339,8 +338,7 @@ class Model {
 
         $this->chargePlayer($player, Cost::DISCARD);
         $tile = $barn->takeTileAt($pos);
-
-        $this->ps->updateEnclosures($this->player_id, [$barn]);
+        $this->ps->deleteTile($tile);
 
         return $tile;
     }
@@ -566,8 +564,8 @@ class Model {
         // new child inserted
         $this->ps->insertTiles([$offspring->child->tile]);
         // update parents, marked reproduced.
-        $this->ps->updateTile($offspring->mother);
-        $this->ps->updateTile($offspring->father);
+        $this->ps->updateTileType($offspring->mother);
+        $this->ps->updateTileType($offspring->father);
     }
 
     public function exchange(PossibleExchange $ex): CompletedExchange {

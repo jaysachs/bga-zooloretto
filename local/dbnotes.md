@@ -54,8 +54,6 @@ Or we could put the location in the Tiles table:
   --  S:{stock_pos}
   -- drawn:
   --  D
-  -- offboard / in box:
-  --  B
   PRIMARY KEY (`id`)
 
   -- OR
@@ -170,3 +168,6 @@ then also update the trucks for the blocks.
 So the initial "insertTiles" is really "insertStock". Then there's an
 "insertTiles" which puts them ... in the box? ok. Then update the
 trucks.  Kinda feels like we want "empty" to be null ...
+
+
+For discarded / removed / offboard tiles: just delete them.

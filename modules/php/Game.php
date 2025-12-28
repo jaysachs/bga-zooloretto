@@ -96,7 +96,7 @@ class Game extends \Bga\GameFramework\Table
 						$tiles,
 						array_keys($tiles)),
 				];
-			}, $model->getTrucks()),
+			}, array_values($model->getTrucks())),
             'enclosures' => $encs,
             'primary_pile_size' => $this->stockCount($stock->primaryCount()),
             'endgame_pile_size' => $stock->endgameCount(),

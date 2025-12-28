@@ -36,28 +36,26 @@ class PersistentStore {
 
     public function __construct(private Db $db = new DefaultDb()) {}
 
-    public function updateTile(Tile $tile): void {
-        $this->db->Execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
+    public function updateTileType(Tile $tile): void {
+        $this->db->execute(
+            "UPDATE tiles
+             SET type = '{$tile->type->value}'
+             WHERE id={$tile->id}"
+        );
     }
 
-    /** @param list<Tile> $tilepool  */
+    /**
+     * Used to insert extra tiles (the blocked tiles for 2p).
+     *
+     * @param list<Tile> $tilepool
+     */
     public function insertTiles(array $tilepool): void {
-        // Insert overall tile -> type map.
-        $this->db->execute("INSERT INTO tiles (id, type) VALUES "
-                           . implode(',', array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')",
-                                                    $tilepool)));
-    }
-
-    /** @param list<Truck> $trucks */
-    public function insertTrucks(array $trucks): void {
-        $values = [];
-        foreach ($trucks as $truck) {
-            $ts = array_map(fn (Tile $t) => "$t->id", $truck->getAllTiles());
-            $values[] = sprintf("(%d, %s, %s, %s)", $truck->id, $ts[1], $ts[2], $ts[3]);
-        }
-        $this->db->execute("INSERT INTO trucks (id, tile_id1, tile_id2, tile_id3) VALUES "
-                           . implode(',', $values));
-
+        $values = implode(
+            ',',
+            array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')",
+                      $tilepool)
+        );
+        $this->db->execute("INSERT INTO tiles (id, type) VALUES {$values}");
     }
 
     public function updateScore(int $player_id, int $score): void {
@@ -99,16 +97,60 @@ class PersistentStore {
         return intval($row[0]);
     }
 
-    /** @return array{players: array<int,Player>,trucks: list<Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock} */
+    /** @return array{players: array<int,Player>,trucks: array<int,Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock} */
     public function retrieveAll(): array {
         $players = $this->retrievePlayers();
         $pencs = [];
         foreach ($players as $player) {
             $pencs[$player->id] = Enclosure::forPlayer($player);
         }
-        $this->populateEnclosures($pencs);
-        $trucks = $this->retrieveTrucks();
-        $stock = $this->retrieveStock();
+        $trucks = Truck::forPlayerCount(count($players));
+        $stocktiles = [];
+        $drawn = Tile::Empty();
+        $rows = $this->db->getObjectList("SELECT * FROM tiles ORDER BY location,loc_id,loc_pos");
+        foreach ($rows as $row) {
+            $tile = new Tile(intval($row['id']), TileType::from($row['type']));
+            $loc = $row['location'];
+            switch ($loc) {
+            case 'S':
+                $stocktiles[] = $tile;
+                break;
+            case 'D':
+                $drawn = $tile;
+                break;
+            case 'T':
+                $truck_id = intval($row['loc_id']);
+                $truck_pos = intval($row['loc_pos']);
+                $truck = $trucks[$truck_id];
+                $curr = $truck->tileAt($truck_pos);
+                if ($curr->isEmpty()) {
+                    $truck->placeTileAt($tile, $truck_pos);
+                } else if ($curr != $tile) {
+                    throw new ModelException("Tried to put {$tile} at {$truck_pos} on truck {$truck_id} but it was not empty, had {$curr}");
+                }
+                break;
+            case 'E':
+                $pid = intval($row['player_id']);
+                if (!isset($players[$pid])) {
+                    throw new ModelException("Unknown player_id {$pid} for enclosure");
+                }
+                $enc_id = intval($row['loc_id']);
+                $enc_pos = intval($row['loc_pos']);
+                $p = $pencs[$pid][$enc_id]->placeTile($tile, $enc_pos);
+                if ($p->space->pos <> $enc_pos) {
+                    throw new ModelException("Tried to put {$tile} at {$enc_pos} in {$pid}'s enclosure {$enc_id} but it ended up at {$p}");
+                }
+                break;
+            default:
+                throw new ModelException("Unknown location type {$loc}");
+            }
+        }
+        foreach ($players as $player) {
+            if ($player->truck_taken !== null) {
+                $trucks[$player->truck_taken]->setTakenBy($player->id);
+            }
+        }
+        $stock = new Stock($stocktiles, $drawn);
         return [
             "players" => $players,
             "trucks" => $trucks,
@@ -141,102 +183,50 @@ class PersistentStore {
      * @param array<int,Tile> $tiles
      */
     public function insertStock(array $tiles): void {
-		$this->db->execute(
-            "INSERT INTO stock (tile_id) VALUES "
-             . implode(',', array_map(fn ($t) => "({$t->id})", $tiles)));
-
-    }
-
-    private function retrieveStock(): Stock {
-        $drawn = Tile::empty();
-        $rows = $this->db->getObjectList(
-            "SELECT s.seq_id AS seq_id, s.tile_id AS tile_id, t.type AS type, s.drawn AS drawn
-             FROM stock s
-             INNER JOIN tiles t ON t.id = s.tile_id ORDER BY s.seq_id"
-        );
-        $tiles = [];
-        foreach ($rows as $row) {
-            $tile = new Tile(intval($row["tile_id"]), TileType::from($row["type"]));
-            if (intval($row["drawn"]) === 1) {
-                $drawn = $tile;
-            } else {
-                $tiles[] = $tile;
-            }
+        // Insert overall tile -> type map.
+        $values = [];
+        $i = 1;
+        foreach ($tiles as $tile) {
+            $values[] = "({$tile->id},'{$tile->type->value}', 'S', $i)";
+            $i++;
         }
-        return new Stock($tiles, $drawn);
+        $this->db->execute("INSERT INTO tiles (id, type, location, loc_pos) VALUES "
+                           . implode(',', $values));
     }
 
     public function updateStock(Stock $stock): void {
-        // could just brute-force delete it all and re-insert, but let's be smart;
-        //   this is only called when a tile is drawn or when it's moved to a truck
-        //   (i.e. removed from the stock)
         $tile_id = $stock->drawn->id;
-        if ($tile_id) {
-            // tile was drawn
-            $this->db->execute("UPDATE stock SET drawn = 1 WHERE tile_id = {$tile_id}");
+        if (!$stock->drawn->isEmpty()) {
+            $this->db->execute(
+                "UPDATE tiles
+                 SET location = 'D',
+                     player_id = NULL,
+                     loc_id = NULL,
+                     loc_pos = NULL
+                 WHERE id = {$tile_id}");
         } else {
-            // tile moved to truck
-            $this->db->execute("DELETE FROM stock WHERE drawn = 1");
+            //            throw new ModelException("Attempt to update stock but no drawn tile");
         }
-    }
-
-    /** @return list<Truck> */
-    private function retrieveTrucks(): array {
-        $rows = $this->db->getObjectList(
-            'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.player_id AS taken_by
-             FROM trucks AS tr
-             LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
-             LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
-             LEFT OUTER JOIN tiles AS t3 ON tr.tile_id3 = t3.id
-             LEFT OUTER JOIN player as p ON p.truck_taken = tr.id
-             ORDER BY tr.id');
-         return array_map(
-             /**
-              * @param array<string,string> $row
-              */
-             function (array $row) : Truck {
-                 $tile = function(int $pos) use (&$row): Tile {
-                     return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
-                 };
-                 $taken_by = self::nullableIntVal($row["taken_by"]);
-                 return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
-             },
-             $rows
-         );
     }
 
     public function updateTruck(Truck $truck): void {
-        $tiles = $truck->getAllTiles();
-        $this->db->execute(
-            "UPDATE trucks
-             SET tile_id1={$tiles[1]->id},
-                 tile_id2={$tiles[2]->id},
-                 tile_id3={$tiles[3]->id}
-             WHERE id = {$truck->id}");
+        $i = 1;
+        foreach ($truck->getAllTiles() as $tile) {
+            if (!$tile->isEmpty()) {
+                $this->db->execute(
+                    "UPDATE tiles
+                     SET location = 'T',
+                         player_id = NULL,
+                         loc_id = {$truck->id},
+                         loc_pos = {$i}
+                     WHERE id = {$tile->id}");
+            }
+            $i++;
+        }
     }
 
-    /**
-     * @param array<int,array<int,Enclosure>> $pencs
-     */
-    public function populateEnclosures(array $pencs): void {
-        $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, ec.player_id, t.type
-                                          FROM enclosure_contents ec
-                                          INNER JOIN tiles t
-                                          ON ec.tile_id = t.id
-                                          ORDER BY ec.player_id, ec.enclosure_id, ec.pos");
-        foreach ($rows as $row) {
-            $player_id = intval($row['player_id']);
-            $eid = intval($row['enclosure_id']);
-            $pos = intval($row['pos']);
-            $tileid = intval($row['tile_id']);
-            $type = TileType::from($row["type"]);
-            if (!$type->isEmpty()) {
-                if (!isset($pencs[$player_id][$eid])) {
-                    throw new ModelException("No enclosure {$eid} for {$player_id} but it has {$type->value} at {$pos}");
-                }
-                $pencs[$player_id][$eid]->placeTile(new Tile($tileid, $type), $pos);
-            }
-        }
+    public function deleteTile(Tile $tile): void {
+        $this->db->execute("DELETE FROM tiles WHERE id = {$tile->id}");
     }
 
     /** @param array<int,Enclosure> $enclosures */
@@ -244,9 +234,6 @@ class PersistentStore {
         if (count($enclosures) == 0) {
             return;
         }
-        $ids = implode(',', array_map(fn ($e) => "{$e->id}", $enclosures));
-        $this->db->execute("DELETE FROM enclosure_contents WHERE player_id={$player_id} AND enclosure_id IN ({$ids})");
-        $values = [];
         $seen = [];
         foreach ($enclosures as $enclosure) {
             if (isset($seen[$enclosure->id])) {
@@ -254,14 +241,15 @@ class PersistentStore {
             }
             $seen[$enclosure->id] = true;
             foreach ($enclosure->nonEmptyContents() as $pos => $t) {
-                $values[] = "({$player_id}, {$enclosure->id}, {$pos}, {$t->id})";
+                $this->db->execute(
+                    "UPDATE tiles
+                     SET player_id = {$player_id},
+                         location = 'E',
+                         loc_id = {$enclosure->id},
+                         loc_pos = {$pos}
+                     WHERE id = {$t->id}"
+                );
             }
         }
-        if (count($values) == 0) {
-            return;
-        }
-        $sql = 'INSERT INTO enclosure_contents (player_id, enclosure_id, pos, tile_id) VALUES '
-             . implode(',', $values);
-        $this->db->execute($sql);
     }
 }

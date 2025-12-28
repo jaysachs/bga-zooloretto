@@ -171,10 +171,6 @@ class Truck {
         if ($tile->isEmpty()) {
             throw new ModelException("Cannot place empty tile into truck");
         }
-        if (!$tile->type->isAnimal() && !$tile->type->isStall() && $tile->type != TileType::COIN) {
-            $type = $tile->type->value;
-            throw new ModelException("Cannot place tile of type $type on truck");
-        }
         if ($pos <= 0 || $pos > self::CAPACITY) {
             throw new ModelException("Cannot place tile in position $pos of truck");
         }
@@ -204,5 +200,15 @@ class Truck {
             3 => clienttranslate("truck 3"),
             default => "??"
         };
+    }
+
+    /** @return array<int,Truck> keyed by id */
+    public static function forPlayerCount(int $player_count): array {
+        $trucks = [];
+        $n = max($player_count, 3);
+        for ($i = 1; $i <= $n; $i++) {
+            $trucks[$i] = new Truck($i);
+        }
+        return $trucks;
     }
 }
