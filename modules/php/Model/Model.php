@@ -71,7 +71,7 @@ class Model {
         $ps->setBankMoney(30 - 2 * $player_count);
 
         foreach ($player_ids as $player_id) {
-            $player = new Player($player_id, 2, $player_count, 0, 0);
+            $player = new Player($player_id, 2, $player_count, 0, null);
             $ps->updatePlayer($player);
         }
     }
