@@ -54,16 +54,18 @@ Or we could put the location in the Tiles table:
   --  S:{stock_pos}
   -- drawn:
   --  D
+  -- offboard / in box:
+  --  B
   PRIMARY KEY (`id`)
 
   -- OR
-  `location` varchar(1),
+  `location` varchar(5),
   -- ignored unless E
   `player_id` int(10) UNSIGNED,
   -- truck_id if T, enc_id if E
-  `x` int(10) UNSIGNED,
+  `loc_id` int(10) UNSIGNED,
   -- truck_pos if T, enc_pos if E, stock_pos if S
-  `y` int(10) UNSIGNED,
+  `loc_pos` int(10) UNSIGNED,
 ```
 
 In this case, the initial insert would put all tiles in the stock at
