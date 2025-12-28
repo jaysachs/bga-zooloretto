@@ -89,10 +89,9 @@ class PersistentStore {
         $players = $this->retrievePlayers();
         $pencs = [];
         foreach ($players as $player) {
-            $encs = Enclosure::forPlayer($player);
-            $this->populateEnclosures($player->id, $encs);
-            $pencs[$player->id] = $encs;
+            $pencs[$player->id] = Enclosure::forPlayer($player);
         }
+        $this->populateEnclosures($pencs);
         $trucks = $this->retrieveTrucks();
         $stock = $this->retrieveStock();
         return [
@@ -199,29 +198,27 @@ class PersistentStore {
     }
 
     /**
-     * @param list<Enclosure> $encs
-     * @return list<Enclosure>
+     * @param array<int,array<int,Enclosure>> $pencs
      */
-    public function populateEnclosures(int $player_id, array $encs) : array {
-        $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, t.type
+    public function populateEnclosures(array $pencs): void {
+        $rows = $this->db->getObjectList("SELECT ec.enclosure_id, ec.pos, ec.tile_id, ec.player_id, t.type
                                           FROM enclosure_contents ec
                                           INNER JOIN tiles t
                                           ON ec.tile_id = t.id
-                                          WHERE ec.player_id = {$player_id}
-                                          ORDER BY ec.enclosure_id, ec.pos");
+                                          ORDER BY ec.player_id, ec.enclosure_id, ec.pos");
         foreach ($rows as $row) {
+            $player_id = intval($row['player_id']);
             $eid = intval($row['enclosure_id']);
             $pos = intval($row['pos']);
             $tileid = intval($row['tile_id']);
             $type = TileType::from($row["type"]);
             if (!$type->isEmpty()) {
-                if (!isset($encs[$eid])) {
+                if (!isset($pencs[$player_id][$eid])) {
                     throw new ModelException("No enclosure {$eid} for {$player_id} but it has {$type->value} at {$pos}");
                 }
-                $encs[$eid]->placeTile(new Tile($tileid, $type), $pos);
+                $pencs[$player_id][$eid]->placeTile(new Tile($tileid, $type), $pos);
             }
         }
-        return $encs;
     }
 
     /** @param array<int,Enclosure> $enclosures */
