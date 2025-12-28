@@ -162,7 +162,7 @@ class PersistentStore {
     /** @return list<Truck> */
     public function retrieveTrucks(): array {
         $rows = $this->db->getObjectList(
-            'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.truck_taken AS taken
+            'SELECT tr.id, tr.tile_id1, tr.tile_id2, tr.tile_id3, t1.type AS type1, t2.type AS type2, t3.type AS type3, p.player_id AS taken_by
              FROM trucks AS tr
              LEFT OUTER JOIN tiles AS t1 ON tr.tile_id1 = t1.id
              LEFT OUTER JOIN tiles AS t2 ON tr.tile_id2 = t2.id
@@ -177,7 +177,7 @@ class PersistentStore {
                  $tile = function(int $pos) use (&$row): Tile {
                      return new Tile(intval($row["tile_id{$pos}"]), TileType::from($row["type{$pos}"]));
                  };
-                 $taken_by = self::nullableIntVal($row["taken"]);
+                 $taken_by = self::nullableIntVal($row["taken_by"]);
                  return new Truck(intval($row['id']), [$tile(1), $tile(2), $tile(3)], $taken_by);
              },
              $rows
