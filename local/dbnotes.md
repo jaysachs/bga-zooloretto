@@ -154,3 +154,19 @@ INNER JOIN tiles t ON s.tile_id = t.id
 ORDER BY s.seq_id
 LIMIT 2
 ```
+
+Empty spots on trucks are just spaces on trucks with no tile
+assigned. So, to "inflate" the data, create the initial trucks (need
+player count) and then just populate them as we encounter tiles on
+them. This does push some logic into PersistentStore,
+kinda. CreateNewGame will just make the tilepool, and then for each
+block (if any) update those tiles. But what does "update a tile" look
+like? Need to pass more than the tile. Could pass the trucks and then
+say "update trucks". Or, could have a generic "updateTileLocation" but
+then it gets weird. Also, on create, how to update the stock? Maybe
+just add it all into the stock, then afterwards add the Empty, and
+then also update the trucks for the blocks.
+
+So the initial "insertTiles" is really "insertStock". Then there's an
+"insertTiles" which puts them ... in the box? ok. Then update the
+trucks.  Kinda feels like we want "empty" to be null ...
