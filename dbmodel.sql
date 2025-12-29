@@ -36,8 +36,10 @@ CREATE TABLE IF NOT EXISTS `tiles` (
   --  S:  {stock_pos}
   -- Drawn
   --  D
-  -- Offboard / out of game / in box:
-  --  O: {salt_pos}
+  -- FIXME: could add a status for deleted/ offboard / out of game / in box
+  -- but then require a unique pos to maintain uniqueness constraint.
+  -- Could do this with two queries, grabbing a max
+  --  X: {salt_pos}
   `location` VARCHAR(1),
   -- ignored unless E
   `player_id` INT(10) UNSIGNED,
