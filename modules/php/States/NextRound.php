@@ -39,7 +39,6 @@ class NextRound extends AbstractState
             id: 6,
             type: StateType::GAME,
             description: clienttranslate('Finishing the round ...'),
-            updateGameProgression: true,
         );
     }
 
