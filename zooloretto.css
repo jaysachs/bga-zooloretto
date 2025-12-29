@@ -681,6 +681,7 @@ body.mobile_version {
 
 .zoo-player-panel-board-summary > div > span > span {
     position: absolute;
+    background-color: white;
     bottom: 0;
     right: 0;
 }

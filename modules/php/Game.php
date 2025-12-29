@@ -29,6 +29,7 @@ namespace Bga\Games\zooloretto;
 
 use Bga\GameFramework\Actions\Debug;
 use Bga\Games\zooloretto\Model\DefaultDb;
+use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Space;
@@ -72,9 +73,11 @@ class Game extends \Bga\GameFramework\Table
 		$model = new Model(intval($this->getActivePlayerId()));
 		$stock = $model->getStock();
 		$encs = [];
+		$esumms = [];
 		foreach ($model->getAllPlayers() as $player) {
 			$contents = [];
 			foreach ($model->getEnclosuresForPlayer($player->id) as $e) {
+				$esumms[] = EnclosureSummary::forEnclosure($player->id, $e);
 				foreach ($e->nonEmptyContents() as $pos => $tile) {
 					$contents[] = [
 						'space' => new Space($e->id, $pos)->serialize(),
@@ -104,6 +107,7 @@ class Game extends \Bga\GameFramework\Table
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->serialize(),
             'lastround' => $stock->inLastRound(),
 			'bank_money' => $model->bankMoney(),
+			'enclosure_summaries' => array_map(fn ($s) => $s->serialize(), $esumms),
 			'tile_translations' => array_map(fn ($t) => [
 				'type' => $t->value,
 				'name' => $t->translated(),

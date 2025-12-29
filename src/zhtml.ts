@@ -201,7 +201,8 @@ class ZoolorettoHtml {
         Html.span({ id: IDS.playerPanelBoardSummary(playerId, 1) },
           Html.span({})),
         // the "barn". FIXME: render something there?
-        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 0) })
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 0) },
+          Html.span({}))
       ));
     summaryDivs.push(
       Html.div({},

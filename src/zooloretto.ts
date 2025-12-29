@@ -31,6 +31,13 @@ interface EnclosureContents {
   tile: Tile | undefined;
 }
 
+interface EnclosureSummary {
+  player_id: number;
+  enclosure_id: number;
+  animal_type: string;
+  count: number;
+}
+
 interface ZGamedatas extends Gamedatas<ZPlayer> {
   primary_pile_size: number;
   endgame_pile_size: number;
@@ -45,6 +52,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
 
   // name is translated/able
   tile_translations: { type: string, name: string }[];
+  enclosure_summaries: EnclosureSummary[];
 }
 
 //
@@ -655,6 +663,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
 
+  private updateEnclosureSummary(summary: EnclosureSummary) {
+    let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
+    console.log(elem);
+    let type = summary.animal_type;
+    elem.setAttribute(Attrs.TILE, summary.animal_type);
+    if (type) {
+      elem.title = this.tileTranslations.get(type) ?? type;
+      elem.firstElementChild!.textContent = `${summary.count}`;
+    } else {
+      elem.title = '';
+      elem.firstElementChild!.textContent = '';
+    }
+  }
+
   private setupHtml(twoPlayer: boolean): void {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
@@ -673,6 +695,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.renderStock();
     this.renderTrucks();
     this.renderEnclosures();
+    this.gamedatas.enclosure_summaries.forEach(this.updateEnclosureSummary.bind(this));
   }
 
   tileTranslations = new Map<string, string>();;
@@ -684,10 +707,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super.setup(gamedatas);
     this.animations = new Animations(this.animationManager);
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
+    this.setupTranslations();
     this.setupHtml(twoPlayer);
     this.setupNotifications();
     this.setupScoreSheet();
-    this.setupTranslations();
     if (gamedatas.lastround) {
       (this as any).addLastTurnBanner(_('This is the last round!'));
     }
