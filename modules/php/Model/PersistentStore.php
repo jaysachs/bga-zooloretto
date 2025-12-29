@@ -37,11 +37,7 @@ class PersistentStore {
     public function __construct(private Db $db = new DefaultDb()) {}
 
     public function updateTileType(Tile $tile): void {
-        $this->db->execute("
-            UPDATE tiles
-            SET type = '{$tile->type->value}'
-            WHERE id={$tile->id}
-        ");
+        $this->db->execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
     }
 
     /**
@@ -52,18 +48,15 @@ class PersistentStore {
     public function insertTiles(array $tilepool): void {
         $values = implode(
             ',',
-            array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')", $tilepool)
+            array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}','Z', {$tile->id}+10000)", $tilepool)
         );
-        $this->db->execute("INSERT INTO tiles (id, type) VALUES {$values}");
+        $this->db->execute("INSERT INTO tiles (id, type, location, loc_pos) VALUES {$values}");
     }
 
     public function updateScore(int $player_id, int $score): void {
-        $this->db->execute("
-            UPDATE player
-            SET player_score = {$score},
-                player_score_aux = money
-            WHERE player_id = {$player_id}
-        ");
+        $this->db->execute("UPDATE player
+                            SET player_score = {$score}, player_score_aux = money
+                            WHERE player_id = {$player_id}");
     }
 
     private static function nullableIntStr(?int $val): string {
@@ -76,13 +69,11 @@ class PersistentStore {
 
     public function updatePlayer(Player $player): void {
         $taken = self::nullableIntStr($player->truck_taken);
-        $this->db->execute("
-            UPDATE player
-            SET money = {$player->money},
-                purchased_extensions = {$player->purchased_extensions},
-                truck_taken = {$taken}
-            WHERE player_id = {$player->id}
-        ");
+        $this->db->execute("UPDATE player
+                            SET money = {$player->money},
+                                purchased_extensions = {$player->purchased_extensions},
+                                truck_taken = {$taken}
+                            WHERE player_id = {$player->id}");
     }
 
     public function setBankMoney(int $money): void {
@@ -104,7 +95,7 @@ class PersistentStore {
         $trucks = Truck::forPlayerCount(count($players));
         $stocktiles = [];
         $drawn = Tile::Empty();
-        $rows = $this->db->getObjectList("SELECT * FROM tiles ORDER BY location,loc_id,loc_pos");
+        $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X' ORDER BY location,loc_id,loc_pos");
         foreach ($rows as $row) {
             $tile = new Tile(intval($row['id']), TileType::from($row['type']));
             $loc = $row['location'];
@@ -116,15 +107,7 @@ class PersistentStore {
                 $drawn = $tile;
                 break;
             case 'T':
-                $truck_id = intval($row['loc_id']);
-                $truck_pos = intval($row['loc_pos']);
-                $truck = $trucks[$truck_id];
-                $curr = $truck->tileAt($truck_pos);
-//                if ($curr->isEmpty()) {
-                    $truck->placeTileAt($tile, $truck_pos);
-                // } else if ($curr != $tile) {
-                //     throw new ModelException("Tried to put {$tile} at {$truck_pos} on truck {$truck_id} but it was not empty, had {$curr}");
-                // }
+                $trucks[intval($row['loc_id'])]->placeTileAt($tile, intval($row['loc_pos']));
                 break;
             case 'E':
                 $pencs[intval($row['player_id'])][intval($row['loc_id'])]->placeTile($tile, intval($row['loc_pos']));
@@ -150,8 +133,7 @@ class PersistentStore {
     /** @return array<int,Player> */
     private function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("
-            SELECT player_id, money, purchased_extensions, truck_taken FROM player");
+        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken FROM player");
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
@@ -172,43 +154,32 @@ class PersistentStore {
         foreach ($tiles as $i => $tile) {
             $values[] = "({$tile->id},'{$tile->type->value}', 'S', $i)";
         }
-        $this->db->execute("
-            INSERT INTO tiles (id, type, location, loc_pos) VALUES " . implode(',', $values));
+        $this->db->execute("INSERT INTO tiles (id, type, location, loc_pos) VALUES " . implode(',', $values));
     }
 
     public function updateStock(Stock $stock): void {
         $tile_id = $stock->drawn->id;
         if (!$stock->drawn->isEmpty()) {
-            $this->db->execute("
-                UPDATE tiles
-                SET location = 'D',
-                    player_id = NULL,
-                    loc_id = NULL,
-                    loc_pos = NULL
-                WHERE id = {$tile_id}
-            ");
+            $this->db->execute("UPDATE tiles
+                                SET location = 'D', player_id = 0, loc_id = 0, loc_pos = 0
+                                WHERE id = {$tile_id}");
         } else {
-            //            throw new ModelException("Attempt to update stock but no drawn tile");
+            throw new ModelException("Attempt to update stock but no drawn tile");
         }
     }
 
     public function updateTruck(Truck $truck): void {
         foreach ($truck->getAllTiles() as $pos => $tile) {
             if (!$tile->isEmpty()) {
-                $this->db->execute("
-                    UPDATE tiles
-                    SET location = 'T',
-                        player_id = NULL,
-                        loc_id = {$truck->id},
-                        loc_pos = {$pos}
-                    WHERE id = {$tile->id}
-                ");
+                $this->db->execute("UPDATE tiles
+                                    SET location = 'T', player_id = 0, loc_id = {$truck->id}, loc_pos = {$pos}
+                                    WHERE id = {$tile->id}");
             }
         }
     }
 
     public function deleteTile(Tile $tile): void {
-        $this->db->execute("DELETE FROM tiles WHERE id = {$tile->id}");
+        $this->db->execute("UPDATE tiles SET location='X',loc_pos = id+10000 WHERE id = {$tile->id}");
     }
 
     /** @param list<Enclosure> $enclosures */
@@ -220,24 +191,20 @@ class PersistentStore {
                 $toUpdate[$enc->id] = $enc;
                 // FIXME: optimization potential: only need to do this for exchanges.
                 // Could instead remove unique constraint
-                $this->db->execute("
-                    UPDATE tiles
-                    SET location = '', player_id = NULL, loc_id = NULL, loc_pos = NULL
-                    WHERE player_id = {$player_id} AND loc_id = {$enc->id}
-                ");
+                $this->db->execute("UPDATE tiles
+                                    SET location = 'F'
+                                    WHERE player_id = {$player_id} AND loc_id = {$enc->id}");
             }
         }
 
         foreach ($toUpdate as $enclosure) {
             foreach ($enclosure->nonEmptyContents() as $pos => $t) {
-                $this->db->execute("
-                    UPDATE tiles
-                    SET player_id = {$player_id},
-                        location = 'E',
-                        loc_id = {$enclosure->id},
-                        loc_pos = {$pos}
-                    WHERE id = {$t->id}
-                ");
+                $this->db->execute("UPDATE tiles
+                                    SET player_id = {$player_id},
+                                        location = 'E',
+                                        loc_id = {$enclosure->id},
+                                        loc_pos = {$pos}
+                                    WHERE id = {$t->id}");
             }
         }
     }

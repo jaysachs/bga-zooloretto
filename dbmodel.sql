@@ -40,15 +40,16 @@ CREATE TABLE IF NOT EXISTS `tiles` (
   -- but then require a unique pos to maintain uniqueness constraint.
   -- Could do this with two queries, grabbing a max
   --  X: {salt_pos}
-  `location` VARCHAR(1),
+  `location` VARCHAR(1) NOT NULL,
   -- ignored unless E
-  `player_id` INT(10) UNSIGNED,
+  `player_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   -- truck_id if T, enc_id if E
-  `loc_id` INT(10) UNSIGNED,
+  `loc_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   -- truck_pos if T, enc_pos if E, stock_pos if S
-  `loc_pos` INT(10) UNSIGNED,
+  `loc_pos` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  -- Can we do this? Will need to inc loc_pos when moving offboard
+  -- Requires uniquifying deleted / temporary positions
+  --  we can use id offsets to accomplish this
   UNIQUE(`location`, `player_id`, `loc_id`, `loc_pos`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
