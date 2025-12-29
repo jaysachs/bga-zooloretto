@@ -96,11 +96,9 @@ class Stock {
         return count($this->endgame) < self::LASTSET_SIZE;
     }
 
-    /** @param list<Tile> $pool */
-    public static function create(array $pool): Stock {
-        Utils::shuffle($pool);
-        /** @var list<Tile> */
-        $values = $pool;
-        return new Stock($values, Tile::empty());
+    public function percentComplete(int $player_count): float {
+        return 1.0 -
+            (floatval($this->primaryCount())
+             / floatval(Tile::totalTilesForPlayerCount($player_count) - self::LASTSET_SIZE));
     }
 }

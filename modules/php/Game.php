@@ -32,6 +32,7 @@ use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\Stock;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
@@ -131,8 +132,10 @@ class Game extends \Bga\GameFramework\Table
     */
 	function getGameProgression(): int
 	{
-		// TODO: compute and return the game progression
-        return 0;
+		$model = new Model(0);
+		$stock = $model->getStock();
+        $numPlayers = count($model->getAllPlayers());
+		return intval(100 * $stock->percentComplete($numPlayers));
 	}
 
 	/*

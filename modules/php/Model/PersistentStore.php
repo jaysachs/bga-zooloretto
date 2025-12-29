@@ -118,7 +118,7 @@ class PersistentStore {
         return $players;
     }
 
-    /** @param list<Tile> $tiles */
+    /** @param array<int,Tile> $tiles */
     public function insertStock(array $tiles): void {
 		$this->db->execute(
             "INSERT INTO stock (tile_id) VALUES "
