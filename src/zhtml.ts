@@ -177,16 +177,49 @@ class ZoolorettoHtml {
     );
   }
 
-  playerPanel(player: ZPlayer): HTMLElement {
+  playerPanel(player: ZPlayer): HTMLElement[] {
     const playerId = player.player_id;
     console.log('Setting up panel for player ' + player.player_id);
-    return Html
-      .div({ classes: 'zoo-player-panel-ext'},
-        Html.span({ classes: 'zoo-money'},
-          Html.span({classes: 'zoo-money-label'}),
-          Html.span({text: ': '}),
-          Html.span({id: IDS.money(playerId)})),
-        Html.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
-      );
+
+    let summaryDivs : HTMLElement[] = [];
+    if (this.twoPlayer) {
+      summaryDivs.push(
+        Html.div({},
+          Html.span({ id: `zoo-pp-summary-${playerId}-5` },
+            Html.span({}))));
+    }
+    // extension board
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: `zoo-pp-summary-${playerId}-4` },
+          Html.span({}))
+      ));
+    // enc 1 and "barn"
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: `zoo-pp-summary-${playerId}-1` },
+          Html.span({})),
+        Html.span({})
+      ));
+    // enc 2 and 3
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: `zoo-pp-summary-${playerId}-2` },
+          Html.span({})),
+        Html.span({ id: `zoo-pp-summary-${playerId}-2` },
+          Html.span({}))
+      ));
+    return [
+      Html
+        .div({ classes: 'zoo-player-panel-general'},
+          Html.span({ classes: 'zoo-money'},
+            Html.span({classes: 'zoo-money-label'}),
+            Html.span({text: ': '}),
+            Html.span({id: IDS.money(playerId)})),
+          Html.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
+        ),
+      Html
+        .div({ classes: 'zoo-player-panel-board-summary' }, ...summaryDivs)
+      ];
   }
 }

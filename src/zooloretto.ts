@@ -659,7 +659,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(this.gamedatas.players)) {
-      this.bga.playerPanels.getElement(player.player_id).appendChild(zhtml.playerPanel(player));
+      this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       let counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;

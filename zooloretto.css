@@ -634,7 +634,7 @@ body.mobile_version {
  */
 
 .zoo-money-label {
-    height: 100%;
+    height: 1.5em;
     width: auto;
     aspect-ratio: 1;
     background-image: url('img/Money.png');
@@ -643,31 +643,76 @@ body.mobile_version {
 }
 
 .zoo-money {
-    flex: 1;
+    flex: 1 1 auto;
     display:flex;
     width: auto;
 }
 
-.zoo-player-panel-ext  {
+.player-board-game-specific-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 5px;
+    padding: 4px;
+}
+
+.zoo-player-panel-general  {
     display:flex;
+    flex-direction: column;
     width: auto;
+    gap: 5px;
 }
 
-.zoo-player-panel-ext .zoo-truck {
+.zoo-player-panel-board-summary {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: row;
+    gap: 0px;
     width: auto;
-    height: 100%;
-    top: 10%;
+    justify-content: right;
+    background-color: rgb(127,166,81);
 }
 
-.zoo-player-panel-ext .zoo-depot-space .zoo-truck > div {
+.zoo-player-panel-board-summary > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.zoo-player-panel-board-summary > div > span > span {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.zoo-player-panel-board-summary > div > span {
+    flex: 0 0 auto;
+    position: relative;
+    font-size: 75%;
+    aspect-ratio: 1.0;
+    height: 2em;
+    width: auto;
+    border: dotted 1px black;
+}
+
+.zoo-player-panel-board-summary > div > span[zoo-tile=""] {
+    background-image: none;
+}
+
+.zoo-player-panel-general .zoo-truck {
+    width: auto;
+    height: 1.5em;
+}
+
+.zoo-player-panel-general .zoo-depot-space .zoo-truck > div {
     width: 23%;
     height: auto;
 }
 
-.zoo-player-panel-ext .zoo-depot-space {
+.zoo-player-panel-general .zoo-depot-space {
     flex: 1;
     height: 1.5em;
-    min-width: inherit;
+    width: auto;
     margin: 0vw;
 }
 
