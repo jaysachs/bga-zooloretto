@@ -50,6 +50,11 @@ class Tile {
 		];
 	}
 
+	public static function totalTilesForPlayerCount(int $player_count): int {
+		// FIXME: optimize
+		return count(self::createInitialPool($player_count));
+	}
+
 	/** @return list<Tile> */
     public static function createInitialPool(int $player_count): array {
         $values = [];

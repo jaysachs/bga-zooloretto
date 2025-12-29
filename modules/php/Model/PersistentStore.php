@@ -178,10 +178,7 @@ class PersistentStore {
         return $players;
     }
 
-    /**
-     * FIXME: this should be list<Tile>
-     * @param array<int,Tile> $tiles
-     */
+    /** @param array<int,Tile> $tiles */
     public function insertStock(array $tiles): void {
         // Insert overall tile -> type map.
         $values = [];
