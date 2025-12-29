@@ -34,6 +34,7 @@ use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\AvailableTruck;
 use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\Enclosure;
+use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Offspring;
 use Bga\Games\zooloretto\Model\PlacedTile;
@@ -177,6 +178,10 @@ class PlayerTurn extends AbstractState
 			'player_id' => $active_player_id,
 			'truck_id' => $truck_id,
 			'moneys' => $model->currentMoneys()->serialize(),
+			'enclosure_summaries' => array_map(
+					fn ($e) => EnclosureSummary::forEnclosure($active_player_id, $e)->serialize(),
+					$model->getEnclosuresForPlayer($active_player_id)
+			),
 		]);
 
 		return NextPlayer::class;
@@ -253,6 +258,10 @@ class PlayerTurn extends AbstractState
 				'dest_enclosure' => Enclosure::translated($dest_id),
 				'tile_type' => $tile->type->value,
 				'tile_description' => $tile->type->translated(),
+				'enclosure_summaries' => [
+					EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_id])->serialize(),
+					EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_id])->serialize(),
+				],
 				'i18n' => [
 					'tile_description',
 					'src_enclosure',
@@ -302,6 +311,10 @@ class PlayerTurn extends AbstractState
 			'dest_tile_type' => $completedExchange->dest_tile_type,
 			'src_tile_description' => $completedExchange->src_tile_type->translated(),
 			'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
+			'enclosure_summaries' => [
+				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
+				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
+			],
 			'i18n' => [
 				'src_tile_description',
 				'dest_tile_description',
@@ -334,6 +347,10 @@ class PlayerTurn extends AbstractState
     		'moneys' => $model->currentMoneys()->serialize(),
 			'enclosure' => Enclosure::translated($enclosure_id),
 			'tile_description' => $purchased->tile->type->translated(),
+			'enclosure_summaries' => [
+				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$enclosure_id])->serialize(),
+				EnclosureSummary::forEnclosure($from_player_id, $model->getEnclosuresForPlayer($from_player_id)[0])->serialize(),
+			],
 			'i18n' => [
 				'tile_description',
 				'enclosure',
@@ -393,6 +410,9 @@ class PlayerTurn extends AbstractState
 			'tile_description' => $tile->type->translated(),
         	'moneys' => $model->currentMoneys()->serialize(),
 			'space' => new Space(0, $barn_pos),
+			'enclosure_summaries' => [
+				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[0])->serialize(),
+			],
 			'i18n' => [
 				'tile_description',
 			]

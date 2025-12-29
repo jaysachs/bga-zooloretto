@@ -663,18 +663,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
 
-  private updateEnclosureSummary(summary: EnclosureSummary) {
-    let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
-    console.log(elem);
-    let type = summary.animal_type;
-    elem.setAttribute(Attrs.TILE, summary.animal_type);
-    if (type) {
-      elem.title = this.tileTranslations.get(type) ?? type;
-      elem.firstElementChild!.textContent = `${summary.count}`;
-    } else {
-      elem.title = '';
-      elem.firstElementChild!.textContent = '';
-    }
+  private updateEnclosureSummaries(summaries: EnclosureSummary[]) {
+    summaries.forEach(summary => {
+      let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
+      console.log(elem);
+      let type = summary.animal_type;
+      elem.setAttribute(Attrs.TILE, summary.animal_type);
+      if (type) {
+        elem.title = this.tileTranslations.get(type) ?? type;
+        elem.firstElementChild!.textContent = `${summary.count}`;
+      } else {
+        elem.title = '';
+        elem.firstElementChild!.textContent = '';
+      }
+    });
   }
 
   private setupHtml(twoPlayer: boolean): void {
@@ -695,7 +697,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.renderStock();
     this.renderTrucks();
     this.renderEnclosures();
-    this.gamedatas.enclosure_summaries.forEach(this.updateEnclosureSummary.bind(this));
+    this.updateEnclosureSummaries(this.gamedatas.enclosure_summaries);
   }
 
   tileTranslations = new Map<string, string>();;
@@ -869,11 +871,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     truck_id: number,
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     await this.animations.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
-      ).then(() => this.updateMoneys(args.moneys));
+      )
+      .then(() => this.updateMoneys(args.moneys))
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_MoveTile(args: {
@@ -881,33 +886,39 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
     dest: Space,
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
     await this.animations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
-    );
+    )
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_DiscardTile(args: {
     moneys: Moneys,
     tile: Tile,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
-    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD));
+    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_PurchaseTile(args: {
 			player_id: number,
       placed_tiles: PlacedTile[],
 			moneys: Moneys,
+      enclosure_summaries: EnclosureSummary[],
     }) {
     this.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
         () => this.animations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
-    );
+    )
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_EndRound(args: {
@@ -935,6 +946,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     placed_tiles: PlacedTile[],
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
     let anims: AnimationList = [];
@@ -950,7 +962,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         anims.push(() => this.animationManager.slideIn(elem, $(IDS.OFF_BOARD), {}));
       }
     });
-    await this.animationManager.playParallel(anims);
+    await this.animationManager.playParallel(anims)
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private scoreSheet: ScoreSheet;
