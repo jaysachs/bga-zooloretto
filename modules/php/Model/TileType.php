@@ -121,20 +121,6 @@ enum TileType: string {
         return $this == TileType::BLOCK;
     }
 
-    public function isKid(): bool {
-        return match ($this) {
-            TileType::CAMEL_KID,
-            TileType::ELEPHANT_KID,
-            TileType::FLAMINGO_KID,
-            TileType::KANGAROO_KID,
-            TileType::LEOPARD_KID,
-            TileType::MONKEY_KID,
-            TileType::PANDA_KID,
-            TileType::ZEBRA_KID => true,
-            default => false,
-        };
-    }
-
     /** @return TileType[] */
     public static function allCanonicalAnimals() : array {
         return [

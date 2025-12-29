@@ -61,7 +61,7 @@ class Truck {
 
     public function isEmpty(): bool {
         foreach ($this->getAllTiles() as $tile) {
-            if (!$tile->isEmpty()) { return false; }
+            if (!$tile->isEmpty() && !$tile->type->isBlock()) { return false; }
         }
         return true;
     }
@@ -88,9 +88,9 @@ class Truck {
     /** @return list<int> */
     public function coinPositions(): array {
         $result = [];
-        for ($pos = 0; $pos < count($this->tiles); $pos++) {
-            if ($this->tiles[$pos]->type == TileType::COIN) {
-                $result[] = $pos + 1;
+        for ($pos = 1; $pos <= count($this->tiles); $pos++) {
+            if ($this->tiles[$pos-1]->type == TileType::COIN) {
+                $result[] = $pos;
             }
         }
         return $result;
@@ -115,10 +115,8 @@ class Truck {
         if ($this->taken_by === null) {
             throw new ModelException("Cannot return a non-taken truck {$this}");
         }
-        foreach ($this->tiles as $tile) {
-            if (!$tile->isEmpty() && !$tile->type->isBlock()) {
-                throw new ModelException("Cannot return a non-empty truck {$this}");
-            }
+        if (!$this->isEmpty()) {
+            throw new ModelException("Cannot return a non-empty truck {$this}");
         }
         $pid = $this->taken_by;
         $this->taken_by = null;
@@ -132,20 +130,12 @@ class Truck {
         if ($this->taken_by === null) {
             $this->taken_by = $player_id;
         } else {
-            throw new ModelException("Attempt to take truck $this->id by $player_id that was already taken by $this->taken_by");
+            throw new ModelException("Attempt to take truck {$this->id} by {$player_id} that was already taken by {$this->taken_by}");
         }
     }
 
     public function canBeTaken(): bool {
-        if ($this->taken_by !== null) {
-            return false;
-        }
-        foreach ($this->tiles as $tile) {
-            if (! $tile->isEmpty() && !$tile->type->isBlock()) {
-                return true;
-            }
-        }
-        return false;
+        return ($this->taken_by === null) && !$this->isEmpty();
     }
 
     public function removeTileAt(int $pos): Tile {
@@ -169,21 +159,21 @@ class Truck {
      */
     public function placeTileAt(Tile $tile, int $pos): void {
         if ($tile->isEmpty()) {
-            throw new ModelException("Cannot place empty tile into truck");
+            throw new ModelException("Cannot place empty tile into truck {$this->id}");
         }
         if ($pos <= 0 || $pos > self::CAPACITY) {
-            throw new ModelException("Cannot place tile in position $pos of truck");
+            throw new ModelException("Cannot place {$tile} in non-existent position {$pos} of truck {$this->id}");
         }
         $p = $pos - 1;
         if (!$this->tiles[$p]->isEmpty()) {
-            throw new ModelException("Cannot place tile in already occupied truck position $pos");
+            throw new ModelException("Cannot place {$tile} in occupied position {$pos} of truck {$this->id}");
         }
         $this->tiles[$p] = $tile;
     }
 
     public function tileAt(int $pos): Tile {
         if ($pos <= 0 || $pos > self::CAPACITY) {
-            throw new ModelException("invalid position $pos of truck");
+            throw new ModelException("invalid position {$pos} of truck {$this->id}");
         }
         return $this->tiles[$pos-1];
     }
@@ -198,7 +188,7 @@ class Truck {
             1 => clienttranslate("truck 1"),
             2 => clienttranslate("truck 2"),
             3 => clienttranslate("truck 3"),
-            default => "??"
+            default => "unknown truck"
         };
     }
 

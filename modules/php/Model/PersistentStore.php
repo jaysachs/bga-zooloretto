@@ -37,11 +37,11 @@ class PersistentStore {
     public function __construct(private Db $db = new DefaultDb()) {}
 
     public function updateTileType(Tile $tile): void {
-        $this->db->execute(
-            "UPDATE tiles
-             SET type = '{$tile->type->value}'
-             WHERE id={$tile->id}"
-        );
+        $this->db->execute("
+            UPDATE tiles
+            SET type = '{$tile->type->value}'
+            WHERE id={$tile->id}
+        ");
     }
 
     /**
@@ -52,8 +52,7 @@ class PersistentStore {
     public function insertTiles(array $tilepool): void {
         $values = implode(
             ',',
-            array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')",
-                      $tilepool)
+            array_map(fn ($tile) => "({$tile->id},'{$tile->type->value}')", $tilepool)
         );
         $this->db->execute("INSERT INTO tiles (id, type) VALUES {$values}");
     }
@@ -68,24 +67,22 @@ class PersistentStore {
     }
 
     private static function nullableIntStr(?int $val): string {
-        if ($val === null) { return "NULL"; }
-        return "{$val}";
+        return $val === null ? "NULL" : "{$val}";
     }
 
     private static function nullableIntVal(?string $val): ?int {
-        if ($val === null) { return null; }
-        return intval($val);
+        return $val === null ? null : intval($val);
     }
 
     public function updatePlayer(Player $player): void {
         $taken = self::nullableIntStr($player->truck_taken);
-        $this->db->execute(
-            "UPDATE player
-             SET money = {$player->money},
-                 purchased_extensions = {$player->purchased_extensions},
-                 truck_taken = {$taken}
-             WHERE player_id = {$player->id}"
-        );
+        $this->db->execute("
+            UPDATE player
+            SET money = {$player->money},
+                purchased_extensions = {$player->purchased_extensions},
+                truck_taken = {$taken}
+            WHERE player_id = {$player->id}
+        ");
     }
 
     public function setBankMoney(int $money): void {
@@ -123,23 +120,14 @@ class PersistentStore {
                 $truck_pos = intval($row['loc_pos']);
                 $truck = $trucks[$truck_id];
                 $curr = $truck->tileAt($truck_pos);
-                if ($curr->isEmpty()) {
+//                if ($curr->isEmpty()) {
                     $truck->placeTileAt($tile, $truck_pos);
-                } else if ($curr != $tile) {
-                    throw new ModelException("Tried to put {$tile} at {$truck_pos} on truck {$truck_id} but it was not empty, had {$curr}");
-                }
+                // } else if ($curr != $tile) {
+                //     throw new ModelException("Tried to put {$tile} at {$truck_pos} on truck {$truck_id} but it was not empty, had {$curr}");
+                // }
                 break;
             case 'E':
-                $pid = intval($row['player_id']);
-                if (!isset($players[$pid])) {
-                    throw new ModelException("Unknown player_id {$pid} for enclosure");
-                }
-                $enc_id = intval($row['loc_id']);
-                $enc_pos = intval($row['loc_pos']);
-                $p = $pencs[$pid][$enc_id]->placeTile($tile, $enc_pos);
-                if ($p->space->pos <> $enc_pos) {
-                    throw new ModelException("Tried to put {$tile} at {$enc_pos} in {$pid}'s enclosure {$enc_id} but it ended up at {$p}");
-                }
+                $pencs[intval($row['player_id'])][intval($row['loc_id'])]->placeTile($tile, intval($row['loc_pos']));
                 break;
             default:
                 throw new ModelException("Unknown location type {$loc}");
@@ -162,18 +150,17 @@ class PersistentStore {
     /** @return array<int,Player> */
     private function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken
-                                          FROM player");
+        $data = $this->db->getObjectList("
+            SELECT player_id, money, purchased_extensions, truck_taken FROM player");
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
-            $taken = self::nullableIntVal($row["truck_taken"]);
             $players[$id] = new Player(
                 $id,
                 intval($row["money"]),
                 $numPlayers,
                 intval($row["purchased_extensions"]),
-                $taken);
+                self::nullableIntVal($row["truck_taken"]));
         }
         return $players;
     }
@@ -182,43 +169,41 @@ class PersistentStore {
     public function insertStock(array $tiles): void {
         // Insert overall tile -> type map.
         $values = [];
-        $i = 1;
-        foreach ($tiles as $tile) {
+        foreach ($tiles as $i => $tile) {
             $values[] = "({$tile->id},'{$tile->type->value}', 'S', $i)";
-            $i++;
         }
-        $this->db->execute("INSERT INTO tiles (id, type, location, loc_pos) VALUES "
-                           . implode(',', $values));
+        $this->db->execute("
+            INSERT INTO tiles (id, type, location, loc_pos) VALUES " . implode(',', $values));
     }
 
     public function updateStock(Stock $stock): void {
         $tile_id = $stock->drawn->id;
         if (!$stock->drawn->isEmpty()) {
-            $this->db->execute(
-                "UPDATE tiles
-                 SET location = 'D',
-                     player_id = NULL,
-                     loc_id = NULL,
-                     loc_pos = NULL
-                 WHERE id = {$tile_id}");
+            $this->db->execute("
+                UPDATE tiles
+                SET location = 'D',
+                    player_id = NULL,
+                    loc_id = NULL,
+                    loc_pos = NULL
+                WHERE id = {$tile_id}
+            ");
         } else {
             //            throw new ModelException("Attempt to update stock but no drawn tile");
         }
     }
 
     public function updateTruck(Truck $truck): void {
-        $i = 1;
-        foreach ($truck->getAllTiles() as $tile) {
+        foreach ($truck->getAllTiles() as $pos => $tile) {
             if (!$tile->isEmpty()) {
-                $this->db->execute(
-                    "UPDATE tiles
-                     SET location = 'T',
-                         player_id = NULL,
-                         loc_id = {$truck->id},
-                         loc_pos = {$i}
-                     WHERE id = {$tile->id}");
+                $this->db->execute("
+                    UPDATE tiles
+                    SET location = 'T',
+                        player_id = NULL,
+                        loc_id = {$truck->id},
+                        loc_pos = {$pos}
+                    WHERE id = {$tile->id}
+                ");
             }
-            $i++;
         }
     }
 
@@ -228,9 +213,6 @@ class PersistentStore {
 
     /** @param list<Enclosure> $enclosures */
     public function updateEnclosures(int $player_id, array $enclosures): void {
-        if (count($enclosures) == 0) {
-            return;
-        }
         // uniquify
         $toUpdate = [];
         foreach ($enclosures as $enc) {
@@ -238,24 +220,24 @@ class PersistentStore {
                 $toUpdate[$enc->id] = $enc;
                 // FIXME: optimization potential: only need to do this for exchanges.
                 // Could instead remove unique constraint
-                $this->db->execute(
-                    "UPDATE tiles
-                     SET location = '', player_id = NULL, loc_id = NULL, loc_pos = NULL
-                     WHERE player_id = {$player_id} AND loc_id = {$enc->id}"
-                );
+                $this->db->execute("
+                    UPDATE tiles
+                    SET location = '', player_id = NULL, loc_id = NULL, loc_pos = NULL
+                    WHERE player_id = {$player_id} AND loc_id = {$enc->id}
+                ");
             }
         }
 
         foreach ($toUpdate as $enclosure) {
             foreach ($enclosure->nonEmptyContents() as $pos => $t) {
-                $this->db->execute(
-                    "UPDATE tiles
-                     SET player_id = {$player_id},
-                         location = 'E',
-                         loc_id = {$enclosure->id},
-                         loc_pos = {$pos}
-                     WHERE id = {$t->id}"
-                );
+                $this->db->execute("
+                    UPDATE tiles
+                    SET player_id = {$player_id},
+                        location = 'E',
+                        loc_id = {$enclosure->id},
+                        loc_pos = {$pos}
+                    WHERE id = {$t->id}
+                ");
             }
         }
     }
