@@ -304,9 +304,11 @@ class Model {
         $this->chargePlayer($player, Cost::EXPAND);
         $this->ps->updatePlayer($player);
 
-        // update cache
-        $this->retrieveAll()["enclosures"][$this->player_id][] =
-            Enclosure::extension($extnum);
+        // maybe update cache
+        if ($this->_data !== null) {
+            $this->_data["enclosures"][$this->player_id][] =
+                Enclosure::extension($extnum);
+        }
 
         return $player;
     }
