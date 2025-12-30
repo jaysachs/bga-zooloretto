@@ -31,6 +31,13 @@ interface EnclosureContents {
   tile: Tile | undefined;
 }
 
+interface EnclosureSummary {
+  player_id: number;
+  enclosure_id: number;
+  animal_type: string;
+  count: number;
+}
+
 interface ZGamedatas extends Gamedatas<ZPlayer> {
   primary_pile_size: number;
   endgame_pile_size: number;
@@ -45,6 +52,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
 
   // name is translated/able
   tile_translations: { type: string, name: string }[];
+  enclosure_summaries: EnclosureSummary[];
 }
 
 //
@@ -655,11 +663,27 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
 
+  private updateEnclosureSummaries(summaries: EnclosureSummary[]) {
+    summaries.forEach(summary => {
+      let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
+      console.log(elem);
+      let type = summary.animal_type;
+      elem.setAttribute(Attrs.TILE, summary.animal_type);
+      if (type) {
+        elem.title = this.tileTranslations.get(type) ?? type;
+        elem.firstElementChild!.textContent = `${summary.count}`;
+      } else {
+        elem.title = '';
+        elem.firstElementChild!.textContent = '';
+      }
+    });
+  }
+
   private setupHtml(twoPlayer: boolean): void {
     let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(this.gamedatas.players)) {
-      this.bga.playerPanels.getElement(player.player_id).appendChild(zhtml.playerPanel(player));
+      this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       let counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
@@ -673,6 +697,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.renderStock();
     this.renderTrucks();
     this.renderEnclosures();
+    this.updateEnclosureSummaries(this.gamedatas.enclosure_summaries);
   }
 
   tileTranslations = new Map<string, string>();;
@@ -684,10 +709,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     super.setup(gamedatas);
     this.animations = new Animations(this.animationManager);
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
+    this.setupTranslations();
     this.setupHtml(twoPlayer);
     this.setupNotifications();
     this.setupScoreSheet();
-    this.setupTranslations();
     if (gamedatas.lastround) {
       (this as any).addLastTurnBanner(_('This is the last round!'));
     }
@@ -846,11 +871,14 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     truck_id: number,
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     await this.animations.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
-      ).then(() => this.updateMoneys(args.moneys));
+      )
+      .then(() => this.updateMoneys(args.moneys))
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_MoveTile(args: {
@@ -858,33 +886,39 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
     dest: Space,
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
     await this.animations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
-    );
+    )
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_DiscardTile(args: {
     moneys: Moneys,
     tile: Tile,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
-    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD));
+    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_PurchaseTile(args: {
 			player_id: number,
       placed_tiles: PlacedTile[],
 			moneys: Moneys,
+      enclosure_summaries: EnclosureSummary[],
     }) {
     this.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
         () => this.animations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
-    );
+    )
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_EndRound(args: {
@@ -912,6 +946,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     player_id: number,
     placed_tiles: PlacedTile[],
     moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
     let anims: AnimationList = [];
@@ -927,7 +962,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         anims.push(() => this.animationManager.slideIn(elem, $(IDS.OFF_BOARD), {}));
       }
     });
-    await this.animationManager.playParallel(anims);
+    await this.animationManager.playParallel(anims)
+      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private scoreSheet: ScoreSheet;

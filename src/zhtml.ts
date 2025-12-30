@@ -55,6 +55,9 @@ class IDS {
   static money(player_id: number): string { return `playermoney-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
   static tile(t : Tile): string { return `zoo-tile-${t.id}`; }
+  static playerPanelBoardSummary(player_id: number, enclosure_id: number): string {
+    return `zoo-player-panel-board-summary-${player_id}-${enclosure_id}`;
+  }
 }
 
 class CSS {
@@ -123,8 +126,8 @@ class ZoolorettoHtml {
     };
 
     return Html
-      .div({ id: `zoo-playerboard-${player.player_id}`, classes: [ "zoo-playerboard"] },
-        Html.div({ id: `zoo-playername-${player.player_id}`},
+      .div({ classes: [ "zoo-playerboard"] },
+        Html.div({},
           Html.span({ text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
         ),
         Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)},
@@ -177,16 +180,48 @@ class ZoolorettoHtml {
     );
   }
 
-  playerPanel(player: ZPlayer): HTMLElement {
+  playerPanel(player: ZPlayer): HTMLElement[] {
     const playerId = player.player_id;
     console.log('Setting up panel for player ' + player.player_id);
-    return Html
-      .div({ classes: 'zoo-player-panel-ext'},
-        Html.span({ classes: 'zoo-money'},
-          Html.span({classes: 'zoo-money-label'}),
-          Html.span({text: ': '}),
-          Html.span({id: IDS.money(playerId)})),
-        Html.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
-      );
+
+    let summaryDivs : HTMLElement[] = [];
+    if (this.twoPlayer) {
+      summaryDivs.push(
+        Html.div({},
+          Html.span({ id: IDS.playerPanelBoardSummary(playerId, 5) },
+            Html.span({}))));
+    }
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 4) },
+          Html.span({}))
+      ));
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 1) },
+          Html.span({})),
+        // the "barn". FIXME: render something there?
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 0) },
+          Html.span({}))
+      ));
+    summaryDivs.push(
+      Html.div({},
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 2) },
+          Html.span({})),
+        Html.span({ id: IDS.playerPanelBoardSummary(playerId, 3) },
+          Html.span({}))
+      ));
+    return [
+      Html
+        .div({ classes: 'zoo-player-panel-general'},
+          Html.span({ classes: 'zoo-money'},
+            Html.span({classes: 'zoo-money-label'}),
+            Html.span({text: ': '}),
+            Html.span({id: IDS.money(playerId)})),
+          Html.div({ classes: CSS.DEPOT_SPACE, id: IDS.takenTruck(playerId)}),
+        ),
+      Html
+        .div({ classes: 'zoo-player-panel-board-summary' }, ...summaryDivs)
+      ];
   }
 }
