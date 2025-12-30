@@ -77,19 +77,25 @@ class Model {
         throw new ModelException("attempt to retrieve unknown player $id");
     }
 
-    /** @var null|array{stock:Stock,players:array<int,Player>,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    /** @var null|array{stock:Stock,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
     private ?array $_data = null;
-    /** @return array{stock:Stock,players:array<int,Player>,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
+    /** @return array{stock:Stock,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
     private function retrieveAll(): array {
         if ($this->_data === null) {
-            $this->_data = $this->ps->retrieveAll();
+            $this->_data = $this->ps->retrieveAll($this->getAllPlayers());
         }
         return $this->_data;
     }
 
-    /** @return Player[] */
+    /** @var null|array<int,Player> */
+    private ?array $_players = null;
+
+    /** @return array<int,Player> */
     public function getAllPlayers(): array {
-        return $this->retrieveAll()["players"];
+        if ($this->_players == null) {
+            $this->_players = $this->ps->retrievePlayers();
+        }
+        return $this->_players;
     }
 
     public function getStock(): Stock {
@@ -298,6 +304,7 @@ class Model {
         $this->chargePlayer($player, Cost::EXPAND);
         $this->ps->updatePlayer($player);
 
+        // update cache
         $this->retrieveAll()["enclosures"][$this->player_id][] =
             Enclosure::extension($extnum);
 

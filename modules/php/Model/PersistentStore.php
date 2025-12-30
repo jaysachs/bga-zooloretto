@@ -85,9 +85,11 @@ class PersistentStore {
         return intval($row[0]);
     }
 
-    /** @return array{players: array<int,Player>,trucks: array<int,Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock} */
-    public function retrieveAll(): array {
-        $players = $this->retrievePlayers();
+    /**
+     * @param array<int,Player> $players
+     * @return array{trucks: array<int,Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock}
+     */
+    public function retrieveAll(array $players): array {
         $pencs = [];
         foreach ($players as $player) {
             $pencs[$player->id] = Enclosure::forPlayer($player);
@@ -123,7 +125,6 @@ class PersistentStore {
         }
         $stock = new Stock($stocktiles, $drawn);
         return [
-            "players" => $players,
             "trucks" => $trucks,
             "stock" => $stock,
             "enclosures" => $pencs,
@@ -131,7 +132,7 @@ class PersistentStore {
     }
 
     /** @return array<int,Player> */
-    private function retrievePlayers(): array {
+    public function retrievePlayers(): array {
         $players = [];
         $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken FROM player");
         $numPlayers = count($data);
