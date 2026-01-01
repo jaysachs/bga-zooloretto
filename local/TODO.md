@@ -1,50 +1,22 @@
-* Optimize DB schema / access:
-  * Combine endgame & primary stock into one table
-    * Only retrieve top tile, and total count
-    * Have a boolean column to say if drawn (don't use global)
-    * Then only need one select for the whole thing
+* Needs thorough testing
+  * undo / restart flows
+  * offspring generated at right times
+    * in particular, the rare exchange-triggers-two-offspring?
+  * offspring overflow into barn
+  * completion bonuses generated at right times
+  * notifications / UI updates correctly in those cases
+  * mobile
 
-* Handle rare exchange-triggers-two-offspring-in-one-enclosure case.
+* Player aid
 
-* Log messages for all significant events (either separate messages for moves/money/offspring, or compound ones).
-  * It's a question: separate notifs for
-    * completing enclosure
-    * offspring produced
-  * Need to rework model for server objects to properly do this for take truck placements
+* Update layout for mobile (trucks at top)
 
-* Rework model objects
-
-* Find bugs -- add "debug_" methods to help set up situations?
- * could add new tiles with this so don't have to fish through stock.
-
-* UX: consider clicking on enclosures as a whole (for exchange, at least)?
-
-* UX: placing tiles from trucks seems like has an extra click:
-  1. click on "take truck"
-  2. click on truck
-  3. click on tile on truck
-  4. click on destination
-     go to 3 until done
-Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
-
-* Generate PHP/TS classes from user preferences?
-
-* UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
-
-* UX questions:
-  * Feedback on colors for highlighting
-  * Put trucks & stock at top instead of right? for mobile, yes.
-  * Modal player aid?
-
-To test:
-  * Need to test offspring on exchanges
-  * Need to test offspring "overflowing" into barn
-
-Bugs:
-  * Need to notify offspring and completion bonus(es) when taketruckplacetiles.
-  * "Ghost" "moved" highlights remain.
-
-Improvements:
+* Potential improvements
+  * Add "redo" to flows
+  * UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
+  * UX: for multi-stage flows, keep "parent" choices highlighted
+    * e.g. truck when placing tiles
+  * consider clicking on enclosures as a whole (for exchange, at least)
   * When only one action just do it (?)
     * if only one option for each of remaining truck tiles, place them
     * if only one option for drawn tile, put it in that truck space
@@ -55,8 +27,16 @@ Improvements:
     * if only one option for a purchased tile to go, put it there
     * etc etc
     * Maybe don't do this if no confirmation stage, though.
+  * UX: placing tiles from trucks seems like has an extra click:
+    1. click on "take truck"
+    2. click on truck
+    3. click on tile on truck
+    4. click on destination
+       go to 3 until done
+    Maybe combine 2 & 3? Maybe require truck pieces delivered "in order"?
   * Consider clicking on the stock pile as a "Draw"
   * Consider clicking on a truck space as a "select truck and tile"
   * Consider clicking on any space in an enclosure as "that's the destination"
+  * Automatic placement into enclosures? How can that really be good except in trivial cases? I guess with a "restart turn" it can be flawed.
 
-* Automatic placement into enclosures? How can that really be good except in trivial cases? I guess with a "restart turn" it can be flawed.
+* Generate PHP/TS classes from user preferences?
