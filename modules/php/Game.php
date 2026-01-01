@@ -70,7 +70,7 @@ class Game extends \Bga\GameFramework\Table
 	/** @return array<string,mixed> */
 	protected function getAllDatas(): array
 	{
-		$model = new Model(intval($this->getActivePlayerId()));
+		$model = new Model(intval($this->getCurrentPlayerId()));
 		$stock = $model->getStock();
 		$encs = [];
 		$esumms = [];
