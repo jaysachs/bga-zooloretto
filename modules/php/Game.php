@@ -70,7 +70,7 @@ class Game extends \Bga\GameFramework\Table
 	/** @return array<string,mixed> */
 	protected function getAllDatas(): array
 	{
-		$model = new Model(intval($this->getCurrentPlayerId()));
+		$model = new Model(intval($this->getCurrentPlayerId()), $this);
 		$stock = $model->getStock();
 		$encs = [];
 		$esumms = [];
@@ -136,7 +136,7 @@ class Game extends \Bga\GameFramework\Table
     */
 	function getGameProgression(): int
 	{
-		$model = new Model(0);
+		$model = new Model(0, $this);
 		$stock = $model->getStock();
         $numPlayers = count($model->getAllPlayers());
 		return intval(100 * $stock->percentComplete($numPlayers));
@@ -241,7 +241,7 @@ class Game extends \Bga\GameFramework\Table
 	#[Debug(reload: true)]
 	public function debug_fillTrucks(): void {
 		$player_id = intval($this->getActivePlayerId());
-		$model = new Model($player_id);
+		$model = new Model($player_id, $this);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
@@ -257,7 +257,7 @@ class Game extends \Bga\GameFramework\Table
 
 	#[Debug(reload: true)]
 	public function debug_drawN(int $n): void {
-		$model = new Model(0);
+		$model = new Model(0, $this);
 		$stock = $model->getStock();
 		while ($n-- > 0) {
 			$stock = $model->drawTile();

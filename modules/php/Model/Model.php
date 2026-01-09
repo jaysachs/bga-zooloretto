@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Utils;
 
 /*
@@ -35,7 +36,7 @@ use Bga\Games\zooloretto\Utils;
 */
 
 class Model {
-    public function __construct(private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
+    public function __construct(private int $player_id, private Game $game, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
     }
 
     /** @param list<int> $player_ids */
@@ -82,6 +83,13 @@ class Model {
     /** @return array{stock:Stock,trucks:array<int,Truck>,enclosures:array<int,array<int,Enclosure>>} */
     private function retrieveAll(): array {
         if ($this->_data === null) {
+            /*
+            try {
+                throw new \Exception("foo");
+            } catch (\Exception $e) {
+                $this->game->error($e->getTraceAsString());
+            }
+            */
             $this->_data = $this->ps->retrieveAll($this->getAllPlayers());
         }
         return $this->_data;
