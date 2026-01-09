@@ -571,7 +571,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     // Create the front and back of the tile to flip
     let back = this.makeTileBackSpan();
     let front = this.makeTileSpan(tile);
-    // so they're "above" the actual tile
+
     front.style.position = 'absolute';
     back.style.position = 'absolute';
     // "hide" the original tile

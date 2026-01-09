@@ -42,7 +42,7 @@ class Animations {
     }
 
 
-    async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
+    flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
         if (!this.animationManager.animationsActive()) {
             return Promise.resolve(null);
         }
@@ -61,7 +61,7 @@ class Animations {
         Object.assign(back.style, flipStyles);
         Object.assign(front.style, flipStyles);
 
-        await this.wait(1)
+        return this.wait(1)
             // First just "lift" the tile faces up. flips are same as initial
             .then(_ => Promise.all([
                 this.animateTransform(front, lift + revflip),
@@ -89,14 +89,14 @@ class Animations {
         });
     }
 
-    private requestAnimationFramePromise(): Promise<any> {
-        return new Promise(resolve => requestAnimationFrame(resolve));
-    }
-
-    animateTransform(element: HTMLElement, transform: string) {
+    animateTransform(element: HTMLElement, transform: string) : Promise<any> {
         Object.assign(element.style, { transform: transform });
         return this.transitionEndPromise(element)
         // .then(_ => requestAnimationFramePromise(element));
+    }
+
+    private requestAnimationFramePromise(): Promise<any> {
+        return new Promise(resolve => requestAnimationFrame(resolve));
     }
 
 }
