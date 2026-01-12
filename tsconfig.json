@@ -28,7 +28,7 @@
         "work/bga-framework.d.ts",
         "src/bga-animations.d.ts",
         "src/bga-score-sheet.d.ts",
-        "src/animations.ts",
+        "src/more-animations.ts",
         "src/colormap.ts",
         "src/html.ts",
         "src/basegame.ts",

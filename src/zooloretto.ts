@@ -558,29 +558,31 @@ class MainFlow extends ZooFlow<PlayState> {
 
 /** Game class */
 class ZoolorettoGame extends BaseGame<ZGamedatas> {
-  animations: Animations;
+  moreAnimations: MoreAnimations;
   constructor(bga: Bga<ZGamedatas>) {
     super(bga, []);
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
-    return this.animations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
+    return this.moreAnimations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
   }
 
-  private async renderTileDraw(elem: HTMLElement, tile: Tile) {
+  private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
+    if (!this.bgaAnimationsActive()) {
+      elem.setAttribute(Attrs.TILE, tile.type);
+      return Promise.resolve(null);
+    }
     // Create the front and back of the tile to flip
     let back = this.makeTileBackSpan();
     let front = this.makeTileSpan(tile);
 
-    front.style.position = 'absolute';
-    back.style.position = 'absolute';
     // "hide" the original tile
     elem.removeAttribute(Attrs.TILE);
     // Need them in the document
     elem.appendChild(front);
     elem.appendChild(back);
 
-    await this.animations.flip(front, back).then(_ => {
+    await this.moreAnimations.flip(front, back).then(_ => {
       elem.id = IDS.tile(tile);
       elem.setAttribute(Attrs.TILE, tile.type);
       back.remove();
@@ -707,7 +709,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   override setup(gamedatas: ZGamedatas) {
     super.setup(gamedatas);
-    this.animations = new Animations(this.animationManager);
+    this.moreAnimations = new MoreAnimations(this.animationManager);
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
     this.setupTranslations();
     this.setupHtml(twoPlayer);
@@ -777,7 +779,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
-      await this.animations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
+      await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
         .then(() => {
           this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
         });
@@ -816,7 +818,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     tile: Tile,
     primary_pile_size: number,
     endgame_pile_size: number }) {
-      await this.animations.slideAndAttach(
+      await this.moreAnimations.slideAndAttach(
         Elements.tile(args.tile)!,
         Elements.truckSpace(args.truck_id, args.truck_pos))
           .then(() => this.replenishPilesAndUpdateCounters(args));
@@ -839,7 +841,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     let dest = args.delivery.dest;
     if (!dest) {
       // coin
-      await this.animations.slideOutAndDestroy(
+      await this.moreAnimations.slideOutAndDestroy(
         Elements.tile(args.delivery.tile),
           this.bga.playerPanels.getElement(args.player_id),
           {}
@@ -847,7 +849,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
     else {
       let anims : AnimationList = [];
-      anims.push(() => this.animations.slideAndAttach(
+      anims.push(() => this.moreAnimations.slideAndAttach(
         Elements.tile(args.delivery.tile)!,
         Elements.enclosureSpace(args.player_id, dest.space))
       );
@@ -873,7 +875,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    await this.animations.slideAndAttach(
+    await this.moreAnimations.slideAndAttach(
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
       )
@@ -889,7 +891,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
-    await this.animations.slideAndAttach(
+    await this.moreAnimations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
     )
@@ -902,7 +904,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
-    await this.animations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
+    await this.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
       .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
@@ -915,7 +917,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
-        () => this.animations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+        () => this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
     )
       .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
@@ -929,10 +931,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     let anims: AnimationList = [];
     args.dumped_tiles.forEach(tile =>
-      anims.push(() => this.animations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
+      anims.push(() => this.moreAnimations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
     );
     args.truck_ids_returned.forEach(tid =>
-      anims.push(() => this.animations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))
+      anims.push(() => this.moreAnimations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid))))
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
@@ -953,7 +955,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     args.placed_tiles.forEach(pt =>  {
       let elem = Elements.tile(pt.tile);
       if (elem) {
-        anims.push(() => this.animations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
+        anims.push(() => this.moreAnimations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
       } else {
         let elem = this.makeTileSpan(pt.tile);
         // FIXME: needed?
