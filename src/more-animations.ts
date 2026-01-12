@@ -1,22 +1,22 @@
-class Animations {
+class MoreAnimations {
 
     private animationManager: AnimationManager;
     constructor(animationManager: AnimationManager) {
         this.animationManager = animationManager;
     }
 
-    wait(millis: number): Promise<any> {
+    async wait(millis: number): Promise<any> {
         return this.animationManager.base.wait(millis);
     }
 
-    slideAndAttach(elem: HTMLElement, newParent: HTMLElement, settings?: SlideAnimationSettings | undefined): Promise<any> {
+    async slideAndAttach(elem: HTMLElement, newParent: HTMLElement, settings?: SlideAnimationSettings | undefined): Promise<any> {
         if (elem.parentElement == newParent) {
             return Promise.resolve();
         }
         return this.animationManager.slideAndAttach(elem, newParent, settings ?? {});
     }
 
-    slideOutAndDestroy(elem?: HTMLElement | undefined,
+    async slideOutAndDestroy(elem?: HTMLElement | undefined,
         toElement?: HTMLElement | undefined,
         settings?: FloatingElementAnimationSettings | undefined): Promise<any> {
         if (!elem) {
@@ -25,7 +25,7 @@ class Animations {
         return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
     }
 
-    flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {
+    async flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {
         let on = () => {
             elems.forEach(e => e?.classList.add(css));
             return this.wait(250);
@@ -41,62 +41,92 @@ class Animations {
         return this.animationManager.playSequentially(anims);
     }
 
-
-    flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
+    async rotateTo(el: HTMLElement, degrees: number): Promise<any> {
         if (!this.animationManager.animationsActive()) {
+            el.style.transform = el.style.transform + ` rotate(${degrees}deg)`;
             return Promise.resolve(null);
         }
-        const noflip = '';
+        let a = el.animate(
+            { transform: [ `rotate(${degrees}deg)`] },
+            { duration: 700 }
+        );
+        return a.finished.then(() => a.commitStyles());
+    }
+
+    async setPos(el: HTMLElement, left: string, top: string, duration: number = 500): Promise<any> {
+        if (!this.animationManager.animationsActive()) {
+            Object.assign(el.style, { left: left, top: top });
+            return Promise.resolve(null);
+        }
+        let a = el.animate(
+            { left: left, top: top },
+            { duration: duration  }
+        );
+        return a.finished.then(() => a.commitStyles());
+    }
+
+    async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
+        const noflip = ' rotate(0deg)';
         const revflip = ' rotateY(-180deg)';
         const fwdflip = ' rotateY(180deg)';
+        if (!this.animationManager.animationsActive()) {
+            back.style.transform = fwdflip;
+            return Promise.resolve(null);
+        }
 
         // Initial states: the back of the tile is not flipped but the front face is
-        back.style.transform = noflip;
-        front.style.transform = revflip;
         const flipStyles = {
             'z-index': 100,
+            'position': 'absolute',
             'backface-visibility': 'hidden',
-            transition: 'transform 0.5s',
         };
         Object.assign(back.style, flipStyles);
         Object.assign(front.style, flipStyles);
 
-        return this.wait(1)
-            // First just "lift" the tile faces up. flips are same as initial
-            .then(_ => Promise.all([
-                this.animateTransform(front, lift + revflip),
-                this.animateTransform(back, lift + noflip),
-            ]))
-            // Now flip the front and back faces
-            .then(_ => Promise.all([
-                this.animateTransform(front, lift + noflip),
-                this.animateTransform(back, lift + fwdflip),
-            ]))
-            // Then return them, flipped, to original location and size
-            .then(_ => Promise.all([
-                this.animateTransform(front, noflip),
-                this.animateTransform(back, fwdflip),
-            ]))
+        let liftAndFlip = (el : Element, start: string, end: string) => {
+            console.log("lAF", el, start, end);
+            let anim = el.animate([
+                { transform: start },
+                { transform: lift + start },
+                { transform: lift + end },
+                { transform: end },
+            ], 2000);
+            return anim.finished.then(() => anim.commitStyles());
+        };
+        return this.animationManager.playParallel([
+            () => liftAndFlip(front, revflip, noflip),
+            () => liftAndFlip(back, noflip, fwdflip),
+        ]);
     }
 
-    transitionEndPromise(element: HTMLElement): Promise<any> {
-        return new Promise(resolve => {
-            element.addEventListener('transitionend', function f(event) {
-                if (event.target !== element) return;
-                element.removeEventListener('transitionend', f);
-                resolve(null);
-            });
-        });
+    async fadeOutIn(element: HTMLElement, iterations: number = 1, durationSeconds: number = 0.7) : Promise<any> {
+        console.log("fadeOutIn", element);
+        if (!this.animationManager.animationsActive()) {
+            return Promise.resolve(null);
+        }
+        return element.animate({ opacity: [ 1.0, 0.0, 1.0 ], offset: [0, 0.5, 1.0] }, // easing: [ "ease-in", "ease-in", "ease-in" ]},
+                               { duration: durationSeconds * 1000, iterations: iterations }).finished;
     }
 
-    animateTransform(element: HTMLElement, transform: string) : Promise<any> {
-        Object.assign(element.style, { transform: transform });
-        return this.transitionEndPromise(element)
-        // .then(_ => requestAnimationFramePromise(element));
+    async fadeOut(element: HTMLElement, durationSeconds: number = 0.3) : Promise<any> {
+        if (!this.animationManager.animationsActive()) {
+            element.style.opacity = '0.0';
+            return Promise.resolve(null);
+        }
+        let anim =
+            element.animate({ opacity: [ 0.0 ], easing: 'linear' },
+                            { duration: durationSeconds * 1000 });
+        return anim.finished.then(() => anim.commitStyles());
     }
 
-    private requestAnimationFramePromise(): Promise<any> {
-        return new Promise(resolve => requestAnimationFrame(resolve));
+    async fadeIn(element: HTMLElement, durationSeconds: number = 0.3) : Promise<any> {
+        if (!this.animationManager.animationsActive()) {
+            element.style.opacity = 'default';
+            return Promise.resolve(null);
+        }
+        let anim =
+            element.animate({ opacity: [ 1.0 ], easing: 'linear' },
+                            { duration: durationSeconds * 1000 });
+        return anim.finished.then(() => anim.commitStyles());
     }
-
 }
