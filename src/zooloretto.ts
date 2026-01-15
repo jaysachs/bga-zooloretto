@@ -1030,7 +1030,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       scores: this.gamedatas.endScores,
       onScoreDisplayed: (property: string, playerId: number, score: number) => {
         if (property === 'total') {
-          this.scoreCtrl[playerId]!.setValue(score);
+          this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
         }
       },
     }
