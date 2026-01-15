@@ -41,28 +41,34 @@ class MoreAnimations {
         return this.animationManager.playSequentially(anims);
     }
 
+    private async animateAndCommit(anim: Animation): Promise<any> {
+        return anim.finished.then(() => anim.commitStyles());
+    }
+
     async rotateTo(el: HTMLElement, degrees: number): Promise<any> {
         if (!this.animationManager.animationsActive()) {
             el.style.transform = el.style.transform + ` rotate(${degrees}deg)`;
             return Promise.resolve(null);
         }
-        let a = el.animate(
-            { transform: [ `rotate(${degrees}deg)`] },
-            { duration: 700 }
-        );
-        return a.finished.then(() => a.commitStyles());
+        return this.animateAndCommit(
+            el.animate({ transform: [ `rotate(${degrees}deg)`] },{ duration: 700 }
+        ));
     }
 
-    async setPos(el: HTMLElement, left: string, top: string, duration: number = 500): Promise<any> {
+    async slideToObject(el: HTMLElement, target: HTMLElement, duration: number = 500): Promise<any> {
+        console.debug("slidetoObject", el.id, target.id);
+        let targetRect = target.getBoundingClientRect();
+        let parRect = el.parentElement!.getBoundingClientRect();
+        let newX = targetRect.left - parRect.left;
+        let newY = targetRect.top - parRect.top;
         if (!this.animationManager.animationsActive()) {
-            Object.assign(el.style, { left: left, top: top });
+            el.style.left = newX + "px";
+            el.style.top = newY + "px";
             return Promise.resolve(null);
         }
-        let a = el.animate(
-            { left: left, top: top },
-            { duration: duration  }
+        return this.animateAndCommit(
+            el.animate({ left: newX + "px", top: newY + "px" }, { duration: duration  })
         );
-        return a.finished.then(() => a.commitStyles());
     }
 
     async flip(front, back: HTMLElement, lift: string = 'scale(1.3,1.3) translate(-2.3vw,2.3vw)'): Promise<any> {
@@ -113,20 +119,31 @@ class MoreAnimations {
             element.style.opacity = '0.0';
             return Promise.resolve(null);
         }
-        let anim =
+        return this.animateAndCommit(
             element.animate({ opacity: [ 0.0 ], easing: 'linear' },
-                            { duration: durationSeconds * 1000 });
-        return anim.finished.then(() => anim.commitStyles());
+                            { duration: durationSeconds * 1000 })
+        );
     }
 
     async fadeIn(element: HTMLElement, durationSeconds: number = 0.3) : Promise<any> {
         if (!this.animationManager.animationsActive()) {
-            element.style.opacity = 'default';
+            element.style.opacity = '';
             return Promise.resolve(null);
         }
-        let anim =
+        return this.animateAndCommit(
             element.animate({ opacity: [ 1.0 ], easing: 'linear' },
-                            { duration: durationSeconds * 1000 });
-        return anim.finished.then(() => anim.commitStyles());
+                            { duration: durationSeconds * 1000 })
+        );
+    }
+
+    async slideToDefaultPos(element: HTMLElement, durationSeconds: number = 0.5) : Promise<any> {
+        if (!this.animationManager.animationsActive()) {
+            Object.assign(element.style, { left: '0', top: '0' });
+            return Promise.resolve(null);
+        }
+        return this.animateAndCommit(
+            element.animate({ left: [ 0.0 ], top: [ 0.0 ], easing: 'linear' },
+                            { duration: durationSeconds * 1000 })
+        );
     }
 }
