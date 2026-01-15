@@ -568,8 +568,12 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
-    if (!this.bgaAnimationsActive()) {
+    let setTile = () => {
+      elem.id = IDS.tile(tile);
       elem.setAttribute(Attrs.TILE, tile.type);
+    };
+    if (!this.bgaAnimationsActive()) {
+      setTile();
       return Promise.resolve(null);
     }
     // Create the front and back of the tile to flip
@@ -583,8 +587,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     elem.appendChild(back);
 
     await this.moreAnimations.flip(front, back).then(_ => {
-      elem.id = IDS.tile(tile);
-      elem.setAttribute(Attrs.TILE, tile.type);
+      setTile();
       back.remove();
       front.remove();
     });
