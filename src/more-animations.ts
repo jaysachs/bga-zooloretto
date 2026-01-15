@@ -90,13 +90,12 @@ class MoreAnimations {
         Object.assign(front.style, flipStyles);
 
         let liftAndFlip = (el : Element, start: string, end: string) => {
-            console.log("lAF", el, start, end);
             let anim = el.animate([
                 { transform: start },
                 { transform: lift + start },
                 { transform: lift + end },
                 { transform: end },
-            ], 2000);
+            ], 1200);
             return anim.finished.then(() => anim.commitStyles());
         };
         return this.animationManager.playParallel([
