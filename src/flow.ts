@@ -61,11 +61,13 @@ class UndoStack {
       await thing();
     }
 
-    async reset()  {
-      await this.undoTo(0).then(() => {
+    clear() {
         this.current = undefined;
         this.continuations = [];
-      });
+    }
+
+    async reset()  {
+      await this.undoTo(0).then(this.clear.bind(this));
     }
 }
 
@@ -83,6 +85,14 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
 
   protected pushUndoOp(desc: string, anim: Op): void {
     this.undoStack.pushOp({ desc: desc, op: anim });
+  }
+
+  public onEnteringState(args: T, isCurrentPlayerActive: boolean) {
+    console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
+    if (isCurrentPlayerActive) {
+      this.undoStack.clear();
+      this.start(args);
+    }
   }
 
   start(args?: T) {
