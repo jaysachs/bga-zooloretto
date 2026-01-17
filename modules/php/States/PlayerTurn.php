@@ -116,45 +116,57 @@ class PlayerTurn extends AbstractState
 		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $drs);
 		// FIXME: give more details about placements in log
 
-		$this->notify->all('SelectTruck', '${player_name} selected ${truck}', [
-			'player_id' => $active_player_id,
-			'truck_id' => $truck_id,
-			'truck' => Truck::translated($truck_id),
-			'i18n' => [
-				'truck',
-			]
-		]);
+		$this->notify->all(
+            'SelectTruck',
+            clienttranslate('${player_name} selected ${truck}'),
+            [
+                'player_id' => $active_player_id,
+                'truck_id' => $truck_id,
+                'truck' => Truck::translated($truck_id),
+                'i18n' => [
+                    'truck',
+                ]
+            ]
+        );
 
 		// Send individual notifs for each tile
 		foreach ($deliveries as $del) {
 			if ($del->dest === null) {
 				// coins
-				$this->notify->all('PlaceTruckTile', '${player_name} gained a ${tile_type}',[
-				    'player_id' => $active_player_id,
-					'truck_id' => $truck_id,
-					'delivery' => $del->serialize(),
-					'tile_type' => $del->tile->type->value,
-					'tile_description' => $del->tile->type->translated(),
-					'i18n' => [
-						'tile_description',
+				$this->notify->all(
+                    'PlaceTruckTile',
+                    clienttranslate('${player_name} gained a ${tile_type}'),
+                    [
+                        'player_id' => $active_player_id,
+                        'truck_id' => $truck_id,
+                        'delivery' => $del->serialize(),
+                        'tile_type' => $del->tile->type->value,
+                        'tile_description' => $del->tile->type->translated(),
+                        'i18n' => [
+                            'tile_description',
 					]
-				]);
+                    ]
+                );
 				$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id);
 			}
 			else {
-				$this->notify->all('PlaceTruckTile', '${player_name} placed ${tile_type} into ${enclosure}',[
-				    'player_id' => $active_player_id,
-					'truck_id' => $truck_id,
-					'tile_type' => $del->tile->type->value,
-					'tile_description' => $del->tile->type->translated(),
-					'delivery' => $del->serialize(),
-					'enclosure' => Enclosure::translated($del->dest->space->enclosure_id),
-					'enclosure_id' => $del->dest->space->enclosure_id,
-					'i18n' => [
-						'tile_description',
-						'enclosure',
-					]
-				]);
+				$this->notify->all(
+                    'PlaceTruckTile',
+                    clienttranslate('${player_name} placed ${tile_type} into ${enclosure}'),
+                    [
+                        'player_id' => $active_player_id,
+                        'truck_id' => $truck_id,
+                        'tile_type' => $del->tile->type->value,
+                        'tile_description' => $del->tile->type->translated(),
+                        'delivery' => $del->serialize(),
+                        'enclosure' => Enclosure::translated($del->dest->space->enclosure_id),
+                        'enclosure_id' => $del->dest->space->enclosure_id,
+                        'i18n' => [
+                            'tile_description',
+                            'enclosure',
+                        ]
+                    ]
+                );
 			    $this->game->stats->PLAYER_TILESTAKENFROMTRUCKS->inc($active_player_id);
 				if ($del->dest->space->enclosure_id == 0) {
     				$this->game->stats->PLAYER_TILESTAKEFROMTRUCKSINTOBARN->inc($active_player_id);
@@ -163,7 +175,7 @@ class PlayerTurn extends AbstractState
 				// FIXME: Destination (or Delivery?) should have completedEnclosure
 				//    also should have specific moneyDelta for that
 				// if ($del->dest->completedEnclosure) {
-				// 	$this->notify->all('PlaceTruckTileCompleted', '${player_name} completed enclosure ${enclosure_id} and gained ${coins} bonus coins', [
+				// 	$this->notify->all('PlaceTruckTileCompleted', clienttranslate('${player_name} completed enclosure ${enclosure_id} and gained ${coins} bonus coins'), [
 				// 		'player_id' => $active_player_id,
 				// 		'truck_id' => $truck_id,
 				// 		'enclosure_id' => $del->dest->space->enclosure_id,
@@ -297,31 +309,34 @@ class PlayerTurn extends AbstractState
         $model = $this->createModel($active_player_id);
 		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys(0)));
 
-		$this->notify->all('ExchangeEnclosureAnimals',
+		$this->notify->all(
+            'ExchangeEnclosureAnimals',
 			// FIXME: need to handle barn
-		    '${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}', [
-			'player_id' => $active_player_id,
-			'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
-			'src_enclosure_id' => $completedExchange->src_enclosure_id,
-			'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
-        	'moneys' => $model->currentMoneys()->serialize(),
-			'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
-			'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
-			'src_tile_type' => $completedExchange->src_tile_type,
-			'dest_tile_type' => $completedExchange->dest_tile_type,
-			'src_tile_description' => $completedExchange->src_tile_type->translated(),
-			'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
-			'enclosure_summaries' => [
-				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
-				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
-			],
-			'i18n' => [
-				'src_tile_description',
-				'dest_tile_description',
-				'src_enclosure',
-				'dest_enclosure',
-			]
-		]);
+            clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
+            [
+                'player_id' => $active_player_id,
+                'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
+                'src_enclosure_id' => $completedExchange->src_enclosure_id,
+                'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
+                'moneys' => $model->currentMoneys()->serialize(),
+                'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
+                'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
+                'src_tile_type' => $completedExchange->src_tile_type,
+                'dest_tile_type' => $completedExchange->dest_tile_type,
+                'src_tile_description' => $completedExchange->src_tile_type->translated(),
+                'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
+                'enclosure_summaries' => [
+                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
+                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
+                ],
+                'i18n' => [
+                    'src_tile_description',
+                    'dest_tile_description',
+                    'src_enclosure',
+                    'dest_enclosure',
+                ]
+            ]
+        );
 
 		$this->game->stats->PLAYER_EXCHANGEACTIONS->inc($active_player_id);
 		if ($src_enclosure_id == 0 || $dest_enclosure_id == 0) {
@@ -339,24 +354,28 @@ class PlayerTurn extends AbstractState
 		$dest = new Space($enclosure_id, $enclosure_pos);
 		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$purchased = $result['tiles'][0];
-		$this->notify->all('PurchaseTile', '${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}', [
-			'player_id' => $active_player_id,
-			'player_id2' => $from_player_id,
-			'tile_type' => $purchased->tile->type->value,
-			'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
-    		'moneys' => $model->currentMoneys()->serialize(),
-			'enclosure' => Enclosure::translated($enclosure_id),
-			'tile_description' => $purchased->tile->type->translated(),
-			'enclosure_summaries' => [
-				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$enclosure_id])->serialize(),
-				EnclosureSummary::forEnclosure($from_player_id, $model->getEnclosuresForPlayer($from_player_id)[0])->serialize(),
-			],
-			'i18n' => [
-				'tile_description',
-				'enclosure',
-				'seller_player_name',
-			]
-		]);
+		$this->notify->all(
+            'PurchaseTile',
+            clienttranslate('${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}'),
+            [
+                'player_id' => $active_player_id,
+                'player_id2' => $from_player_id,
+                'tile_type' => $purchased->tile->type->value,
+                'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
+                'moneys' => $model->currentMoneys()->serialize(),
+                'enclosure' => Enclosure::translated($enclosure_id),
+                'tile_description' => $purchased->tile->type->translated(),
+                'enclosure_summaries' => [
+                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$enclosure_id])->serialize(),
+                    EnclosureSummary::forEnclosure($from_player_id, $model->getEnclosuresForPlayer($from_player_id)[0])->serialize(),
+                ],
+                'i18n' => [
+                    'tile_description',
+                    'enclosure',
+                    'seller_player_name',
+                ]
+            ]
+        );
 		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
 		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
 		$this->notifyOffspring($active_player_id, $result['offspring']);
@@ -368,29 +387,37 @@ class PlayerTurn extends AbstractState
 	private function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
 		if ($bonus !== null) {
 			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
-			$this->notify->all('EnclosureBonus', '${player_name} completed ${enclosure} and received ${bonus} coins', [
-				'player_id' => $active_player_id,
-				'enclosure' => Enclosure::translated($enclosure_id),
-				'bonus' => $bonus,
-				'i18n' => [
-					'enclosure'
-				]
-			]);
+			$this->notify->all(
+                'EnclosureBonus',
+                clienttranslate('${player_name} completed ${enclosure} and received ${bonus} coins'),
+                [
+                    'player_id' => $active_player_id,
+                    'enclosure' => Enclosure::translated($enclosure_id),
+                    'bonus' => $bonus,
+                    'i18n' => [
+                        'enclosure'
+                    ]
+                ]
+            );
 		}
 	}
 
 	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
 		if ($offspring !== null) {
 			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
-			$this->notify->all('Offspring', '${player_name} produced an offspring ${tile_type}',[
-				'player_id' => $active_player_id,
-				'offspring' => $offspring->serialize(),
-				'tile_type' => $offspring->child->tile->type->value,
-				'tile_description' => $offspring->child->tile->type->translated(),
-				'i18n' => [
-					'tile_description',
-				]
-			]);
+			$this->notify->all(
+                'Offspring',
+                clienttranslate('${player_name} produced an offspring ${tile_type}'),
+                [
+                    'player_id' => $active_player_id,
+                    'offspring' => $offspring->serialize(),
+                    'tile_type' => $offspring->child->tile->type->value,
+                    'tile_description' => $offspring->child->tile->type->translated(),
+                    'i18n' => [
+                        'tile_description',
+                    ]
+                ]
+            );
 			$m = $offspring->child->money_delta;
 			if ($m) {
 				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
@@ -403,20 +430,24 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$tile = $model->discardBarnTile($barn_pos);
-		$this->notify->all('DiscardTile', '${player_name} discarded tile ${tile_type}',[
-			'player_id' => $active_player_id,
-			'tile' => $tile->serialize(),
-			'tile_type' => $tile->type->value,
-			'tile_description' => $tile->type->translated(),
-        	'moneys' => $model->currentMoneys()->serialize(),
-			'space' => new Space(0, $barn_pos),
-			'enclosure_summaries' => [
-				EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[0])->serialize(),
-			],
-			'i18n' => [
-				'tile_description',
-			]
-		]);
+		$this->notify->all(
+            'DiscardTile',
+            clienttranslate('${player_name} discarded tile ${tile_type}'),
+            [
+                'player_id' => $active_player_id,
+                'tile' => $tile->serialize(),
+                'tile_type' => $tile->type->value,
+                'tile_description' => $tile->type->translated(),
+                'moneys' => $model->currentMoneys()->serialize(),
+                'space' => new Space(0, $barn_pos),
+                'enclosure_summaries' => [
+                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[0])->serialize(),
+                ],
+                'i18n' => [
+                    'tile_description',
+                ]
+            ]
+        );
 		$this->game->stats->PLAYER_DISCARDEDTILES->inc($active_player_id);
 		return NextPlayer::class;
 	}
