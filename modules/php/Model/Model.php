@@ -49,12 +49,13 @@ class Model {
         // Trucks
         $trucks = Truck::forPlayerCount($player_count);
 
-        $extras = [new Tile(1000, TileType::BLOCK), new Tile(1001, TileType::BLOCK), new Tile(1002, TileType::BLOCK)];
-        $ps->insertTiles($extras);
-
-        $trucks[2]->placeTileAt($extras[0], 3);
-        $trucks[3]->placeTileAt($extras[1], 2);
-        $trucks[3]->placeTileAt($extras[2], 3);
+        if ($player_count == 2) {
+            $extras = [new Tile(1000, TileType::BLOCK), new Tile(1001, TileType::BLOCK), new Tile(1002, TileType::BLOCK)];
+            $ps->insertTiles($extras);
+            $trucks[2]->placeTileAt($extras[0], 3);
+            $trucks[3]->placeTileAt($extras[1], 2);
+            $trucks[3]->placeTileAt($extras[2], 3);
+        }
         foreach ($trucks as $truck) {
             $ps->updateTruck($truck);
         }
