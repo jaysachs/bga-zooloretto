@@ -39,10 +39,6 @@ use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
 
-require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
-
-// require_once("Stats.php");
-
 class Game extends \Bga\GameFramework\Table
 {
 
