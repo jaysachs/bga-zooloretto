@@ -654,6 +654,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         // move it to player panel
         let tElem = $(IDS.depotSpace(truck.truck_id)).firstElementChild as HTMLElement;
         $(IDS.takenTruck(truck.taken_by_player_id)).appendChild(tElem);
+        this.bga.gameui.disablePlayerPanel(truck.taken_by_player_id);
       }
     }
   }
@@ -880,8 +881,11 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         Elements.truck(args.truck_id),
         $(IDS.takenTruck(args.player_id))
       )
-      .then(() => this.updateMoneys(args.moneys))
-      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
+      .then(() => {
+        this.updateMoneys(args.moneys);
+        this.updateEnclosureSummaries(args.enclosure_summaries);
+        this.bga.gameui.disablePlayerPanel(args.player_id);
+      })
   }
 
   private async notif_MoveTile(args: {
@@ -939,6 +943,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
+      this.bga.gameui.enableAllPlayerPanels();
       if (args.last_round) {
         (this as any).addLastTurnBanner(_('This is the last round!'));
       }
