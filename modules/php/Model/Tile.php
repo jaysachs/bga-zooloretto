@@ -165,8 +165,16 @@ class Tile {
 		return $this->type->isEmpty();
 	}
 
+    public function isFertileMale(): bool {
+        return $this->type->isFertileMale();
+    }
+
+    public function isFertileFemale(): bool {
+        return $this->type->isFertileFemale();
+    }
+
 	public function markReproduced(): Tile {
-		if ($this->type->isFertileFemale() || $this->type->isFertileMale()) {
+		if ($this->isFertileFemale() || $this->isFertileMale()) {
 			$this->type = $this->type->reproducedType();
 			return $this;
 		}
