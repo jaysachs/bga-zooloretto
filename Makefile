@@ -49,7 +49,7 @@ phpstan: build $(STUBS)
 	phpstan --autoload-file=$(STUBS) --level=$(PHPSTAN_LEVEL) --memory-limit=1G analyse modules/php/Model modules/php modules/php/States
 
 deploy: test
-	lftp -e 'cd $(GAME); mirror -R --exclude .vscode/ --exclude .git/ --exclude work/ --exclude local/ --exclude bga-framework.d.ts --exclude node_modules/ --exclude _ide_helper.php; exit' $(SFTP)
+	lftp -e 'cd $(GAME); mirror -e -R --exclude .vscode/ --exclude .git/ --exclude work/ --exclude local/ --exclude bga-framework.d.ts --exclude node_modules/ --exclude _ide_helper.php; exit' $(SFTP)
 
 # TODO: should this remove colormap and stats as well?
 clean:
