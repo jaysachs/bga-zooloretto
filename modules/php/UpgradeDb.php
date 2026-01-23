@@ -62,11 +62,13 @@ class UpgradeDb {
                 ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned;
 ";
 
-        $sql[] = "UPDATE player SET purchased_extensions = unblockedzoo";
+        $sql[] = "
+UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
+";
 
-        $players = $this->db->getObjectList("SELECT * FROM player");
-        $wagons = $this->db->getObjectList("SELECT * FROM wagons");
-        $animals = $this->db->getObjectList("SELECT * FROM animals");
+        $players = $this->db->getObjectList("SELECT * FROM DBPREFIX_player");
+        $wagons = $this->db->getObjectList("SELECT * FROM DBPREFIX_wagons");
+        $animals = $this->db->getObjectList("SELECT * FROM DBPREFIX_animals");
         Arrays::shuffle($animals);
 
         $stockpos = 1;
@@ -86,7 +88,7 @@ class UpgradeDb {
             switch ($a["status"]) {
             case "THIKINGKID":
             case "THIKINGKIDSTALL":
-                continue;
+                continue 2;
             case "AVAILABLE":
                 $location = "S";
                 $loc_pos = $stockpos++;
@@ -127,11 +129,33 @@ class UpgradeDb {
             default:
                 // log error / throw exception
             }
-            $values[] = "($id, $type, $location, $player_id, $loc_id, $loc_pos)";
+            $values[] = "($id, '$type', '$location', $player_id, $loc_id, $loc_pos)";
         }
-        $sql[] = "INSERT INTO tiles (id, type, location, player_id, loc_id, loc_pos) VALUES \n"
-            . implode(',\n', $values);
 
-        return implode('\n', $sql);
+        // Now set truck_taken on player as needed. We don't know which one
+        //  each player took, but we know if they took one.
+        $taken = [];
+        foreach ($wagons as $w) {
+            if ($w["status"] == "PLAYED") {
+                $taken[] = intval($w["id"]);
+            }
+        }
+        foreach ($players as $p) {
+            if ($p["skipped"] == "Y") {
+                $t = array_pop($taken);
+                $sql[] = "
+  UPDATE player SET truck_taken = $t WHERE player_id = $p;
+";
+            }
+        }
+
+        $sql[] = "INSERT INTO DBPREFIX_tiles (id, type, location, player_id, loc_id, loc_pos) VALUES
+"
+            . implode(",
+", $values) . ";
+";
+
+        return implode("
+", $sql);
 	}
 }
