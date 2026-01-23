@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS `tiles` (
   --  StallA, StallB, StallC, StallD: Kiosk, Barrow, Snacks, Popcorn
   --  COIN: coin
   `type` VARCHAR(10) NOT NULL,
-  `reproduced` TINYINT(1) NOT NULL DEFAULT 0,
-
   -- Truck
   --  T:  {truck_id} {truck_pos}
   -- Enclosure
