@@ -149,32 +149,12 @@ class Game extends \Bga\GameFramework\Table
 
     */
 
-	function upgradeTableDb($from_version): void
+	function upgradeTableDb(mixed $from_version): void
 	{
-		// $from_version is the current version of this game database, in numerical form.
-		// For example, if the game was running with a release of your game named "140430-1345",
-		// $from_version is equal to 1404301345
-
-		// Example:
-		//        if( $from_version <= 1404301345 )
-		//        {
-		//            // ! important ! Use DBPREFIX_<table_name> for all tables
-		//
-		//            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
-		//            self::applyDbUpgradeToAllDB( $sql );
-		//        }
-		//        if( $from_version <= 1405061421 )
-		//        {
-		//            // ! important ! Use DBPREFIX_<table_name> for all tables
-		//
-		//            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
-		//            self::applyDbUpgradeToAllDB( $sql );
-		//        }
-		//        // Please add your future database scheme changes here
-		//
-		//
-
-
+        $sql = new UpgradeDb(new DefaultDb())->upgradeSql($from_version);
+        if ($sql) {
+            self::applyDbUpgradeToAllDB($sql);
+        }
 	}
 
 	/** @param array<mixed> $options */
