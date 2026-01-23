@@ -17,16 +17,41 @@ spl_autoload_register(function ($class) {
 use Bga\Games\zooloretto\UpgradeDb;
 use Bga\Games\zooloretto\Utils\MySQLDb;
 
-$db = "ebd_zooloretto_824479";
+$opts = getopt("", ["db:", "user:", "port:", "timestamp:", "dryrun" ]);
 
-$pw = $argv[1];
+$host = isset($opts["host"]) ? $opts["host"] : "localhost";
+$db = $opts["db"];
+$ts = intval($opts["timestamp"]);
+$user = $opts["user"];
+$port = isset($opts["port"]) ? $opts["port"] : 3306;
+$dryrun = isset($opts["dryrun"]);
 
-$msql = new mysqli("localhost", "root", $pw, $db, 3306);
+if (!$db || !$user) {
+    echo "Must supply --db and --user";
+}
 
-$u = new UpgradeDb(new MySQLDb($msql, $db));
+echo "DB password: ";
+system('stty -echo');
+$pw = trim(fgets(STDIN));
+system('stty echo');
+// add a new line since the users CR didn't echo
+echo "\n";
 
-$sql = $u->upgradeSql(0);
 
-$sql = str_replace("DBPREFIX_", $db . ".", $sql);
+mysqli_report(MYSQLI_REPORT_STRICT);
 
-echo $sql,"\n";
+$mysqli = new mysqli($host, $user, $pw, $db, $port);
+$u = new UpgradeDb(new MySQLDb($mysqli, $db));
+
+foreach ($u->upgradeSql(0) as $sql) {
+    $s2 = str_replace("DBPREFIX_", $db . ".", $sql);
+    echo "\n$s2;\n";
+    if (!$dryrun) {
+        if ($mysqli->query($s2)) {
+            echo "  ===> SUCCESS\n";
+        } else {
+            echo "\n  **** ERROR: ", $mysqli->error,"\n";
+            break;
+        }
+    }
+}

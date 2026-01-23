@@ -97,6 +97,8 @@ class PersistentStore {
         $stocktiles = [];
         $drawn = Tile::Empty();
         $reproduced = [];
+        // N.B. later operations depend on the ordering here,in particular, the stock is retrieved
+        //   by the loc_pos, which is initialized randoomly.
         $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X' ORDER BY location,loc_id,loc_pos");
         foreach ($rows as $row) {
             $id = intval($row['id']);

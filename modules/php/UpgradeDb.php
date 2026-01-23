@@ -34,7 +34,8 @@ class UpgradeDb {
 
     public function __construct(private Db $db) { }
 
-	public function upgradeSql(int $from_version): ?string {
+    /** @return list<string>|null */
+	public function upgradeSql(int $from_version): ?array {
         if ($from_version > 2504011715) {
             return null;
         }
@@ -48,23 +49,17 @@ class UpgradeDb {
                 `loc_pos` INT(10) UNSIGNED NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`),
                 UNIQUE(`location`, `player_id`, `loc_id`, `loc_pos`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-                CREATE TABLE DBPREFIX_zglobals (
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        $sql[] ="CREATE TABLE DBPREFIX_zglobals (
                 `id` int(10) unsigned NOT NULL DEFAULT 0,
                 `bank_money` int(10) unsigned NOT NULL,
                 PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        $sql[] = "INSERT INTO DBPREFIX_zglobals (`bank_money`) VALUES(30)";
+        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0";
+        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned";
 
-                INSERT INTO DBPREFIX_zglobals (`bank_money`) VALUES(30);
-
-                ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;
-                ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned;
-";
-
-        $sql[] = "
-UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
-";
+        $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
         $players = $this->db->getObjectList("SELECT * FROM DBPREFIX_player");
         $wagons = $this->db->getObjectList("SELECT * FROM DBPREFIX_wagons");
@@ -85,7 +80,8 @@ UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
             $loc_pos = 0;
             $type = $a["val"];
             $id = intval($a["id"]);
-            switch ($a["status"]) {
+            $status = $a["status"];
+            switch ($status) {
             case "THIKINGKID":
             case "THIKINGKIDSTALL":
                 continue 2;
@@ -100,6 +96,11 @@ UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
             case "DISCARDED":
                 $location = "X";
                 $loc_pos = $id + 10000;
+                break;
+            case "WAGON":
+                $location = "T";
+                $loc_id = intval($a["x"]);
+                $loc_pos = intval($a["y"]);
                 break;
             case "DRAWN":
                 $location = "D";
@@ -127,10 +128,13 @@ UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
                 $loc_pos = "next available position on that truck";
                 break;
             default:
+                throw new \Exception("Unknown status $status");
                 // log error / throw exception
             }
             $values[] = "($id, '$type', '$location', $player_id, $loc_id, $loc_pos)";
         }
+
+        $sql[] = "INSERT INTO DBPREFIX_tiles (id, type, location, player_id, loc_id, loc_pos) VALUES " . implode(",", $values);
 
         // Now set truck_taken on player as needed. We don't know which one
         //  each player took, but we know if they took one.
@@ -143,19 +147,11 @@ UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo;
         foreach ($players as $p) {
             if ($p["skipped"] == "Y") {
                 $t = array_pop($taken);
-                $sql[] = "
-  UPDATE player SET truck_taken = $t WHERE player_id = $p;
-";
+                $pid = intval($p["player_id"]);
+                $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid;";
             }
         }
 
-        $sql[] = "INSERT INTO DBPREFIX_tiles (id, type, location, player_id, loc_id, loc_pos) VALUES
-"
-            . implode(",
-", $values) . ";
-";
-
-        return implode("
-", $sql);
+        return $sql;
 	}
 }
