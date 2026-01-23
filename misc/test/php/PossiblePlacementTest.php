@@ -166,7 +166,7 @@ final class PossiblePlacementTest extends TestCase
 
         $kid = function($eid, $pos, $comp = false) use(&$rm, &$rf) : Offspring {
             return new Offspring(
-                new PlacedTile(new Tile($rm->id+300, TileType::CAMEL_KID), new Space($eid, $pos), $comp),
+                new PlacedTile(new Tile($rm->id*10000+$rf->id, TileType::CAMEL_KID), new Space($eid, $pos), $comp),
                 $rm, $rf);
         };
 

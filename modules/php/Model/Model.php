@@ -570,9 +570,6 @@ class Model {
     private function saveOffspring(Offspring $offspring): void {
         // new child inserted
         $this->ps->insertTiles([$offspring->child->tile]);
-        // update parents, marked reproduced.
-        $this->ps->updateTileType($offspring->mother);
-        $this->ps->updateTileType($offspring->father);
     }
 
     public function exchange(PossibleExchange $ex): CompletedExchange {

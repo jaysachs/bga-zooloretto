@@ -36,10 +36,6 @@ class PersistentStore {
 
     public function __construct(private Db $db = new DefaultDb()) {}
 
-    public function updateTileType(Tile $tile): void {
-        $this->db->execute("UPDATE tiles SET type = '{$tile->type->value}' WHERE id={$tile->id}");
-    }
-
     /**
      * Used to insert extra tiles (the blocked tiles for 2p).
      *
@@ -97,9 +93,18 @@ class PersistentStore {
         $trucks = Truck::forPlayerCount(count($players));
         $stocktiles = [];
         $drawn = Tile::Empty();
+        $reproduced = [];
         $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X' ORDER BY location,loc_id,loc_pos");
         foreach ($rows as $row) {
-            $tile = new Tile(intval($row['id']), TileType::from($row['type']));
+            $id = intval($row['id']);
+            if ($id > 10000) {
+                $reproduced[intval($id / 10000)] = true;
+                $reproduced[$id % 10000] = true;
+            }
+        }
+        foreach ($rows as $row) {
+            $id = intval($row['id']);
+            $tile = new Tile($id, TileType::from($row['type']), isset($reproduced[$id]));
             $loc = $row['location'];
             switch ($loc) {
             case 'S':

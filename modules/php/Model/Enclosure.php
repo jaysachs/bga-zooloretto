@@ -291,9 +291,9 @@ class Enclosure {
         $fp = 0;
         // FIXME: this only checks for one pair
         foreach ($this->contents as $pos => $tile) {
-            if ($tile->type->isFertileMale() && $fp == 0) {
+            if ($tile->isFertileMale() && $fp == 0) {
                 $fp = $pos;
-            } else if ($tile->type->isFertileFemale() && $mp == 0) {
+            } else if ($tile->isFertileFemale() && $mp == 0) {
                 $mp = $pos;
             }
         }
@@ -305,7 +305,7 @@ class Enclosure {
         $mother = $this->contents[$mp];
         $father = $this->contents[$fp];
         // this will work: baby ID is 300 more than parent ID
-        $child = new Tile($mother->id + 300, $mother->type->childType());
+        $child = new Tile($mother->id * 10000 + $father->id, $mother->type->childType());
         $mother = $mother->clone()->markReproduced();
         $father = $father->clone()->markReproduced();
         $this->contents[$fp] = $father;

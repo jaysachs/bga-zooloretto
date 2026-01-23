@@ -105,22 +105,22 @@ final class EnclosureTest extends TestCase
         $e->placeTile(new Tile(4, TileType::CAMEL_MALE));
         $this->assertEquals(
             new Offspring(
-                new PlacedTile(new Tile(303, TileType::CAMEL_KID), new Space(1, 3)),
-                new Tile(3, TileType::CAMEL_FEMALE_R),
-                new Tile(4, TileType::CAMEL_MALE_R),
+                new PlacedTile(new Tile(30004, TileType::CAMEL_KID), new Space(1, 3)),
+                new Tile(3, TileType::CAMEL_FEMALE, true),
+                new Tile(4, TileType::CAMEL_MALE, true),
                 false),
             $e->checkForOffspring($barn));
         $this->assertNull($e->checkForOffspring($barn));
 
-        $e->placeTile(new Tile(5, TileType::ELEPHANT_MALE));
-        $e->placeTile(new Tile(6, TileType::ELEPHANT_FEMALE));
+        $e->placeTile(new Tile(54, TileType::ELEPHANT_MALE));
+        $e->placeTile(new Tile(36, TileType::ELEPHANT_FEMALE));
         $this->assertEquals(
             new Offspring(
-                new PlacedTile(new Tile(306, TileType::ELEPHANT_KID), new Space(0, 3)),
-                new Tile(6, TileType::ELEPHANT_FEMALE_R),
-                new Tile(5, TileType::ELEPHANT_MALE_R),
+                new PlacedTile(new Tile(360054, TileType::ELEPHANT_KID), new Space(0, 3)),
+                new Tile(36, TileType::ELEPHANT_FEMALE, true),
+                new Tile(54, TileType::ELEPHANT_MALE, true),
                 false),
             $e->checkForOffspring($barn));
-        $this->assertEquals(new Tile(306, TileType::ELEPHANT_KID), $barn->tileAt(3));
+        $this->assertEquals(new Tile(360054, TileType::ELEPHANT_KID), $barn->tileAt(3));
     }
 }

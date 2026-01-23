@@ -9,6 +9,7 @@
 
 
 CREATE TABLE IF NOT EXISTS `tiles` (
+  -- child IDs = 10000 * motherid + fatherid
   `id` INT(10) UNSIGNED NOT NULL,
   -- The tile type:
   --  C: camel generic

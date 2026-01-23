@@ -37,7 +37,7 @@ class Tile {
 		return self::$EMPTY;
 	}
 
-    public function __construct(public readonly int $id, public private(set) TileType $type) {}
+    public function __construct(public readonly int $id, public readonly TileType $type, public private(set) bool $reproduced = false) {}
 
 	/** @return null|array<string,mixed> */
 	public function serialize(): ?array {
@@ -166,19 +166,19 @@ class Tile {
 	}
 
     public function isFertileMale(): bool {
-        return $this->type->isFertileMale();
+        return $this->type->isMale() && !$this->reproduced;
     }
 
     public function isFertileFemale(): bool {
-        return $this->type->isFertileFemale();
+        return $this->type->isFemale() && !$this->reproduced;
     }
 
 	public function markReproduced(): Tile {
 		if ($this->isFertileFemale() || $this->isFertileMale()) {
-			$this->type = $this->type->reproducedType();
+			$this->reproduced = true;
 			return $this;
 		}
-		throw new ModelException("Cannot mark tile of type {$this->type->value} as reproduced");
+		throw new ModelException("Cannot mark tile {$this} as reproduced");
 	}
 
 	public function __toString()
@@ -187,10 +187,10 @@ class Tile {
 	}
 
 	public function clone(): Tile {
-		return new Tile($this->id, $this->type);
+		return new Tile($this->id, $this->type, $this->reproduced);
 	}
 
 	public function equals(Tile $other): bool {
-		return $this->id == $other->id && $this->type == $other->type;
+		return $this->id == $other->id && $this->type == $other->type && $this->reproduced == $other->reproduced;
 	}
 }

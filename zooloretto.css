@@ -321,11 +321,11 @@ body.mobile_version {
 {
     background-position: 0% 0%;
 }
-[zoo-tile="CF"],[zoo-tile="CFR"]
+[zoo-tile="CF"]
 {
     background-position: 20% 0%;
 }
-[zoo-tile="CM"],[zoo-tile="CMR"]
+[zoo-tile="CM"]
 {
     background-position: 40% 0%;
 }
@@ -337,11 +337,11 @@ body.mobile_version {
 {
     background-position: 80% 0%;
 }
-[zoo-tile="EF"],[zoo-tile="EFR"]
+[zoo-tile="EF"]
 {
     background-position: 100% 0%;
 }
-[zoo-tile="EM"],[zoo-tile="EMR"]
+[zoo-tile="EM"]
 {
     background-position: 0% 20%;
 }
@@ -353,11 +353,11 @@ body.mobile_version {
 {
     background-position: 40% 20%;
 }
-[zoo-tile="FF"],[zoo-tile="FFR"]
+[zoo-tile="FF"]
 {
     background-position: 60% 20%;
 }
-[zoo-tile="FM"],[zoo-tile="FMR"]
+[zoo-tile="FM"]
 {
     background-position: 80% 20%;
 }
@@ -369,11 +369,11 @@ body.mobile_version {
 {
     background-position: 0% 40%;
 }
-[zoo-tile="KF"],[zoo-tile="KFR"]
+[zoo-tile="KF"]
 {
     background-position: 20% 40%;
 }
-[zoo-tile="KM"],[zoo-tile="KMR"]
+[zoo-tile="KM"]
 {
     background-position: 40% 40%;
 }
@@ -385,11 +385,11 @@ body.mobile_version {
 {
     background-position: 80% 40%;
 }
-[zoo-tile="LF"],[zoo-tile="LFR"]
+[zoo-tile="LF"]
 {
     background-position: 100% 40%;
 }
-[zoo-tile="LM"],[zoo-tile="LMR"]
+[zoo-tile="LM"]
 {
     background-position: 0% 60%;
 }
@@ -401,11 +401,11 @@ body.mobile_version {
 {
     background-position: 40% 60%;
 }
-[zoo-tile="MF"],[zoo-tile="MFR"]
+[zoo-tile="MF"]
 {
     background-position: 60% 60%;
 }
-[zoo-tile="MM"],[zoo-tile="MMR"]
+[zoo-tile="MM"]
 {
     background-position: 80% 60%;
 }
@@ -417,11 +417,11 @@ body.mobile_version {
 {
     background-position: 0% 80%;
 }
-[zoo-tile="PF"],[zoo-tile="PFR"]
+[zoo-tile="PF"]
 {
     background-position: 20% 80%;
 }
-[zoo-tile="PM"],[zoo-tile="PMR"]
+[zoo-tile="PM"]
 {
     background-position: 40% 80%;
 }
@@ -433,11 +433,11 @@ body.mobile_version {
 {
     background-position: 80% 80%;
 }
-[zoo-tile="ZF"],[zoo-tile="ZFR"]
+[zoo-tile="ZF"]
 {
     background-position: 100% 80%;
 }
-[zoo-tile="ZM"],[zoo-tile="ZMR"]
+[zoo-tile="ZM"]
 {
     background-position: 0% 100%;
 }
