@@ -40,7 +40,7 @@ class PlaceDrawnTile extends AbstractState
     {
         parent::__construct(
             game: $game,
-            id: 23,
+            id: 3,
             type: StateType::ACTIVE_PLAYER,
     		description: clienttranslate('${actplayer} must place a tile on a truck.'),
     		descriptionMyTurn: clienttranslate('${you} must place a tile on a truck.'),
