@@ -27,7 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
-use Bga\Games\zooloretto\Model\Db;
+use Bga\Games\zooloretto\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\Db;
 
 class UpgradeDb {
 
@@ -37,10 +38,10 @@ class UpgradeDb {
         if ($from_version > 2504011715) {
             return null;
         }
-        $sql = "CREATE TABLE DBPREFIX_tiles (
+        $sql = [];
+        $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT(10) UNSIGNED NOT NULL,
                 `type` VARCHAR(10) NOT NULL,
-                `reproduced` TINYINT(1) NOT NULL DEFAULT 0,
                 `location` VARCHAR(1) NOT NULL,
                 `player_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
                 `loc_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -57,10 +58,80 @@ class UpgradeDb {
 
                 INSERT INTO DBPREFIX_zglobals (`bank_money`) VALUES(30);
 
-                ALTER TABLE DBPREFIX_player ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
-                ALTER TABLE DBPREIFX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;
+                ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;
                 ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned;
 ";
-        return null; // $sql;
+
+        $sql[] = "UPDATE player SET purchased_extensions = unblockedzoo";
+
+        $players = $this->db->getObjectList("SELECT * FROM player");
+        $wagons = $this->db->getObjectList("SELECT * FROM wagons");
+        $animals = $this->db->getObjectList("SELECT * FROM animals");
+        Arrays::shuffle($animals);
+
+        $stockpos = 1;
+        $barnpos = [];
+        foreach ($players as $p) {
+            $barnpos[$p["player_id"]] = 0;
+        }
+
+        $values = [];
+        foreach ($animals as $a) {
+            $location = "";
+            $player_id = 0;
+            $loc_id = 0;
+            $loc_pos = 0;
+            $type = $a["val"];
+            $id = intval($a["id"]);
+            switch ($a["status"]) {
+            case "THIKINGKID":
+            case "THIKINGKIDSTALL":
+                continue;
+            case "AVAILABLE":
+                $location = "S";
+                $loc_pos = $stockpos++;
+                break;
+            case "LASTSET":
+                $location = "S";
+                $loc_pos = count($animals) + 1 + $stockpos++;
+                break;
+            case "DISCARDED":
+                $location = "X";
+                $loc_pos = $id + 10000;
+                break;
+            case "DRAWN":
+                $location = "D";
+                break;
+            case "PLAYED":
+                $location = "E";
+                $player_id = intval($a["player_id"]);
+                $loc_id = intval($a["x"]);
+                $loc_pos = intval($a["y"]);
+                // Fix up stall locs; original has enclosure 6 for stalls
+                if ($loc_id == 6) {
+                    $loc_id = $loc_pos > 2 ? $loc_pos - 1 : $loc_pos;
+                    $loc_pos = $loc_pos == 2 ? 5 : 6;
+                }
+                break;
+            case "STALL": // means barn
+                $location = "E";
+                $player_id = intval($a["player_id"]);
+                $loc_id = 0;
+                $loc_pos = $barnpos[$player_id]++;
+                break;
+            case "THINKING":
+                $location = "T";
+                $loc_id = intval($a["x"]);
+                $loc_pos = "next available position on that truck";
+                break;
+            default:
+                // log error / throw exception
+            }
+            $values[] = "($id, $type, $location, $player_id, $loc_id, $loc_pos)";
+        }
+        $sql[] = "INSERT INTO tiles (id, type, location, player_id, loc_id, loc_pos) VALUES \n"
+            . implode(',\n', $values);
+
+        return implode('\n', $sql);
 	}
 }

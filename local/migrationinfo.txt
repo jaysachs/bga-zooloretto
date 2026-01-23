@@ -10,7 +10,7 @@ wagons table:
 player table:
  * money: money
  * unblockedzoo: number of extensions purchased
- * skipped: ???
+ * skipped: "Y" means "took a wagon"
  * lastround: ???
 
 
@@ -49,7 +49,7 @@ Need to find out what happens on potential purchase and exchanges.
   * set THINKING -> WAGON
   * and put in next available wagon spot
 
-Any THIKINGKID just delete ?
+Any THIKINGKID/THIKINGKIDSTALL just delete ?
 
 What to do about offspring? and marking reproduced?
- *
+ * no, no record of this.
