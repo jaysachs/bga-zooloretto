@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use \Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 class Moneys {
     /** @param int[] $players keyed by player_id */
@@ -63,6 +64,6 @@ class Moneys {
 
     public function __toString(): string
     {
-        return "Moneys{bank:{$this->bank},players:" . Utils::arrayToString($this->players) . "}";
+        return "Moneys{bank:{$this->bank},players:" . Arrays::arrayToString($this->players) . "}";
     }
 }

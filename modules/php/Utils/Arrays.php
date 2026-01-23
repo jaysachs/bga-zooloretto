@@ -25,9 +25,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto;
+namespace Bga\Games\zooloretto\Utils;
 
-class Utils
+class Arrays
 {
     /**
      * @template T of null|scalar|\Stringable|array<null|scalar|\Stringable>
@@ -40,7 +40,7 @@ class Utils
                 /** @param array|scalar|null $k */
                 function ($k, $v) use (&$keys) : string {
                     $ks = "{$k}";
-                    $vs = is_array($v) ? Utils::arrayToString($v, $keys) : "{$v}";
+                    $vs = is_array($v) ? self::arrayToString($v, $keys) : "{$v}";
                     return "{$ks}=>{$vs}" ;
                 },
                 array_keys($arr),

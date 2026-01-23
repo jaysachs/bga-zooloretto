@@ -28,16 +28,16 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto;
 
 use Bga\GameFramework\Actions\Debug;
-use Bga\Games\zooloretto\Model\DefaultDb;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Space;
-use Bga\Games\zooloretto\Model\Stock;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
+use Bga\Games\zooloretto\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\DefaultDb;
 
 class Game extends \Bga\GameFramework\Table
 {
@@ -66,7 +66,7 @@ class Game extends \Bga\GameFramework\Table
 	/** @return array<string,mixed> */
 	protected function getAllDatas(): array
 	{
-		$model = new Model(intval($this->getCurrentPlayerId()), $this);
+		$model = new Model(intval($this->getCurrentPlayerId()));
 		$stock = $model->getStock();
 		$encs = [];
 		$esumms = [];
@@ -114,7 +114,7 @@ class Game extends \Bga\GameFramework\Table
 			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 		}
-		$isEndScore = intval($this->gamestate->state_id()) >= 99;
+		$isEndScore = intval($this->gamestate->getCurrentMainStateId()) >= 99;
   		$datas['endScores'] = $isEndScore ? $model->computeScores() : null;
 
         return $datas;
@@ -132,7 +132,7 @@ class Game extends \Bga\GameFramework\Table
     */
 	function getGameProgression(): int
 	{
-		$model = new Model(0, $this);
+		$model = new Model(0);
 		$stock = $model->getStock();
         $numPlayers = count($model->getAllPlayers());
 		return intval(100 * $stock->percentComplete($numPlayers));
@@ -163,7 +163,7 @@ class Game extends \Bga\GameFramework\Table
         $gameinfos = $this->getGameinfos();
 		/** @var list<string> */
         $default_colors = $gameinfos['player_colors'];
-        Utils::shuffle($default_colors);
+        Arrays::shuffle($default_colors);
 		$query_values = [];
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
@@ -217,7 +217,7 @@ class Game extends \Bga\GameFramework\Table
 	#[Debug(reload: true)]
 	public function debug_fillTrucks(): void {
 		$player_id = intval($this->getActivePlayerId());
-		$model = new Model($player_id, $this);
+		$model = new Model($player_id);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
@@ -233,7 +233,7 @@ class Game extends \Bga\GameFramework\Table
 
 	#[Debug(reload: true)]
 	public function debug_drawN(int $n): void {
-		$model = new Model(0, $this);
+		$model = new Model(0);
 		$stock = $model->getStock();
 		while ($n-- > 0) {
 			$stock = $model->drawTile();

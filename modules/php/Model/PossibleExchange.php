@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 class PossibleExchange {
     /**
@@ -63,9 +64,9 @@ class PossibleExchange {
 
     public function __toString(): string
     {
-        return "PossEx(src:{$this->src_enclosure_id} " . Utils::arrayToString($this->src_positions)
-                  . ", dest:{$this->dest_enclosure_id} " . Utils::arrayToString($this->src_positions)
-                  . ", offspring:" . Utils::arrayToString($this->offspring)
+        return "PossEx(src:{$this->src_enclosure_id} " . Arrays::arrayToString($this->src_positions)
+                  . ", dest:{$this->dest_enclosure_id} " . Arrays::arrayToString($this->src_positions)
+                  . ", offspring:" . Arrays::arrayToString($this->offspring)
                   . ", moneyDelta:{$this->moneyDelta})";
     }
 

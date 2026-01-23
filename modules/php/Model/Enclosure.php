@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zooloretto\Model;
 
 use \Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 class Enclosure {
     /** @var Tile[] */
@@ -320,7 +321,7 @@ class Enclosure {
 
     public function __toString(): string
     {
-        $contents = Utils::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);
+        $contents = Arrays::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);
         return "Enclosure(id=$this->id,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
     }
 

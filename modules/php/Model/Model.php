@@ -27,8 +27,11 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\Games\zooloretto\Utils\Db;
+use Bga\Games\zooloretto\Utils\DefaultDb;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
@@ -36,14 +39,14 @@ use Bga\Games\zooloretto\Utils;
 */
 
 class Model {
-    public function __construct(private int $player_id, private Game $game, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
+    public function __construct(private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
     }
 
     /** @param list<int> $player_ids */
     public static function createNewGame(array $player_ids, PersistentStore $ps = new PersistentStore()): void {
         $player_count = count($player_ids);
         $stockpool = Tile::createInitialPool($player_count);
-        Utils::shuffle($stockpool);
+        Arrays::shuffle($stockpool);
         $ps->insertStock($stockpool);
 
         // Trucks

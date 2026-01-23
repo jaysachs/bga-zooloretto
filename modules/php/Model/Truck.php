@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-use \Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 class Truck {
     public const int CAPACITY = 3;
@@ -180,7 +180,7 @@ class Truck {
 
     public function __toString(): string
     {
-        return "Truck(id={$this->id},taken_by={$this->taken_by},tiles=" . Utils::arrayToString($this->tiles) . ")";
+        return "Truck(id={$this->id},taken_by={$this->taken_by},tiles=" . Arrays::arrayToString($this->tiles) . ")";
     }
 
     public static function translated(int $truck_id): string {
