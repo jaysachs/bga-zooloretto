@@ -14,10 +14,14 @@ spl_autoload_register(function ($class) {
 });
 
 
+function fixup(string $s): string {
+    return $s; // return str_replace("TINYINT", "INT", str_replace("tinyint","int",$s));
+}
+
 use Bga\Games\zooloretto\UpgradeDb;
 use Bga\Games\zooloretto\Utils\MySQLDb;
 
-$opts = getopt("", ["db:", "user:", "port:", "timestamp:", "dryrun" ]);
+$opts = getopt("", ["db:", "user:", "port:", "timestamp:", "dryrun", "seedfile:","drop" ]);
 
 $host = isset($opts["host"]) ? $opts["host"] : "localhost";
 $db = $opts["db"];
@@ -25,9 +29,11 @@ $ts = intval($opts["timestamp"]);
 $user = $opts["user"];
 $port = isset($opts["port"]) ? $opts["port"] : 3306;
 $dryrun = isset($opts["dryrun"]);
+$seedfile = isset($opts["seedfile"]) ? $opts["seedfile"] : null;
+$drop = isset($opts["drop"]);
 
 if (!$db || !$user) {
-    echo "Must supply --db and --user";
+    die("Must supply --db and --user");
 }
 
 echo "DB password: ";
@@ -38,20 +44,44 @@ system('stty echo');
 echo "\n";
 
 
-mysqli_report(MYSQLI_REPORT_STRICT);
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$mysqli = new mysqli($host, $user, $pw, $db, $port);
+$mysqli = new mysqli($host, $user, $pw, null, $port);
+
+if ($seedfile) {
+    echo "Initializing with seedfile\n";
+    $seedsql = fixup(file_get_contents($seedfile));
+    if ($dryrun) {
+        if ($drop) {
+            echo "DROP DATABASE $db\n";
+        }
+        echo "$seedsql\n";
+    } else {
+        if ($drop) {
+            echo "Dropping db $db\n";
+            $mysqli->query("DROP DATABASE $db;");
+        }
+        echo "Loading seedfile\n";
+        $mysqli->multi_query($seedsql);
+        do {
+            $mysqli->store_result();
+            if ($mysqli->more_results()) { }
+        } while ($mysqli->next_result());
+        // echo $mysqli->error,"\n";
+    }
+}
+
+echo "Upgrading db\n";
 $u = new UpgradeDb(new MySQLDb($mysqli, $db));
 
 foreach ($u->upgradeSql(0) as $sql) {
-    $s2 = str_replace("DBPREFIX_", $db . ".", $sql);
+    $s2 = str_replace("DBPREFIX_", $db . ".", fixup($sql));
     echo "\n$s2;\n";
     if (!$dryrun) {
         if ($mysqli->query($s2)) {
             echo "  ===> SUCCESS\n";
         } else {
-            echo "\n  **** ERROR: ", $mysqli->error,"\n";
-            break;
+            die("$mysqli->error");
         }
     }
 }
