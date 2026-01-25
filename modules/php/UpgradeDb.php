@@ -72,6 +72,21 @@ class UpgradeDb {
             $barnpos[$p["player_id"]] = 0;
         }
 
+        $available_truck_pos = [];
+        foreach ($wagons as $wagon) {
+            $a = [];
+            $size = intval($wagon["size"]);
+            if (!$wagon["val1"]) {
+                $a[] = 1;
+            }
+            if (!$wagon["val2"] && $size >= 2) {
+                $a[] = 2;
+            }
+            if (!$wagon["val3"] && $size >= 3) {
+                $a[] = 3;
+            }
+            $available_truck_pos[$wagon["id"]] = $a;
+        }
         $values = [];
         foreach ($animals as $a) {
             $location = "";
@@ -93,6 +108,7 @@ class UpgradeDb {
                 $location = "S";
                 $loc_pos = count($animals) + 1 + $stockpos++;
                 break;
+            case "DISCARD":
             case "DISCARDED":
                 $location = "X";
                 $loc_pos = $id + 10000;
@@ -125,7 +141,10 @@ class UpgradeDb {
             case "THINKING":
                 $location = "T";
                 $loc_id = intval($a["x"]);
-                $loc_pos = "next available position on that truck";
+                $loc_pos = array_pop($available_truck_pos[$loc_id]);
+                if ($loc_pos <= 0) {
+                    throw new \Exception("Couldn't find spot in truck $loc_id for tile $id, '$status', '$type'");
+                }
                 break;
             default:
                 throw new \Exception("Unknown status $status");
