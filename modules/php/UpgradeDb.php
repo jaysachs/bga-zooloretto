@@ -72,20 +72,28 @@ class UpgradeDb {
             $barnpos[$p["player_id"]] = 0;
         }
 
+        $pending_truck = 0;
         $available_truck_pos = [];
         foreach ($wagons as $wagon) {
-            $a = [];
-            $size = intval($wagon["size"]);
-            if (!$wagon["val1"]) {
-                $a[] = 1;
+            $wid = intval($wagon["id"]);
+            if ($wagon["status"] == "TAKEN") {
+                if ($pending_truck) {
+                    throw new \Exception("Two trucks in pending state: $pending_truck $wid");
+                }
+                $pending_truck = $wid;
+                $a = [];
+                $size = intval($wagon["size"]);
+                if (!$wagon["val1"]) {
+                    $a[] = 1;
+                }
+                if (!$wagon["val2"] && $size >= 2) {
+                    $a[] = 2;
+                }
+                if (!$wagon["val3"] && $size >= 3) {
+                    $a[] = 3;
+                }
+                $available_truck_pos[] = $a;
             }
-            if (!$wagon["val2"] && $size >= 2) {
-                $a[] = 2;
-            }
-            if (!$wagon["val3"] && $size >= 3) {
-                $a[] = 3;
-            }
-            $available_truck_pos[$wagon["id"]] = $a;
         }
         $values = [];
         foreach ($animals as $a) {
@@ -140,8 +148,11 @@ class UpgradeDb {
                 break;
             case "THINKING":
                 $location = "T";
-                $loc_id = intval($a["x"]);
-                $loc_pos = array_pop($available_truck_pos[$loc_id]);
+                $loc_id = $pending_truck;
+                if ($loc_id <= 0) {
+                    throw new \Exception("no pending truck found but animal $id in status '$status'");
+                }
+                $loc_pos = array_pop($available_truck_pos);
                 if ($loc_pos <= 0) {
                     throw new \Exception("Couldn't find spot in truck $loc_id for tile $id, '$status', '$type'");
                 }
