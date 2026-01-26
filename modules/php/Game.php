@@ -153,7 +153,9 @@ class Game extends \Bga\GameFramework\Table
 	{
         $sql = new UpgradeDb(new DefaultDb())->upgradeSql(intval($from_version));
         if ($sql) {
-            self::applyDbUpgradeToAllDB(implode(";\n", $sql));
+            foreach ($sql as $s) {
+                self::applyDbUpgradeToAllDB($s);
+            }
         }
 	}
 
