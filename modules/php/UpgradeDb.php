@@ -61,9 +61,17 @@ class UpgradeDb {
 
         $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
-        $players = $this->db->getObjectList("SELECT * FROM DBPREFIX_player");
-        $wagons = $this->db->getObjectList("SELECT * FROM DBPREFIX_wagons");
-        $animals = $this->db->getObjectList("SELECT * FROM DBPREFIX_animals");
+        $currentState = intval($this->db->getSingleFieldList("SELECT global_value FROM global WHERE global_id = 1")[0]);
+        if (!$currentState) {
+            throw new \Exception("Game should have already started but in state $currentState");
+        }
+        $players = $this->db->getObjectList("SELECT * FROM player");
+        $wagons = $this->db->getObjectList("SELECT * FROM wagons");
+        $animals = $this->db->getObjectList("SELECT * FROM animals");
+        // FIXME: can we use getActivePlayerId ?
+        $gs = $this->db->getSingleFieldList("SELECT global_value FROM `global` WHERE global_id = 2");
+        $active_player_id = intval($gs["global_value"]);
+
         Arrays::shuffle($animals);
 
         $stockpos = 1;
@@ -92,7 +100,7 @@ class UpgradeDb {
                 if (!$wagon["val3"] && $size >= 3) {
                     $a[] = 3;
                 }
-                $available_truck_pos[] = $a;
+                $available_truck_pos = $a;
             }
         }
         $values = [];
@@ -165,21 +173,25 @@ class UpgradeDb {
         }
 
         $sql[] = "INSERT INTO DBPREFIX_tiles (id, type, location, player_id, loc_id, loc_pos) VALUES " . implode(",", $values);
-
         // Now set truck_taken on player as needed. We don't know which one
         //  each player took, but we know if they took one.
         $taken = [];
         foreach ($wagons as $w) {
-            if ($w["status"] == "PLAYED") {
+            if ($w["status"] == "TAKEN") {
                 $taken[] = intval($w["id"]);
             }
         }
         foreach ($players as $p) {
-            if ($p["skipped"] == "Y") {
+            $pid = intval($p["player_id"]);
+            if ($p["skipped"] == "Y" && $pid != $active_player_id) {
                 $t = array_pop($taken);
-                $pid = intval($p["player_id"]);
-                $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid;";
+                $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid";
             }
+        }
+        if ($currentState == 5 || $currentState == 7 || $currentState == 8
+            || $currentState == 9 || $currentState == 10) {
+            // FIXME: can we use jumpToState ?
+            $sql[] = "UPDATE `global` SET `global_value` = 2 WHERE `global_id` = 1";
         }
 
         return $sql;
