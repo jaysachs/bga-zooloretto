@@ -399,10 +399,21 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
               this.getPlayerPanelElement(this.player_id))))
             .then(() => {
               this.updateMoneyDelta(truck.money_delta);
-              this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks, []));
+              this.game.bga.actions.performAction("actTakeTruck", { truck_id: truck.truck_id });
+              // this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(truck.truck_id, truck.playable, availableTrucks, []));
             });
         });
     });
+    this.addRestartAndUndoButtons();
+  }
+}
+
+class PlaceTruckTileFlow extends ZooFlow<AvailableTruck[]> {
+
+  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+
+  override doStart(availableTrucks: AvailableTruck[]) {
+    console.log("starting PlaceTruckTileFlow", this);
     this.addRestartAndUndoButtons();
   }
 
@@ -730,6 +741,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
     this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+    this.bga.states.register('PlaceTruckTile', new PlaceTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
 
     console.log('Game setup done');
   }

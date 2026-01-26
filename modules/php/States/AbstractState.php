@@ -30,7 +30,9 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Offspring;
 
 abstract class AbstractState extends GameState
 {
@@ -67,4 +69,45 @@ abstract class AbstractState extends GameState
     protected function stockCount(int $count): int {
         return $this->game->stockCount($count);
     }
+
+	protected function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
+		if ($bonus !== null) {
+			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
+			$this->notify->all(
+                'EnclosureBonus',
+                clienttranslate('${player_name} completed ${enclosure} and received ${bonus} coins'),
+                [
+                    'player_id' => $active_player_id,
+                    'enclosure' => Enclosure::translated($enclosure_id),
+                    'bonus' => $bonus,
+                    'i18n' => [
+                        'enclosure'
+                    ]
+                ]
+            );
+		}
+	}
+
+	protected function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
+		if ($offspring !== null) {
+			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
+			$this->notify->all(
+                'Offspring',
+                clienttranslate('${player_name} produced an offspring ${tile_type}'),
+                [
+                    'player_id' => $active_player_id,
+                    'offspring' => $offspring->serialize(),
+                    'tile_type' => $offspring->child->tile->type->value,
+                    'tile_description' => $offspring->child->tile->type->translated(),
+                    'i18n' => [
+                        'tile_description',
+                    ]
+                ]
+            );
+			$m = $offspring->child->money_delta;
+			if ($m) {
+				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
+			}
+		}
+	}
 }

@@ -57,6 +57,7 @@ class PlayerTurn extends AbstractState
 	}
 
 	public function onEnteringState(int $active_player_id): void {
+		$this->game->undoSavepoint();
 	}
 
     /** @return array<string,mixed> */
@@ -87,6 +88,7 @@ class PlayerTurn extends AbstractState
 
 		return [
 			'can_draw' => $model->canDraw(),
+			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $available_trucks,
 			'possible_moves' => $pms,
 			'possible_purchases' => $pb,
@@ -95,6 +97,40 @@ class PlayerTurn extends AbstractState
 			'can_expand' => $model->canExpand(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
+	}
+
+	#[PossibleAction]
+	public function actStartExchange(int $active_player_id): mixed {
+		return ExchangeTiles::class;
+	}
+
+	#[PossibleAction]
+	public function actStartMove(int $active_player_id): mixed {
+		return MoveTile::class;
+	}
+
+	#[PossibleAction]
+	public function actStartDiscard(int $active_player_id): mixed {
+		return DiscardTile::class;
+	}
+
+	#[PossibleAction]
+	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
+        $model = $this->createModel($active_player_id);
+		$truck = $model->takeTruck($truck_id);
+		$this->notify->all(
+            'SelectTruck',
+            clienttranslate('${player_name} selected ${truck}'),
+            [
+                'player_id' => $active_player_id,
+                'truck_id' => $truck_id,
+                'truck' => Truck::translated($truck_id),
+                'i18n' => [
+                    'truck',
+                ]
+            ]
+        );
+		return PlaceTruckTiles::class;
 	}
 
 	/** @param list<array<string,int>> $delivery_requests */
@@ -245,184 +281,6 @@ class PlayerTurn extends AbstractState
 		);
 		$this->game->stats->PLAYER_EXPANSIONSPURCHASED->inc($active_player_id);
 		return NextPlayer::class;
-	}
-
-	#[PossibleAction]
-	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
-	{
-        $model = $this->createModel($active_player_id);
-		$dest = new Space($dest_id, $dest_pos);
-		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
-		$placed_tile = $result['placed_tile'];
-		$tile = $placed_tile->tile;
-		$this->notify->all(
-			"MoveTile",
-			// FIXME: need to handle barn ...
-			clienttranslate('${player_name} moved a ${tile_type} tile from ${src_enclosure} to ${dest_enclosure}'),
-			[
-				'player_id' => $active_player_id,
-				'tile' => $tile->serialize(),
-				'dest' => $dest->serialize(),
-        		'moneys' => $model->currentMoneys()->serialize(),
-				'src_enclosure_id' => $src_id,
-				'src_enclosure' => Enclosure::translated($src_id),
-				'dest_enclosure_id' => $dest_id,
-				'dest_enclosure' => Enclosure::translated($dest_id),
-				'tile_type' => $tile->type->value,
-				'tile_description' => $tile->type->translated(),
-				'enclosure_summaries' => [
-					EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_id])->serialize(),
-					EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_id])->serialize(),
-				],
-				'i18n' => [
-					'tile_description',
-					'src_enclosure',
-					'dest_enclosure',
-				]
-			]
-		);
-		if ($tile->type->isAnimal()) {
-			$this->game->stats->PLAYER_MOVEDANIMALS->inc($active_player_id);
-		} else {
-			$this->game->stats->PLAYER_MOVEDSTALLS->inc($active_player_id);
-			if ($src_id == 0) {
-				$this->game->stats->PLAYER_MOVEDSTALLSFROMBARN->inc($active_player_id);
-			}
-		}
-		$this->notifyOffspring($active_player_id, $result['offspring']);
-		$this->notifyBonus($active_player_id, $dest_id, $result['enclosureBonus']);
-		return NextPlayer::class;
-	}
-
-	/**
-	 * @param list<int> $src_positions
-	 * @param list<int> $dest_positions
-	 */
-	#[PossibleAction]
-	public function actExchangeEnclosureAnimals(
-		int $active_player_id,
-		int $src_enclosure_id,
-		#[JsonParam] array $src_positions,
-		int $dest_enclosure_id,
-		#[JsonParam] array $dest_positions): mixed
-	{
-        $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys(0)));
-
-		$this->notify->all(
-            'ExchangeEnclosureAnimals',
-			// FIXME: need to handle barn
-            clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
-            [
-                'player_id' => $active_player_id,
-                'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
-                'src_enclosure_id' => $completedExchange->src_enclosure_id,
-                'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
-                'moneys' => $model->currentMoneys()->serialize(),
-                'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
-                'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
-                'src_tile_type' => $completedExchange->src_tile_type,
-                'dest_tile_type' => $completedExchange->dest_tile_type,
-                'src_tile_description' => $completedExchange->src_tile_type->translated(),
-                'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
-                'enclosure_summaries' => [
-                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
-                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
-                ],
-                'i18n' => [
-                    'src_tile_description',
-                    'dest_tile_description',
-                    'src_enclosure',
-                    'dest_enclosure',
-                ]
-            ]
-        );
-
-		$this->game->stats->PLAYER_EXCHANGEACTIONS->inc($active_player_id);
-		if ($src_enclosure_id == 0 || $dest_enclosure_id == 0) {
-			$this->game->stats->PLAYER_EXCHANGEACTIONSWITHBARN->inc($active_player_id);
-		}
-		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
-
-		return NextPlayer::class;
-	}
-
-	#[PossibleAction]
-	public function actPurchaseTile(int $active_player_id, int $from_player_id, int $barn_pos, int $enclosure_id, int $enclosure_pos): mixed
-	{
-        $model = $this->createModel($active_player_id);
-		$dest = new Space($enclosure_id, $enclosure_pos);
-		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
-		$purchased = $result['tiles'][0];
-		$this->notify->all(
-            'PurchaseTile',
-            clienttranslate('${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}'),
-            [
-                'player_id' => $active_player_id,
-                'player_id2' => $from_player_id,
-                'tile_type' => $purchased->tile->type->value,
-                'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
-                'moneys' => $model->currentMoneys()->serialize(),
-                'enclosure' => Enclosure::translated($enclosure_id),
-                'tile_description' => $purchased->tile->type->translated(),
-                'enclosure_summaries' => [
-                    EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$enclosure_id])->serialize(),
-                    EnclosureSummary::forEnclosure($from_player_id, $model->getEnclosuresForPlayer($from_player_id)[0])->serialize(),
-                ],
-                'i18n' => [
-                    'tile_description',
-                    'enclosure',
-                    'seller_player_name',
-                ]
-            ]
-        );
-		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
-		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
-		$this->notifyOffspring($active_player_id, $result['offspring']);
-		$this->notifyBonus($active_player_id, $enclosure_id, $result['enclosure_bonus']);
-
-		return NextPlayer::class;
-	}
-
-	private function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
-		if ($bonus !== null) {
-			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
-			$this->notify->all(
-                'EnclosureBonus',
-                clienttranslate('${player_name} completed ${enclosure} and received ${bonus} coins'),
-                [
-                    'player_id' => $active_player_id,
-                    'enclosure' => Enclosure::translated($enclosure_id),
-                    'bonus' => $bonus,
-                    'i18n' => [
-                        'enclosure'
-                    ]
-                ]
-            );
-		}
-	}
-
-	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
-		if ($offspring !== null) {
-			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
-			$this->notify->all(
-                'Offspring',
-                clienttranslate('${player_name} produced an offspring ${tile_type}'),
-                [
-                    'player_id' => $active_player_id,
-                    'offspring' => $offspring->serialize(),
-                    'tile_type' => $offspring->child->tile->type->value,
-                    'tile_description' => $offspring->child->tile->type->translated(),
-                    'i18n' => [
-                        'tile_description',
-                    ]
-                ]
-            );
-			$m = $offspring->child->money_delta;
-			if ($m) {
-				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
-			}
-		}
 	}
 
 	#[PossibleAction]
