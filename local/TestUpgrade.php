@@ -74,7 +74,7 @@ if ($seedfile) {
 echo "Upgrading db\n";
 $u = new UpgradeDb(new MySQLDb($mysqli, $db));
 
-foreach ($u->upgradeSql(0) as $sql) {
+foreach ($u->upgradeSql($ts) as $sql) {
     $s2 = str_replace("DBPREFIX_", $db . ".", fixup($sql));
     echo "\n$s2;\n";
     if (!$dryrun) {
