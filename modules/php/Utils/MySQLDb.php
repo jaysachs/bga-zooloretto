@@ -43,6 +43,7 @@ class MySQLDb implements Db
         if (is_bool($result)) {
             return [];
         }
+        /** @var list<array<string,string>> */
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
@@ -54,7 +55,9 @@ class MySQLDb implements Db
         if (is_bool($result)) {
             return [];
         }
-        return array_map(fn ($a) => strval($a[0]), $result->fetch_all(MYSQLI_NUM));
+        /** @var list<array<int,string>> */
+        $res = $result->fetch_all(MYSQLI_NUM);
+        return array_map(fn ($a) => strval($a[0]), $res);
     }
 
     #[\Override]

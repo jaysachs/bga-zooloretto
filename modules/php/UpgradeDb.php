@@ -70,7 +70,7 @@ class UpgradeDb {
         $animals = $this->db->getObjectList("SELECT * FROM animals");
         // FIXME: can we use getActivePlayerId ?
         $gs = $this->db->getSingleFieldList("SELECT global_value FROM `global` WHERE global_id = 2");
-        $active_player_id = intval($gs["global_value"]);
+        $active_player_id = intval($gs[0]);
 
         Arrays::shuffle($animals);
 
