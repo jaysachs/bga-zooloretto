@@ -84,12 +84,12 @@ class PlaceTruckTiles extends AbstractState
     public function actPlaceTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos): mixed {
         $model = $this->createModel($active_player_id);
         $delivery = $model->placeTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
-        $this->notify->all('truckTilePlaced', clienttranslate('${player_name} placed ${tile} to ${enclosure_id}:${enclosure_pos}'), [
+        $this->notify->all('PlaceTruckTile', clienttranslate('${player_name} placed ${tile} to ${enclosure_id}:${enclosure_pos}'), [
             'player_id' => $active_player_id,
             'delivery' => $delivery->serialize(),
             'tile' => $delivery->tile->type,
-            'enclosure_id' => $enclosure_id,
-            'enclosure_pos' => $enclosure_pos,
+            'enclosure_id' => $delivery->dest->space->enclosure_id,
+            'enclosure_pos' => $delivery->dest->space->pos,
             'tile_description' => $delivery->tile->type->translated(),
             'i18n' => [
                 'tile_description',
