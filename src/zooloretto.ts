@@ -848,7 +848,6 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_DeliverTruckTile(args: {
       player_id: number,
-      truck_id: number,
       delivery: Delivery,
   }) {
     let dest = args.delivery.dest;

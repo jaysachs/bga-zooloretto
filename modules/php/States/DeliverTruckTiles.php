@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\PossiblePlacement;
 use Bga\Games\zooloretto\Model\Space;
@@ -94,15 +95,13 @@ class DeliverTruckTiles extends AbstractState
     public function actDeliverTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos): mixed {
         $model = $this->createModel($active_player_id);
         $delivery = $model->placeTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
-        $this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile} to ${enclosure_id}:${enclosure_pos}'), [
+        $this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description}'), [
             'player_id' => $active_player_id,
             'delivery' => $delivery->serialize(),
-            'tile' => $delivery->tile->type,
-            'enclosure_id' => $enclosure_id,
-            'enclosure_pos' => $enclosure_pos,
-            'tile_description' => $delivery->tile->type->translated(),
+            'tile_type' => $delivery->tile->type,
+            'enclosure_description' => Enclosure::translated($enclosure_id),
             'i18n' => [
-                'tile_description',
+                'enclosure_description'
             ]
         ]);
         return DeliverTruckTiles::class;

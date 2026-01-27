@@ -120,7 +120,7 @@ class PlayerTurn extends AbstractState
 		$info = $model->startTruckDelivery($truck_id);
 		$this->notify->all(
             'StartDelivery',
-            clienttranslate('${player_name} started deleivery from ${truck}'),
+            clienttranslate('${player_name} started delivery from ${truck}'),
             [
                 'player_id' => $active_player_id,
                 'truck_id' => $truck_id,
