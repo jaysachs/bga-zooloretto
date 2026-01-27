@@ -45,6 +45,15 @@ class PlacementForEnclosure {
             'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
         ];
     }
+
+    /** @return array<string,mixed> */
+    public function serializeNoNext(): array {
+        return [
+            'space' => $this->space->serialize(),
+            'offspring' => $this->offspring ? $this->offspring->serialize() : null,
+            'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
+        ];
+    }
 }
 
 class PlacementsForTruckPos {

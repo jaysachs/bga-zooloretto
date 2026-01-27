@@ -166,7 +166,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     return this.game.bga.userPreferences.get(100) > 0;
   }
 
-  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
+  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: { autoclick? : boolean, restart? : () => Promise<any>}) {
     let doAct = async () => {
         this.clearMarked();
         await this.game.bga.actions.performAction(bgaAction, args);
@@ -175,17 +175,21 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
       await doAct();
     } else {
       this.game.bga.statusBar.addActionButton(
-        _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
+        _('Confirm'), doAct, { autoclick: (settings?.autoclick === undefined) || settings?.autoclick }
       );
-      this.addRestartAndUndoButtons();
+      this.addRestartAndUndoButtons(settings?.restart);
     }
   }
 
-  protected addRestartAndUndoButtons(): void {
+  protected addRestartAndUndoButtons(restart?: () => Promise<any>): void {
     this.game.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
           await this.rollback().then(() => {
-            this.game.restoreServerGameState();
+            if (restart) {
+              restart();
+            } else {
+              this.game.restoreServerGameState();
+            }
           })
         },
       { color: "secondary"});

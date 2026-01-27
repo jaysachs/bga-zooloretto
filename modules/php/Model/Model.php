@@ -173,7 +173,7 @@ class Model {
 
     public function placeTruckTile(int $truck_pos, Space $space): Delivery {
         $player = $this->getActivePlayer();
-        $truck_id = $player->truck_taken;
+        $truck_id = $this->ps->getDeliveringTruckId();
         if (!$truck_id) {
             throw new \BgaUserException("no truck selected");
         }
@@ -206,16 +206,40 @@ class Model {
         return $result;
     }
 
-    // FIXME: need to return acquired coins too
-    public function takeTruck(int $truck_id): Truck {
-        $truck = $this->getTruck($truck_id);
-        $player = $this->getActivePlayer();
-        $player->takeTruck($truck);
+    public function getDeliveringTruckId(): int {
+        return $this->ps->getDeliveringTruckId();
+    }
 
+    public function setDeliveryCompleted(): void {
+        $delivering_id = $this->getDeliveringTruckId();
+        if (!$delivering_id) {
+            throw new \BgaUserException("no truck selected");
+        }
+        $truck = $this->getTruck($delivering_id);
+        if (!$truck->isEmpty()) {
+            throw new \BgaUserException("truck {$delivering_id} not empty");
+        }
+        $player =$this->getActivePlayer();
+        $player->takeTruck($truck);
+        $this->ps->updatePlayer($player);
+        $this->ps->setDeliveringTruckId(0);
+    }
+
+    // FIXME: need to return acquired coins too
+    public function startTruckDelivery(int $truck_id): Truck {
+        $player = $this->getActivePlayer();
+        if ($player->truck_taken) {
+            throw new ModelException("Player " . $player->id . " can't start delivery since they already took a took");
+        }
+        if ($this->getDeliveringTruckId()) {
+            throw new ModelException("Can't start a delivery as one is already in progress.");
+        }
+        $this->ps->setDeliveringTruckId($truck_id);
+
+        $truck = $this->getTruck($truck_id);
         $coins = 0;
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
-            $result[$coin_pos] = new Delivery($coin_pos, $tile);
             // assert tile is coin
             $coins++;
             $this->ps->deleteTile($tile);

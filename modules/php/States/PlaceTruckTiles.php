@@ -50,9 +50,9 @@ class PlaceTruckTiles extends AbstractState
     public function getArgs(int $active_player_id): array {
         // return truck_id, and map of positions to possible destinations
         $model = $this->createModel($active_player_id);
-        $truck_id = $model->getActivePlayer()->truck_taken;
+        $truck_id = $model->getDeliveringTruckId();
         if (!$truck_id) {
-            throw new \BgaUserException("no truck selected");
+            throw new \BgaUserException("no truck delivering");
         }
         $truck = $model->getTruck($truck_id);
         $pps = PossiblePlacement::possiblePlacementFor($active_player_id, $truck, $model->getEnclosuresForPlayer($active_player_id));
@@ -62,7 +62,7 @@ class PlaceTruckTiles extends AbstractState
                 'truck_pos' => $pp->truck_pos,
                 'tile' => $pp->tile_type,
                 'tile_id' => $truck->tileAt($pp->truck_pos)->id,
-                'dests' => array_map(fn ($ppe) => $ppe->space->serialize(), $pp->next),
+                'dests' => array_map(fn ($ppe) => $ppe->serializeNoNext(), $pp->next),
             ], $pps->placements),
         ];
     }
@@ -70,20 +70,13 @@ class PlaceTruckTiles extends AbstractState
     #[PossibleAction]
     public function actUndo(int $active_player_id): mixed {
         $this->game->undoRestorePoint();
-        return null;
+        return PlayerTurn::class;
     }
 
     #[PossibleAction]
     public function actConfirmPlacements(int $active_player_id): mixed {
         $model = $this->createModel($active_player_id);
-        $truck_id = $model->getActivePlayer()->truck_taken;
-        if (!$truck_id) {
-            throw new \BgaUserException("no truck selected");
-        }
-        $truck = $model->getTruck($truck_id);
-        if (!$truck->isEmpty()) {
-            throw new \BgaUserException("truck {$truck_id} not empty");
-        }
+        $model->setDeliveryCompleted();
         return NextPlayer::class;
     }
 
@@ -102,7 +95,7 @@ class PlaceTruckTiles extends AbstractState
                 'tile_description',
             ]
         ]);
-        return null;
+        return PlaceTruckTiles::class;
     }
 
 	function zombie(int $player_id): mixed {

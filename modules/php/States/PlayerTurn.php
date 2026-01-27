@@ -117,7 +117,7 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
         $model = $this->createModel($active_player_id);
-		$truck = $model->takeTruck($truck_id);
+		$truck = $model->startTruckDelivery($truck_id);
 		$this->notify->all(
             'SelectTruck',
             clienttranslate('${player_name} selected ${truck}'),

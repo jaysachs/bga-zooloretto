@@ -60,7 +60,7 @@ class MoveTile extends AbstractState
     #[PossibleAction]
     public function actUndo(int $active_player_id): mixed {
         $this->game->undoRestorePoint();
-        return null;
+        return PlayerTurn::class;
     }
 
 	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed

@@ -84,6 +84,15 @@ class PersistentStore {
         return intval($row[0]);
     }
 
+    public function setDeliveringTruckId(int $truck_id): void {
+        $this->db->execute("UPDATE zglobals SET delivering_truck = {$truck_id}");
+    }
+
+    public function getDeliveringTruckId(): int {
+        $row = $this->db->getSingleFieldList("SELECT delivering_truck FROM zglobals");
+        return intval($row[0]);
+    }
+
     /**
      * @param array<int,Player> $players
      * @return array{trucks: array<int,Truck>, enclosures:array<int,array<int,Enclosure>>,stock:Stock}

@@ -408,50 +408,54 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 }
 
-class PlaceTruckTileFlow extends ZooFlow<AvailableTruck[]> {
+interface PossibleTilePlacement {
+    truck_pos: number;
+    // tile: string;
+    // tile_id: number;
+    dests: PossibleEnclosurePlacement[];
+}
+
+interface PlaceTruckTileArgs {
+  truck_id: number;
+  possible_placements: PossibleTilePlacement[];
+}
+
+class PlaceTruckTileFlow extends ZooFlow<PlaceTruckTileArgs> {
 
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(availableTrucks: AvailableTruck[]) {
+  override doStart(args: PlaceTruckTileArgs) {
     console.log("starting PlaceTruckTileFlow", this);
-    this.addRestartAndUndoButtons();
-  }
-
-  private async chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availableTrucks: AvailableTruck[],   placedTiles : TruckPlacement[]) {
-    if (!pps || pps.length == 0) {
+    let restart = () => this.game.bga.actions.performAction("actUndo");
+    if (!args.possible_placements || args.possible_placements.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
       this.addConfirmAndRestartActionButtons(
-        'actTakeTruckAndPlaceTiles', {
-          truck_id: truck_id,
-          delivery_requests: JSON.stringify(placedTiles),
-        }
+        'actConfirmPlacements', { }, { restart: restart }
       );
-    }
-    else {
+    } else {
       this.initStatusBar(_('Choose a tile to place from the selected truck'));
-      pps.forEach((pp: PossiblePlacement) => {
-        let elem = Elements.truckSpace(truck_id, pp.truck_pos);
+      args.possible_placements.forEach(pp => {
+        let elem = Elements.truckSpace(args.truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, async () => {
-          this.callUndoably("chooseDest", () => this.chooseDestination(truck_id, pp, availableTrucks, placedTiles));
+          this.callUndoably("chooseDest", () => this.chooseDestination(args.truck_id, pp));
         });
       });
-      this.addRestartAndUndoButtons();
+      this.addRestartAndUndoButtons(restart);
     }
   }
 
-  private async chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[], placedTiles : TruckPlacement[]) {
+  private async chooseDestination(truck_id: number, pp: PossibleTilePlacement) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
-    pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
+    pp.dests.forEach((pep: PossibleEnclosurePlacement) => {
       let encElem = Elements.enclosureSpace(this.player_id, pep.space);
       // this.markTargetable(encElem);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
-        this.slide(tileElem,encElem).then(() => {
+        await this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(pep.offspring).then( () => {
             this.updateMoneyDelta(pep.money_delta);
-            placedTiles = Array.prototype.concat(placedTiles, { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-            this.callUndoably("chooseTileToPlace2", () => this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks, placedTiles));
+            this.game.bga.actions.performAction("actPlaceTile", { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos} )
           });
         });
       });
@@ -572,7 +576,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   moreAnimations: MoreAnimations;
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
-  }
+ }
 
   flashParents(offspring: Offspring) : Promise<any> {
     return this.moreAnimations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
@@ -739,12 +743,15 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       (this as any).addLastTurnBanner(_('This is the last round!'));
     }
 
-    this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
-    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
-    this.bga.states.register('PlaceTruckTile', new PlaceTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
-
+    if (!this.statesRegistered) {
+      this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('PlaceTruckTiles', new PlaceTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.statesRegistered = true;
+    }
     console.log('Game setup done');
   }
+  private statesRegistered : boolean = false;
 
   private setupNotifications(): void {
     this.bga.notifications.setupPromiseNotifications({ logger: console.log });

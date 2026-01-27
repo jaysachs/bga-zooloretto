@@ -74,7 +74,7 @@ class ExchangeTiles extends AbstractState
     #[PossibleAction]
     public function actUndo(int $active_player_id): mixed {
         $this->game->undoRestorePoint();
-        return null;
+        return PlayerTurn::class;
     }
 
     /**
