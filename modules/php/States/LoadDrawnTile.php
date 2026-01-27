@@ -34,7 +34,7 @@ use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\Truck;
 use BgaSystemException;
 
-class PlaceDrawnTile extends AbstractState
+class LoadDrawnTile extends AbstractState
 {
     function __construct(Game $game)
     {
@@ -42,8 +42,8 @@ class PlaceDrawnTile extends AbstractState
             game: $game,
             id: 3,
             type: StateType::ACTIVE_PLAYER,
-    		description: clienttranslate('${actplayer} must place a tile on a truck.'),
-    		descriptionMyTurn: clienttranslate('${you} must place a tile on a truck.'),
+    		description: clienttranslate('${actplayer} must load a tile on a truck.'),
+    		descriptionMyTurn: clienttranslate('${you} must load a tile on a truck.'),
         );
     }
 
@@ -67,14 +67,14 @@ class PlaceDrawnTile extends AbstractState
     }
 
     #[PossibleAction]
-    public function actPlaceDrawnTileInTruck(int $active_player_id, int $truck_id, int $truck_pos): mixed {
+    public function actLoadDrawnTile(int $active_player_id, int $truck_id, int $truck_pos): mixed {
 
         $model = $this->createModel($active_player_id);
 		$tile = $model->placeDrawnTileOnTruck($truck_id, $truck_pos);
         $stock = $model->getStock();
 		$this->notify->all(
-			"PlaceDrawnTileInTruck",
-			clienttranslate( '${player_name} placed ${tile_type} onto ${truck}.'),
+			"LoadDrawnTile",
+			clienttranslate( '${player_name} loaded ${tile_type} onto ${truck}.'),
 			[
 				'player_id' => $active_player_id,
                 'truck_id' => $truck_id,
@@ -100,10 +100,10 @@ class PlaceDrawnTile extends AbstractState
         foreach ($model->getTrucks() as $truck) {
             $pos = $truck->firstFreePosition();
             if ($pos > 0) {
-                return $this->actPlaceDrawnTileInTruck($player_id, $truck->id, $pos);
+                return $this->actLoadDrawnTile($player_id, $truck->id, $pos);
             }
         }
-        throw new BgaSystemException("In PlaceDrawnTile state, but no trucks have an open spot?!");
+        throw new BgaSystemException("In LoadDrawnTile state, but no trucks have an open spot?!");
         // could instead keep making progress ... ?
         // return NextPlayer::class;
     }

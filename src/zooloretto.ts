@@ -97,9 +97,9 @@ interface TruckLocation {
 };
 
 
-// PlaceDrawnTile state
+// LoadDrawnTile state
 
-interface PlaceDrawnTileArgs {
+interface LoadDrawnTileArgs {
   tile: Tile,
   drawn_from_endgame_pile: boolean,
   available_spaces: TruckLocation[]
@@ -339,11 +339,11 @@ class DrawTileFlow extends ZooFlow<boolean> {
   }
 };
 
-class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
+class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(args: PlaceDrawnTileArgs) {
-    this.initStatusBar(_('Place ${tile_type} in an available truck'),
+  override doStart(args: LoadDrawnTileArgs) {
+    this.initStatusBar(_('Load ${tile_type} in an available truck'),
         { tile_type: args.tile.type,
           tile_description: this.game.tileTranslations.get(args.tile.type) });
     let elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
@@ -351,33 +351,25 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
           () =>
-              this.callUndoably("chooseTiletoPlace",
-                () => this.placeDrawnTile(elem, args.tile, truckLoc))));
+              this.callUndoably("chooseTiletoLoad",
+                () => this.loadDrawnTile(elem, args.tile, truckLoc))));
   }
 
-  private async placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
+  private async loadDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
-    this.slide(tileElem, space).then(() => this.confirmPlaceDrawnTile(tile, truckLoc));
+    this.slide(tileElem, space).then(() => this.confirmLoadDrawnTile(tile, truckLoc));
   }
 
-  private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
+  private confirmLoadDrawnTile(tile: Tile, tl: TruckLocation) {
     this.game.gamedatas.tile_translations;
     console.log(this.game.tileTranslations);
-    this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
+    this.initStatusBar(_('Load ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,
           tile_description: this.game.tileTranslations.get(tile.type),
           truck_id: tl.truck_id });
     // FIXME: restart doesn't re-highlight the truck spaces.
-    this.addConfirmAndRestartActionButtons('actPlaceDrawnTileInTruck', tl);
+    this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
   }
-};
-
-
-type TruckPlacement = {
-  // truck_id is implicit
-  truck_pos: number;
-  enclosure_id: number;
-  enclosure_pos: number;
 };
 
 var globalUndoStack: any;
@@ -415,25 +407,25 @@ interface PossibleTilePlacement {
     dests: PossibleEnclosurePlacement[];
 }
 
-interface PlaceTruckTileArgs {
+interface DeliverTruckTileArgs {
   truck_id: number;
   possible_placements: PossibleTilePlacement[];
 }
 
-class PlaceTruckTileFlow extends ZooFlow<PlaceTruckTileArgs> {
+class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
 
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(args: PlaceTruckTileArgs) {
-    console.log("starting PlaceTruckTileFlow", this);
+  override doStart(args: DeliverTruckTileArgs) {
+    console.log("starting DeliverTruckTileFlow", this);
     let restart = () => this.game.bga.actions.performAction("actUndo");
     if (!args.possible_placements || args.possible_placements.length == 0) {
-      this.initStatusBar(_('Confirm your truck tile placements'));
+      this.initStatusBar(_('Confirm your truck tile deliveries'));
       this.addConfirmAndRestartActionButtons(
-        'actConfirmPlacements', { }, { restart: restart }
+        'actConfirmDelivery', { }, { restart: restart }
       );
     } else {
-      this.initStatusBar(_('Choose a tile to place from the selected truck'));
+      this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
       args.possible_placements.forEach(pp => {
         let elem = Elements.truckSpace(args.truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, async () => {
@@ -455,7 +447,7 @@ class PlaceTruckTileFlow extends ZooFlow<PlaceTruckTileArgs> {
         await this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(pep.offspring).then( () => {
             this.updateMoneyDelta(pep.money_delta);
-            this.game.bga.actions.performAction("actPlaceTile", { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos} )
+            this.game.bga.actions.performAction("actDeliverTile", { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos} )
           });
         });
       });
@@ -745,8 +737,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
     if (!this.statesRegistered) {
       this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
-      this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
-      this.bga.states.register('PlaceTruckTiles', new PlaceTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('DeliverTruckTiles', new DeliverTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
       this.statesRegistered = true;
     }
     console.log('Game setup done');
@@ -830,7 +822,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.endgameStockCounter.toValue(args.endgame_pile_size);
   }
 
-  private async notif_PlaceDrawnTileInTruck(args: {
+  private async notif_LoadDrawnTile(args: {
     player_id: number,
     truck_id: number,
     truck_pos: number,
@@ -854,7 +846,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     this.updateMoneys(args.moneys);
   }
 
-  private async notif_PlaceTruckTile(args: {
+  private async notif_DeliverTruckTile(args: {
       player_id: number,
       truck_id: number,
       delivery: Delivery,
@@ -890,7 +882,20 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
     }
   }
 
-  private async notif_TakeTruck(args: {
+  private async notif_StartDelivery(args: {
+    player_id: number,
+    truck_id: number,
+    coin_positions: number[],
+    moneys: Moneys,
+  }) {
+    let coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
+    await this.animationManager.playParallel(coinElems.map(elem =>
+      () => this.animationManager.slideOutAndDestroy(
+              elem!, this.bga.playerPanels.getElement(this.player_id),{})))
+      .then(() => this.updateMoneys(args.moneys))
+  }
+
+  private async notif_DeliveryCompleted(args: {
     player_id: number,
     truck_id: number,
     moneys: Moneys,

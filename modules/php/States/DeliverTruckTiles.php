@@ -30,10 +30,11 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\PossiblePlacement;
 use Bga\Games\zooloretto\Model\Space;
 
-class PlaceTruckTiles extends AbstractState
+class DeliverTruckTiles extends AbstractState
 {
     function __construct(Game $game)
     {
@@ -41,8 +42,8 @@ class PlaceTruckTiles extends AbstractState
             game: $game,
             id: 5,
             type: StateType::ACTIVE_PLAYER,
-            descriptionMyTurn: clienttranslate('${you} must place tiles from the truck'),
-			description: clienttranslate('${actplayer} must place tiles from the truck'),
+            descriptionMyTurn: clienttranslate('${you} must deliver tiles from the truck'),
+			description: clienttranslate('${actplayer} must deliver tiles from the truck'),
         );
     }
 
@@ -74,28 +75,37 @@ class PlaceTruckTiles extends AbstractState
     }
 
     #[PossibleAction]
-    public function actConfirmPlacements(int $active_player_id): mixed {
+    public function actConfirmDelivery(int $active_player_id): mixed {
         $model = $this->createModel($active_player_id);
-        $model->setDeliveryCompleted();
+        $truck = $model->setDeliveryCompleted();
+        $this->notify->all('DeliveryCompleted','',[
+            'truck_id' => $truck->id,
+            'player_id' => $truck->taken_by,
+			'moneys' => $model->currentMoneys()->serialize(),
+			'enclosure_summaries' => array_map(
+					fn ($e) => EnclosureSummary::forEnclosure($active_player_id, $e)->serialize(),
+					$model->getEnclosuresForPlayer($active_player_id)
+			),
+        ]);
         return NextPlayer::class;
     }
 
     #[PossibleAction]
-    public function actPlaceTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos): mixed {
+    public function actDeliverTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos): mixed {
         $model = $this->createModel($active_player_id);
         $delivery = $model->placeTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
-        $this->notify->all('PlaceTruckTile', clienttranslate('${player_name} placed ${tile} to ${enclosure_id}:${enclosure_pos}'), [
+        $this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile} to ${enclosure_id}:${enclosure_pos}'), [
             'player_id' => $active_player_id,
             'delivery' => $delivery->serialize(),
             'tile' => $delivery->tile->type,
-            'enclosure_id' => $delivery->dest->space->enclosure_id,
-            'enclosure_pos' => $delivery->dest->space->pos,
+            'enclosure_id' => $enclosure_id,
+            'enclosure_pos' => $enclosure_pos,
             'tile_description' => $delivery->tile->type->translated(),
             'i18n' => [
                 'tile_description',
             ]
         ]);
-        return PlaceTruckTiles::class;
+        return DeliverTruckTiles::class;
     }
 
 	function zombie(int $player_id): mixed {
@@ -107,9 +117,9 @@ class PlaceTruckTiles extends AbstractState
         $truck = $model->getTruck($truck_id);
         $pps = PossiblePlacement::possiblePlacementFor($player_id, $truck, $model->getEnclosuresForPlayer($player_id))->placements;
         if (count($pps) == 0) {
-            return $this->actConfirmPlacements($player_id);
+            return $this->actConfirmDelivery($player_id);
         }
         $space = $pps[0]->next[0]->space;
-        return $this->actPlaceTile($player_id, $pps[0]->truck_pos, $space->enclosure_id, $space->pos);
+        return $this->actDeliverTile($player_id, $pps[0]->truck_pos, $space->enclosure_id, $space->pos);
     }
 }

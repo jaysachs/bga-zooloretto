@@ -117,20 +117,22 @@ class PlayerTurn extends AbstractState
 	#[PossibleAction]
 	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
         $model = $this->createModel($active_player_id);
-		$truck = $model->startTruckDelivery($truck_id);
+		$info = $model->startTruckDelivery($truck_id);
 		$this->notify->all(
-            'SelectTruck',
-            clienttranslate('${player_name} selected ${truck}'),
+            'StartDelivery',
+            clienttranslate('${player_name} started deleivery from ${truck}'),
             [
                 'player_id' => $active_player_id,
                 'truck_id' => $truck_id,
+				'coin_positions' => $info["coin_positions"],
+				'moneys' => $model->currentMoneys(),
                 'truck' => Truck::translated($truck_id),
                 'i18n' => [
                     'truck',
                 ]
             ]
         );
-		return PlaceTruckTiles::class;
+		return DeliverTruckTiles::class;
 	}
 
 	/** @param list<array<string,int>> $delivery_requests */
@@ -262,7 +264,7 @@ class PlayerTurn extends AbstractState
 			]
 		);
 		$this->game->stats->PLAYER_TILESDRAWN->inc($active_player_id);
-		return PlaceDrawnTile::class;
+		return LoadDrawnTile::class;
 	}
 
 	#[PossibleAction]

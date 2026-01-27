@@ -141,6 +141,9 @@ class Model {
             throw new ModelException("No tile drawn");
         }
         $truck = $this->getTruck($truck_id);
+        if ($truck->taken_by) {
+            throw new ModelException("Can't load on a taken truck");
+        }
         $tile = $stock->removeDrawnTile();
         $truck->placeTileAt($tile, $pos);
 
@@ -210,7 +213,7 @@ class Model {
         return $this->ps->getDeliveringTruckId();
     }
 
-    public function setDeliveryCompleted(): void {
+    public function setDeliveryCompleted(): Truck {
         $delivering_id = $this->getDeliveringTruckId();
         if (!$delivering_id) {
             throw new \BgaUserException("no truck selected");
@@ -223,10 +226,11 @@ class Model {
         $player->takeTruck($truck);
         $this->ps->updatePlayer($player);
         $this->ps->setDeliveringTruckId(0);
+        return $truck;
     }
 
-    // FIXME: need to return acquired coins too
-    public function startTruckDelivery(int $truck_id): Truck {
+    /** @return array{truck:Truck,coin_positions:list<int>} */
+    public function startTruckDelivery(int $truck_id): array {
         $player = $this->getActivePlayer();
         if ($player->truck_taken) {
             throw new ModelException("Player " . $player->id . " can't start delivery since they already took a took");
@@ -237,6 +241,7 @@ class Model {
         $this->ps->setDeliveringTruckId($truck_id);
 
         $truck = $this->getTruck($truck_id);
+        $coinPositions = $truck->coinPositions();
         $coins = 0;
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
@@ -248,7 +253,10 @@ class Model {
 
         $this->ps->updateTruck($truck);
         $this->ps->updatePlayer($this->getActivePlayer());
-        return $truck;
+        return [
+            "truck" => $truck,
+            "coin_positions" => $coinPositions,
+        ];
     }
 
     /**
