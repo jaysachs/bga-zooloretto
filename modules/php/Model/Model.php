@@ -471,8 +471,9 @@ class Model {
         array_splice($enclosures, 0, 1);
         // moves a single animal tile from the barn to an empty enclosure space or he
         //  moves any one vending stall tile from it's current location to any eligible space in his zoo
-
         // animal or stall from barn
+        // FIXME: I think you're allowed to move a stall into the barn.
+
         foreach ($barn->nonEmptyContents() as $pos => $tile) {
             $src = new Space($barn->id, $pos);
             /** @var list<Destination> */
