@@ -42,7 +42,7 @@ class AvailableTruck {
         return [
 			'truck_id' => $this->truck_id,
 			'coin_positions' => $this->coin_positions,
-			'playable' => $this->placement->serialize(),
+			// 'playable' => $this->placement->serialize(),
             'money_delta' => $this->money_delta->serialize(),
         ];
     }
