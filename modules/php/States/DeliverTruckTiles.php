@@ -116,12 +116,13 @@ class DeliverTruckTiles extends AbstractState
         if (!$truck_id) {
             throw new \BgaUserException("no truck selected");
         }
-        $truck = $model->getTruck($truck_id);
-        $pps = PossiblePlacement::possiblePlacementFor($player_id, $truck, $model->getEnclosuresForPlayer($player_id))->placements;
-        if (count($pps) == 0) {
-            return $this->actConfirmDelivery($player_id);
+        $truck = $model->getTruck($model->getDeliveringTruckId());
+        foreach ($truck->getAllTiles() as $pos => $tile) {
+            if (!$tile->isEmpty()) {
+                $barn = $model->getEnclosuresForPlayer($player_id)[0];
+                return $this->actDeliverTile($player_id, $pos, $barn->id, $barn->availablePos($tile->type), true);
+            }
         }
-        $space = $pps[0]->next[0]->space;
-        return $this->actDeliverTile($player_id, $pps[0]->truck_pos, $space->enclosure_id, $space->pos, true);
+        return $this->actConfirmDelivery($player_id);
     }
 }

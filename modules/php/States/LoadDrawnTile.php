@@ -103,7 +103,7 @@ class LoadDrawnTile extends AbstractState
                 return $this->actLoadDrawnTile($player_id, $truck->id, $pos);
             }
         }
-        throw new BgaSystemException("In LoadDrawnTile state, but no trucks have an open spot?!");
+        throw new \BgaVisibleSystemException("In LoadDrawnTile state, but no trucks have an open spot?!");
         // could instead keep making progress ... ?
         // return NextPlayer::class;
     }
