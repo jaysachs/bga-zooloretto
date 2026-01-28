@@ -29,6 +29,7 @@ namespace Bga\Games\zooloretto\Model;
 
 class Delivery {
     public function __construct(
+        public int $truck_id,
         public int $truck_pos,
         public Tile $tile,
         // $dest is null if this is a coin
@@ -38,6 +39,7 @@ class Delivery {
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
+            'truck_id' => $this->truck_id,
             'truck_pos' => $this->truck_pos,
             'tile' => $this->tile->serialize(),
             'dest' => $this->dest ? $this->dest->serialize() : null,

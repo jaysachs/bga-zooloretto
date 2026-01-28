@@ -171,7 +171,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
         this.clearMarked();
         await this.game.bga.actions.performAction(bgaAction, args);
     };
-    if (this.confirmationsEnabled())  {
+    if (!this.confirmationsEnabled())  {
       await doAct();
     } else {
       this.game.bga.statusBar.addActionButton(

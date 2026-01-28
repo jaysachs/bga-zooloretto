@@ -195,7 +195,7 @@ class Model {
         }
         $offspring = $encl->checkForOffspring($barn);
 
-        $result = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
+        $result = new Delivery($truck_id, $truck_pos, $tile, new Destination($space, $offspring));
         if ($offspring) {
             $this->saveOffspring($offspring);
             $toUpdate[] = $barn;
@@ -282,7 +282,7 @@ class Model {
         $coins = 0;
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
-            $result[$coin_pos] = new Delivery($coin_pos, $tile);
+            $result[$coin_pos] = new Delivery($truck->id, $coin_pos, $tile);
             // assert tile is coin
             $coins++;
             $this->ps->deleteTile($tile);
@@ -308,7 +308,7 @@ class Model {
                 }
                 $offspring = $encl->checkForOffspring($barn);
 
-                $result[$truck_pos] = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
+                $result[$truck_pos] = new Delivery($truck_id, $truck_pos, $tile, new Destination($space, $offspring));
                 if ($offspring) {
                     $this->saveOffspring($offspring);
                     $toUpdate[] = $barn;

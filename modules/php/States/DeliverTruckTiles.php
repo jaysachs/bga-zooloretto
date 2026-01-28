@@ -92,7 +92,7 @@ class DeliverTruckTiles extends AbstractState
     }
 
     #[PossibleAction]
-    public function actDeliverTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos): mixed {
+    public function actDeliverTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos, bool $confirm_if_done): mixed {
         $model = $this->createModel($active_player_id);
         $delivery = $model->placeTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
         $this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description}'), [
@@ -104,6 +104,9 @@ class DeliverTruckTiles extends AbstractState
                 'enclosure_description'
             ]
         ]);
+        if ($model->getTruck($delivery->truck_id)->isEmpty() && $confirm_if_done) {
+            return $this->actConfirmDelivery($active_player_id);
+        }
         return DeliverTruckTiles::class;
     }
 
@@ -119,6 +122,6 @@ class DeliverTruckTiles extends AbstractState
             return $this->actConfirmDelivery($player_id);
         }
         $space = $pps[0]->next[0]->space;
-        return $this->actDeliverTile($player_id, $pps[0]->truck_pos, $space->enclosure_id, $space->pos);
+        return $this->actDeliverTile($player_id, $pps[0]->truck_pos, $space->enclosure_id, $space->pos, true);
     }
 }

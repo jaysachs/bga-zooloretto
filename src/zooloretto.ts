@@ -449,7 +449,12 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
         await this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(pep.offspring).then( () => {
             this.updateMoneyDelta(pep.money_delta);
-            this.game.bga.actions.performAction("actDeliverTile", { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos} )
+            this.game.bga.actions.performAction("actDeliverTile", {
+              confirm_if_done: !this.confirmationsEnabled(),
+              truck_pos: pp.truck_pos,
+              enclosure_id: pep.space.enclosure_id,
+              enclosure_pos: pep.space.pos
+            } )
           });
         });
       });
