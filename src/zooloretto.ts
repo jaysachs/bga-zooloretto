@@ -146,9 +146,9 @@ interface PlayState {
   lastround: boolean;
   can_draw: boolean;
   can_expand: boolean;
+  can_move: boolean;
   available_trucks: AvailableTruck[];
   possible_discards: PlacedTile[];
-  possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossibleMove[];
 }
@@ -198,6 +198,9 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
     return Promise.resolve();
   }
 
+  protected async undoAction() : Promise<any> {
+    return this.game.bga.actions.performAction("actUndo");
+  }
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
@@ -418,11 +421,10 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
 
   override doStart(args: DeliverTruckTileArgs) {
     console.log("starting DeliverTruckTileFlow", this);
-    let restart = () => this.game.bga.actions.performAction("actUndo");
     if (!args.possible_placements || args.possible_placements.length == 0) {
       this.initStatusBar(_('Confirm your truck tile deliveries'));
       this.addConfirmAndRestartActionButtons(
-        'actConfirmDelivery', { }, { restart: restart }
+        'actConfirmDelivery', { }, { restart: this.undoAction.bind(this) }
       );
     } else {
       this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
@@ -432,7 +434,7 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
           this.callUndoably("chooseDest", () => this.chooseDestination(args.truck_id, pp));
         });
       });
-      this.addRestartAndUndoButtons(restart);
+      this.addRestartAndUndoButtons(this.undoAction.bind(this));
     }
   }
 
@@ -452,7 +454,7 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
         });
       });
     });
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
   }
 };
 
@@ -485,13 +487,13 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
   }
 }
 
-class MoveTileFlow extends ZooFlow<PossibleMove[]> {
+class MoveTileFlow extends ZooFlow<{ possible_moves: PossibleMove[]}> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(possibleMoves: PossibleMove[]) {
+  override doStart(args: { possible_moves: PossibleMove[]}) {
     this.initStatusBar(_('Select a tile to move'));
-    this.addRestartAndUndoButtons();
-    possibleMoves.forEach((m: PossibleMove) => {
+    this.addRestartAndUndoButtons(() => this.game.bga.actions.performAction("actUndo"));
+    args.possible_moves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
         () => this.callUndoably("chooseMoveDest", async () => this.chooseDest(m))
@@ -502,7 +504,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   private chooseDest(pm: PossibleMove) {
     this.updateMoneyDelta(pm.money_delta);
     this.initStatusBar(_('Select a destination space'));
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(() => this.game.bga.actions.performAction("actUndo"));
     pm.dests.forEach((dest: Destination) => {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
@@ -523,7 +525,8 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
-    });
+    },
+    { restart: this.undoAction.bind(this) });
   }
 }
 
@@ -540,9 +543,9 @@ class MainFlow extends ZooFlow<PlayState> {
       this.game.bga.statusBar.addActionButton(_('Take truck'),
         () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
     }
-    if (playState.possible_moves.length > 0) {
+    if (playState.can_move) {
       this.game.bga.statusBar.addActionButton(_('Move tile'),
-        () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
+        () => this.game.bga.actions.performAction("actStartMove", {}));
     }
     if (playState.possible_exchanges.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Exchange animals'),
@@ -739,6 +742,10 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
       this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
       this.bga.states.register('DeliverTruckTiles', new DeliverTruckTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('MoveTile', new MoveTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('ExchangeTiles', new ExchangeFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('DiscardTile', new DiscardTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+      this.bga.states.register('PurchaseTile', new PurchaseTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
       this.statesRegistered = true;
     }
     console.log('Game setup done');

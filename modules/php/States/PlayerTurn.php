@@ -90,7 +90,7 @@ class PlayerTurn extends AbstractState
 			'can_draw' => $model->canDraw(),
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $available_trucks,
-			'possible_moves' => $pms,
+			'can_move' => count($pms) > 0,
 			'possible_purchases' => $pb,
 			'possible_discards' => $pds,
 			'possible_exchanges' => $pxs,

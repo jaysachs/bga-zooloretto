@@ -63,6 +63,7 @@ class MoveTile extends AbstractState
         return PlayerTurn::class;
     }
 
+    #[PossibleAction]
 	public function actMoveTile(int $active_player_id, int $src_id, int $src_pos, int $dest_id, int $dest_pos): mixed
 	{
         $model = $this->createModel($active_player_id);
