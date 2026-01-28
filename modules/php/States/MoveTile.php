@@ -44,7 +44,7 @@ class MoveTile extends AbstractState
             id: 7,
             type: StateType::ACTIVE_PLAYER,
             descriptionMyTurn: clienttranslate('${you} must choose a tile to move and its destination'),
-            description: clienttranslate('${player_name} must choose a tile to move and its destination'),
+            description: clienttranslate('${actplayer} must choose a tile to move and its destination'),
         );
     }
 
