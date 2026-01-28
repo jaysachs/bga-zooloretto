@@ -203,12 +203,12 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
   }
 }
 
-class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
+class ExchangeFlow extends ZooFlow<{ possible_exchanges: PossibleExchange[] }> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  protected override doStart(possible_exchanges: PossibleExchange[]) {
+  protected override doStart(args: { possible_exchanges: PossibleExchange[] }) {
     let exchangesBySrc : PossibleExchange[][] = [];
-    for (let pe of possible_exchanges) {
+    for (let pe of args.possible_exchanges) {
       let src = pe.src[0]!;
       let p = exchangesBySrc[src.enclosure_id];
       if (!p) {
@@ -228,7 +228,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         }
       })
     });
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
@@ -262,7 +262,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         )
       )
     );
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
   }
 
   private confirmExchange(pe: PossibleExchange) {
@@ -272,6 +272,8 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 		  src_positions: JSON.stringify(pe.src.map((s) => s.pos)),
 		  dest_enclosure_id: pe.dest[0]!.enclosure_id,
       dest_positions: JSON.stringify(pe.dest.map((s) => s.pos)),
+    },{
+      restart: this.undoAction.bind(this)
     });
   }
 }
@@ -554,7 +556,7 @@ class MainFlow extends ZooFlow<PlayState> {
     }
     if (playState.possible_exchanges.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Exchange animals'),
-        () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
+        () => this.game.bga.actions.performAction("actStartExchange", {}));
     }
     if (playState.possible_purchases.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Purchase tile'),
