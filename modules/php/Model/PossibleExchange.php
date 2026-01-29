@@ -27,15 +27,14 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zooloretto\Utils;
 use Bga\Games\zooloretto\Utils\Arrays;
 
 class PossibleExchange {
     /**
      * @ param list<int> $src_positions
-     * @param array<int,int> $src_positions
+     * @param list<int> $src_positions
      * @ param list<int> $dest_positions
-     * @param array<int,int> $dest_positions
+     * @param list<int> $dest_positions
      * @param list<Offspring> $offspring
      */
     public function __construct(
@@ -181,6 +180,10 @@ class PossibleExchange {
         if ($offspring) {
             $spaces[] = $offspring;
         }
-        return new PossibleExchange($src_enc->id, $src_pos, $dest_enc->id, $dest_pos, $spaces, $moneyDelta);
+        /** @var list<int> */
+        $sp = $src_pos;
+        /** @var list<int> */
+        $dp = $dest_pos;
+        return new PossibleExchange($src_enc->id, $sp, $dest_enc->id, $dp, $spaces, $moneyDelta);
     }
 }

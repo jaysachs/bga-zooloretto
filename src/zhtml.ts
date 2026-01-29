@@ -93,7 +93,7 @@ class Elements {
   }
 
   static enclosureSpace(player_id: number, space: Space) : HTMLElement {
-    return $(IDS.enclosureSpace(player_id, space.enclosure_id, space.pos));
+    return $(IDS.enclosureSpace(player_id, space.eid, space.pos));
   }
 
   static enclosureTile(player_id: number, space: Space) : HTMLElement | undefined {

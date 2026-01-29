@@ -64,7 +64,7 @@ class DeliverTruckTiles extends AbstractState
                 'truck_pos' => $pp->truck_pos,
                 'tile' => $pp->tile_type,
                 'tile_id' => $truck->tileAt($pp->truck_pos)->id,
-                'dests' => array_map(fn ($ppe) => $ppe->serializeNoNext(), $pp->next),
+                'dests' => array_map(fn ($ppe) => $ppe->serialize(), $pp->next),
             ], $pps->placements),
         ];
     }

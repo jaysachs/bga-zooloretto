@@ -62,7 +62,7 @@ interface ZGamedatas extends Gamedatas<ZPlayer> {
 // general use
 
 interface Space {
-  enclosure_id: number;
+  eid: number;
   pos: number;
 }
 
@@ -86,8 +86,8 @@ interface Moneys {
 
 interface Destination {
   space: Space;
-  offspring: Offspring;
-  money_delta: Moneys;
+  offspring: Offspring | undefined;
+  money_delta: Moneys | undefined;
 }
 
 // FIXME: is this useful?
@@ -108,17 +108,6 @@ interface LoadDrawnTileArgs {
 
 
 // PlayerTurn state
-
-interface PossibleEnclosurePlacement {
-  space: Space;
-  offspring: Offspring | undefined;
-  money_delta: Moneys | undefined;
-}
-
-interface PossiblePlacement {
-  truck_pos: number;
-  encs: PossibleEnclosurePlacement[];
-}
 
 interface AvailableTruck {
   truck_id: number;
@@ -208,11 +197,11 @@ class ExchangeFlow extends ZooFlow<{ possible_exchanges: PossibleExchange[] }> {
     let exchangesBySrc : PossibleExchange[][] = [];
     for (let pe of args.possible_exchanges) {
       let src = pe.src[0]!;
-      let p = exchangesBySrc[src.enclosure_id];
+      let p = exchangesBySrc[src.eid];
       if (!p) {
-        exchangesBySrc[src.enclosure_id] = [];
+        exchangesBySrc[src.eid] = [];
       }
-      exchangesBySrc[src.enclosure_id]!.push(pe);
+      exchangesBySrc[src.eid]!.push(pe);
     }
 
     this.initStatusBar(_("Select the first enclosure to exchange"));
@@ -266,9 +255,9 @@ class ExchangeFlow extends ZooFlow<{ possible_exchanges: PossibleExchange[] }> {
   private confirmExchange(pe: PossibleExchange) {
     this.initStatusBar(_("Confirm exchange"));
     this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : pe.src[0]!.enclosure_id,
+  		src_enclosure_id : pe.src[0]!.eid,
 		  src_positions: JSON.stringify(pe.src.map((s) => s.pos)),
-		  dest_enclosure_id: pe.dest[0]!.enclosure_id,
+		  dest_enclosure_id: pe.dest[0]!.eid,
       dest_positions: JSON.stringify(pe.dest.map((s) => s.pos)),
     },{
       restart: this.undoAction.bind(this)
@@ -314,7 +303,7 @@ class PurchaseTileFlow extends ZooFlow<{ possible_purchases: PossibleMove[] }> {
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
       barn_pos: pp.src.pos,
-      enclosure_id: dest.space.enclosure_id,
+      enclosure_id: dest.space.eid,
       enclosure_pos: dest.space.pos
     },{
       restart: this.undoAction.bind(this)
@@ -409,7 +398,7 @@ interface PossibleTilePlacement {
     truck_pos: number;
     // tile: string;
     // tile_id: number;
-    dests: PossibleEnclosurePlacement[];
+    dests: Destination[];
 }
 
 interface DeliverTruckTileArgs {
@@ -443,19 +432,19 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
   private async chooseDestination(truck_id: number, pp: PossibleTilePlacement) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
-    pp.dests.forEach((pep: PossibleEnclosurePlacement) => {
-      let encElem = Elements.enclosureSpace(this.player_id, pep.space);
+    pp.dests.forEach((dest: Destination) => {
+      let encElem = Elements.enclosureSpace(this.player_id, dest.space);
       // this.markTargetable(encElem);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         await this.slide(tileElem,encElem).then(() => {
-          return this.offspringSlide(pep.offspring).then( () => {
-            this.updateMoneyDelta(pep.money_delta);
+          return this.offspringSlide(dest.offspring).then( () => {
+            this.updateMoneyDelta(dest.money_delta);
             this.game.bga.actions.performAction("actDeliverTile", {
               confirm_if_done: !this.confirmationsEnabled(),
               truck_pos: pp.truck_pos,
-              enclosure_id: pep.space.enclosure_id,
-              enclosure_pos: pep.space.pos
+              enclosure_id: dest.space.eid,
+              enclosure_pos: dest.space.pos
             } )
           });
         });
@@ -531,7 +520,7 @@ class MoveTileFlow extends ZooFlow<{ possible_moves: PossibleMove[]}> {
     await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
-      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
+      src_id: src.eid, src_pos: src.pos, dest_id: dest.space.eid, dest_pos: dest.space.pos
     },
     { restart: this.undoAction.bind(this) });
   }

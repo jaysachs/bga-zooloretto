@@ -49,7 +49,7 @@ class Space {
     /** @return array<string,mixed> */
     public function serialize(): array {
 		return [
-			'enclosure_id' => $this->enclosure_id,
+			'eid' => $this->enclosure_id,
 			'pos' => $this->pos,
 		];
 	}
