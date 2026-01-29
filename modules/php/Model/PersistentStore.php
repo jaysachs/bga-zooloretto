@@ -213,7 +213,7 @@ class PersistentStore {
                 // Could instead remove unique constraint
                 $this->db->execute("UPDATE tiles
                                     SET location = 'F'
-                                    WHERE player_id = {$player_id} AND loc_id = {$enc->id}");
+                                    WHERE player_id = {$player_id} AND location = 'E' AND loc_id = {$enc->id}");
             }
         }
 
