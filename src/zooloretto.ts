@@ -111,7 +111,6 @@ interface LoadDrawnTileArgs {
 
 interface PossibleEnclosurePlacement {
   space: Space;
-  next: PossiblePlacement[];
   offspring: Offspring | undefined;
   money_delta: Moneys | undefined;
 }
@@ -125,7 +124,6 @@ interface AvailableTruck {
   truck_id: number;
   coin_positions: number[];
   money_delta: Moneys;
-  playable: PossiblePlacement[];
 }
 
 interface PossibleMove {
@@ -278,18 +276,18 @@ class ExchangeFlow extends ZooFlow<{ possible_exchanges: PossibleExchange[] }> {
   }
 }
 
-class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
+class PurchaseTileFlow extends ZooFlow<{ possible_purchases: PossibleMove[] }> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  protected override doStart(possible_purchases: PossibleMove[]) {
+  protected override doStart(args: { possible_purchases: PossibleMove[] }) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
-    possible_purchases.forEach((pp: PossibleMove) => {
+    args.possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
           () => this.callUndoably("selectPurcaseDest", async () => this.selectDestinationForPurchase(pp))
         );
       });
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
   }
 
   private selectDestinationForPurchase(pp: PossibleMove) {
@@ -308,7 +306,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
           }
         }
       ));
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
   }
 
   private confirmPurchase(pp: PossibleMove, dest: Destination) {
@@ -318,6 +316,8 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
       barn_pos: pp.src.pos,
       enclosure_id: dest.space.enclosure_id,
       enclosure_pos: dest.space.pos
+    },{
+      restart: this.undoAction.bind(this)
     });
   }
 }
@@ -465,14 +465,14 @@ class DeliverTruckTileFlow extends ZooFlow<DeliverTruckTileArgs> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
+class DiscardTileFlow extends ZooFlow<{ possible_discards: PlacedTile[]}> {
   constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(discardables: PlacedTile[]) {
+  override doStart(args: { possible_discards: PlacedTile[]}) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons(this.undoAction.bind(this));
 
-    discardables.forEach((dest: PlacedTile) => {
+    args.possible_discards.forEach((dest: PlacedTile) => {
       let space = dest.space;
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
@@ -490,7 +490,7 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
 
   private confirmDiscard(dest: PlacedTile) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: dest.space.pos });
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: dest.space.pos }, { restart: this.undoAction.bind(this) });
   }
 }
 
@@ -560,11 +560,11 @@ class MainFlow extends ZooFlow<PlayState> {
     }
     if (playState.possible_purchases.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Purchase tile'),
-        () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
+        () => this.game.bga.actions.performAction("actStartPurchase", {}));
     }
     if (playState.possible_discards.length > 0) {
       this.game.bga.statusBar.addActionButton(_('Discard tile'),
-        () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
+        () => this.game.bga.actions.performAction("actStartDiscard", {}));
     }
     if (playState.can_expand) {
       this.game.bga.statusBar.addActionButton(_('Expand zoo'),

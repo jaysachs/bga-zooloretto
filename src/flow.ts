@@ -188,7 +188,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
             if (restart) {
               restart();
             } else {
-              this.game.restoreServerGameState();
+              this.game.bga.states.restoreServerGameState();
             }
           })
         },

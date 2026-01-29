@@ -45,7 +45,8 @@ class ExchangeTiles extends AbstractState
             game: $game,
             id: 8,
             type: StateType::ACTIVE_PLAYER,
-            description: clienttranslate('legacy state exchange 8'),
+            descriptionMyTurn: clienttranslate('${you} must exchange tiles'),
+            description: clienttranslate('${actplayer} must exchange tiles'),
         );
     }
 

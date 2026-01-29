@@ -115,6 +115,11 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
+	public function actStartPurchase(int $active_player_id): mixed {
+		return PurchaseTile::class;
+	}
+
+	#[PossibleAction]
 	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
         $model = $this->createModel($active_player_id);
 		$info = $model->startTruckDelivery($truck_id);

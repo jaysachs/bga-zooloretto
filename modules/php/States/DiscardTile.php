@@ -41,8 +41,8 @@ class DiscardTile extends AbstractState
             game: $game,
             id: 10,
             type: StateType::ACTIVE_PLAYER,
-            descriptionMyTurn: clienttranslate('${You} must choose a tile to discard'),
-            description: clienttranslate('${active_player_name} must choose a tile to discard'),
+            descriptionMyTurn: clienttranslate('${you} must choose a tile to discard'),
+            description: clienttranslate('${actplayer} must choose a tile to discard'),
         );
     }
 

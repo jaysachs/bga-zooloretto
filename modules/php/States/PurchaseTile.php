@@ -43,8 +43,8 @@ class PurchaseTile extends AbstractState
             game: $game,
             id: 9,
             type: StateType::ACTIVE_PLAYER,
-            descriptionMyTurn: clienttranslate('${You} must select a tile to purchase and a destination'),
-            description: clienttranslate('${active_player_name} must select a tile to purchase and a destination'),
+            descriptionMyTurn: clienttranslate('${you} must select a tile to purchase and a destination'),
+            description: clienttranslate('${actplayer} must select a tile to purchase and a destination'),
         );
     }
 
