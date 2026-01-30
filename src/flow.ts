@@ -171,7 +171,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
         this.clearMarked();
         await this.game.bga.actions.performAction(bgaAction, args);
     };
-    if (this.confirmationsEnabled())  {
+    if (!this.confirmationsEnabled())  {
       await doAct();
     } else {
       this.game.bga.statusBar.addActionButton(
@@ -185,7 +185,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
     this.game.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
           await this.rollback().then(() => {
-            this.game.restoreServerGameState();
+            this.game.bga.states.restoreServerGameState();
           })
         },
       { color: "secondary"});
