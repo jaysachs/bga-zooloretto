@@ -30,7 +30,7 @@ body.mobile_version {
 }
 
 #zoo-game.zoo-2p {
-    --zoo-board-width: calc(var(--zoo-tile-size) / 9%);
+    --zoo-board-width: 100%; /* calc(var(--zoo-tile-size) * 10.1px); */
 }
 
 #zoo-game {
@@ -43,8 +43,8 @@ body.mobile_version {
     margin: 0.8vw;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
-    overflow: scroll;
-    height: 100vh;
+/*    overflow: scroll;
+    height: 100vh; */
 }
 
 /*
@@ -53,7 +53,7 @@ body.mobile_version {
 
 #zoo-shared-container {
     top: 0px;
-    position: sticky;
+/*    position: sticky; */
     padding: 0.2vw;
     flex-shrink: 0;
     flex-grow: 1;
