@@ -2,7 +2,7 @@ import { BgaAnimations } from './libs';
 
 export type AnimationList = (() => Promise<any>)[];
 
-export type AnimationManager = InstanceType<typeof BgaAnimations.Manager>;
+type AnimationManager = InstanceType<typeof BgaAnimations.Manager>;
 
 export class MoreAnimations {
 

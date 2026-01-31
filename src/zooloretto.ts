@@ -309,7 +309,6 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   }
 
   private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
-    this.game.gamedatas.tile_translations;
     console.log(this.game.tileTranslations);
     this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,

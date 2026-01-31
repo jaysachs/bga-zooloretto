@@ -1,11 +1,9 @@
-// import { Gamedatas, GameGui } from 'bga-framework';
 import { BgaAnimations } from './libs';
-import { AnimationManager } from './more-animations';
 
 /** Class that extends default bga core game class with more functionality
  */
 
-export abstract class BaseGame<T extends Gamedatas> /* implements Bga<T> */ {
+export abstract class BaseGame<T extends Gamedatas> {
   public readonly animationManager: InstanceType<typeof BgaAnimations.Manager>;
   public gamedatas: T;
   public readonly bga: Bga;
