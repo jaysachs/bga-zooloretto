@@ -471,4 +471,4 @@ declare const BgaAnimations: {
     Manager: typeof AnimationManager;
 };
 
-export { BgaAnimations, SlideAnimationSettings, FloatingElementAnimationSettings };
+export { BgaAnimations };

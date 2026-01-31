@@ -1,4 +1,4 @@
-import { BgaAnimations, SlideAnimationSettings, FloatingElementAnimationSettings } from './libs';
+import { BgaAnimations } from './libs';
 
 export type AnimationList = (() => Promise<any>)[];
 
@@ -15,20 +15,19 @@ export class MoreAnimations {
         return this.animationManager.base.wait(millis);
     }
 
-    async slideAndAttach(elem: HTMLElement, newParent: HTMLElement, settings?: SlideAnimationSettings | undefined): Promise<any> {
+    async slideAndAttach(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
         if (elem.parentElement == newParent) {
             return Promise.resolve();
         }
-        return this.animationManager.slideAndAttach(elem, newParent, settings ?? {});
+        return this.animationManager.slideAndAttach(elem, newParent, {});
     }
 
     async slideOutAndDestroy(elem?: HTMLElement | undefined,
-        toElement?: HTMLElement | undefined,
-        settings?: FloatingElementAnimationSettings | undefined): Promise<any> {
+        toElement?: HTMLElement | undefined): Promise<any> {
         if (!elem) {
             return Promise.resolve();
         }
-        return this.animationManager.slideOutAndDestroy(elem, toElement, settings ?? {});
+        return this.animationManager.slideOutAndDestroy(elem, toElement, {});
     }
 
     async flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {

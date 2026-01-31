@@ -793,7 +793,6 @@ export class Game extends BaseGame<ZGamedatas> {
       await this.moreAnimations.slideOutAndDestroy(
         Elements.tile(args.delivery.tile),
           this.bga.playerPanels.getElement(args.player_id),
-          {}
         ).then(() => this.addMoney(args.player_id, 1));
     }
     else {
