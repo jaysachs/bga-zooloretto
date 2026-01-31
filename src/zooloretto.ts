@@ -509,6 +509,8 @@ export class Game extends BaseGame<ZGamedatas> {
   moreAnimations: MoreAnimations;
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
+    this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
+    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
@@ -675,9 +677,6 @@ export class Game extends BaseGame<ZGamedatas> {
     if (gamedatas.lastround) {
       (this as any).addLastTurnBanner(_('This is the last round!'));
     }
-
-    this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
-    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
 
     console.log('Game setup done');
   }

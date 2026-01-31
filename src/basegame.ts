@@ -6,14 +6,16 @@ import { AnimationManager } from './more-animations';
  */
 
 export abstract class BaseGame<T extends Gamedatas> /* implements Bga<T> */ {
-  animationManager: InstanceType<typeof BgaAnimations.Manager>;
+  public readonly animationManager: InstanceType<typeof BgaAnimations.Manager>;
   public gamedatas: T;
   public readonly bga: Bga;
-//  public player_id: number;
 
   constructor(bga: Bga<T>) {
     console.log('game constructor');
     this.bga = bga;
+    this.animationManager = new BgaAnimations.Manager({
+      animationsActive: () => this.bgaAnimationsActive(),
+    });
   }
 
   protected bgaAnimationsActive(): boolean {
@@ -21,13 +23,8 @@ export abstract class BaseGame<T extends Gamedatas> /* implements Bga<T> */ {
   }
 
   setup(gamedatas: T) {
-    this.gamedatas = gamedatas;
-//    this.player_id = this.bga.gameui.player_id;
     console.log('Starting game setup', this);
-    // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
-    this.animationManager = new BgaAnimations.Manager({
-      animationsActive: () => this.bgaAnimationsActive(),
-    });
+    this.gamedatas = gamedatas;
   }
 
   /**

@@ -78,14 +78,13 @@ export class UndoStack {
 
 export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
   protected readonly game: G;
-  protected readonly player_id: number;
   private onClickAbortController : AbortController = new AbortController();
   protected undoStack: UndoStack;
+  protected player_id: number;
 
   constructor(g : G, undoStack: UndoStack) {
     this.game = g;
     this.undoStack = undoStack;
-    this.player_id = g.bga.gameui.player_id;
   }
 
   protected pushUndoOp(desc: string, anim: Op): void {
@@ -101,6 +100,7 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   }
 
   start(args?: T) {
+    this.player_id = this.game.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
     this.onClickAbortController = new AbortController();
     this.callUndoably(desc, () => this.doStart(args));
