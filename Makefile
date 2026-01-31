@@ -8,7 +8,7 @@ STATS=modules/php/Stats.php
 GENSTATS=$(ROOT)/bgautil/genstats/genstats.php
 WORK=work
 STUBS=$(WORK)/module/table/table.game.php
-TS_STUBS=$(WORK)/bga-framework.d.ts
+TS_STUBS=src/bga-framework.d.ts
 TESTSTUBS=$(WORK)/test/module/table/table.game.php
 JS=$(GAME).js
 COLORMAP=src/colormap.ts
@@ -30,8 +30,8 @@ $(COLORMAP): misc/colormap.php gameinfos.inc.php
 $(WORK):
 	mkdir $(WORK)
 
-$(TS_STUBS): $(WORK) bga-framework.d.ts
-	perl -p -e 's/bRealtime: boolean;/bRealtime: boolean;\n  notifqueue: GameNotifQueue;\n/' bga-framework.d.ts > $(TS_STUBS)
+$(TS_STUBS): bga-framework.d.ts
+	cp bga-framework.d.ts $(TS_STUBS)
 
 $(STUBS): $(WORK) _ide_helper.php Makefile _local_ide_helper.php
 	mkdir -p $(WORK)/module/table
