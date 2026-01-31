@@ -4,15 +4,18 @@
   "description": "",
   "main": "zooloretto.js",
   "scripts": {
-    "build:ts": "tsc",
-    "watch:ts": "tsc --watch",
+    "build:ts": "rollup -c --failAfterWarnings",
+    "watch:ts": "rollup -c -w --failAfterWarnings",
     "watch": "npm run watch:ts",
     "build": "npm run build:ts"
   },
   "author": "Jay Sachs",
   "license": "EPL2.0",
-  "devDependencies": {
-    "sass": "^1.32.6",
-    "typescript": "^5.0.4"
-  }
+   "devDependencies": {
+    "@rollup/plugin-typescript": "^12.3.0",
+    "rollup": "^4.53.3",
+    "sass": "^1.71.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.3.3"
+   }
 }

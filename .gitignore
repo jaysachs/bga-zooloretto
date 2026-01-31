@@ -8,7 +8,6 @@
 modules/php/Stats.php
 work
 node_modules
-zooloretto.js
 .vscode
 # Need to exclude images since they cannot be OSS-licensed.
 img
@@ -16,4 +15,3 @@ modules/js/Game.js
 backup/
 local/backup/
 package-lock.json
-

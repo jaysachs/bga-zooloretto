@@ -2,7 +2,11 @@
 // game-specific HTML structures
 //
 
-class Attrs implements AttrLike {
+
+import { ZGamedatas, ZPlayer, Tile, Space } from './zgametypes';
+import { Html, AttrLike } from './html';
+
+export class Attrs implements AttrLike {
   toRecord(): Record<string, string> {
     return this.r;
   }
@@ -35,7 +39,7 @@ class Attrs implements AttrLike {
   }
 }
 
-class IDS {
+export class IDS {
   static readonly GAME = 'zoo-game'; // top-level element
   static readonly PRIMARY_PILE_TILES = 'zoo-primary-pile-tiles';
   static readonly ENDGAME_PILE_TILES = 'zoo-endgame-pile-tiles';
@@ -60,7 +64,7 @@ class IDS {
   }
 }
 
-class CSS {
+export class CSS {
   static readonly TRUCK = 'zoo-truck';
   static readonly TARGETABLE = 'zoo-targetable';
   static readonly SELECTABLE = 'zoo-selectable';
@@ -71,7 +75,7 @@ class CSS {
   static readonly PARENT = 'zoo-parent';
 }
 
-class Elements {
+export class Elements {
   static tile(tile: Tile): HTMLElement | undefined {
     return $(IDS.tile(tile));
   }
@@ -102,7 +106,7 @@ class Elements {
 
 }
 
-class ZoolorettoHtml {
+export class ZoolorettoHtml {
   constructor(gamedatas: ZGamedatas, player_id: number) {
     this.gamedatas = gamedatas;
     this.player_id = player_id;

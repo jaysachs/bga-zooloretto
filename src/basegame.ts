@@ -1,25 +1,28 @@
-type AnimationList = (() => Promise<any>)[];
-
-// @ts-ignore
-GameGui = /** @class */ (function () {
-  function GameGui() { }
-  return GameGui;
-})();
+// import { Gamedatas, GameGui } from 'bga-framework';
+import { BgaAnimations } from './libs';
+import { AnimationManager } from './more-animations';
 
 /** Class that extends default bga core game class with more functionality
  */
 
-abstract class BaseGame<T extends Gamedatas> extends GameGui<T> /* implements Bga<T> */ {
-  animationManager: AnimationManager;
+export abstract class BaseGame<T extends Gamedatas> /* implements Bga<T> */ {
+  animationManager: InstanceType<typeof BgaAnimations.Manager>;
+  public gamedatas: T;
+  public readonly bga: Bga;
+//  public player_id: number;
 
   constructor(bga: Bga<T>) {
-    super(/* bga */);
-    Object.assign(this, bga);
     console.log('game constructor');
+    this.bga = bga;
   }
 
-  override setup(gamedatas: T) {
+  protected bgaAnimationsActive(): boolean {
+    return this.bga.gameui.bgaAnimationsActive();
+  }
+
+  setup(gamedatas: T) {
     this.gamedatas = gamedatas;
+//    this.player_id = this.bga.gameui.player_id;
     console.log('Starting game setup', this);
     // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
     this.animationManager = new BgaAnimations.Manager({

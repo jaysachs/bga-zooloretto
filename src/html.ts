@@ -1,8 +1,8 @@
-interface AttrLike {
+export interface AttrLike {
     toRecord(): Record<string, string>;
 }
 
-class Html {
+export class Html {
   public static makeElem(ty: string, args: {id?: string, text?: string, title?: string, attrs?: Record<string, string> | AttrLike , classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
     let e = document.createElement(ty);
     if (args.id) { e.id = args.id; }

@@ -1,4 +1,10 @@
-class MoreAnimations {
+import { BgaAnimations, SlideAnimationSettings, FloatingElementAnimationSettings } from './libs';
+
+export type AnimationList = (() => Promise<any>)[];
+
+export type AnimationManager = InstanceType<typeof BgaAnimations.Manager>;
+
+export class MoreAnimations {
 
     private animationManager: AnimationManager;
     constructor(animationManager: AnimationManager) {

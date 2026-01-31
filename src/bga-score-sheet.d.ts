@@ -214,4 +214,4 @@ declare const BgaScoreSheet: {
     ScoreSheet: typeof ScoreSheet;
 };
 
-// export { BgaScoreSheet, ScoreSheet };
+export { BgaScoreSheet, ScoreSheet };

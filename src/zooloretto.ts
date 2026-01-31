@@ -1,70 +1,16 @@
-//
-// interfaces for gamedatas
-//
-interface ZPlayer extends Player {
-  player_id: number;
-  money: number;
-  purchased_extensions: number;
-}
-
-interface Tile {
-  id: number;
-  type: string;
-}
-
-interface TruckSpace {
-  pos: number;
-  tile: Tile | undefined;
-}
-
-interface Truck {
-  taken_by_player_id: number | null;
-  truck_id: number;
-  // Should always be 3. null means empty.
-  // FIXME: Need to be careful about 0- and 1- based; probably best to be consistent
-  //   and use "null" for "nothing" and 0-based.
-  contents: TruckSpace[];
-}
-
-interface EnclosureContents {
-  space: Space;
-  tile: Tile | undefined;
-}
-
-interface EnclosureSummary {
-  player_id: number;
-  enclosure_id: number;
-  animal_type: string;
-  count: number;
-}
-
-interface ZGamedatas extends Gamedatas<ZPlayer> {
-  primary_pile_size: number;
-  endgame_pile_size: number;
-  lastround: boolean;
-  drawntile: Tile | undefined;
-  bank_money: number;
-  // Should always be 3.
-  trucks: Truck[];
-  // keyed by player_id
-  enclosures: EnclosureContents[][];
-  endScores: any;
-
-  // name is translated/able
-  tile_translations: { type: string, name: string }[];
-  enclosure_summaries: EnclosureSummary[];
-}
+import { Tile, ZGamedatas, ZPlayer, Space, EnclosureSummary } from './zgametypes';
+import { PlayFlow, UndoStack } from './flow';
+import { BaseGame } from './basegame';
+import { Html } from './html';
+import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
+import { AnimationList, MoreAnimations } from './more-animations';
+import { BgaScoreSheet } from './libs';
 
 //
 // interfaces for args & notifs
 //
 
 // general use
-
-interface Space {
-  enclosure_id: number;
-  pos: number;
-}
 
 interface PlacedTile {
   tile: Tile;
@@ -167,7 +113,9 @@ interface Delivery {
 //
 // UI flows
 //
-abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, ZoolorettoGame> {
+abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Game> {
+
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   private negate(moneyDelta: Moneys): Moneys {
     return {
@@ -201,7 +149,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Zooloretto
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   protected override doStart(possible_exchanges: PossibleExchange[]) {
     let exchangesBySrc : PossibleExchange[][] = [];
@@ -274,7 +222,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 }
 
 class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
@@ -318,7 +266,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
 }
 
 class ExpandZooFlow extends ZooFlow {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart() {
     this.initStatusBar(_('Expand zoo?'));
@@ -330,7 +278,7 @@ class ExpandZooFlow extends ZooFlow {
 };
 
 class DrawTileFlow extends ZooFlow<boolean> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
@@ -340,7 +288,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
 };
 
 class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(args: PlaceDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
@@ -384,7 +332,7 @@ var globalUndoStack: any;
 
 class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(availableTrucks: AvailableTruck[]) {
     console.log("starting TakeTruckFlow", this);
@@ -450,7 +398,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 };
 
 class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(discardables: PlacedTile[]) {
     this.initStatusBar(_('Select a tile in your barn to discard'));
@@ -479,7 +427,7 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
 }
 
 class MoveTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(possibleMoves: PossibleMove[]) {
     this.initStatusBar(_('Select a tile to move'));
@@ -521,7 +469,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
 }
 
 class MainFlow extends ZooFlow<PlayState> {
-  constructor(g: ZoolorettoGame, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   protected override doStart(playState: PlayState) {
     this.initStatusBar(_("You must take an action"));
@@ -557,7 +505,7 @@ class MainFlow extends ZooFlow<PlayState> {
 }
 
 /** Game class */
-class ZoolorettoGame extends BaseGame<ZGamedatas> {
+export class Game extends BaseGame<ZGamedatas> {
   moreAnimations: MoreAnimations;
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
@@ -691,7 +639,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
   }
 
   private setupHtml(twoPlayer: boolean): void {
-    let zhtml = new ZoolorettoHtml(this.gamedatas, this.player_id);
+    let zhtml = new ZoolorettoHtml(this.gamedatas, this.bga.gameui.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(this.gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
@@ -974,7 +922,8 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
       .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
-  private scoreSheet: ScoreSheet;
+  private scoreSheet: InstanceType<typeof BgaScoreSheet.ScoreSheet>;
+
   private setupScoreSheet(): void {
     this.scoreSheet = new BgaScoreSheet.ScoreSheet(
     document.getElementById(IDS.SCORE_SHEET)!, // an empty div on your template to place the score sheet on
@@ -1044,7 +993,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
 
   private async notif_GameEnded(args: { endScores: any, }): Promise<void> {
     await this.scoreSheet.setScores(args.endScores, {
-            startBy: this.player_id,
+            startBy: this.bga.gameui.player_id,
         });
   }
 
@@ -1057,7 +1006,7 @@ class ZoolorettoGame extends BaseGame<ZGamedatas> {
         Html.span({classes: 'zoo-money-label', title: _("coins")}))
   };
 
-  override bgaFormatText(log: string, args: any): { log: string, args: any } {
+  bgaFormatText(log: string, args: any): { log: string, args: any } {
     try {
       let shadowParent = Html.span({});
       if (log && args && !args.processed) {

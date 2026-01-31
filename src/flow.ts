@@ -1,6 +1,11 @@
-type Op = () => Promise<any>;
+// import { Gamedatas } from './bga-framework';
+// FIXME: this isn't right.
+import { CSS, IDS } from './zhtml';
+import { BaseGame } from './basegame';
 
-interface NamedOp {
+export type Op = () => Promise<any>;
+
+export interface NamedOp {
   desc: string;
   op: Op;
 }
@@ -10,9 +15,9 @@ type Continuation = {
   mark: number;
 }
 
-type OpList = Op[];
+export type OpList = Op[];
 
-class UndoStack {
+export class UndoStack {
     private ops: NamedOp[] = [];
     private continuations: Continuation[] = [];
     private current: Continuation | undefined;
@@ -71,7 +76,7 @@ class UndoStack {
     }
 }
 
-abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
+export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
   protected readonly game: G;
   protected readonly player_id: number;
   private onClickAbortController : AbortController = new AbortController();
@@ -80,7 +85,7 @@ abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U
   constructor(g : G, undoStack: UndoStack) {
     this.game = g;
     this.undoStack = undoStack;
-    this.player_id = g.player_id;
+    this.player_id = g.bga.gameui.player_id;
   }
 
   protected pushUndoOp(desc: string, anim: Op): void {
