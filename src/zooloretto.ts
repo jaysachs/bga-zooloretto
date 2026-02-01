@@ -475,7 +475,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
 }
 
 class MainFlow extends ZooFlow<PlayState> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game) { super(g, new UndoStack(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
     this.initStatusBar(_("You must take an action"));
@@ -525,7 +525,7 @@ export class Game extends BaseGame<ZGamedatas> {
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
     this.moreAnimations = new MoreAnimations(this.animationManager);
-    this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
+    this.bga.states.register('PlayerTurn', new MainFlow(this));
     this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
   }
 
