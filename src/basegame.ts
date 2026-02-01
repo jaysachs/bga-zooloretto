@@ -3,14 +3,17 @@ import { BgaAnimations, AnimationManager } from './libs';
 /** Class that extends default bga core game class with more functionality
  */
 
+type SpecialLogArgs = Record<string, (any) => HTMLElement>;
+
 export abstract class BaseGame<T extends Gamedatas> {
   public readonly animationManager: AnimationManager;
-  public gamedatas: T;
-  public readonly bga: Bga;
+  public readonly bga: Bga<T>;
+  private readonly special_log_args: SpecialLogArgs;
 
-  constructor(bga: Bga<T>) {
+  constructor(bga: Bga<T>, special_log_args: SpecialLogArgs) {
     console.log('game constructor');
     this.bga = bga;
+    this.special_log_args = special_log_args;
     this.animationManager = new BgaAnimations.Manager({
       animationsActive: () => this.bgaAnimationsActive(),
     });
@@ -20,9 +23,24 @@ export abstract class BaseGame<T extends Gamedatas> {
     return this.bga.gameui.bgaAnimationsActive();
   }
 
-  setup(gamedatas: T) {
-    console.log('Starting game setup', this);
-    this.gamedatas = gamedatas;
+    bgaFormatText(log: string, args: any): { log: string, args: any } {
+    try {
+      let shadowParent = document.createElement('span');
+      if (log && args && !args.processed) {
+        args.processed = true;
+        for (const key in this.special_log_args) {
+          if (key in args) {
+            let e = this.special_log_args[key](args);
+            shadowParent.appendChild(e);
+            args[key] = shadowParent.getHTML();
+            e.remove();
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error(log, args, 'Exception thrown', e.stack);
+    }
+    return { log, args };
   }
 
   /**

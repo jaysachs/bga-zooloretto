@@ -303,7 +303,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
     this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmAndRestartActionButtons('actDrawTile', {}, false);
+    this.addConfirmAndRestartActionButtons('actDrawTile', {});
   }
 };
 
@@ -528,7 +528,7 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   }
 }
 
-class MainFlow extends ZooFlow<PlayState> {
+class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(g: Game) { super(g, new UndoStack(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
@@ -600,7 +600,7 @@ class MainFlow extends ZooFlow<PlayState> {
   }
 }
 
-type UIStyle = 'both' | 'pieces' | 'actionbuttons';
+type UIStyle = 'pieces' | 'actionbuttons';
 
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
@@ -618,9 +618,10 @@ export class Game extends BaseGame<ZGamedatas> {
   private scoreSheet: ScoreSheet;
 
   constructor(bga: Bga<ZGamedatas>) {
-    super(bga);
+    super(bga, Game.special_log_args);
+    let x = this.bga.gameui.gamedatas;
     this.moreAnimations = new MoreAnimations(this.animationManager);
-    this.bga.states.register('PlayerTurn', new MainFlow(this));
+    this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
     this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
   }
 
@@ -630,11 +631,6 @@ export class Game extends BaseGame<ZGamedatas> {
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
     let setTile = () => {
-      elem.id = IDS.tile(tile);
-      elem.setAttribute(Attrs.TILE, tile.type);
-    };
-    if (!this.bgaAnimationsActive()) {
-      setTile();
       elem.id = IDS.tile(tile);
       elem.setAttribute(Attrs.TILE, tile.type);
     };
@@ -683,28 +679,28 @@ export class Game extends BaseGame<ZGamedatas> {
     $(elemId).insertAdjacentElement('afterbegin', this.makeTileBackSpan() );
   }
 
-  private renderStock() : void {
-    for (let i = Math.min(this.gamedatas.primary_pile_size, 5); i > 0; i--) {
+  private renderStock(gamedatas: ZGamedatas) : void {
+    for (let i = Math.min(gamedatas.primary_pile_size, 5); i > 0; i--) {
       this.addStockTile('primary');
     }
-    for (let i = Math.min(this.gamedatas.endgame_pile_size, 5); i > 0; i--) {
+    for (let i = Math.min(gamedatas.endgame_pile_size, 5); i > 0; i--) {
       this.addStockTile('endgame');
     }
-    if (this.gamedatas.drawntile) {
-      let top = Elements.drawnTile(this.gamedatas.lastround);
+    if (gamedatas.drawntile) {
+      let top = Elements.drawnTile(gamedatas.lastround);
       if (top) {
         // FIXME: might be nicer to create this properly ...
-        top.setAttribute(Attrs.TILE, this.gamedatas.drawntile.type);
-        top.id = IDS.tile(this.gamedatas.drawntile);
+        top.setAttribute(Attrs.TILE, gamedatas.drawntile.type);
+        top.id = IDS.tile(gamedatas.drawntile);
       }
     }
-    if (!this.gamedatas.lastround) {
+    if (!gamedatas.lastround) {
       $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK, classes: 'zoo-disk' }));
     }
   }
 
-  private renderTrucks(): void {
-    for (let truck of this.gamedatas.trucks) {
+  private renderTrucks(gamedatas: ZGamedatas): void {
+    for (let truck of gamedatas.trucks) {
       truck.contents.forEach(contents => {
         if (contents.tile) {
           Elements.truckSpace(truck.truck_id, contents.pos).append(this.makeTileSpan(contents.tile));
@@ -720,9 +716,9 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private renderEnclosures(): void {
-    for (let player_id in this.gamedatas.enclosures) {
-      this.gamedatas.enclosures[player_id]!.forEach(es => {
+  private renderEnclosures(gamedatas: ZGamedatas): void {
+    for (let player_id in gamedatas.enclosures) {
+      gamedatas.enclosures[player_id]!.forEach(es => {
         if (es.tile) {
           Elements.enclosureSpace(Number(player_id), es.space).append(this.makeTileSpan(es.tile));
         }
@@ -745,43 +741,45 @@ export class Game extends BaseGame<ZGamedatas> {
     });
   }
 
-  private setupHtml(twoPlayer: boolean): void {
-    let zhtml = new ZoolorettoHtml(this.gamedatas, this.bga.gameui.player_id);
+  private setupHtml(gamedatas: ZGamedatas): void {
+    let zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
-    for (const player of Object.values(this.gamedatas.players)) {
+    for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       let counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
     }
     this.bankCounter = new ebg.counter();
-    this.bankCounter.create(IDS.BANK_MONEY, { value: this.gamedatas.bank_money });
+    this.bankCounter.create(IDS.BANK_MONEY, { value: gamedatas.bank_money });
     this.primaryStockCounter = new ebg.counter();
-    this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: this.gamedatas.primary_pile_size == 1000 ? null : this.gamedatas.primary_pile_size });
+    this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: gamedatas.primary_pile_size == 1000 ? null : gamedatas.primary_pile_size });
     this.endgameStockCounter = new ebg.counter();
-    this.endgameStockCounter.create(IDS.ENDGAME_PILE_COUNT, { value: this.gamedatas.endgame_pile_size });
-    this.renderStock();
-    this.renderTrucks();
-    this.renderEnclosures();
-    this.updateEnclosureSummaries(this.gamedatas.enclosure_summaries);
+    this.endgameStockCounter.create(IDS.ENDGAME_PILE_COUNT, { value: gamedatas.endgame_pile_size });
+    this.renderStock(gamedatas);
+    this.renderTrucks(gamedatas);
+    this.renderEnclosures(gamedatas);
+    this.updateEnclosureSummaries(gamedatas.enclosure_summaries);
   }
 
-  private setupTranslations(): void {
-    this.gamedatas.tile_translations.forEach(v => this.tileTranslations.set(v.type, v.name));
+  private setupTranslations(gamedatas: ZGamedatas): void {
+    gamedatas.tile_translations.forEach(v => this.tileTranslations.set(v.type, v.name));
   }
 
-  override setup(gamedatas: ZGamedatas) {
-    super.setup(gamedatas);
-    const twoPlayer = Object.keys(gamedatas.players).length == 2;
-    this.setupTranslations();
-    this.setupHtml(twoPlayer);
+  setup(gamedatas: ZGamedatas) {
+    this.setupTranslations(gamedatas);
+    this.setupHtml(gamedatas);
     this.setupNotifications();
-    this.setupScoreSheet();
+    this.setupScoreSheet(gamedatas);
     if (gamedatas.lastround) {
-      this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
+      this.showLastTurnBanner();
     }
 
     console.log('Game setup done');
+  }
+
+  private showLastTurnBanner() {
+    this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
   }
 
   private setupNotifications(): void {
@@ -828,13 +826,10 @@ export class Game extends BaseGame<ZGamedatas> {
       drawn_from_endgame_pile: boolean,
     }
   ): Promise<void> {
-    this.gamedatas.lastround = args.drawn_from_endgame_pile;
     let disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile && disk) {
       await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
-        .then(() => {
-          this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
-        });
+        .then(() => this.showLastTurnBanner());
     }
     await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
   }
@@ -1023,7 +1018,7 @@ export class Game extends BaseGame<ZGamedatas> {
       .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
-  private setupScoreSheet(): void {
+  private setupScoreSheet(gamedatas: ZGamedatas): void {
     this.scoreSheet = new BgaScoreSheet.ScoreSheet(
       $(IDS.SCORE_SHEET),
       {
@@ -1033,7 +1028,7 @@ export class Game extends BaseGame<ZGamedatas> {
         // entryLabelWidth: 120,
         // entryLabelHeight: 20,
         classes: 'zoo-score-sheet',
-        players: this.gamedatas.players,
+        players: gamedatas.players,
         entries: [
           {
             property: 'full_enclosure_points',
@@ -1081,7 +1076,7 @@ export class Game extends BaseGame<ZGamedatas> {
             height: 40,
           },
         ],
-        scores: this.gamedatas.endScores,
+        scores: gamedatas.endScores,
         onScoreDisplayed: (property: string, playerId: number, score: number) => {
           if (property === 'total') {
             this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
@@ -1096,32 +1091,11 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   ///////
-  readonly special_log_args = {
+  private static readonly special_log_args : Record<string, (args: any) => HTMLElement> = {
     tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.tile_type), title: _(args.tile_description)}),
     src_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.src_tile_type), title: _(args.src_tile_description)}),
     dest_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.dest_tile_type), title: _(args.dest_tile_description)}),
     coins: (args: any) => Html.span({text: ""+args.coins},
         Html.span({classes: 'zoo-money-label', title: _("coins")}))
   };
-
-  bgaFormatText(log: string, args: any): { log: string, args: any } {
-    try {
-      let shadowParent = Html.span({});
-      if (log && args && !args.processed) {
-        args.processed = true;
-        for (const key in this.special_log_args) {
-          if (key in args) {
-            let e = this.special_log_args[key](args);
-            shadowParent.appendChild(e);
-            args[key] = shadowParent.getHTML();
-            e.remove();
-          }
-        }
-      }
-    } catch (e: any) {
-      console.error(log, args, 'Exception thrown', e.stack);
-    }
-    return { log, args };
-  }
-
 }
