@@ -115,6 +115,12 @@ class Model {
     }
 
     public function drawTile(): Stock {
+        if ($this->getActivePlayer()->truck_taken) {
+            throw new \BgaVisibleSystemException("player already took truck");
+        }
+        if ($this->spacesOnTrucks() == 0) {
+            throw new \BgaVisibleSystemException("all trucks filled");
+        }
         $stock = $this->getStock();
         $stock->drawTile();
         $this->ps->updateStock($stock);
@@ -326,7 +332,9 @@ class Model {
     }
 
     public function canDraw(): bool {
-        return $this->getStock()->drawn->isEmpty() && $this->spacesOnTrucks() > 0;
+        return $this->getActivePlayer()->truck_taken == 0
+            && $this->getStock()->drawn->isEmpty()
+            && $this->spacesOnTrucks() > 0;
     }
 
     /** @return list<PlacedTile> positions in barn that are discardable */
