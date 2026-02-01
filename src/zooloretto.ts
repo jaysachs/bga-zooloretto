@@ -234,17 +234,25 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 }
 
 class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  private skipInitialButtons: boolean;
+  constructor(g: Game, undoStack: UndoStack, skipInitialButtons: boolean = false) {
+    super(g, undoStack);
+    this.skipInitialButtons = skipInitialButtons;
+  }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
-    this.initStatusBar(_("Select a tile to purchase from another player's barn"));
+    if (!this.skipInitialButtons) {
+      this.initStatusBar(_("Select a tile to purchase from another player's barn"));
+    }
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
           () => this.callUndoably("selectPurcaseDest", async () => this.selectDestinationForPurchase(pp))
         );
       });
-    this.addRestartAndUndoButtons();
+    if (!this.skipInitialButtons) {
+      this.addRestartAndUndoButtons();
+    }
   }
 
   private selectDestinationForPurchase(pp: PossibleMove) {
@@ -398,7 +406,6 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(availableTrucks: AvailableTruck[]) {
-    console.log("starting TakeTruckFlow", this);
     this.initStatusBar(_('Select a truck'));
 
     availableTrucks.forEach((truck: AvailableTruck) => {
@@ -463,9 +470,8 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
         async () => {
-          await this.slideOutAndDestroy(
-            Elements.enclosureTile(this.player_id, space)!,
-            $(IDS.OFF_BOARD)).then(() => {
+          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
+            .then(() => {
               // should always have money delta
               this.updateMoneyDelta(dest.money_delta!);
               this.callUndoably("confirmDiscard", async () => this.confirmDiscard(dest));
@@ -526,54 +532,67 @@ class MainFlow extends ZooFlow<PlayState> {
   constructor(g: Game) { super(g, new UndoStack(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
+
     this.initStatusBar(_("You must take an action"));
-    if (playState.can_draw) {
-      if (this.uiStyle() != 'pieces') {
-        this.bga.statusBar.addActionButton(_('Draw tile'),
-          () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
+    this.undoStack.clear();
+    if (this.uiStyle() == 'actionbuttons') {
+      if (playState.can_draw) {
+          this.bga.statusBar.addActionButton(_('Draw tile'),
+            () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
       }
-      if (this.uiStyle() != 'actionbuttons') {
+      if (playState.available_trucks.length > 0) {
+        this.bga.statusBar.addActionButton(_('Take truck'),
+          () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
+      }
+      if (playState.possible_moves.length > 0) {
+        this.bga.statusBar.addActionButton(_('Move tile'),
+          () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
+      }
+      if (playState.possible_exchanges.length > 0) {
+        this.bga.statusBar.addActionButton(_('Exchange animals'),
+          () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
+      }
+      if (playState.possible_purchases.length > 0) {
+        this.bga.statusBar.addActionButton(_('Purchase tile'),
+          () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
+      }
+      if (playState.possible_discards.length > 0) {
+        this.bga.statusBar.addActionButton(_('Discard tile'),
+          () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
+      }
+      if (playState.extension_available > 0) {
+        this.bga.statusBar.addActionButton(_('Expand zoo'),
+          () => new ExpandZooFlow(this.game, this.undoStack).start());
+      }
+    }
+    else if (this.uiStyle() == 'pieces') {
+      if (playState.can_draw) {
         let topTile = Elements.drawnTile(playState.lastround);
         this.addSelectableOnclick(
           topTile,
           () => { new DrawTileFlow(this.game, this.undoStack).start(playState.lastround) }
         );
       }
-    }
-    if (playState.available_trucks.length > 0) {
-      if (this.uiStyle() != 'pieces') {
-        this.bga.statusBar.addActionButton(_('Take truck'),
-          () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
+      playState.available_trucks.forEach(
+        truck => this.addSelectableOnclick(Elements.truck(truck.truck_id), () => {
+          new DeliverTilesFlow(this.game, this.undoStack).start(truck);
+        }));
+
+      // These can be separate since they exclusively are on other players' boards.
+      if (playState.possible_purchases.length > 0) {
+        new PurchaseTileFlow(this.game, this.undoStack, true).start(playState.possible_purchases);
       }
-      if (this.uiStyle() != 'actionbuttons') {
-        playState.available_trucks.forEach(
-          truck => this.addSelectableOnclick(Elements.truck(truck.truck_id), () => {
-            new DeliverTilesFlow(this.game, this.undoStack).start(truck);
-          }));
+
+      if (playState.possible_moves.length > 0) {
+//          () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
       }
-    }
-    if (playState.possible_moves.length > 0) {
-      this.bga.statusBar.addActionButton(_('Move tile'),
-        () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
-    }
-    if (playState.possible_exchanges.length > 0) {
-      this.bga.statusBar.addActionButton(_('Exchange animals'),
-        () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
-    }
-    if (playState.possible_purchases.length > 0) {
-      this.bga.statusBar.addActionButton(_('Purchase tile'),
-        () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
-    }
-    if (playState.possible_discards.length > 0) {
-      this.bga.statusBar.addActionButton(_('Discard tile'),
-        () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
-    }
-    if (playState.extension_available > 0) {
-      if (this.uiStyle() != 'pieces') {
-        this.bga.statusBar.addActionButton(_('Expand zoo'),
-          () => new ExpandZooFlow(this.game, this.undoStack).start());
+      if (playState.possible_exchanges.length > 0) {
+//          () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
       }
-      if (this.uiStyle() != 'actionbuttons') {
+      if (playState.possible_discards.length > 0) {
+//          () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
+      }
+      if (playState.extension_available > 0) {
         this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
           () => new ExpandZooFlow(this.game, this.undoStack).start());
       }
