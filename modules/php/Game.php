@@ -113,6 +113,7 @@ class Game extends \Bga\GameFramework\Table
 			$datas['players'][$player->id]['player_id'] = $player->id;
 			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
+			$datas['players'][$player->id]['extension_available'] = $player->extensionAvailable();
 		}
 		$isEndScore = intval($this->gamestate->getCurrentMainStateId()) >= 99;
   		$datas['endScores'] = $isEndScore ? $model->computeScores() : null;

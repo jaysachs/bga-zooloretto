@@ -91,7 +91,7 @@ interface PossibleExchange {
 interface PlayState {
   lastround: boolean;
   can_draw: boolean;
-  can_expand: boolean;
+  extension_available: number;
   available_trucks: AvailableTruck[];
   possible_discards: PlacedTile[];
   possible_moves: PossibleMove[];
@@ -568,9 +568,15 @@ class MainFlow extends ZooFlow<PlayState> {
       this.bga.statusBar.addActionButton(_('Discard tile'),
         () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
     }
-    if (playState.can_expand) {
-      this.bga.statusBar.addActionButton(_('Expand zoo'),
-        () => new ExpandZooFlow(this.game, this.undoStack).start());
+    if (playState.extension_available > 0) {
+      if (this.uiStyle() != 'pieces') {
+        this.bga.statusBar.addActionButton(_('Expand zoo'),
+          () => new ExpandZooFlow(this.game, this.undoStack).start());
+      }
+      if (this.uiStyle() != 'actionbuttons') {
+        this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
+          () => new ExpandZooFlow(this.game, this.undoStack).start());
+      }
     }
   }
 }

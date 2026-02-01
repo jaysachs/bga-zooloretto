@@ -92,7 +92,7 @@ class PlayerTurn extends AbstractState
 			'possible_purchases' => $pb,
 			'possible_discards' => $pds,
 			'possible_exchanges' => $pxs,
-			'can_expand' => $model->canExpand(),
+			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
 	}

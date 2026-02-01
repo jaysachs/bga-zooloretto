@@ -311,8 +311,8 @@ class Model {
         ];
     }
 
-    public function canExpand(): bool {
-        return $this->getActivePlayer()->canExpand();
+    public function extensionAvailable(): int {
+        return $this->getActivePlayer()->extensionAvailable();
     }
 
     public function expandZoo(): Player {

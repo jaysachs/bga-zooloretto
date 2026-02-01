@@ -55,6 +55,7 @@ export class IDS {
   static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
   static enclosure(player_id: number, enclosure_id: number): string { return `enclosure-${player_id}-${enclosure_id}`; }
   static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `enclosure-${player_id}-${enclosure_id}-${pos}`; }
+  static extension(player_id: number, ext_num: number): string { return `zoo-ext-${player_id}-${ext_num}`}
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `playermoney-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
@@ -76,6 +77,11 @@ export class CSS {
 }
 
 export class Elements {
+
+  static extension(player_id: number, e : number): HTMLElement {
+    return $(IDS.extension(player_id, e));
+  }
+
   static tile(tile: Tile): HTMLElement | undefined {
     return $(IDS.tile(tile));
   }
@@ -129,19 +135,27 @@ export class ZoolorettoHtml {
       );
     };
 
+    let board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
+    board.append(
+      enclosure(0, 20), // the barn
+      enclosure(1, 6),
+      enclosure(2, 6),
+      enclosure(3, 7),
+      enclosure(4, 6),
+      this.twoPlayer ? enclosure(5, 6) : undefined
+    );
+    let extnum = this.twoPlayer ? 2 : 1;
+    board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
+    if (this.twoPlayer) {
+      extnum--;
+      board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
+    }
     return Html
       .div({ classes: [ "zoo-playerboard"] },
         Html.div({},
           Html.span({ text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
         ),
-        Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)},
-          enclosure(0, 20), // the barn
-          enclosure(1, 6),
-          enclosure(2, 6),
-          enclosure(3, 7),
-          enclosure(4, 6),
-          this.twoPlayer ? enclosure(5, 6) : undefined
-        )
+        board,
       );
   }
 

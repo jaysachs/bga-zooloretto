@@ -47,9 +47,14 @@ class Player {
              . "pe={$this->purchased_extensions},truck={$this->truck_taken},spent={$this->spent},rec={$this->received})";
     }
 
-    public function canExpand(): bool {
-        return $this->purchased_extensions < $this->extension_limit
-            && $this->canAfford(Cost::EXPAND);
+    public function extensionAvailable(): int {
+        if (!$this->canAfford(Cost::EXPAND)) {
+            return 0;
+        }
+        if ($this->purchased_extensions == $this->extension_limit) {
+            return 0;
+        }
+        return $this->purchased_extensions + 1;
     }
 
     public function moneySpent(): int {
