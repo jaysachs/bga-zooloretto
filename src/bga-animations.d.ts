@@ -471,4 +471,4 @@ declare const BgaAnimations: {
     Manager: typeof AnimationManager;
 };
 
-export { BgaAnimations };
+export { BgaAnimations, AnimationManager };

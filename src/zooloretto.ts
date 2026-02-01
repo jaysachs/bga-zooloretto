@@ -4,7 +4,7 @@ import { BaseGame } from './basegame';
 import { Html } from './html';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList, MoreAnimations } from './more-animations';
-import { BgaScoreSheet } from './libs';
+import { BgaScoreSheet, ScoreSheet } from './libs';
 
 //
 // interfaces for args & notifs
@@ -520,7 +520,7 @@ export class Game extends BaseGame<ZGamedatas> {
   private moneyCounter: Counter[] = [];
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
-  private scoreSheet: InstanceType<typeof BgaScoreSheet.ScoreSheet>;
+  private scoreSheet: ScoreSheet;
 
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
@@ -930,75 +930,74 @@ export class Game extends BaseGame<ZGamedatas> {
 
   private setupScoreSheet(): void {
     this.scoreSheet = new BgaScoreSheet.ScoreSheet(
-    document.getElementById(IDS.SCORE_SHEET)!, // an empty div on your template to place the score sheet on
-    {
-      animationsActive: () => this.bgaAnimationsActive(), // so the animation doesn't trigger on replay fast mode
-      // playerNameWidth: 80,
-      // playerNameHeight: 30,
-      // entryLabelWidth: 120,
-      // entryLabelHeight: 20,
-      classes: 'zoo-score-sheet',
-      players: this.gamedatas.players,
-      entries: [
-        {
-          property: 'full_enclosure_points',
-          label: _('Points for full enclosures'),
-          title: _('Amount specified on the enclosure tile, granted if all spaces in enclosure are occupie'),
-          labelClasses: 'zoo-score-entries-label',
+      $(IDS.SCORE_SHEET),
+      {
+        animationsActive: () => this.bgaAnimationsActive(),
+        // playerNameWidth: 80,
+        // playerNameHeight: 30,
+        // entryLabelWidth: 120,
+        // entryLabelHeight: 20,
+        classes: 'zoo-score-sheet',
+        players: this.gamedatas.players,
+        entries: [
+          {
+            property: 'full_enclosure_points',
+            label: _('Points for full enclosures'),
+            title: _('Amount specified on the enclosure tile, granted if all spaces in enclosure are occupie'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'near_full_enclosure_points',
+            label: _('Points for nearly full enclosures'),
+            title: _('Amount specified on the enclosure tile, granted if all but one space in enclosure are occupie'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'other_enclosure_points',
+            label: _('Other enclosure points (with stalls)'),
+            title: _('One point per animal in a non(-near)-full enclosure that has at least one stall'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'stall_points',
+            label: _('Points for types of stalls in enclosures'),
+            title: _('Two points for each type of stall in any enclosure'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'barn_stall_points',
+            label: _('Penalty for stall types left in barn'),
+            title: _('Two point penalty for each stall type left in barn'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'barn_animal_points',
+            label: _('Penalty for animal types left in barn'),
+            title: _('Two point penalty for each animal type left in barn'),
+            labelClasses: 'zoo-score-entries-label',
+          },
+          {
+            property: 'total',
+            label: _('Total'),
+            title: _('Total points'),
+            labelClasses: 'zoo-score-entries-label',
+            scoresClasses: 'zoo-score-total',
+            width: 80,
+            height: 40,
+          },
+        ],
+        scores: this.gamedatas.endScores,
+        onScoreDisplayed: (property: string, playerId: number, score: number) => {
+          if (property === 'total') {
+            this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
+          }
         },
-        {
-          property: 'near_full_enclosure_points',
-          label: _('Points for nearly full enclosures'),
-          title: _('Amount specified on the enclosure tile, granted if all but one space in enclosure are occupie'),
-          labelClasses: 'zoo-score-entries-label',
-        },
-        {
-          property: 'other_enclosure_points',
-          label: _('Other enclosure points (with stalls)'),
-          title: _('One point per animal in a non(-near)-full enclosure that has at least one stall'),
-          labelClasses: 'zoo-score-entries-label',
-        },
-        {
-          property: 'stall_points',
-          label: _('Points for types of stalls in enclosures'),
-          title: _('Two points for each type of stall in any enclosure'),
-          labelClasses: 'zoo-score-entries-label',
-        },
-        {
-          property: 'barn_stall_points',
-          label: _('Penalty for stall types left in barn'),
-          title: _('Two point penalty for each stall type left in barn'),
-          labelClasses: 'zoo-score-entries-label',
-        },
-        {
-          property: 'barn_animal_points',
-          label: _('Penalty for animal types left in barn'),
-          title: _('Two point penalty for each animal type left in barn'),
-          labelClasses: 'zoo-score-entries-label',
-        },
-        {
-          property: 'total',
-          label: _('Total'),
-          title: _('Total points'),
-          labelClasses: 'zoo-score-entries-label',
-          scoresClasses: 'zoo-score-total',
-          width: 80,
-          height: 40,
-        },
-      ],
-      scores: this.gamedatas.endScores,
-      onScoreDisplayed: (property: string, playerId: number, score: number) => {
-        if (property === 'total') {
-          this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
-        }
-      },
-    }
-  );      }
+      }
+    );
+  }
 
   private async notif_GameEnded(args: { endScores: any, }): Promise<void> {
-    await this.scoreSheet.setScores(args.endScores, {
-            startBy: this.bga.gameui.player_id,
-        });
+    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } );
   }
 
   ///////
