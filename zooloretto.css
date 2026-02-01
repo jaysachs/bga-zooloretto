@@ -557,19 +557,19 @@ body.mobile_version {
     opacity: 40%;
     */
     position: absolute;
-    top: 30%;
-    height: 44%;
-    width: 14%;
+    top: 0%;
+    height: 100%;
+    width: 19%;
 }
 
 #zoo-game.zoo-2p [zoo-extension] {
-    width: 12%;
+    width: 17.25%;
 }
 
 #zoo-game [zoo-extension="1"] { left: 4%; }
 
-#zoo-game.zoo-2p [zoo-extension="1"] { left: 21%; }
-#zoo-game.zoo-2p [zoo-extension="2"] { left: 3%; }
+#zoo-game.zoo-2p [zoo-extension="1"] { left: 17.25%; }
+#zoo-game.zoo-2p [zoo-extension="2"] { left: 0%; }
 
 /* FIXME: these depend on tile size! */
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure='1'] .zoo-cell:nth-child(1) { left: 52.182093391%; top: 10.3%; }
