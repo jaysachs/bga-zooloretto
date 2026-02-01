@@ -1,7 +1,7 @@
 // import { Gamedatas } from './bga-framework';
 // FIXME: this isn't right.
-import { CSS, IDS } from './zhtml';
-import { BaseGame } from './basegame';
+import { CSS } from './zhtml';
+import { BgaAnimations, AnimationManager } from './libs';
 
 export type Op = () => Promise<any>;
 
@@ -76,14 +76,16 @@ export class UndoStack {
     }
 }
 
-export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends BaseGame<U> = BaseGame<U>> {
-  protected readonly game: G;
+export abstract class PlayFlow<T> {
+  protected readonly animationManager: AnimationManager;
+  protected readonly bga: Bga;
   private onClickAbortController : AbortController = new AbortController();
   protected undoStack: UndoStack;
   protected player_id: number;
 
-  constructor(g : G, undoStack: UndoStack) {
-    this.game = g;
+  constructor(animationManager: AnimationManager, bga: Bga, undoStack: UndoStack) {
+    this.animationManager = animationManager;
+    this.bga = bga;
     this.undoStack = undoStack;
   }
 
@@ -100,7 +102,7 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   }
 
   start(args?: T) {
-    this.player_id = this.game.bga.gameui.player_id;
+    this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
     this.onClickAbortController = new AbortController();
     this.callUndoably(desc, () => this.doStart(args));
@@ -113,7 +115,7 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   protected abstract doStart(args?: T);
 
   protected async playParallel(anims: OpList) {
-    await this.game.animationManager.playParallel(anims);
+    await this.animationManager.playParallel(anims);
   }
 
   protected strElem(el: HTMLElement | undefined): string {
@@ -128,17 +130,19 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
     return s;
   }
 
+  protected abstract offboard(): HTMLElement | undefined;
+
   protected async slide(elem: HTMLElement, newParent: HTMLElement) {
     let currParent = elem.parentElement as HTMLElement;
-    this.pushUndoOp(`slide:${this.strElem(elem)}`, () => this.game.animationManager.slideAndAttach(elem, currParent, {}));
-    await this.game.animationManager.slideAndAttach(elem, newParent, {})
+    this.pushUndoOp(`slide:${this.strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
+    await this.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
   }
 
   protected async slideIn(elem: HTMLElement, newParent: HTMLElement) {
-    this.pushUndoOp(`sideIn:$${this.strElem(elem)}`, () => this.game.animationManager.slideOutAndDestroy(elem, $(IDS.OFF_BOARD), {}));
+    this.pushUndoOp(`sideIn:$${this.strElem(elem)}`, () => this.animationManager.slideOutAndDestroy(elem, this.offboard(), {}));
     newParent.appendChild(elem);
-    await this.game.animationManager.slideIn(elem, $(IDS.OFF_BOARD), { });
+    await this.animationManager.slideIn(elem, this.offboard(), { });
   }
 
   protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {
@@ -146,9 +150,9 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
     let parent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slideOutAndDestroy:${this.strElem(elem)}`, async () => {
       parent.appendChild(backup);
-      await this.game.animationManager.slideIn(backup, toElem, {});
+      await this.animationManager.slideIn(backup, toElem, {});
     });
-    await this.game.animationManager.slideOutAndDestroy(elem, toElem, {});
+    await this.animationManager.slideOutAndDestroy(elem, toElem, {});
   }
 
   protected async rollback() {
@@ -162,24 +166,24 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   }
 
   protected initStatusBar(title: string, args?: any) {
-    this.game.bga.statusBar.removeActionButtons();
-    this.game.bga.statusBar.setTitle(title, args);
+    this.bga.statusBar.removeActionButtons();
+    this.bga.statusBar.setTitle(title, args);
   }
 
   protected confirmationsEnabled(): boolean {
     // FIXME: process gamepreferences.json and create constants/accessors/etc
-    return this.game.bga.userPreferences.get(100) > 0;
+    return this.bga.userPreferences.get(100) > 0;
   }
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
     let doAct = async () => {
         this.clearMarked();
-        await this.game.bga.actions.performAction(bgaAction, args);
+        await this.bga.actions.performAction(bgaAction, args);
     };
     if (!this.confirmationsEnabled())  {
       await doAct();
     } else {
-      this.game.bga.statusBar.addActionButton(
+      this.bga.statusBar.addActionButton(
         _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
       );
       this.addRestartAndUndoButtons();
@@ -187,16 +191,16 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   }
 
   protected addRestartAndUndoButtons(): void {
-    this.game.bga.statusBar.addActionButton(_('Restart turn'),
+    this.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
           await this.rollback().then(() => {
-            this.game.bga.states.restoreServerGameState();
+            this.bga.states.restoreServerGameState();
           })
         },
       { color: "secondary"});
     let undoReturn = this.undoStack.undo();
     if (undoReturn) {
-      this.game.bga.statusBar.addActionButton(_('Undo'),
+      this.bga.statusBar.addActionButton(_('Undo'),
         async () => { this.clearOnclicks(); await undoReturn() },
         { color: "secondary"});
     }
@@ -247,7 +251,7 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
           op: async () => { elem.className = c }
         })
       }
-      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED, CSS.PARENT);
+      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED);
     }
   }
 
@@ -266,6 +270,6 @@ export abstract class PlayFlow<T, U extends Gamedatas = Gamedatas, G extends Bas
   }
 
   protected getPlayerPanelElement(player_id: number): HTMLElement {
-    return this.game.bga.playerPanels.getElement(player_id);
+    return this.bga.playerPanels.getElement(player_id);
   }
 }

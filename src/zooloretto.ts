@@ -113,9 +113,17 @@ interface Delivery {
 //
 // UI flows
 //
-abstract class ZooFlow<T = undefined> extends PlayFlow<T, ZGamedatas, Game> {
+abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  protected readonly game: Game;
+  constructor(g: Game, undoStack: UndoStack) {
+    super(g.animationManager, g.bga, undoStack);
+    this.game = g;
+  }
+
+  override offboard(): HTMLElement {
+    return $(IDS.OFF_BOARD);
+  }
 
   private negate(moneyDelta: Moneys): Moneys {
     return {
