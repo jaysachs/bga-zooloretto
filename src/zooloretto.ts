@@ -291,7 +291,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
     this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmAndRestartActionButtons('actDrawTile', {});
+    this.addConfirmAndRestartActionButtons('actDrawTile', {}, false);
   }
 };
 
@@ -482,6 +482,11 @@ class MainFlow extends ZooFlow<PlayState> {
     if (playState.can_draw) {
       this.bga.statusBar.addActionButton(_('Draw tile'),
         () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
+      let topTile = Elements.drawnTile(playState.lastround);
+      this.addSelectableOnclick(
+        topTile,
+        () => { new DrawTileFlow(this.game, this.undoStack).start(playState.lastround) }
+      );
     }
     if (playState.available_trucks.length > 0) {
       this.bga.statusBar.addActionButton(_('Take truck'),

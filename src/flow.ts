@@ -18,6 +18,9 @@ type Continuation = {
 export type OpList = Op[];
 
 export class UndoStack {
+    // FIXME: this needs to be part of this, but it shouldn't be exposed.
+    marked: HTMLElement[] = [];
+
     private ops: NamedOp[] = [];
     private continuations: Continuation[] = [];
     private current: Continuation | undefined;
@@ -77,6 +80,8 @@ export class UndoStack {
 }
 
 export abstract class PlayFlow<T> {
+  private static lastId: number = 0;
+  protected id: number;
   protected readonly animationManager: AnimationManager;
   protected readonly bga: Bga;
   private onClickAbortController : AbortController = new AbortController();
@@ -87,6 +92,7 @@ export abstract class PlayFlow<T> {
     this.animationManager = animationManager;
     this.bga = bga;
     this.undoStack = undoStack;
+    this.id = PlayFlow.lastId++;
   }
 
   protected pushUndoOp(desc: string, anim: Op): void {
@@ -211,13 +217,11 @@ export abstract class PlayFlow<T> {
     this.onClickAbortController = new AbortController();
   }
 
-  private marked: HTMLElement[] = [];
-
   private markClass(elem: HTMLElement | undefined, classToAdd: string): void {
     if (!elem) {
       return;
     }
-    this.marked.push(elem);
+    this.undoStack.marked.push(elem);
     let c = elem.className;
     elem.classList.add(classToAdd);
     this.pushUndoOp(`markClass:${classToAdd}:${c} ${this.strElem(elem)}`, async () => elem.className = c);
@@ -242,8 +246,8 @@ export abstract class PlayFlow<T> {
   private inUndo: boolean = false;
 
   private clearMarked() {
-    while (this.marked.length > 0) {
-      let elem = this.marked.pop()!;
+    while (this.undoStack.marked.length > 0) {
+      let elem = this.undoStack.marked.pop()!;
       if (!this.inUndo) {
         let c = elem.className;
         this.undoStack.pushOp({
