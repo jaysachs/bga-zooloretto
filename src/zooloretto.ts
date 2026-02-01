@@ -317,7 +317,6 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
   }
 
   private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
-    console.log(this.game.tileTranslations);
     this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,
           tile_description: this.game.tileTranslations.get(tile.type),
@@ -481,31 +480,31 @@ class MainFlow extends ZooFlow<PlayState> {
   protected override doStart(playState: PlayState) {
     this.initStatusBar(_("You must take an action"));
     if (playState.can_draw) {
-      this.game.bga.statusBar.addActionButton(_('Draw tile'),
+      this.bga.statusBar.addActionButton(_('Draw tile'),
         () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
     }
     if (playState.available_trucks.length > 0) {
-      this.game.bga.statusBar.addActionButton(_('Take truck'),
+      this.bga.statusBar.addActionButton(_('Take truck'),
         () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
     }
     if (playState.possible_moves.length > 0) {
-      this.game.bga.statusBar.addActionButton(_('Move tile'),
+      this.bga.statusBar.addActionButton(_('Move tile'),
         () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
     }
     if (playState.possible_exchanges.length > 0) {
-      this.game.bga.statusBar.addActionButton(_('Exchange animals'),
+      this.bga.statusBar.addActionButton(_('Exchange animals'),
         () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
     }
     if (playState.possible_purchases.length > 0) {
-      this.game.bga.statusBar.addActionButton(_('Purchase tile'),
+      this.bga.statusBar.addActionButton(_('Purchase tile'),
         () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
     }
     if (playState.possible_discards.length > 0) {
-      this.game.bga.statusBar.addActionButton(_('Discard tile'),
+      this.bga.statusBar.addActionButton(_('Discard tile'),
         () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
     }
     if (playState.can_expand) {
-      this.game.bga.statusBar.addActionButton(_('Expand zoo'),
+      this.bga.statusBar.addActionButton(_('Expand zoo'),
         () => new ExpandZooFlow(this.game, this.undoStack).start());
     }
   }
@@ -513,9 +512,19 @@ class MainFlow extends ZooFlow<PlayState> {
 
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
-  moreAnimations: MoreAnimations;
+  readonly moreAnimations: MoreAnimations;
+
+  tileTranslations = new Map<string, string>();;
+
+  private bankCounter: Counter;
+  private moneyCounter: Counter[] = [];
+  private primaryStockCounter: Counter;
+  private endgameStockCounter: Counter;
+  private scoreSheet: InstanceType<typeof BgaScoreSheet.ScoreSheet>;
+
   constructor(bga: Bga<ZGamedatas>) {
     super(bga);
+    this.moreAnimations = new MoreAnimations(this.animationManager);
     this.bga.states.register('PlayerTurn', new MainFlow(this, new UndoStack(this.animationManager.playSequentially)));
     this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
   }
@@ -626,15 +635,9 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private bankCounter: Counter;
-  private moneyCounter: Counter[] = [];
-  private primaryStockCounter: Counter;
-  private endgameStockCounter: Counter;
-
   private updateEnclosureSummaries(summaries: EnclosureSummary[]) {
     summaries.forEach(summary => {
       let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
-      console.log(elem);
       let type = summary.animal_type;
       elem.setAttribute(Attrs.TILE, summary.animal_type);
       if (type) {
@@ -668,21 +671,19 @@ export class Game extends BaseGame<ZGamedatas> {
     this.updateEnclosureSummaries(this.gamedatas.enclosure_summaries);
   }
 
-  tileTranslations = new Map<string, string>();;
   private setupTranslations(): void {
     this.gamedatas.tile_translations.forEach(v => this.tileTranslations.set(v.type, v.name));
   }
 
   override setup(gamedatas: ZGamedatas) {
     super.setup(gamedatas);
-    this.moreAnimations = new MoreAnimations(this.animationManager);
     const twoPlayer = Object.keys(gamedatas.players).length == 2;
     this.setupTranslations();
     this.setupHtml(twoPlayer);
     this.setupNotifications();
     this.setupScoreSheet();
     if (gamedatas.lastround) {
-      (this as any).addLastTurnBanner(_('This is the last round!'));
+      this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
     }
 
     console.log('Game setup done');
@@ -926,8 +927,6 @@ export class Game extends BaseGame<ZGamedatas> {
     await this.animationManager.playParallel(anims)
       .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
   }
-
-  private scoreSheet: InstanceType<typeof BgaScoreSheet.ScoreSheet>;
 
   private setupScoreSheet(): void {
     this.scoreSheet = new BgaScoreSheet.ScoreSheet(
