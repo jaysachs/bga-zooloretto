@@ -3,7 +3,7 @@ import { Tile, ZGamedatas, Space, EnclosureSummary } from './zgametypes';
 import { PlayFlow, UndoStack } from './flow';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
-import { AnimationList } from './more-animations';
+import { AnimationList, MoreAnimations } from './more-animations';
 import { BgaScoreSheet, ScoreSheet } from './libs';
 
 //
@@ -121,8 +121,10 @@ interface Delivery {
 abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
   protected readonly game: Game;
+  protected readonly moreAnimations: MoreAnimations;
   constructor(g: Game, undoStack: UndoStack) {
     super(g.animationManager, g.bga, undoStack);
+    this.moreAnimations = new MoreAnimations(this.animationManager);
     this.game = g;
   }
 
@@ -189,7 +191,10 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         if (Elements.enclosureTile(this.player_id, p)) {
           this.addSelectableOnclick(
             Elements.enclosureSpace(this.player_id, p),
-            () => this.callUndoably("selectExchangeDest", async () => this.selectDestinationForExchange(pes)));
+            () => this.callUndoably("selectExchangeDest", async () => {
+              src.forEach(s => this.markSelected(Elements.enclosureSpace(this.player_id, s)));
+              this.selectDestinationForExchange(pes);
+            }));
         }
       })
     });
@@ -204,23 +209,19 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
           async () =>  {
             let anims: AnimationList = [];
             for (let i = 0; i < pe.src.length; ++i) {
-              let srcElem = Elements.enclosureTile(this.player_id, pe.src[i]!);
-              if (srcElem) {
-                anims.push(() => this.slide(
-                  srcElem,
-                  Elements.enclosureSpace(this.player_id, pe.dest[i]!)
-                ));
-              }
-              let destElem = Elements.enclosureTile(this.player_id, pe.dest[i]!);
-              if (destElem) {
-                anims.push(() => this.slide(destElem, Elements.enclosureSpace(this.player_id, pe.src[i]!)));
-              }
+              anims.push(() => this.moreAnimations.swapFirstChildren(
+                Elements.enclosureSpace(this.player_id, pe.src[i]!),
+                Elements.enclosureSpace(this.player_id, pe.dest[i]!))
+              );
             }
+            // FIXME: this should probably happen in the "then".
             if (pe.offspring) {
               pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             }
             this.updateMoneyDelta(pe.money_delta);
-            await this.playParallel(anims)
+            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
+            await this.animationManager.playParallel(anims)
+              .then(() => pe.dest.forEach(d => this.markMoved(Elements.enclosureSpace(this.player_id, d))))
               .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(pe)));
           }
         )
@@ -588,12 +589,12 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
     }
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
-      this.updateMoneyDelta(pm.money_delta);
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
+            this.updateMoneyDelta(pm.money_delta);
             // FIXME: is this line needed?
             destElem.classList.add(CSS.MOVED);
             this.markMoved(destElem);
