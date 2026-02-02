@@ -189,16 +189,20 @@ export abstract class PlayFlow<T> {
     if (!this.confirmationsEnabled())  {
       await doAct();
     } else {
-      this.bga.statusBar.addActionButton(
+      let confirm = this.bga.statusBar.addActionButton(
         _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
       );
-      this.addRestartAndUndoButtons();
+      this.addRestartAndUndoButtons(confirm);
     }
   }
 
-  protected addRestartAndUndoButtons(): void {
+  protected addRestartAndUndoButtons(confirm?: HTMLButtonElement): void {
     this.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
+          if (confirm) {
+            confirm.disabled = true;
+            confirm.remove();
+          }
           await this.rollback().then(() => {
             this.bga.states.restoreServerGameState();
           })
@@ -207,7 +211,13 @@ export abstract class PlayFlow<T> {
     let undoReturn = this.undoStack.undo();
     if (undoReturn) {
       this.bga.statusBar.addActionButton(_('Undo'),
-        async () => { this.clearOnclicks(); await undoReturn() },
+        async () => {
+          if (confirm) {
+            confirm.disabled = true;
+            confirm.remove();
+          }
+          this.clearOnclicks(); await undoReturn()
+        },
         { color: "secondary"});
     }
   }

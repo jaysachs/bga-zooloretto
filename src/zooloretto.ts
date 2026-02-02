@@ -174,7 +174,10 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       exchangesBySrc[src.enclosure_id]!.push(pe);
     }
 
-    this.initStatusBar(_("Select the first enclosure to exchange"));
+    if (this.uiStyle() == 'actionbuttons') {
+      this.initStatusBar(_("Select the first enclosure to exchange"));
+      this.addRestartAndUndoButtons();
+    }
     exchangesBySrc.forEach((pes: PossibleExchange[]) => {
       let src = pes[0]!.src;
       src.forEach((p) => {
@@ -185,7 +188,6 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
         }
       })
     });
-    this.addRestartAndUndoButtons();
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
@@ -234,15 +236,14 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 }
 
 class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
-  private skipInitialButtons: boolean;
-  constructor(g: Game, undoStack: UndoStack, skipInitialButtons: boolean = false) {
+  constructor(g: Game, undoStack: UndoStack) {
     super(g, undoStack);
-    this.skipInitialButtons = skipInitialButtons;
   }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
-    if (!this.skipInitialButtons) {
+    if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_("Select a tile to purchase from another player's barn"));
+      this.addRestartAndUndoButtons();
     }
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
@@ -250,9 +251,6 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
           () => this.callUndoably("selectPurcaseDest", async () => this.selectDestinationForPurchase(pp))
         );
       });
-    if (!this.skipInitialButtons) {
-      this.addRestartAndUndoButtons();
-    }
   }
 
   private selectDestinationForPurchase(pp: PossibleMove) {
@@ -462,8 +460,10 @@ class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
   constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(discardables: PlacedTile[]) {
-    this.initStatusBar(_('Select a tile in your barn to discard'));
-    this.addRestartAndUndoButtons();
+    if (this.uiStyle() == 'actionbuttons') {
+      this.initStatusBar(_('Select a tile in your barn to discard'));
+      this.addRestartAndUndoButtons();
+    }
 
     discardables.forEach((dest: PlacedTile) => {
       let space = dest.space;
@@ -490,8 +490,10 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
   override doStart(possibleMoves: PossibleMove[]) {
-    this.initStatusBar(_('Select a tile to move'));
-    this.addRestartAndUndoButtons();
+    if (this.uiStyle() == 'actionbuttons') {
+      this.initStatusBar(_('Select a tile to move'));
+      this.addRestartAndUndoButtons();
+    }
     possibleMoves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
@@ -566,6 +568,9 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
     }
     else if (this.uiStyle() == 'pieces') {
+      // FIXME: need to update the status bar title based on what's possible.
+
+      // Drawing a tile is orthogonal to other actions.
       if (playState.can_draw) {
         let topTile = Elements.drawnTile(playState.lastround);
         this.addSelectableOnclick(
@@ -573,29 +578,41 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
           () => { new DrawTileFlow(this.game, this.undoStack).start(playState.lastround) }
         );
       }
+
+      // Truck delivery is orthogonal.
       playState.available_trucks.forEach(
         truck => this.addSelectableOnclick(Elements.truck(truck.truck_id), () => {
           new DeliverTilesFlow(this.game, this.undoStack).start(truck);
         }));
 
-      // These can be separate since they exclusively are on other players' boards.
-      if (playState.possible_purchases.length > 0) {
-        new PurchaseTileFlow(this.game, this.undoStack, true).start(playState.possible_purchases);
-      }
-
-      if (playState.possible_moves.length > 0) {
-//          () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
-      }
-      if (playState.possible_exchanges.length > 0) {
-//          () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
-      }
-      if (playState.possible_discards.length > 0) {
-//          () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
-      }
+      // Expanding is orthogonal to other actions.
       if (playState.extension_available > 0) {
         this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
           () => new ExpandZooFlow(this.game, this.undoStack).start());
       }
+
+      // These can be separate since they exclusively are on other players' boards.
+      if (playState.possible_purchases.length > 0) {
+        new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases);
+      }
+
+      // Animals in enclosures can only be exchanged, so these are also fine to just do.
+      if (playState.possible_exchanges.length > 0) {
+        new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges);
+      }
+
+      // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
+      //   can be discarded and possibly moved.
+      // Probably want:
+      //   if can be moved, then highlight destinations but also give 'Discard' button.
+      //   if can't be moved, just give 'Discard' button.
+      if (playState.possible_moves.length > 0) {
+        new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves);
+      }
+      if (playState.possible_discards.length > 0) {
+        new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards);
+      }
+
     }
   }
 }
