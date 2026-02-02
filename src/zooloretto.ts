@@ -1,6 +1,6 @@
 import { Html } from './html';
 import { Tile, ZGamedatas, Space, EnclosureSummary } from './zgametypes';
-import { PlayFlow, UndoStack } from './flow';
+import { PlayFlow, FlowState } from './flow';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList, MoreAnimations } from './more-animations';
@@ -122,10 +122,15 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
   protected readonly game: Game;
   protected readonly moreAnimations: MoreAnimations;
-  constructor(g: Game, undoStack: UndoStack) {
-    super(g.animationManager, g.bga, undoStack);
+  constructor(g: Game, flowState: FlowState) {
+    super(g.animationManager, g.bga, flowState);
     this.moreAnimations = new MoreAnimations(this.animationManager);
     this.game = g;
+  }
+
+  protected override confirmationsEnabled(): boolean {
+    // FIXME: process gamepreferences.json and create constants/accessors/etc
+    return this.bga.userPreferences.get(100) > 0;
   }
 
   protected override useAutoclick(): boolean {
@@ -172,7 +177,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 }
 
 class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   protected override doStart(possible_exchanges: PossibleExchange[]) {
     let exchangesBySrc : PossibleExchange[][] = [];
@@ -248,8 +253,8 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
 }
 
 class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: Game, undoStack: UndoStack) {
-    super(g, undoStack);
+  constructor(g: Game, flowState: FlowState) {
+    super(g, flowState);
   }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
@@ -258,15 +263,15 @@ class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.undoStack).start(pp))
+          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.flowState).start(pp))
         );
       });
   }
 }
 
 class PurchaseTileFlow extends ZooFlow<PossibleMove> {
-  constructor(g: Game, undoStack: UndoStack) {
-    super(g, undoStack);
+  constructor(g: Game, flowState: FlowState) {
+    super(g, flowState);
   }
 
   protected override doStart(pp: PossibleMove) {
@@ -300,7 +305,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove> {
 }
 
 class ExpandZooFlow extends ZooFlow {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart() {
     this.initStatusBar(_('Expand zoo?'));
@@ -312,7 +317,7 @@ class ExpandZooFlow extends ZooFlow {
 };
 
 class DrawTileFlow extends ZooFlow<boolean> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
@@ -322,7 +327,7 @@ class DrawTileFlow extends ZooFlow<boolean> {
 };
 
 class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(args: PlaceDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
@@ -417,14 +422,14 @@ class DeliverTilesFlow extends ZooFlow<AvailableTruck> {
 
 class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(availableTrucks: AvailableTruck[]) {
     this.initStatusBar(_('Select a truck'));
 
     availableTrucks.forEach((truck: AvailableTruck) => {
       this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
-        () => new DeliverTilesFlow(this.game, this.undoStack).start(truck));
+        () => new DeliverTilesFlow(this.game, this.flowState).start(truck));
     });
     this.addRestartAndUndoButtons();
   }
@@ -473,7 +478,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 };
 
 class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(discardables: PossibleDiscard) {
     if (this.uiStyle() == 'actionbuttons') {
@@ -502,7 +507,7 @@ class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
 }
 
 class MoveTileFlow extends ZooFlow<PossibleMove[]> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(possibleMoves: PossibleMove[]) {
     if (this.uiStyle() == 'actionbuttons') {
@@ -573,7 +578,7 @@ class SpaceMultimapMap<T> {
 }
 
 class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], possible_discards: PossibleDiscard}> {
-  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   override doStart(args: { possible_moves: PossibleMove[], possible_discards: PossibleDiscard}) {
 
@@ -655,40 +660,38 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
 }
 
 class PlayerTurnFlow extends ZooFlow<PlayState> {
-  constructor(g: Game) { super(g, new UndoStack(g.animationManager.playSequentially)); }
+  constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
-
     this.initStatusBar(_("You must take an action"));
-    // this.undoStack.clear();
     if (this.uiStyle() == 'actionbuttons') {
       if (playState.can_draw) {
           this.bga.statusBar.addActionButton(_('Draw tile'),
-            () => new DrawTileFlow(this.game, this.undoStack).start(playState.lastround));
+            () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround));
       }
       if (playState.available_trucks.length > 0) {
         this.bga.statusBar.addActionButton(_('Take truck'),
-          () => new TakeTruckFlow(this.game, this.undoStack).start(playState.available_trucks));
+          () => new TakeTruckFlow(this.game, this.flowState).start(playState.available_trucks));
       }
       if (playState.possible_moves.length > 0) {
         this.bga.statusBar.addActionButton(_('Move tile'),
-          () => new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves));
+          () => new MoveTileFlow(this.game, this.flowState).start(playState.possible_moves));
       }
       if (playState.possible_exchanges.length > 0) {
         this.bga.statusBar.addActionButton(_('Exchange animals'),
-          () => new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges));
+          () => new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges));
       }
       if (playState.possible_purchases.length > 0) {
         this.bga.statusBar.addActionButton(_('Purchase tile'),
-          () => new PurchaseTilesFlow(this.game, this.undoStack).start(playState.possible_purchases));
+          () => new PurchaseTilesFlow(this.game, this.flowState).start(playState.possible_purchases));
       }
       if (playState.possible_discards.spaces.length > 0) {
         this.bga.statusBar.addActionButton(_('Discard tile'),
-          () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
+          () => new DiscardTileFlow(this.game, this.flowState).start(playState.possible_discards));
       }
       if (playState.extension_available > 0) {
         this.bga.statusBar.addActionButton(_('Expand zoo'),
-          () => new ExpandZooFlow(this.game, this.undoStack).start(null));
+          () => new ExpandZooFlow(this.game, this.flowState).start(null));
       }
     }
     else if (this.uiStyle() == 'pieces') {
@@ -699,20 +702,20 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         let topTile = Elements.drawnTile(playState.lastround);
         this.addSelectableOnclick(
           topTile,
-          () => { new DrawTileFlow(this.game, this.undoStack).start(playState.lastround) }
+          () => { new DrawTileFlow(this.game, this.flowState).start(playState.lastround) }
         );
       }
 
       // Truck delivery is orthogonal.
       playState.available_trucks.forEach(
         truck => this.addSelectableOnclick(Elements.truck(truck.truck_id), () => {
-          new DeliverTilesFlow(this.game, this.undoStack).start(truck);
+          new DeliverTilesFlow(this.game, this.flowState).start(truck);
         }));
 
       // Expanding is orthogonal to other actions.
       if (playState.extension_available > 0) {
         this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
-          () => new ExpandZooFlow(this.game, this.undoStack).start(null));
+          () => new ExpandZooFlow(this.game, this.flowState).start(null));
       }
 
       // These can be separate since they exclusively are on other players' boards.
@@ -720,14 +723,14 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         playState.possible_purchases.forEach((pp: PossibleMove) => {
           this.addSelectableOnclick(
             Elements.enclosureSpace(pp.src_player_id, pp.src),
-            () => new PurchaseTileFlow(this.game, this.undoStack).start(pp)
+            () => new PurchaseTileFlow(this.game, this.flowState).start(pp)
           );
         });
       }
 
       // Animals in enclosures can only be exchanged, so these are also fine to just do.
       if (playState.possible_exchanges.length > 0) {
-        new ExchangeFlow(this.game, this.undoStack).start(playState.possible_exchanges);
+        new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
       }
 
       // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
@@ -735,7 +738,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       // Probably want:
       //   if can be moved, then highlight destinations but also give 'Discard' button.
       //   if can't be moved, just give 'Discard' button.
-      new MoveOrDiscardTileFlow(this.game, this.undoStack).start(playState)
+      new MoveOrDiscardTileFlow(this.game, this.flowState).start(playState)
     }
   }
 }
@@ -755,7 +758,7 @@ export class Game extends BaseGame<ZGamedatas> {
   constructor(bga: Bga<ZGamedatas>) {
     super(bga, Game.special_log_args);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
-    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
+    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {

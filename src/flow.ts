@@ -17,7 +17,7 @@ type Continuation = {
 
 export type OpList = Op[];
 
-export class UndoStack {
+export class FlowState {
     // FIXME: this needs to be part of this, but it shouldn't be exposed.
     marked: HTMLElement[] = [];
 
@@ -39,7 +39,7 @@ export class UndoStack {
     }
 
     private remove(x: Continuation) {
-      console.debug("undoStack remove", x.op.desc);
+      console.debug("flowState remove", x.op.desc);
       // FIXME: can change to allow "jump" undos
       this.current = this.continuations.pop();
       if (this.current !== x) {
@@ -52,10 +52,10 @@ export class UndoStack {
     }
 
     undo() : Op | undefined {
-      console.debug("undoStack undo");
+      console.debug("flowState undo");
       let x = this.continuations.at(-1);
       if (x) {
-        console.debug("   undoStack undo ", x.op.desc);
+        console.debug("   flowState undo ", x.op.desc);
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
         return async () => { this.remove(x); await this.undoTo(x.mark).then(() => x.op.op()) };
@@ -66,18 +66,18 @@ export class UndoStack {
     }
 
     async callUndoably(desc: string, thing: Op) {
-      console.debug("undoStack callUndoably", desc);
+      console.debug("flowState callUndoably", desc);
       if (this.current !== undefined) {
-        console.debug("undoStack pushing", this.current);
+        console.debug("flowState pushing", this.current);
         this.continuations.push(this.current);
       }
       this.current = {op: { desc: desc, op: thing }, mark: this.ops.length};
-      console.debug("undoStack new current: ", this.current);
+      console.debug("flowState new current: ", this.current);
       await thing();
     }
 
     clear() {
-        console.debug("undoStack clear");
+        console.debug("flowState clear");
         this.current = undefined;
         this.continuations = [];
         this.ops = [];
@@ -90,7 +90,7 @@ export class UndoStack {
     }
 
     resetController() {
-      console.debug("undoStack resetController");
+      console.debug("flowState resetController");
       this.onClickAbortController.abort();
       this.onClickAbortController = new AbortController();
     }
@@ -105,13 +105,13 @@ export abstract class PlayFlow<T> {
   protected id: number;
   protected readonly animationManager: AnimationManager;
   protected readonly bga: Bga;
-  protected undoStack: UndoStack;
+  protected flowState: FlowState;
   protected player_id: number;
 
-  constructor(animationManager: AnimationManager, bga: Bga, undoStack: UndoStack) {
+  constructor(animationManager: AnimationManager, bga: Bga, flowState: FlowState) {
     this.animationManager = animationManager;
     this.bga = bga;
-    this.undoStack = undoStack;
+    this.flowState = flowState;
     this.id = PlayFlow.lastId++;
   }
 
@@ -120,13 +120,13 @@ export abstract class PlayFlow<T> {
   }
 
   protected pushUndoOp(desc: string, anim: Op): void {
-    this.undoStack.pushOp({ desc: desc, op: anim });
+    this.flowState.pushOp({ desc: desc, op: anim });
   }
 
   public onEnteringState(args: T, isCurrentPlayerActive: boolean) {
     console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
-      this.undoStack.clear();
+      this.flowState.clear();
       this.start(args);
     }
   }
@@ -134,13 +134,13 @@ export abstract class PlayFlow<T> {
   start(args: T) {
     this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
-    // this.undoStack.resetController();
+    // this.flowState.resetController();
     // this.callUndoably(desc, () => this.doStart(args));
     this.doStart(args);
   }
 
   protected async callUndoably(desc: string, thing: () => Promise<any>) {
-    this.undoStack.callUndoably(desc, thing);
+    this.flowState.callUndoably(desc, thing);
   }
 
   protected abstract doStart(args?: T);
@@ -189,8 +189,8 @@ export abstract class PlayFlow<T> {
   protected async rollback() {
     // this.clearMarked();
     this.inUndo = true;
-    this.undoStack.resetController();
-    await this.undoStack.reset().then(() => {
+    this.flowState.resetController();
+    await this.flowState.reset().then(() => {
       this.inUndo = false;
     });
   }
@@ -200,10 +200,7 @@ export abstract class PlayFlow<T> {
     this.bga.statusBar.setTitle(title, args);
   }
 
-  protected confirmationsEnabled(): boolean {
-    // FIXME: process gamepreferences.json and create constants/accessors/etc
-    return this.bga.userPreferences.get(100) > 0;
-  }
+  protected abstract confirmationsEnabled(): boolean;
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any) {
     let doAct = async () => {
@@ -232,8 +229,9 @@ export abstract class PlayFlow<T> {
           })
         },
       { color: "secondary"});
-      /*
-    let undoReturn = this.undoStack.undo();
+
+    /*
+    let undoReturn = this.flowState.undo();
     if (undoReturn) {
       this.bga.statusBar.addActionButton(_('Undo'),
         async () => {
@@ -245,18 +243,18 @@ export abstract class PlayFlow<T> {
         },
         { color: "secondary"});
     }
-        */
+    */
   }
 
   protected clearOnclicks(): void {
-    this.undoStack.resetController();
+    this.flowState.resetController();
   }
 
   private markClass(elem: HTMLElement | undefined, classToAdd: string): void {
     if (!elem) {
       return;
     }
-    this.undoStack.marked.push(elem);
+    this.flowState.marked.push(elem);
     let c = elem.className;
     elem.classList.add(classToAdd);
     this.pushUndoOp(`markClass:${classToAdd}:${c} ${this.strElem(elem)}`, async () => elem.className = c);
@@ -281,11 +279,11 @@ export abstract class PlayFlow<T> {
   private inUndo: boolean = false;
 
   private clearMarked() {
-    while (this.undoStack.marked.length > 0) {
-      let elem = this.undoStack.marked.pop()!;
+    while (this.flowState.marked.length > 0) {
+      let elem = this.flowState.marked.pop()!;
       if (!this.inUndo) {
         let c = elem.className;
-        this.undoStack.pushOp({
+        this.flowState.pushOp({
           desc: `clearMarkedNotUndo:${this.strElem(elem)}:[${c}]`,
           op: async () => { elem.className = c }
         })
@@ -305,7 +303,7 @@ export abstract class PlayFlow<T> {
         this.markSelected(elem);
         await onclick(ev);
       },
-      { signal: this.undoStack.abortSignal() });
+      { signal: this.flowState.abortSignal() });
   }
 
   protected getPlayerPanelElement(player_id: number): HTMLElement {
