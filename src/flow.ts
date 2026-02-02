@@ -54,7 +54,7 @@ export class UndoStack {
       if (x) {
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
-        return async () => { this.remove(x); this.undoTo(x.mark).then(() => x.op.op()) };
+        return async () => { this.remove(x); await this.undoTo(x.mark).then(() => x.op.op()) };
       } else {
         console.error("Nowhere to undo to!");
         return undefined;
@@ -72,6 +72,7 @@ export class UndoStack {
     clear() {
         this.current = undefined;
         this.continuations = [];
+        this.ops = [];
     }
 
     async reset()  {
