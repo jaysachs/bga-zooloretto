@@ -196,12 +196,12 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   }
 
   private selectDestinationForExchange(pes: PossibleExchange[]) {
-    this.initStatusBar(_("Select the destination enclosure for the exchange"));
+    this.initStatusBar(_("Select the animals to exchange with"));
     pes.forEach((pe : PossibleExchange) =>
       pe.dest.forEach(d =>
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, d),
-          () =>  {
+          async () =>  {
             let anims: AnimationList = [];
             for (let i = 0; i < pe.src.length; ++i) {
               let srcElem = Elements.enclosureTile(this.player_id, pe.src[i]!);
@@ -220,7 +220,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
               pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             }
             this.updateMoneyDelta(pe.money_delta);
-            this.playParallel(anims)
+            await this.playParallel(anims)
               .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(pe)));
           }
         )
