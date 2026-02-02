@@ -51,13 +51,13 @@ export class IDS {
   static readonly SCORE_SHEET = 'zoo-score-sheet';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
-  static truck(id : number) { return `truck-${id}`; }
-  static truckSpace(truck_id : number, pos: number) { return `truckspace-${truck_id}-${pos}`; }
-  static enclosure(player_id: number, enclosure_id: number): string { return `enclosure-${player_id}-${enclosure_id}`; }
-  static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `enclosure-${player_id}-${enclosure_id}-${pos}`; }
+  static truck(truck_id : number) { return `zoo-truck-${truck_id}`; }
+  static truckSpace(truck_id : number, pos: number) { return `zoo-truck-${truck_id}-${pos}`; }
+  static enclosure(player_id: number, enclosure_id: number): string { return `zoo-enc-${player_id}-${enclosure_id}`; }
+  static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `zoo-enc-${player_id}-${enclosure_id}-${pos}`; }
   static extension(player_id: number, ext_num: number): string { return `zoo-ext-${player_id}-${ext_num}`}
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
-  static money(player_id: number): string { return `playermoney-counter-${player_id}` };
+  static money(player_id: number): string { return `zoo-money-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
   static tile(t : Tile): string { return `zoo-tile-${t.id}`; }
   static playerPanelBoardSummary(player_id: number, enclosure_id: number): string {
