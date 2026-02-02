@@ -83,7 +83,11 @@ class PlayerTurn extends AbstractState
 					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
 			];
 		}
-		$pds = array_map(fn ($s) => $s->serialize(), $model->getDiscardables());
+		$ds = $model->getDiscardables();
+		$pds = [
+			'money_delta' => $ds['money_delta']->serialize(),
+			'spaces' => array_map(fn ($s) => $s->serialize(), $ds["spaces"])
+		];
 
 		return [
 			'can_draw' => $model->canDraw(),

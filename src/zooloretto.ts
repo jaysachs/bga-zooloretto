@@ -88,12 +88,17 @@ interface PossibleExchange {
   money_delta: Moneys;
 }
 
+interface PossibleDiscard {
+  spaces: Space[];
+  money_delta: Moneys;
+}
+
 interface PlayState {
   lastround: boolean;
   can_draw: boolean;
   extension_available: number;
   available_trucks: AvailableTruck[];
-  possible_discards: PlacedTile[];
+  possible_discards: PossibleDiscard;
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
   possible_purchases: PossibleMove[];
@@ -456,33 +461,32 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<PlacedTile[]> {
+class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
   constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
-  override doStart(discardables: PlacedTile[]) {
+  override doStart(discardables: PossibleDiscard) {
     if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_('Select a tile in your barn to discard'));
       this.addRestartAndUndoButtons();
     }
 
-    discardables.forEach((dest: PlacedTile) => {
-      let space = dest.space;
+    discardables.spaces.forEach((space: Space) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
         async () => {
           await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
             .then(() => {
               // should always have money delta
-              this.updateMoneyDelta(dest.money_delta!);
-              this.callUndoably("confirmDiscard", async () => this.confirmDiscard(dest));
+              this.updateMoneyDelta(discardables.money_delta!);
+              this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
             })
         });
     });
   }
 
-  private confirmDiscard(dest: PlacedTile) {
+  private confirmDiscard(space: Space) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: dest.space.pos });
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: space.pos });
   }
 }
 
@@ -507,6 +511,84 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
     this.initStatusBar(_('Select a destination space'));
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
+      let elem = Elements.enclosureTile(this.player_id, pm.src);
+      let destElem = Elements.enclosureSpace(this.player_id, dest.space)
+      this.addSelectableOnclick(destElem,
+        () => this.slide(elem!, destElem)
+          .then(() => {
+            // FIXME: is this line needed?
+            destElem.classList.add(CSS.MOVED);
+            this.markMoved(destElem);
+            this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
+          })
+      )
+    });
+  }
+
+  private async confirmMove(src: Space, dest: Destination) {
+    await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
+    this.initStatusBar(_('Confirm move'));
+    this.addConfirmAndRestartActionButtons('actMoveTile', {
+      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
+    });
+  }
+}
+
+class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], possible_discards: PossibleDiscard}> {
+  constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
+
+  override doStart(args: { possible_moves: PossibleMove[], possible_discards: PossibleDiscard}) {
+
+    const asInt = (s:Space) => s.enclosure_id * 100 + s.pos;
+
+    let movesrcs: number[] = [];
+    args.possible_moves.forEach((m: PossibleMove) => movesrcs.push(asInt(m.src)));
+    let dissrcs: number[] = [];
+    args.possible_discards.spaces.forEach((space: Space) => dissrcs.push(asInt(space)));
+
+    args.possible_moves.forEach((m: PossibleMove) => {
+      this.addSelectableOnclick(
+        Elements.enclosureSpace(this.player_id, m.src),
+        () => this.callUndoably("chooseMoveDest", async () =>
+          this.chooseDest(m, dissrcs.indexOf(asInt(m.src)) >= 0 ? args.possible_discards.money_delta : null))
+      )
+    });
+    args.possible_discards.spaces.forEach((space: Space) => {
+      if (movesrcs.indexOf(asInt(space)) < 0) {
+        this.addSelectableOnclick(
+          Elements.enclosureSpace(this.player_id, space),
+          async () => {
+            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
+              .then(() => {
+                // should always have money delta
+                this.updateMoneyDelta(args.possible_discards.money_delta!);
+                this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
+              })
+          });
+        }
+    });
+  }
+
+  private confirmDiscard(space: Space) {
+    this.initStatusBar(_('Confirm discard'));
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: space.pos });
+  }
+
+  private chooseDest(pm: PossibleMove, discardMoneyDelta?: Moneys) {
+    this.initStatusBar(_('Select a destination space or'));
+    if (discardMoneyDelta) {
+      this.bga.statusBar.addActionButton(_('Discard the tile'),
+        async () => {
+          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!,$(IDS.OFF_BOARD))
+          .then(() => {
+            this.game.updateMoneyDelta(discardMoneyDelta);
+            this.confirmDiscard(pm.src);
+          })
+        });
+    }
+    this.addRestartAndUndoButtons();
+    pm.dests.forEach((dest: Destination) => {
+      this.updateMoneyDelta(pm.money_delta);
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
@@ -558,7 +640,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         this.bga.statusBar.addActionButton(_('Purchase tile'),
           () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
       }
-      if (playState.possible_discards.length > 0) {
+      if (playState.possible_discards.spaces.length > 0) {
         this.bga.statusBar.addActionButton(_('Discard tile'),
           () => new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards));
       }
@@ -606,13 +688,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       // Probably want:
       //   if can be moved, then highlight destinations but also give 'Discard' button.
       //   if can't be moved, just give 'Discard' button.
-      if (playState.possible_moves.length > 0) {
-        new MoveTileFlow(this.game, this.undoStack).start(playState.possible_moves);
-      }
-      if (playState.possible_discards.length > 0) {
-        new DiscardTileFlow(this.game, this.undoStack).start(playState.possible_discards);
-      }
-
+      new MoveOrDiscardTileFlow(this.game, this.undoStack).start(playState)
     }
   }
 }

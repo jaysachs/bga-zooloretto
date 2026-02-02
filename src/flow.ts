@@ -208,6 +208,7 @@ export abstract class PlayFlow<T> {
           })
         },
       { color: "secondary"});
+      /*
     let undoReturn = this.undoStack.undo();
     if (undoReturn) {
       this.bga.statusBar.addActionButton(_('Undo'),
@@ -220,6 +221,7 @@ export abstract class PlayFlow<T> {
         },
         { color: "secondary"});
     }
+        */
   }
 
   private clearOnclicks(): void {

@@ -337,18 +337,25 @@ class Model {
             && $this->spacesOnTrucks() > 0;
     }
 
-    /** @return list<PlacedTile> positions in barn that are discardable */
+    /** @return array{spaces:list<Space>,money_delta:Moneys} positions in barn that are discardable */
     public function getDiscardables(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
-            return [];
+            return [
+                'spaces' => [],
+                'money_delta' => new Moneys(0),
+            ];
         }
         $money_delta = Moneys::costPlayerDelta($this->player_id, Cost::DISCARD);
         $barn = $this->getEnclosuresForPlayer()[0];
         $result = [];
         foreach ($barn->nonEmptyContents() as $pos => $tile) {
-            $result[] = new PlacedTile($tile, new Space(0, $pos), false, $money_delta);
+            // $result[] = new PlacedTile($tile, new Space(0, $pos), false, $money_delta);
+            $result[] = new Space(0, $pos);
         }
-        return $result;
+        return [
+            'spaces' => $result,
+            'money_delta' => $money_delta,
+        ];
     }
 
     public function discardBarnTile(int $pos): Tile {
