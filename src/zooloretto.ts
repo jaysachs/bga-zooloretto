@@ -1,9 +1,9 @@
-import { Tile, ZGamedatas, ZPlayer, Space, EnclosureSummary } from './zgametypes';
+import { Html } from './html';
+import { Tile, ZGamedatas, Space, EnclosureSummary } from './zgametypes';
 import { PlayFlow, UndoStack } from './flow';
 import { BaseGame } from './basegame';
-import { Html } from './html';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
-import { AnimationList, MoreAnimations } from './more-animations';
+import { AnimationList } from './more-animations';
 import { BgaScoreSheet, ScoreSheet } from './libs';
 
 //
@@ -604,8 +604,6 @@ type UIStyle = 'pieces' | 'actionbuttons';
 
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
-  readonly moreAnimations: MoreAnimations;
-
   tileTranslations = new Map<string, string>();;
 
 
@@ -619,8 +617,6 @@ export class Game extends BaseGame<ZGamedatas> {
 
   constructor(bga: Bga<ZGamedatas>) {
     super(bga, Game.special_log_args);
-    let x = this.bga.gameui.gamedatas;
-    this.moreAnimations = new MoreAnimations(this.animationManager);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
     this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new UndoStack(this.animationManager.playSequentially)));
   }
@@ -674,17 +670,15 @@ export class Game extends BaseGame<ZGamedatas> {
     return Html.span({ attrs: Attrs.tile('back') });
   }
 
-  private addStockTile(pile: 'primary' | 'endgame') {
-    let elemId = pile == 'primary' ? IDS.PRIMARY_PILE_TILES : IDS.ENDGAME_PILE_TILES;
-    $(elemId).insertAdjacentElement('afterbegin', this.makeTileBackSpan() );
-  }
-
   private renderStock(gamedatas: ZGamedatas) : void {
+    const addStockTile = (elemId: string) =>
+      $(elemId).insertAdjacentElement('afterbegin', this.makeTileBackSpan() );
+
     for (let i = Math.min(gamedatas.primary_pile_size, 5); i > 0; i--) {
-      this.addStockTile('primary');
+      addStockTile(IDS.PRIMARY_PILE_TILES);
     }
     for (let i = Math.min(gamedatas.endgame_pile_size, 5); i > 0; i--) {
-      this.addStockTile('endgame');
+      addStockTile(IDS.ENDGAME_PILE_TILES);
     }
     if (gamedatas.drawntile) {
       let top = Elements.drawnTile(gamedatas.lastround);

@@ -1,4 +1,5 @@
 import { BgaAnimations, AnimationManager } from './libs';
+import { MoreAnimations } from './more-animations';
 
 /** Class that extends default bga core game class with more functionality
  */
@@ -7,6 +8,7 @@ type SpecialLogArgs = Record<string, (any) => HTMLElement>;
 
 export abstract class BaseGame<T extends Gamedatas> {
   public readonly animationManager: AnimationManager;
+  public readonly moreAnimations: MoreAnimations;
   public readonly bga: Bga<T>;
   private readonly special_log_args: SpecialLogArgs;
 
@@ -17,13 +19,14 @@ export abstract class BaseGame<T extends Gamedatas> {
     this.animationManager = new BgaAnimations.Manager({
       animationsActive: () => this.bgaAnimationsActive(),
     });
+    this.moreAnimations = new MoreAnimations(this.animationManager);
   }
 
   protected bgaAnimationsActive(): boolean {
     return this.bga.gameui.bgaAnimationsActive();
   }
 
-    bgaFormatText(log: string, args: any): { log: string, args: any } {
+  bgaFormatText(log: string, args: any): { log: string, args: any } {
     try {
       let shadowParent = document.createElement('span');
       if (log && args && !args.processed) {
