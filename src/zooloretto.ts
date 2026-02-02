@@ -258,7 +258,7 @@ class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.undoStack).start())
+          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.undoStack).start(pp))
         );
       });
   }
@@ -688,7 +688,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
       if (playState.extension_available > 0) {
         this.bga.statusBar.addActionButton(_('Expand zoo'),
-          () => new ExpandZooFlow(this.game, this.undoStack).start());
+          () => new ExpandZooFlow(this.game, this.undoStack).start(null));
       }
     }
     else if (this.uiStyle() == 'pieces') {
@@ -712,7 +712,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       // Expanding is orthogonal to other actions.
       if (playState.extension_available > 0) {
         this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
-          () => new ExpandZooFlow(this.game, this.undoStack).start());
+          () => new ExpandZooFlow(this.game, this.undoStack).start(null));
       }
 
       // These can be separate since they exclusively are on other players' boards.
@@ -720,7 +720,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         playState.possible_purchases.forEach((pp: PossibleMove) => {
           this.addSelectableOnclick(
             Elements.enclosureSpace(pp.src_player_id, pp.src),
-            () => new PurchaseTileFlow(this.game, this.undoStack).start()
+            () => new PurchaseTileFlow(this.game, this.undoStack).start(pp)
           );
         });
       }

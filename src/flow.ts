@@ -39,7 +39,7 @@ export class UndoStack {
     }
 
     private remove(x: Continuation) {
-      console.log("remove", x.op.desc);
+      console.debug("undoStack remove", x.op.desc);
       // FIXME: can change to allow "jump" undos
       this.current = this.continuations.pop();
       if (this.current !== x) {
@@ -52,10 +52,10 @@ export class UndoStack {
     }
 
     undo() : Op | undefined {
-      console.log("undo");
+      console.debug("undoStack undo");
       let x = this.continuations.at(-1);
       if (x) {
-        console.log("   undo", x.op.desc);
+        console.debug("   undoStack undo ", x.op.desc);
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
         return async () => { this.remove(x); await this.undoTo(x.mark).then(() => x.op.op()) };
@@ -66,22 +66,23 @@ export class UndoStack {
     }
 
     async callUndoably(desc: string, thing: Op) {
-      console.log("callUndoably", desc);
+      console.debug("undoStack callUndoably", desc);
       if (this.current !== undefined) {
-        console.log("pushing", this.current);
+        console.debug("undoStack pushing", this.current);
         this.continuations.push(this.current);
       }
       this.current = {op: { desc: desc, op: thing }, mark: this.ops.length};
-      console.log("new current: ", this.current);
+      console.debug("undoStack new current: ", this.current);
       await thing();
     }
 
     clear() {
-        console.log("clear");
+        console.debug("undoStack clear");
         this.current = undefined;
         this.continuations = [];
         this.ops = [];
         this.marked = [];
+        this.resetController();
     }
 
     async reset()  {
@@ -89,7 +90,7 @@ export class UndoStack {
     }
 
     resetController() {
-      console.log("resetController");
+      console.debug("undoStack resetController");
       this.onClickAbortController.abort();
       this.onClickAbortController = new AbortController();
     }
@@ -130,7 +131,7 @@ export abstract class PlayFlow<T> {
     }
   }
 
-  start(args?: T) {
+  start(args: T) {
     this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
     // this.undoStack.resetController();
