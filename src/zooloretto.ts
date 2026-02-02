@@ -128,8 +128,12 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     this.game = g;
   }
 
+  protected override useAutoclick(): boolean {
+    return this.bga.userPreferences.get(101) > 0;
+  }
+
   protected uiStyle(): UIStyle {
-    return this.game.uiStyle;
+    return this.bga.userPreferences.get(102) ? 'pieces' : 'actionbuttons';
   }
 
   override offboard(): HTMLElement {
@@ -185,10 +189,12 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       this.initStatusBar(_("Select the first enclosure to exchange"));
       this.addRestartAndUndoButtons();
     }
-    exchangesBySrc.forEach((pes: PossibleExchange[]) => {
+    exchangesBySrc.forEach((pes: PossibleExchange[], encid: number) => {
       let src = pes[0]!.src;
       src.forEach((p) => {
         if (Elements.enclosureTile(this.player_id, p)) {
+          let es = Elements.enclosureSpace(this.player_id, p);
+          console.log("add selectExchangeDest to", es);
           this.addSelectableOnclick(
             Elements.enclosureSpace(this.player_id, p),
             () => this.callUndoably("selectExchangeDest", async () => {
@@ -241,25 +247,29 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
   }
 }
 
-class PurchaseTileFlow extends ZooFlow<PossibleMove[]> {
+class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
   constructor(g: Game, undoStack: UndoStack) {
     super(g, undoStack);
   }
 
   protected override doStart(possible_purchases: PossibleMove[]) {
-    if (this.uiStyle() == 'actionbuttons') {
-      this.initStatusBar(_("Select a tile to purchase from another player's barn"));
-      this.addRestartAndUndoButtons();
-    }
+    this.initStatusBar(_("Select a tile to purchase from another player's barn"));
+    this.addRestartAndUndoButtons();
     possible_purchases.forEach((pp: PossibleMove) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => this.callUndoably("selectPurcaseDest", async () => this.selectDestinationForPurchase(pp))
+          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.undoStack).start())
         );
       });
   }
+}
 
-  private selectDestinationForPurchase(pp: PossibleMove) {
+class PurchaseTileFlow extends ZooFlow<PossibleMove> {
+  constructor(g: Game, undoStack: UndoStack) {
+    super(g, undoStack);
+  }
+
+  protected override doStart(pp: PossibleMove) {
     this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
     pp.dests.forEach((dest: Destination) =>
@@ -535,6 +545,33 @@ class MoveTileFlow extends ZooFlow<PossibleMove[]> {
   }
 }
 
+class SpaceMultimapMap<T> {
+  private data: Record<number, T[]> = {};
+
+  private asInt(s:Space): number {
+    return s.enclosure_id * 100 + s.pos;
+  }
+
+  public add(s: Space, t: T) {
+    const ix = this.asInt(s);
+    let ts = this.data[ix];
+    if (!ts) {
+      ts = [];
+      this.data[ix] = ts;
+    }
+    ts.push(t);
+  }
+
+  public getAll(s: Space) : T[] {
+    let ts = this.data[this.asInt(s)];
+    return ts ?? [];
+  }
+
+  public contains(s: Space): boolean {
+    return Boolean(this.data[this.asInt(s)]);
+  }
+}
+
 class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], possible_discards: PossibleDiscard}> {
   constructor(g: Game, undoStack: UndoStack) { super(g, undoStack); }
 
@@ -548,9 +585,10 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
     args.possible_discards.spaces.forEach((space: Space) => dissrcs.push(asInt(space)));
 
     args.possible_moves.forEach((m: PossibleMove) => {
+      let es = Elements.enclosureSpace(this.player_id, m.src);
       this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, m.src),
-        () => this.callUndoably("chooseMoveDest", async () =>
+        es,
+        () => this.callUndoably("chooseMoveDest" + asInt(m.src), async () =>
           this.chooseDest(m, dissrcs.indexOf(asInt(m.src)) >= 0 ? args.possible_discards.money_delta : null))
       )
     });
@@ -580,6 +618,8 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
     if (discardMoneyDelta) {
       this.bga.statusBar.addActionButton(_('Discard the tile'),
         async () => {
+          // FIXME: should this be exposed? better way to do this? wraap addActionButton?
+          this.clearOnclicks();
           await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!,$(IDS.OFF_BOARD))
           .then(() => {
             this.game.updateMoneyDelta(discardMoneyDelta);
@@ -591,6 +631,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
     pm.dests.forEach((dest: Destination) => {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
+      console.log("Adding onclick to ", destElem, "for ", pm.src);
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
@@ -619,7 +660,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
   protected override doStart(playState: PlayState) {
 
     this.initStatusBar(_("You must take an action"));
-    this.undoStack.clear();
+    // this.undoStack.clear();
     if (this.uiStyle() == 'actionbuttons') {
       if (playState.can_draw) {
           this.bga.statusBar.addActionButton(_('Draw tile'),
@@ -639,7 +680,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
       if (playState.possible_purchases.length > 0) {
         this.bga.statusBar.addActionButton(_('Purchase tile'),
-          () => new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases));
+          () => new PurchaseTilesFlow(this.game, this.undoStack).start(playState.possible_purchases));
       }
       if (playState.possible_discards.spaces.length > 0) {
         this.bga.statusBar.addActionButton(_('Discard tile'),
@@ -676,7 +717,12 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
 
       // These can be separate since they exclusively are on other players' boards.
       if (playState.possible_purchases.length > 0) {
-        new PurchaseTileFlow(this.game, this.undoStack).start(playState.possible_purchases);
+        playState.possible_purchases.forEach((pp: PossibleMove) => {
+          this.addSelectableOnclick(
+            Elements.enclosureSpace(pp.src_player_id, pp.src),
+            () => new PurchaseTileFlow(this.game, this.undoStack).start()
+          );
+        });
       }
 
       // Animals in enclosures can only be exchanged, so these are also fine to just do.
@@ -699,9 +745,6 @@ type UIStyle = 'pieces' | 'actionbuttons';
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
   tileTranslations = new Map<string, string>();;
-
-
-  uiStyle: UIStyle = 'actionbuttons';
 
   private bankCounter: Counter;
   private moneyCounter: Counter[] = [];

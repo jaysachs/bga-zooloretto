@@ -1,3 +1,52 @@
+Hmm. Flows are "wired up" to something, either an action button or one or more elements. And some flows are "compound", consisting of the "select the thing" followed by "do the thing".
+
+Maybe just have PlayerTurnFlow:
+  * if "piece mode"
+    * create all the "piece mode" subflows
+    * ask them to "wire themselves up"
+  * else
+    * create all the "button mode" subflows
+    * wire them up to action buttons
+    * their "start" calls the "wire themselves up" of the piece mode subflows
+So are there two different kinds of flows? Those that can "wire themselves up"?
+Or is there just common code that's called.
+
+Let's take the "PurchaseTileFlow" as an example.
+
+class PurchaseTileFlow {
+  override doStart(...) {
+    // this animates the piece moving, decrements money
+    //  and waits for confirmation/restart
+  }
+}
+
+class PurchaseTilesFlow {
+  override doStart(...) {
+    // this wires up the purchaseable pieces to call PurchaseTileFlow
+  }
+}
+
+class PlayerTurnFlow {
+  override doStart(...) {
+    // if in button mode
+    //   add a "Purchase" button wired to PurchaseTilesFlow
+    // else
+    //   re-do the wiring done in PurchaseTilesFlow
+  }
+}
+
+In general it shouldn't be a problem to call "start". Maybe the automatic "callUndoably" is the issue ... ?
+
+Hmm. In a real sense, there are two different player turn flows here.
+
+
+* Revisit UndoStack
+  * probably shoud be renamed
+  * parallel things undone in parallel
+  * add a `swapFirstChildren` function (that temporarily adds an empty one if needed)
+
+
+
 * Needs thorough testing
   * undo / restart flows
   * offspring generated at right times

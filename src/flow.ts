@@ -23,6 +23,7 @@ export class UndoStack {
 
     private ops: NamedOp[] = [];
     private continuations: Continuation[] = [];
+    private onClickAbortController : AbortController = new AbortController();
     private current: Continuation | undefined;
     private consumer: (OpList) => any;
     constructor(consumer: (OpList) => any) {
@@ -38,6 +39,7 @@ export class UndoStack {
     }
 
     private remove(x: Continuation) {
+      console.log("remove", x.op.desc);
       // FIXME: can change to allow "jump" undos
       this.current = this.continuations.pop();
       if (this.current !== x) {
@@ -50,8 +52,10 @@ export class UndoStack {
     }
 
     undo() : Op | undefined {
+      console.log("undo");
       let x = this.continuations.at(-1);
       if (x) {
+        console.log("   undo", x.op.desc);
         // this.current = x;
         // FIXME: ?? this should remove things when it actually fires?
         return async () => { this.remove(x); await this.undoTo(x.mark).then(() => x.op.op()) };
@@ -62,21 +66,36 @@ export class UndoStack {
     }
 
     async callUndoably(desc: string, thing: Op) {
+      console.log("callUndoably", desc);
       if (this.current !== undefined) {
+        console.log("pushing", this.current);
         this.continuations.push(this.current);
       }
       this.current = {op: { desc: desc, op: thing }, mark: this.ops.length};
+      console.log("new current: ", this.current);
       await thing();
     }
 
     clear() {
+        console.log("clear");
         this.current = undefined;
         this.continuations = [];
         this.ops = [];
+        this.marked = [];
     }
 
     async reset()  {
       await this.undoTo(0).then(this.clear.bind(this));
+    }
+
+    resetController() {
+      console.log("resetController");
+      this.onClickAbortController.abort();
+      this.onClickAbortController = new AbortController();
+    }
+
+    abortSignal(): AbortSignal {
+      return this.onClickAbortController.signal;
     }
 }
 
@@ -85,7 +104,6 @@ export abstract class PlayFlow<T> {
   protected id: number;
   protected readonly animationManager: AnimationManager;
   protected readonly bga: Bga;
-  private onClickAbortController : AbortController = new AbortController();
   protected undoStack: UndoStack;
   protected player_id: number;
 
@@ -94,6 +112,10 @@ export abstract class PlayFlow<T> {
     this.bga = bga;
     this.undoStack = undoStack;
     this.id = PlayFlow.lastId++;
+  }
+
+  protected useAutoclick(): boolean {
+    return false;
   }
 
   protected pushUndoOp(desc: string, anim: Op): void {
@@ -111,8 +133,9 @@ export abstract class PlayFlow<T> {
   start(args?: T) {
     this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
-    this.onClickAbortController = new AbortController();
-    this.callUndoably(desc, () => this.doStart(args));
+    // this.undoStack.resetController();
+    // this.callUndoably(desc, () => this.doStart(args));
+    this.doStart(args);
   }
 
   protected async callUndoably(desc: string, thing: () => Promise<any>) {
@@ -165,8 +188,7 @@ export abstract class PlayFlow<T> {
   protected async rollback() {
     // this.clearMarked();
     this.inUndo = true;
-    this.onClickAbortController.abort();
-    this.onClickAbortController = new AbortController();
+    this.undoStack.resetController();
     await this.undoStack.reset().then(() => {
       this.inUndo = false;
     });
@@ -182,7 +204,7 @@ export abstract class PlayFlow<T> {
     return this.bga.userPreferences.get(100) > 0;
   }
 
-  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, autoclick? : boolean) {
+  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any) {
     let doAct = async () => {
         this.clearMarked();
         await this.bga.actions.performAction(bgaAction, args);
@@ -191,7 +213,7 @@ export abstract class PlayFlow<T> {
       await doAct();
     } else {
       let confirm = this.bga.statusBar.addActionButton(
-        _('Confirm'), doAct, { autoclick: (autoclick === undefined) || autoclick }
+        _('Confirm'), doAct, { autoclick: this.useAutoclick() }
       );
       this.addRestartAndUndoButtons(confirm);
     }
@@ -225,9 +247,8 @@ export abstract class PlayFlow<T> {
         */
   }
 
-  private clearOnclicks(): void {
-    this.onClickAbortController.abort();
-    this.onClickAbortController = new AbortController();
+  protected clearOnclicks(): void {
+    this.undoStack.resetController();
   }
 
   private markClass(elem: HTMLElement | undefined, classToAdd: string): void {
@@ -283,7 +304,7 @@ export abstract class PlayFlow<T> {
         this.markSelected(elem);
         await onclick(ev);
       },
-      { signal: this.onClickAbortController.signal });
+      { signal: this.undoStack.abortSignal() });
   }
 
   protected getPlayerPanelElement(player_id: number): HTMLElement {
