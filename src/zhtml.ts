@@ -136,6 +136,12 @@ export class ZoolorettoHtml {
     };
 
     let board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
+    let extnum = this.twoPlayer ? 2 : 1;
+    board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
+    if (this.twoPlayer) {
+      extnum--;
+      board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
+    }
     board.append(
       enclosure(0, 20), // the barn
       enclosure(1, 6),
@@ -144,12 +150,6 @@ export class ZoolorettoHtml {
       enclosure(4, 6),
       this.twoPlayer ? enclosure(5, 6) : undefined
     );
-    let extnum = this.twoPlayer ? 2 : 1;
-    board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
-    if (this.twoPlayer) {
-      extnum--;
-      board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
-    }
     return Html
       .div({ classes: [ "zoo-playerboard"] },
         Html.div({},
