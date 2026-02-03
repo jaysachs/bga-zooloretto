@@ -10,7 +10,7 @@ WORK=work
 STUBS=$(WORK)/module/table/table.game.php
 TS_STUBS=src/bga-framework.d.ts
 TESTSTUBS=$(WORK)/test/module/table/table.game.php
-JS=$(GAME).js
+JS=modules/js/Game.js
 COLORMAP=src/colormap.ts
 PHPSTAN_LEVEL=10
 
