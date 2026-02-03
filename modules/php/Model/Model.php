@@ -132,7 +132,7 @@ class Model {
         return $this->retrieveAll()["trucks"];
     }
 
-    private function getTruck(int $truck_id): Truck {
+    public function getTruck(int $truck_id): Truck {
         foreach ($this->getTrucks() as $truck) {
             if ($truck->id == $truck_id) {
                 return $truck;
@@ -147,6 +147,9 @@ class Model {
             throw new ModelException("No tile drawn");
         }
         $truck = $this->getTruck($truck_id);
+        if ($truck->taken_by) {
+            throw new ModelException("Can't load on a taken truck");
+        }
         $tile = $stock->removeDrawnTile();
         $truck->placeTileAt($tile, $pos);
 
@@ -176,6 +179,93 @@ class Model {
         return $this->retrieveAll()["enclosures"][$player_id];
     }
 
+    public function placeTruckTile(int $truck_pos, Space $space): Delivery {
+        $player = $this->getActivePlayer();
+        $truck_id = $this->ps->getDeliveringTruckId();
+        if (!$truck_id) {
+            throw new \BgaUserException("no truck selected");
+        }
+        $truck = $this->getTruck($truck_id);
+        $tile = $truck->removeTileAt($truck_pos);
+        $encl = $this->getEnclosuresForPlayer($this->player_id)[$space->enclosure_id];
+        $barn = $this->getEnclosuresForPlayer($this->player_id)[0];
+        $toUpdate = [$encl];
+        $placement = $encl->placeTile($tile);
+        if ($placement->completedEnclosure) {
+            $this->payPlayer($player, $encl->coin_bonus);
+        }
+        $pos = $placement->space->pos;
+        if ($pos <> $space->pos) {
+            throw new ModelException("put {$truck_id}:{truck_pos} into {$space->enclosure_id}:{$space->pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
+        }
+        $offspring = $encl->checkForOffspring($barn);
+
+        $result = new Delivery($truck_id, $truck_pos, $tile, new Destination($space, $offspring));
+        if ($offspring) {
+            $this->saveOffspring($offspring);
+            $toUpdate[] = $barn;
+            // FIXME: check fo completion bonus
+
+            // FIXME: return info on new child -- add to return value
+        }
+
+        $this->ps->updateEnclosures($this->player_id, $toUpdate);
+        $this->ps->updateTruck($truck);
+        return $result;
+    }
+
+    public function getDeliveringTruckId(): int {
+        return $this->ps->getDeliveringTruckId();
+    }
+
+    public function setDeliveryCompleted(): Truck {
+        $delivering_id = $this->getDeliveringTruckId();
+        if (!$delivering_id) {
+            throw new \BgaUserException("no truck selected");
+        }
+        $truck = $this->getTruck($delivering_id);
+        if (!$truck->isEmpty()) {
+            throw new \BgaUserException("truck {$delivering_id} not empty");
+        }
+        $player =$this->getActivePlayer();
+        $player->takeTruck($truck);
+        $this->ps->updatePlayer($player);
+        $this->ps->setDeliveringTruckId(0);
+        return $truck;
+    }
+
+    /** @return array{truck:Truck,coin_positions:list<int>} */
+    public function startTruckDelivery(int $truck_id): array {
+        $player = $this->getActivePlayer();
+        if ($player->truck_taken) {
+            throw new ModelException("Player " . $player->id . " can't start delivery since they already took a took");
+        }
+        if ($this->getDeliveringTruckId()) {
+            throw new ModelException("Can't start a delivery as one is already in progress.");
+        }
+        $this->ps->setDeliveringTruckId($truck_id);
+
+        $truck = $this->getTruck($truck_id);
+        $coinPositions = $truck->coinPositions();
+        $coins = 0;
+        foreach ($truck->coinPositions() as $coin_pos) {
+            $tile = $truck->removeTileAt($coin_pos);
+            // assert tile is coin
+            $coins++;
+            $this->ps->deleteTile($tile);
+        }
+        $player->receiveMoney($coins);
+
+        $this->ps->updateTruck($truck);
+        $this->ps->updatePlayer($this->getActivePlayer());
+        return [
+            "truck" => $truck,
+            "coin_positions" => $coinPositions,
+        ];
+    }
+
+
+
     /**
      * FIXME: consider input as just a list of tile ID + space pairs, instead of truck pos.
      *
@@ -199,7 +289,7 @@ class Model {
         $coins = 0;
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
-            $result[$coin_pos] = new Delivery($coin_pos, $tile);
+            $result[$coin_pos] = new Delivery($truck_id, $coin_pos, $tile);
             // assert tile is coin
             $coins++;
             $this->ps->deleteTile($tile);
@@ -225,7 +315,7 @@ class Model {
                 }
                 $offspring = $encl->checkForOffspring($barn);
 
-                $result[$truck_pos] = new Delivery($truck_pos, $tile, new Destination($space, $offspring));
+                $result[$truck_pos] = new Delivery($truck_id, $truck_pos, $tile, new Destination($space, $offspring));
                 if ($offspring) {
                     $this->saveOffspring($offspring);
                     $toUpdate[] = $barn;

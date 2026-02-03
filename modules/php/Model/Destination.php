@@ -48,11 +48,16 @@ class Destination {
     }
 
     public function serialize(): mixed {
-		return [
+		$result = [
 			'space' => $this->space->serialize(),
-			'offspring' => $this->offspring ? $this->offspring->serialize() : null,
-            'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
-		];
+        ];
+        if ($this->offspring) {
+			$result['offspring'] = $this->offspring->serialize();
+        }
+        if ($this->moneyDelta) {
+            $result['money_delta'] = $this->moneyDelta->serialize();
+        }
+        return $result;
 	}
 
 

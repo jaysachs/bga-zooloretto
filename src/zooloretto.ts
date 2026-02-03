@@ -43,9 +43,9 @@ interface TruckLocation {
 };
 
 
-// PlaceDrawnTile state
+// LoadDrawnTile state
 
-interface PlaceDrawnTileArgs {
+interface LoadDrawnTileArgs {
   tile: Tile,
   drawn_from_endgame_pile: boolean,
   available_spaces: TruckLocation[]
@@ -327,10 +327,10 @@ class DrawTileFlow extends ZooFlow<boolean> {
   }
 };
 
-class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
+class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(args: PlaceDrawnTileArgs) {
+  override doStart(args: LoadDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
         { tile_type: args.tile.type,
           tile_description: this.game.tileTranslations.get(args.tile.type) });
@@ -345,16 +345,16 @@ class PlaceDrawnTileFlow extends ZooFlow<PlaceDrawnTileArgs> {
 
   private async placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
     let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
-    this.slide(tileElem, space).then(() => this.confirmPlaceDrawnTile(tile, truckLoc));
+    this.slide(tileElem, space).then(() => this.confirmLoadDrawnTile(tile, truckLoc));
   }
 
-  private confirmPlaceDrawnTile(tile: Tile, tl: TruckLocation) {
+  private confirmLoadDrawnTile(tile: Tile, tl: TruckLocation) {
     this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,
           tile_description: this.game.tileTranslations.get(tile.type),
           truck_id: tl.truck_id });
     // FIXME: restart doesn't re-highlight the truck spaces.
-    this.addConfirmAndRestartActionButtons('actPlaceDrawnTileInTruck', tl);
+    this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
   }
 };
 
@@ -768,7 +768,7 @@ export class Game extends BaseGame<ZGamedatas> {
   constructor(bga: Bga<ZGamedatas>) {
     super(bga, Game.special_log_args);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
-    this.bga.states.register('PlaceDrawnTile', new PlaceDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
+    this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
@@ -1002,7 +1002,7 @@ export class Game extends BaseGame<ZGamedatas> {
     this.endgameStockCounter.toValue(args.endgame_pile_size);
   }
 
-  private async notif_PlaceDrawnTileInTruck(args: {
+  private async notif_LoadDrawnTile(args: {
     player_id: number,
     truck_id: number,
     truck_pos: number,

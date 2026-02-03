@@ -57,6 +57,7 @@ class PlayerTurn extends AbstractState
 	}
 
 	public function onEnteringState(int $active_player_id): void {
+		$this->game->undoSavepoint();
 	}
 
     /** @return array<string,mixed> */
@@ -91,14 +92,57 @@ class PlayerTurn extends AbstractState
 
 		return [
 			'can_draw' => $model->canDraw(),
+			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $available_trucks,
 			'possible_moves' => $pms,
+			'can_move' => count($pms) > 0,
 			'possible_purchases' => $pb,
 			'possible_discards' => $pds,
 			'possible_exchanges' => $pxs,
 			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
+	}
+
+	#[PossibleAction]
+	public function actStartMove(int $active_player_id): mixed {
+		return MoveTile::class;
+	}
+
+	#[PossibleAction]
+	public function actStartExchange(int $active_player_id): mixed {
+		return ExchangeTiles::class;
+	}
+
+	#[PossibleAction]
+	public function actStartDiscard(int $active_player_id): mixed {
+		return DiscardTile::class;
+	}
+
+	#[PossibleAction]
+	public function actStartPurchase(int $active_player_id): mixed {
+		return PurchaseTile::class;
+	}
+
+	#[PossibleAction]
+	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
+        $model = $this->createModel($active_player_id);
+		$info = $model->startTruckDelivery($truck_id);
+		$this->notify->all(
+            'StartDelivery',
+            clienttranslate('${player_name} started delivery from ${truck}'),
+             [
+                 'player_id' => $active_player_id,
+                 'truck_id' => $truck_id,
+                               'coin_positions' => $info["coin_positions"],
+                               'moneys' => $model->currentMoneys(),
+                 'truck' => Truck::translated($truck_id),
+                 'i18n' => [
+                     'truck',
+                 ]
+             ]
+         );
+        return DeliverTruckTiles::class;
 	}
 
 	/** @param list<array<string,int>> $delivery_requests */
@@ -230,7 +274,7 @@ class PlayerTurn extends AbstractState
 			]
 		);
 		$this->game->stats->PLAYER_TILESDRAWN->inc($active_player_id);
-		return PlaceDrawnTile::class;
+		return LoadDrawnTile::class;
 	}
 
 	#[PossibleAction]
@@ -388,47 +432,6 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
-	private function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
-		if ($bonus !== null) {
-			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
-			$this->notify->all(
-                'EnclosureBonus',
-                clienttranslate('${player_name} completed ${enclosure} and received ${bonus} coins'),
-                [
-                    'player_id' => $active_player_id,
-                    'enclosure' => Enclosure::translated($enclosure_id),
-                    'bonus' => $bonus,
-                    'i18n' => [
-                        'enclosure'
-                    ]
-                ]
-            );
-		}
-	}
-
-	private function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
-		if ($offspring !== null) {
-			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
-			$this->notify->all(
-                'Offspring',
-                clienttranslate('${player_name} produced an offspring ${tile_type}'),
-                [
-                    'player_id' => $active_player_id,
-                    'offspring' => $offspring->serialize(),
-                    'tile_type' => $offspring->child->tile->type->value,
-                    'tile_description' => $offspring->child->tile->type->translated(),
-                    'i18n' => [
-                        'tile_description',
-                    ]
-                ]
-            );
-			$m = $offspring->child->money_delta;
-			if ($m) {
-				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
-			}
-		}
-	}
-
 	#[PossibleAction]
 	public function actDiscardTile(int $active_player_id, int $barn_pos): mixed
 	{
@@ -463,6 +466,17 @@ class PlayerTurn extends AbstractState
 			return $this->actDrawTile($player_id);
 		}
 
+		foreach ($model->getTrucks() as $truck) {
+			if (!$truck->isEmpty()) {
+				return $this->actTakeTruck($player_id, $truck->id);
+			}
+		}
+		// We should never get here. If there are no tiles to draw, or places to put the tiles
+		// there should be at least one spot on one truck. That's why there are 15 tiles in
+		// the end game pile -- 3 for each possible player.
+		throw new \BgaVisibleSystemException("cannot draw, nor are there non-empty trucks available to take?!?");
+
+	/*
 		$truck = $model->getAvailableTrucks()[0];
 		$pl = $truck->placement->placements[0];
 		$placedTiles = [];
@@ -481,5 +495,6 @@ class PlayerTurn extends AbstractState
 			$pl = $pl->next[0]->next->placements[0];
 		};
 		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->truck_id, $placedTiles);
+		*/
 	}
 }
