@@ -703,6 +703,9 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       // Drawing a tile is orthogonal to other actions.
       if (playState.can_draw) {
         let topTile = Elements.drawnTile(playState.lastround);
+        if (!topTile && !playState.lastround) {
+          topTile = Elements.drawnTile(true);
+        }
         this.addSelectableOnclick(
           topTile,
           () => { new DrawTileFlow(this.game, this.flowState).start(playState.lastround) },
@@ -835,7 +838,7 @@ export class Game extends BaseGame<ZGamedatas> {
         top.id = IDS.tile(gamedatas.drawntile);
       }
     }
-    if (!gamedatas.lastround) {
+    if (!gamedatas.lastround && gamedatas.primary_pile_size > 0) {
       $(IDS.ENDGAME_PILE_TILES).appendChild(Html.span({ id: IDS.DISK, classes: 'zoo-disk' }));
     }
   }
@@ -968,9 +971,11 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   ): Promise<void> {
     let disk = $(IDS.DISK);
-    if (args.drawn_from_endgame_pile && disk) {
-      await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
-        .then(() => this.showLastTurnBanner());
+    if (args.drawn_from_endgame_pile) {
+      this.showLastTurnBanner();
+      if (disk) {
+        await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
+      }
     }
     await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
   }
@@ -1130,7 +1135,7 @@ export class Game extends BaseGame<ZGamedatas> {
     await this.animationManager.playSequentially(anims).then( () => {
       this.bga.gameui.enableAllPlayerPanels();
       if (args.last_round) {
-        (this as any).addLastTurnBanner(_('This is the last round!'));
+        this.showLastTurnBanner();
       }
     })
   }
