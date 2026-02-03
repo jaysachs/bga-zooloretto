@@ -205,7 +205,8 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
             () => this.callUndoably("selectExchangeDest", async () => {
               src.forEach(s => this.markSelected(Elements.enclosureSpace(this.player_id, s)));
               this.selectDestinationForExchange(pes);
-            }));
+            }),
+            _('Exchange tiles'));
         }
       })
     });
@@ -591,10 +592,12 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
 
     args.possible_moves.forEach((m: PossibleMove) => {
       let es = Elements.enclosureSpace(this.player_id, m.src);
+      const discardable = dissrcs.indexOf(asInt(m.src)) >= 0;
       this.addSelectableOnclick(
         es,
         () => this.callUndoably("chooseMoveDest" + asInt(m.src), async () =>
-          this.chooseDest(m, dissrcs.indexOf(asInt(m.src)) >= 0 ? args.possible_discards.money_delta : null))
+          this.chooseDest(m, discardable ? args.possible_discards.money_delta : null),
+      ), discardable ? _('Discard or move tile') : _('Move tile')
       )
     });
     args.possible_discards.spaces.forEach((space: Space) => {
@@ -608,7 +611,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
                 this.updateMoneyDelta(args.possible_discards.money_delta!);
                 this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
               })
-          });
+          }, _('Discard tile'));
         }
     });
   }
@@ -702,20 +705,23 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         let topTile = Elements.drawnTile(playState.lastround);
         this.addSelectableOnclick(
           topTile,
-          () => { new DrawTileFlow(this.game, this.flowState).start(playState.lastround) }
+          () => { new DrawTileFlow(this.game, this.flowState).start(playState.lastround) },
+          _('Draw tile')
         );
       }
 
       // Truck delivery is orthogonal.
       playState.available_trucks.forEach(
-        truck => this.addSelectableOnclick(Elements.truck(truck.truck_id), () => {
-          new DeliverTilesFlow(this.game, this.flowState).start(truck);
-        }));
+        truck => this.addSelectableOnclick(
+          Elements.truck(truck.truck_id),
+          () => new DeliverTilesFlow(this.game, this.flowState).start(truck),
+          _('Take truck'))
+        );
 
       // Expanding is orthogonal to other actions.
       if (playState.extension_available > 0) {
         this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
-          () => new ExpandZooFlow(this.game, this.flowState).start(null));
+          () => new ExpandZooFlow(this.game, this.flowState).start(null), _('Expand zoo'));
       }
 
       // These can be separate since they exclusively are on other players' boards.
@@ -723,7 +729,8 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         playState.possible_purchases.forEach((pp: PossibleMove) => {
           this.addSelectableOnclick(
             Elements.enclosureSpace(pp.src_player_id, pp.src),
-            () => new PurchaseTileFlow(this.game, this.flowState).start(pp)
+            () => new PurchaseTileFlow(this.game, this.flowState).start(pp),
+            _('Purchase tile')
           );
         });
       }
