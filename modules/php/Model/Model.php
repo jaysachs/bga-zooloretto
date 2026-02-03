@@ -27,10 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zooloretto\Utils\Db;
 use Bga\Games\zooloretto\Utils\DefaultDb;
-use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Utils;
 use Bga\Games\zooloretto\Utils\Arrays;
 
 /*
@@ -264,81 +261,6 @@ class Model {
         ];
     }
 
-
-
-    /**
-     * FIXME: consider input as just a list of tile ID + space pairs, instead of truck pos.
-     *
-     *  @param list<array{truck_pos:int,space:Space}> $in_deliveries should not have coins
-     *
-     * @return list<Delivery>
-    */
-    public function takeTruckAndPlaceTiles(int $truck_id, array $in_deliveries): array {
-        $truck = $this->getTruck($truck_id);
-        if ($truck->taken_by > 0) {
-            throw new ModelException("Truck {$truck_id} already taken by player {$truck->taken_by}");
-        }
-        $encs = $this->getEnclosuresForPlayer();
-        $barn = $encs[0];
-        $toUpdate = [];
-        $player = $this->getActivePlayer();
-        /** @var array<int,Delivery> */
-        $result = [];
-
-        // first handle coins, which should not be part of delivery_requests
-        $coins = 0;
-        foreach ($truck->coinPositions() as $coin_pos) {
-            $tile = $truck->removeTileAt($coin_pos);
-            $result[$coin_pos] = new Delivery($truck_id, $coin_pos, $tile);
-            // assert tile is coin
-            $coins++;
-            $this->ps->deleteTile($tile);
-        }
-
-        foreach ($in_deliveries as $delivery) {
-            $truck_pos = $delivery['truck_pos'];
-            $space = $delivery['space'];
-            $tile = $truck->removeTileAt($truck_pos);
-            // if we were passed in a tile id, we could verify, but we're not.
-            if ($tile->type == TileType::COIN) {
-                throw new ModelException("tile at {$truck_id}:{$truck_pos} is a coin but had a non-null destination {$space}");
-            } else {
-                $encl = $encs[$space->enclosure_id];
-                $toUpdate[] = $encl;
-                $placement = $encl->placeTile($tile);
-                if ($placement->completedEnclosure) {
-                    $this->payPlayer($player, $encl->coin_bonus);
-                }
-                $pos = $placement->space->pos;
-                if ($pos <> $space->pos) {
-                    throw new ModelException("put {$truck_id}:{truck_pos} into {$space->enclosure_id}:{$space->pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
-                }
-                $offspring = $encl->checkForOffspring($barn);
-
-                $result[$truck_pos] = new Delivery($truck_id, $truck_pos, $tile, new Destination($space, $offspring));
-                if ($offspring) {
-                    $this->saveOffspring($offspring);
-                    $toUpdate[] = $barn;
-                    // FIXME: check fo completion bonus
-
-                    // FIXME: return info on new child -- add to return value
-                }
-            }
-        }
-
-        $player->takeTruck($truck);
-
-        $player->receiveMoney($coins);
-        $this->ps->updatePlayer($player);
-
-        $this->ps->updateTruck($truck);
-
-        $this->ps->updateEnclosures($this->player_id, $toUpdate);
-
-        // ensure sorted by position
-        return array_values($result);
-    }
-
     private function getPossiblePlacement(Truck $truck): PossiblePlacement {
         return PossiblePlacement::possiblePlacementFor(
             $this->player_id,
@@ -347,23 +269,13 @@ class Model {
         );
     }
 
-    /** @return list<AvailableTruck> */
-    public function getAvailableTrucks(): array {
+    /** @return list<int> */
+    public function getAvailableTruckIds(): array {
 		$player = $this->getActivePlayer();
-
-		$trucks_available = [];
         if ($player->truck_taken) {
-            return $trucks_available;
+            return [];
         }
-
-        foreach ($this->getTrucks() as $truck) {
-            if ($truck->canBeTaken()) {
-                $coin_positions = $truck->coinPositions();
-                $money_delta = Moneys::giftPlayerDelta($player->id, count($coin_positions));
-                $trucks_available[] = new AvailableTruck($money_delta, $truck->id, $this->getPossiblePlacement($truck), $coin_positions);
-            }
-        }
-        return $trucks_available;
+        return array_values(array_map(fn ($t)=> $t->id, array_filter($this->getTrucks(), fn ($t) => $t->canBeTaken())));
     }
 
     /** @return array{truck_ids: list<int>, dumped_tiles: list<Tile>} */

@@ -67,13 +67,6 @@ interface PossiblePlacement {
   encs: PossibleEnclosurePlacement[];
 }
 
-interface AvailableTruck {
-  truck_id: number;
-  coin_positions: number[];
-  money_delta: Moneys;
-  playable: PossiblePlacement[];
-}
-
 interface PossibleMove {
   src_player_id: number;
   src: Space;
@@ -97,7 +90,7 @@ interface PlayState {
   lastround: boolean;
   can_draw: boolean;
   extension_available: number;
-  available_trucks: AvailableTruck[];
+  available_trucks: number[];
   possible_discards: PossibleDiscard;
   possible_moves: PossibleMove[];
   possible_exchanges: PossibleExchange[];
@@ -431,16 +424,16 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
   }
 }
 
-class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
+class TakeTruckFlow extends ZooFlow<number[]> {
 
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(availableTrucks: AvailableTruck[]) {
+  override doStart(availableTruckIds: number[]) {
     this.initStatusBar(_('Select a truck'));
 
-    availableTrucks.forEach((truck: AvailableTruck) => {
-      this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
-        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck.truck_id }));
+    availableTruckIds.forEach((truck_id: number) => {
+      this.addSelectableOnclick($(IDS.truck(truck_id)),
+        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }));
     });
     this.addRestartAndUndoButtons();
   }
@@ -683,9 +676,9 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
 
       // Truck delivery is orthogonal.
       playState.available_trucks.forEach(
-        truck => this.addSelectableOnclick(
-          Elements.truck(truck.truck_id),
-          () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck.truck_id }),
+        truck_id => this.addSelectableOnclick(
+          Elements.truck(truck_id),
+          () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
           _('Take truck'))
         );
 

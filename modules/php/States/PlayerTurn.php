@@ -31,13 +31,9 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\AvailableTruck;
-use Bga\Games\zooloretto\Model\Delivery;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\Moneys;
-use Bga\Games\zooloretto\Model\Offspring;
-use Bga\Games\zooloretto\Model\PlacedTile;
 use Bga\Games\zooloretto\Model\PossibleExchange;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
@@ -64,9 +60,6 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-		$available_trucks = array_map(
-			fn (AvailableTruck $at) => $at->serialize(),
-			$model->getAvailableTrucks());
 
 		$pms = array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves());
 
@@ -93,7 +86,7 @@ class PlayerTurn extends AbstractState
 		return [
 			'can_draw' => $model->canDraw(),
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
-			'available_trucks' => $available_trucks,
+			'available_trucks' => $model->getAvailableTruckIds(),
 			'possible_moves' => $pms,
 			'can_move' => count($pms) > 0,
 			'possible_purchases' => $pb,
@@ -143,108 +136,6 @@ class PlayerTurn extends AbstractState
              ]
          );
         return DeliverTruckTiles::class;
-	}
-
-	/** @param list<array<string,int>> $delivery_requests */
-	#[PossibleAction]
-	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam] array $delivery_requests): mixed {
-        $model = $this->createModel($active_player_id);
-
-		$drs = array_map(
-			fn ($dr) => [
-				'truck_pos' => intval($dr['truck_pos']),
-				'space' => new Space(intval($dr['enclosure_id']), intval($dr['enclosure_pos'])),
-			],
-			$delivery_requests
-		);
-
-		// FIXME: need to rework what we get back here. At a minimum, each delivery should say
-		//   whether it completed an enclosure and what that bonus was.
-		/** @var list<Delivery> */
-		$deliveries = $model->takeTruckAndPlaceTiles($truck_id, $drs);
-		// FIXME: give more details about placements in log
-
-		$this->notify->all(
-            'SelectTruck',
-            clienttranslate('${player_name} selected ${truck}'),
-            [
-                'player_id' => $active_player_id,
-                'truck_id' => $truck_id,
-                'truck' => Truck::translated($truck_id),
-                'i18n' => [
-                    'truck',
-                ]
-            ]
-        );
-
-		// Send individual notifs for each tile
-		foreach ($deliveries as $del) {
-			if ($del->dest === null) {
-				// coins
-				$this->notify->all(
-                    'PlaceTruckTile',
-                    clienttranslate('${player_name} gained a ${tile_type}'),
-                    [
-                        'player_id' => $active_player_id,
-                        'truck_id' => $truck_id,
-                        'delivery' => $del->serialize(),
-                        'tile_type' => $del->tile->type->value,
-                        'tile_description' => $del->tile->type->translated(),
-                        'i18n' => [
-                            'tile_description',
-					]
-                    ]
-                );
-				$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id);
-			}
-			else {
-				$this->notify->all(
-                    'PlaceTruckTile',
-                    clienttranslate('${player_name} placed ${tile_type} into ${enclosure}'),
-                    [
-                        'player_id' => $active_player_id,
-                        'truck_id' => $truck_id,
-                        'tile_type' => $del->tile->type->value,
-                        'tile_description' => $del->tile->type->translated(),
-                        'delivery' => $del->serialize(),
-                        'enclosure' => Enclosure::translated($del->dest->space->enclosure_id),
-                        'enclosure_id' => $del->dest->space->enclosure_id,
-                        'i18n' => [
-                            'tile_description',
-                            'enclosure',
-                        ]
-                    ]
-                );
-			    $this->game->stats->PLAYER_TILESTAKENFROMTRUCKS->inc($active_player_id);
-				if ($del->dest->space->enclosure_id == 0) {
-    				$this->game->stats->PLAYER_TILESTAKEFROMTRUCKSINTOBARN->inc($active_player_id);
-				}
-				$this->notifyOffspring($active_player_id, $del->dest->offspring);
-				// FIXME: Destination (or Delivery?) should have completedEnclosure
-				//    also should have specific moneyDelta for that
-				// if ($del->dest->completedEnclosure) {
-				// 	$this->notify->all('PlaceTruckTileCompleted', clienttranslate('${player_name} completed enclosure ${enclosure_id} and gained ${coins} bonus coins'), [
-				// 		'player_id' => $active_player_id,
-				// 		'truck_id' => $truck_id,
-				// 		'enclosure_id' => $del->dest->space->enclosure_id,
-				// 		'coins' => $del->dest->moneyDelta->players[$active_player_id],
-				// 	]);
-				// }
-			}
-		}
-		// FIXME: probably want a specific moneyDelta for the completion bonus
-
-		$this->notify->all("TakeTruck", "", [
-			'player_id' => $active_player_id,
-			'truck_id' => $truck_id,
-			'moneys' => $model->currentMoneys()->serialize(),
-			'enclosure_summaries' => array_map(
-					fn ($e) => EnclosureSummary::forEnclosure($active_player_id, $e)->serialize(),
-					$model->getEnclosuresForPlayer($active_player_id)
-			),
-		]);
-
-		return NextPlayer::class;
 	}
 
 	#[PossibleAction]
