@@ -434,48 +434,6 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
     });
     this.addRestartAndUndoButtons();
   }
-
-  private async chooseTruckTileToPlace(truck_id: number, pps: PossiblePlacement[], availableTrucks: AvailableTruck[],   placedTiles : TruckPlacement[]) {
-    if (!pps || pps.length == 0) {
-      this.initStatusBar(_('Confirm your truck tile placements'));
-      this.addConfirmAndRestartActionButtons(
-        'actTakeTruckAndPlaceTiles', {
-          truck_id: truck_id,
-          delivery_requests: JSON.stringify(placedTiles),
-        }
-      );
-    }
-    else {
-      this.initStatusBar(_('Choose a tile to place from the selected truck'));
-      pps.forEach((pp: PossiblePlacement) => {
-        let elem = Elements.truckSpace(truck_id, pp.truck_pos);
-        this.addSelectableOnclick(elem, async () => {
-          this.callUndoably("chooseDest", () => this.chooseDestination(truck_id, pp, availableTrucks, placedTiles));
-        });
-      });
-      this.addRestartAndUndoButtons();
-    }
-  }
-
-  private async chooseDestination(truck_id: number, pp: PossiblePlacement, availableTrucks: AvailableTruck[], placedTiles : TruckPlacement[]) {
-    this.initStatusBar(_('Choose a destination for the selected tile'));
-
-    pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-      let encElem = Elements.enclosureSpace(this.player_id, pep.space);
-      // this.markTargetable(encElem);
-      this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
-        let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
-        this.slide(tileElem,encElem).then(() => {
-          return this.offspringSlide(pep.offspring).then( () => {
-            this.updateMoneyDelta(pep.money_delta);
-            placedTiles = Array.prototype.concat(placedTiles, { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-            this.callUndoably("chooseTileToPlace2", () => this.chooseTruckTileToPlace(truck_id, pep.next, availableTrucks, placedTiles));
-          });
-        });
-      });
-    });
-    this.addRestartAndUndoButtons();
-  }
 };
 
 class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
