@@ -288,12 +288,16 @@ export abstract class PlayFlow<T> {
           op: async () => { elem.className = c }
         })
       }
+      elem.title = '';
       elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED);
     }
   }
 
-  protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any ) {
+  protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any, desc?: string ) {
     this.markSelectable(elem);
+    if (desc) {
+      elem.title = desc;
+    }
     elem.addEventListener(
       "click",
       async (ev: MouseEvent) => {
