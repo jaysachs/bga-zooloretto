@@ -1,0 +1,38 @@
+There are up to 6 enclosures to deliver to, and up to 3 things to deliver. We don't need to know the enclosure position, always take the first available. Placement of an animal may result in an offspring. Placement of an animal, or its generated offspring, may result in money bonus. A generated offspring may end up in the barn.
+
+So we need to know: which truck position (1-3), and what enclosure (0-5). That's 18 possibilities. We also need to know "if offspring" (0 or 1), and money bonus (0-2), and which enclosure offspring goes to (0 for barn, 1 for current).
+
+So we could say
+
+  2 bits for truckpos
+  3 bits for enclosure
+  1 bit for offspring
+  2 bits for money bonus
+  1 bit for offspring enc
+
+That's 9 bits. So encoding as a string means we need 2 bytes per potential delivery. Comfortably in ASCII (which is nice).
+
+But there are 6 orderings of placements, and for each placement, 6 possibilities. So there are 6^4 = 1296 things, each 2 bytes big = 2592 bytes.
+
+That's for one truck. For 5 trucks, we're looking at 12k payload, compressed.
+
+Noting that most placements don't have offspring or a money bonus we could use another bit in the first byte to indicate "has offspring and/or money". So usually we'd just use one byte per. Probably will get the payload much closer to 1200.
+
+1200 seems just fine for this.
+
+enc    truckpos
+       1 2 3
+ 0     A B C
+ 1     D E F
+ 2     G H I
+ 3     J K L
+ 4     M N O
+ 5     P Q R
+
+Use lowercase to indicate "offspring/money byte following"
+
+offspring     money
+             0 1 2
+ none)       0 1 2
+ in same)    3 4 5
+ in barn)    6 7 8
