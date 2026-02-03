@@ -56,7 +56,7 @@ class Scorer {
                 $barnStallTypes = [];
                 foreach ($enc->nonEmptyContents() as $tile) {
                     if ($tile->type->isAnimal()) {
-                        $barnAnimalTypes[$tile->type->value] = 1;
+                        $barnAnimalTypes[$tile->type->canonicalType()->value] = 1;
                     } else { // if $tile->type->isStall() {
                         $barnStallTypes[$tile->type->value] = 1;
                     }
