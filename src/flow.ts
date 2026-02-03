@@ -202,31 +202,35 @@ export abstract class PlayFlow<T> {
 
   protected abstract confirmationsEnabled(): boolean;
 
-  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any) {
+  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>}) {
     let doAct = async () => {
         this.clearMarked();
         await this.bga.actions.performAction(bgaAction, args);
     };
     if (!this.confirmationsEnabled())  {
-      await doAct();
-    } else {
-      let confirm = this.bga.statusBar.addActionButton(
-        _('Confirm'), doAct, { autoclick: this.useAutoclick() }
-      );
-      this.addRestartAndUndoButtons(confirm);
+      return await doAct();
     }
+    let confirmButton = this.bga.statusBar.addActionButton(_('Confirm'), doAct, { autoclick: this.useAutoclick() });
+    // if (!settings) {
+    //   settings = {};
+    // }
+    this.addRestartAndUndoButtons({ ...settings, confirm: confirmButton });
   }
 
-  protected addRestartAndUndoButtons(confirm?: HTMLButtonElement): void {
+  protected addRestartAndUndoButtons(settings?: { confirm?: HTMLButtonElement, restart?: () => Promise<any>} ): void {
     this.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
-          if (confirm) {
-            confirm.disabled = true;
-            confirm.remove();
+          if (settings?.confirm) {
+            settings.confirm.disabled = true;
+            settings.confirm.remove();
           }
-          await this.rollback().then(() => {
-            this.bga.states.restoreServerGameState();
-          })
+          if (settings?.restart) {
+            await settings.restart();
+          } else {
+            await this.rollback().then(() => {
+              this.bga.states.restoreServerGameState();
+            })
+          }
         },
       { color: "secondary"});
 

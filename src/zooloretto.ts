@@ -366,58 +366,68 @@ type TruckPlacement = {
   enclosure_pos: number;
 };
 
-class DeliverTilesFlow extends ZooFlow<AvailableTruck> {
-  protected async doStart(truck: AvailableTruck) {
+interface PossibleDelivery {
+    truck_pos: number;
+    tile: string;
+    tile_id: number;
+    dests: Destination[];
+}
+
+interface DeliverTilesArgs {
+  truck_id: number;
+  possible_deliveries: PossibleDelivery[];
+}
+
+class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
+  /*
+  protected async doStart(args: DeliverTilesArgs) {
     await this.playParallel(truck.coin_positions.map(pos =>
       () => this.slideOutAndDestroy(
-        Elements.truckTile(truck.truck_id, pos)!,
+        Elements.truckTile(args.truck_id, pos)!,
         this.getPlayerPanelElement(this.player_id))))
       .then(() => {
         this.updateMoneyDelta(truck.money_delta);
-        this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(truck.playable, truck, []));
+        this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(args.possible_deliveries, args.truck_id));
       });
   }
 
-  private async chooseTruckTileToPlace(pps: PossiblePlacement[], availableTruck: AvailableTruck,   placedTiles : TruckPlacement[]) {
-    if (!pps || pps.length == 0) {
-      this.initStatusBar(_('Confirm your truck tile placements'));
-      this.addConfirmAndRestartActionButtons(
-        'actTakeTruckAndPlaceTiles', {
-          truck_id: availableTruck.truck_id,
-          delivery_requests: JSON.stringify(placedTiles),
-        }
-      );
+  private async chooseTruckTileToPlace(pps: PossibleDelivery[], truck_id: number) {
+      */
+  private restart = { restart: () => this.bga.actions.performAction('actUndo', {}) };
+  protected async doStart(args: DeliverTilesArgs) {
+    if (!args.possible_deliveries || args.possible_deliveries.length == 0) {
+      this.initStatusBar(_('Confirm your truck tile deliveries'));
+      // FIXME: clear marked on confirmation
+      this.addConfirmAndRestartActionButtons('actConfirmDelivery', {}, this.restart);
     }
     else {
-      this.initStatusBar(_('Choose a tile to place from the selected truck'));
-      pps.forEach((pp: PossiblePlacement) => {
-        let elem = Elements.truckSpace(availableTruck.truck_id, pp.truck_pos);
+      this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
+      args.possible_deliveries.forEach((pp: PossibleDelivery) => {
+        let elem = Elements.truckSpace(args.truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, async () => {
-          this.callUndoably("chooseDest", () => this.chooseDestination(pp, availableTruck, placedTiles));
+          this.callUndoably("chooseDest", () => this.chooseDestination(pp, args.truck_id));
         });
       });
-      this.addRestartAndUndoButtons();
+      this.addRestartAndUndoButtons(this.restart);
     }
   }
 
-  private async chooseDestination(pp: PossiblePlacement, availableTruck: AvailableTruck, placedTiles : TruckPlacement[]) {
+  private async chooseDestination(pp: PossibleDelivery, truck_id: number) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
-    pp.encs.forEach((pep: PossibleEnclosurePlacement) => {
-      let encElem = Elements.enclosureSpace(this.player_id, pep.space);
-      // this.markTargetable(encElem);
+    pp.dests.forEach((dest: Destination) => {
+      let encElem = Elements.enclosureSpace(this.player_id, dest.space);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
-        let tileElem = Elements.truckSpace(availableTruck.truck_id, pp.truck_pos).firstElementChild as HTMLElement;
+        let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
-          return this.offspringSlide(pep.offspring).then( () => {
-            this.updateMoneyDelta(pep.money_delta);
-            placedTiles = Array.prototype.concat(placedTiles, { truck_pos: pp.truck_pos, enclosure_id: pep.space.enclosure_id, enclosure_pos: pep.space.pos});
-            this.callUndoably("chooseTileToPlace2", () => this.chooseTruckTileToPlace(pep.next, availableTruck, placedTiles));
+          return this.offspringSlide(dest.offspring).then( () => {
+            this.updateMoneyDelta(dest.money_delta);
+            this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: dest.space.enclosure_id, enclosure_pos: dest.space.pos, confirm_if_done: false })
           });
         });
       });
     });
-    this.addRestartAndUndoButtons();
+    this.addRestartAndUndoButtons({ restart: () => this.bga.actions.performAction('actUndo', {}) });
   }
 }
 
@@ -430,7 +440,7 @@ class TakeTruckFlow extends ZooFlow<AvailableTruck[]> {
 
     availableTrucks.forEach((truck: AvailableTruck) => {
       this.addSelectableOnclick($(IDS.truck(truck.truck_id)),
-        () => new DeliverTilesFlow(this.game, this.flowState).start(truck));
+        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck.truck_id }));
     });
     this.addRestartAndUndoButtons();
   }
@@ -675,7 +685,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       playState.available_trucks.forEach(
         truck => this.addSelectableOnclick(
           Elements.truck(truck.truck_id),
-          () => new DeliverTilesFlow(this.game, this.flowState).start(truck),
+          () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck.truck_id }),
           _('Take truck'))
         );
 
@@ -727,6 +737,7 @@ export class Game extends BaseGame<ZGamedatas> {
     super(bga, Game.special_log_args);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
+    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this, new FlowState(this.animationManager.playSequentially)));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
@@ -984,7 +995,7 @@ export class Game extends BaseGame<ZGamedatas> {
     this.updateMoneys(args.moneys);
   }
 
-  private async notif_PlaceTruckTile(args: {
+  private async notif_DeliverTruckTile(args: {
       player_id: number,
       truck_id: number,
       delivery: Delivery,
@@ -1019,7 +1030,21 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private async notif_TakeTruck(args: {
+  private async notif_StartDelivery(args: {
+    player_id: number,
+    truck_id: number,
+    coin_positions: number[],
+    moneys: Moneys,
+  }) {
+    // FIXME: highlight the truck in question
+    let coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
+    await this.animationManager.playParallel(coinElems.map(elem =>
+      () => this.animationManager.slideOutAndDestroy(
+              elem!, this.bga.playerPanels.getElement(args.player_id),{})))
+      .then(() => this.updateMoneys(args.moneys))
+  }
+
+  private async notif_DeliveryCompleted(args: {
     player_id: number,
     truck_id: number,
     moneys: Moneys,

@@ -60,7 +60,7 @@ class DeliverTruckTiles extends AbstractState
         $pps = PossiblePlacement::possiblePlacementFor($active_player_id, $truck, $model->getEnclosuresForPlayer($active_player_id));
         return [
             "truck_id" => $truck_id,
-            "possible_placements" => array_map(fn ($pp) => [
+            "possible_deliveries" => array_map(fn ($pp) => [
                 'truck_pos' => $pp->truck_pos,
                 'tile' => $pp->tile_type,
                 'tile_id' => $truck->tileAt($pp->truck_pos)->id,

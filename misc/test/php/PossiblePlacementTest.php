@@ -6,8 +6,8 @@ namespace Bga\Games\zooloretto\Model;
 
 use PHPUnit\Framework\TestCase;
 
-function e(int $x, int $y, $z = null, ?Offspring $offspring = null, ?Moneys $moneyDelta = null) {
-    return new PlacementForEnclosure(new Space($x, $y), $z, $offspring, $moneyDelta);
+function e(int $x, int $y, array $z = null, ?Offspring $offspring = null, ?Moneys $moneyDelta = null) {
+    return new Destination(new Space($x, $y), $offspring, $moneyDelta);
 }
 function t(int $truck_id, TileType $y, $z = []) { return new PlacementsForTruckPos($truck_id, $y, $z); }
 function p($x = []) { return new PossiblePlacement($x); }
@@ -39,48 +39,8 @@ final class PossiblePlacementTest extends TestCase
         $truck->placeTileAt(new Tile(2, TileType::ZEBRA), 2);
 
         $expected = p([
-            t(1, TileType::CAMEL, [
-                e(0, 1, p([
-                    t(2, TileType::ZEBRA, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(2, TileType::ZEBRA, [
-                        e(0, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(2, TileType::ZEBRA, [
-                        e(0, 1),
-                        e(1, 1),
-                    ])
-                ])),
-            ]),
-            t(2, TileType::ZEBRA, [
-                e(0, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 1),
-                        e(1, 1),
-                    ])
-                ])),
-            ]),
+            t(1, TileType::CAMEL, [e(0, 1),e(1, 1),e(2, 1)]),
+            t(2, TileType::ZEBRA, [e(0, 1),e(1, 1),e(2, 1)]),
         ]);
 
         $this->assertEquals(
@@ -96,52 +56,8 @@ final class PossiblePlacementTest extends TestCase
         $truck->placeTileAt(new Tile(2, TileType::CAMEL_MALE), 2);
 
         $expected = p([
-            t(1, TileType::CAMEL, [
-                e(0, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 1),
-                        e(1, 2),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 1),
-                        e(1, 1),
-                        e(2, 2),
-                    ])
-                ])),
-            ]),
-            t(2, TileType::CAMEL_MALE, [
-                e(0, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 1),
-                        e(1, 2),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(1, TileType::CAMEL, [
-                        e(0, 1),
-                        e(1, 1),
-                        e(2, 2),
-                    ])
-                ])),
-            ]),
+            t(1, TileType::CAMEL, [e(0, 1), e(1, 1), e(2, 1)]),
+            t(2, TileType::CAMEL_MALE, [e(0, 1), e(1, 1), e(2, 1)]),
         ]);
 
         $this->assertEquals(
@@ -171,52 +87,8 @@ final class PossiblePlacementTest extends TestCase
         };
 
         $expected = p([
-            t(1, TileType::CAMEL_FEMALE, [
-                e(0, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 1),
-                        e(1, 2, null, $kid(1, 3, true), Moneys::chargePlayerDelta(100, -7)),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(2, TileType::CAMEL_MALE, [
-                        e(0, 1),
-                        e(1, 1),
-                        e(2, 2, null, $kid(0, 1), Moneys::chargePlayerDelta(100, -5)),
-                    ])
-                ])),
-            ]),
-            t(2, TileType::CAMEL_MALE, [
-                e(0, 1, p([
-                    t(1, TileType::CAMEL_FEMALE, [
-                        e(0, 2),
-                        e(1, 1),
-                        e(2, 1),
-                    ])
-                ])),
-                e(1, 1, p([
-                    t(1, TileType::CAMEL_FEMALE, [
-                        e(0, 1),
-                        e(1, 2, null, $kid(1, 3, true), Moneys::chargePlayerDelta(100, -7)),
-                        e(2, 1),
-                    ])
-                ])),
-                e(2, 1, p([
-                    t(1, TileType::CAMEL_FEMALE, [
-                        e(0, 1),
-                        e(1, 1),
-                        e(2, 2, null, $kid(0, 1), Moneys::chargePlayerDelta(100, -5)),
-                    ])
-                ])),
-            ]),
+            t(1, TileType::CAMEL_FEMALE, [e(0, 1), e(1, 1), e(2, 1)]),
+            t(2, TileType::CAMEL_MALE, [e(0, 1), e(1, 1), e(2, 1)]),
         ]);
 
         $this->assertEquals(

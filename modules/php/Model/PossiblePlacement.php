@@ -27,34 +27,14 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
-class PlacementForEnclosure {
-
-    public function __construct(
-        public Space $space,
-        // FIXME: allowed to be null, but we never make it null. Allow that.
-        public ?PossiblePlacement $next = null,
-        public ?Offspring $offspring = null,
-        public ?Moneys $moneyDelta = null) {}
-
-    /** @return array<string,mixed> */
-    public function serialize(): array {
-        return [
-            'space' => $this->space->serialize(),
-            'next' => $this->next ? $this->next->serialize() : [],
-            'offspring' => $this->offspring ? $this->offspring->serialize() : null,
-            'money_delta' => $this->moneyDelta ? $this->moneyDelta->serialize() : null,
-        ];
-    }
-}
-
 class PlacementsForTruckPos {
-    /** @param list<PlacementForEnclosure> $next */
+    /** @param list<Destination> $next */
     public function __construct(
         public int $truck_pos = 0,
         public TileType $tile_type = TileType::EMPTY,
         public array $next = []) {}
 
-    public function addNext(PlacementForEnclosure $p2): void {
+    public function addNext(Destination $p2): void {
         $this->next[] = $p2;
     }
 
@@ -63,7 +43,7 @@ class PlacementsForTruckPos {
         return [
             'truck_pos' => $this->truck_pos,
             'tile_type' => $this->tile_type->value,
-            'encs' => array_map(fn (PlacementForEnclosure $pp) => $pp->serialize(), $this->next),
+            'encs' => array_map(fn (Destination $pp) => $pp->serialize(), $this->next),
         ];
     }
 }
@@ -84,24 +64,21 @@ class PossiblePlacement {
 
 
     /** @param array<int,Enclosure> $enclosures */
-    private static function getPlacementsForEnclosure(int $player_id, Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): PlacementForEnclosure {
-        $pfe = new PlacementForEnclosure(new Space($eid,$enclosure_pos));
-
+    private static function getPlacementsForEnclosure(int $player_id, Truck $truck, Tile $tile, array $enclosures, int $eid, int $enclosure_pos): Destination {
         $clones = array_map(fn ($e) => $e->clone(), $enclosures);
         $enc = $clones[$eid];
         $pl = $enc->placeTile($tile, $enclosure_pos);
 
         $offspring = $enc->checkForOffspring($clones[0]);
-        $pfe->offspring = $offspring;
 
+        /** @var Moneys|null */
+        $moneyDelta = null;
         if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
-            $pfe->moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
+            $moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
         }
 
-        if (!$truck->isEmpty()) {
-            $pfe->next = self::possiblePlacementFor($player_id, $truck, $clones);
-        }
-        return $pfe;
+        return new Destination(new Space($eid,$enclosure_pos), $offspring, $moneyDelta);
+
     }
 
     /** @param array<int,Enclosure> $enclosures */
