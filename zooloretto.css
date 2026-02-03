@@ -136,6 +136,7 @@ body.mobile_version {
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio)) !important;
 /*    min-width: calc(4 * (var(--zoo-tile-size))); */
     margin: 1vw 0 1vw 0;
+    position: relative;
 }
 
 #zoo-shared-container .zoo-depot-space {
@@ -253,8 +254,53 @@ body.mobile_version {
     box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #ffbb44;
 }
 
+@keyframes selected {
+    from {
+        opacity: 0%;
+    }
+    20% {
+        opacity: 0%;
+    }
+    50% {
+        opacity: 80%;
+    }
+    80% {
+        opacity: 0%;
+    }
+    to {
+        opacity: 0%;
+    }
+}
+
+#zoo-game.zoo-indicators .zoo-selectable::after {
+    content: '\2726';
+    filter: brightness(125%);
+    display: inline !important;
+    opacity: 60%;
+    font-size: calc(0.33 * var(--zoo-tile-size));
+    z-index: 10;
+    color: yellow;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    animation: 3s infinite alternate selected;
+    animation-timing-function: linear;
+}
+
 .zoo-selectable {
     cursor: pointer;
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #eeeeee;
+}
+
+
+.zoo-selectable:hover {
+    cursor: pointer;
+    filter: contrast(200%);
+    /*
+    transition-property: filter background-image box-shadow;
+    transition-duration: 2s;
+    transition-timing-function: cubic-bezier;
+*/
     box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) yellow;
 }
 
