@@ -8,27 +8,21 @@ use PHPUnit\Framework\TestCase;
 
 final class PossibleExchangeTest extends TestCase
 {
-    private Moneys $moneys;
-
-    public function setUp(): void {
-        $this->moneys = new Moneys();
-    }
-
     public function testEmpty(): void
     {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
-        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
-        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
     }
 
-    private int $tile_id = 1;
-    private function tile(TileType $type) {
-        return new Tile($this->tile_id++, $type);
-    }
-
+    /**
+     * @param list<int> $src_pos
+     * @param list<int> $dest_pos
+     * @param list<Offspring> $children
+     */
     private function pe(int $src_id, array $src_pos, int $dest_id, array $dest_pos, array $children = []): PossibleExchange {
-        return new PossibleExchange($src_id, $src_pos, $dest_id, $dest_pos, $children, $this->moneys);
+        return new PossibleExchange($src_id, $src_pos, $dest_id, $dest_pos, $children);
     }
 
     public function testNoBarn_Simple(): void {
@@ -38,31 +32,31 @@ final class PossibleExchangeTest extends TestCase
         $this->assertEquals([
             $this->pe(1, [1], 2, [1]),
             $this->pe(2, [1], 1, [1])
-        ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        ], PossibleExchange::getPossibleExchanges($encs));
 
         $encs[0]->placeTile(new Tile(3, TileType::CAMEL_MALE));
         $this->assertEquals([
             $this->pe(1, [1, 2], 2, [1,2]),
             $this->pe(2, [1, 2], 1, [1, 2])
-        ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        ], PossibleExchange::getPossibleExchanges($encs));
     }
     public function testNoBarn_SameAnimal() : void {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
     }
 
     public function testWithBarn(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1)];
-        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        $this->assertEquals([], PossibleExchange::getPossibleExchanges($encs));
         $encs[0]->placeTile(new Tile(3, TileType::ELEPHANT));
         $this->assertEquals([
             $this->pe(1, [1], 0, [2])
-        ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        ], PossibleExchange::getPossibleExchanges($encs));
     }
 
     public function testFullNoOffspring(): void {
@@ -87,7 +81,7 @@ final class PossibleExchangeTest extends TestCase
             $this->pe(2, [1], 0, [3]),
             $this->pe(2, [1], 0, [7]),
             $this->pe(2, [1,2,3], 1, [1,2,3]),
-        ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        ], PossibleExchange::getPossibleExchanges($encs));
 
     }
 
@@ -125,7 +119,7 @@ final class PossibleExchangeTest extends TestCase
                     new PlacedTile(new Tile(60008, TileType::CAMEL_KID),new Space(2, 4), true),
                     new Tile(6, TileType::CAMEL_FEMALE, true),
                     new Tile(8, TileType::CAMEL_MALE, true))]),
-        ], PossibleExchange::getPossibleExchanges($encs, $this->moneys));
+        ], PossibleExchange::getPossibleExchanges($encs));
 
     }
 }

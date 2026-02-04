@@ -30,8 +30,10 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Cost;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
+use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\PossibleMove;
 use Bga\Games\zooloretto\Model\Space;
 
@@ -53,7 +55,11 @@ class MoveTile extends AbstractState
         $model = $this->createModel($active_player_id);
 		$pms = array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves());
 		return [
-			'possible_moves' => $pms,
+
+			'possible_moves' => [
+				'moves' => $pms,
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::MOVE),
+			],
 		];
     }
 

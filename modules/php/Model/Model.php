@@ -371,13 +371,10 @@ class Model {
             && $this->spacesOnTrucks() > 0;
     }
 
-    /** @return array{spaces:list<Space>,money_delta:Moneys} positions in barn that are discardable */
+    /** @return list<Space> positions in barn that are discardable */
     public function getDiscardables(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
-            return [
-                'spaces' => [],
-                'money_delta' => new Moneys(),
-            ];
+            return [];
         }
         $money_delta = Moneys::costPlayerDelta($this->player_id, Cost::DISCARD);
         $barn = $this->getEnclosuresForPlayer()[0];
@@ -386,10 +383,7 @@ class Model {
             // $result[] = new PlacedTile($tile, new Space(0, $pos), false, $money_delta);
             $result[] = new Space(0, $pos);
         }
-        return [
-            'spaces' => $result,
-            'money_delta' => $money_delta,
-        ];
+        return $result;
     }
 
     public function discardBarnTile(int $pos): Tile {
@@ -614,9 +608,7 @@ class Model {
             // can't afford it.
             return [];
         }
-        return PossibleExchange::getPossibleExchanges(
-            $this->getEnclosuresForPlayer(),
-            Moneys::costPlayerDelta($this->player_id, Cost::EXCHANGE));
+        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer());
     }
 
     private function saveOffspring(Offspring $offspring): void {

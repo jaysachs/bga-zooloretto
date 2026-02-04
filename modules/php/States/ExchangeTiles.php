@@ -57,7 +57,6 @@ class ExchangeTiles extends AbstractState
 		$pxs = [];
 		foreach ($model->getPossibleExchanges() as $px) {
 			$pxs[] = [
-				'money_delta' => $px->moneyDelta->serialize(),
 				'offspring' => array_map(
 					fn ($o) => $o->serialize(), $px->offspring),
 				'src' => array_map(
@@ -91,7 +90,7 @@ class ExchangeTiles extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys()));
+		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',

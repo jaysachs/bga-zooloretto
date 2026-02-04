@@ -30,7 +30,9 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Cost;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
+use Bga\Games\zooloretto\Model\Moneys;
 use Bga\Games\zooloretto\Model\Space;
 
 class DiscardTile extends AbstractState
@@ -56,11 +58,12 @@ class DiscardTile extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-		$ds = $model->getDiscardables();
 		return [
-			'money_delta' => $ds['money_delta']->serialize(),
-			'spaces' => array_map(fn ($s) => $s->serialize(), $ds["spaces"])
-		];
+			'possible_discards' => [
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
+				'spaces' => array_map(fn ($s) => $s->serialize(), $model->getDiscardables())
+			],
+        ];
 	}
 
     #[PossibleAction]
@@ -92,7 +95,11 @@ class DiscardTile extends AbstractState
 
 	function zombie(int $player_id): mixed {
         $model = $this->createModel($player_id);
-        return $this->actDiscardTile($player_id, $model->getDiscardables()['spaces'][0]->pos);
+        $ds = $model->getDiscardables();
+        if (count($ds) == 0) {
+            return PlayerTurn::class;
+        }
+        return $this->actDiscardTile($player_id, $ds[0]->pos);
     }
 
 }

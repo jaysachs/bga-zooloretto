@@ -31,6 +31,7 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Cost;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\EnclosureSummary;
 use Bga\Games\zooloretto\Model\Moneys;
@@ -68,7 +69,6 @@ class PlayerTurn extends AbstractState
 		$pxs = [];
 		foreach ($model->getPossibleExchanges() as $px) {
 			$pxs[] = [
-				'money_delta' => $px->moneyDelta->serialize(),
 				'offspring' => array_map(
 					fn ($o) => $o->serialize(), $px->offspring),
 				'src' => array_map(
@@ -77,21 +77,25 @@ class PlayerTurn extends AbstractState
 					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
 			];
 		}
-		$ds = $model->getDiscardables();
-		$pds = [
-			'money_delta' => $ds['money_delta']->serialize(),
-			'spaces' => array_map(fn ($s) => $s->serialize(), $ds["spaces"])
-		];
 
 		return [
 			'can_draw' => $model->canDraw(),
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $model->getAvailableTruckIds(),
-			'possible_moves' => $pms,
+			'possible_moves' => [
+				'moves' => $pms,
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::MOVE)->serialize(),
+			],
 			'can_move' => count($pms) > 0,
 			'possible_purchases' => $pb,
-			'possible_discards' => $pds,
-			'possible_exchanges' => $pxs,
+			'possible_discards' => [
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
+				'spaces' => array_map(fn ($s) => $s->serialize(), $model->getDiscardables())
+			],
+			'possible_exchanges' => [
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),
+				'exchanges' => $pxs,
+			],
 			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
@@ -246,7 +250,7 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys()));
+		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',

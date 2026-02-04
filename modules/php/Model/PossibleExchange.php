@@ -42,8 +42,7 @@ class PossibleExchange {
         public readonly array $src_positions,
         public readonly int $dest_enclosure_id,
         public readonly array $dest_positions,
-        public readonly array $offspring,
-        public readonly Moneys $moneyDelta
+        public readonly array $offspring
     ) {
         if (count($src_positions) <> count($dest_positions)) {
             throw new ModelException("Size of src positions and dest positions must be the same");
@@ -65,22 +64,21 @@ class PossibleExchange {
     {
         return "PossEx(src:{$this->src_enclosure_id} " . Arrays::arrayToString($this->src_positions)
                   . ", dest:{$this->dest_enclosure_id} " . Arrays::arrayToString($this->src_positions)
-                  . ", offspring:" . Arrays::arrayToString($this->offspring)
-                  . ", moneyDelta:{$this->moneyDelta})";
+                  . ", offspring:" . Arrays::arrayToString($this->offspring).")";
     }
 
     /**
      * @param array<int,Enclosure> $encs
      * @return list<PossibleExchange>
      */
-    public static function getPossibleExchanges(array $encs, Moneys $moneyDelta) : array {
+    public static function getPossibleExchanges(array $encs) : array {
         $result = [];
         foreach ($encs as $enc) {
             // we can skip the barn, since every exchange must involve a "real" enclosure,
             //   only let "real" enclosures be the source.
             //   This simplifies the logic in possibleExchangesFor().
             if (!$enc->isBarn()) {
-                $result = array_merge($result, self::possibleExchangesFor($enc, $encs, $moneyDelta));
+                $result = array_merge($result, self::possibleExchangesFor($enc, $encs));
             }
         }
         return $result;
@@ -90,7 +88,7 @@ class PossibleExchange {
      * @param array<int,Enclosure> $encs
      * @return list<PossibleExchange>
      */
-    private static function possibleExchangesFor(Enclosure $src_enc, array $encs, Moneys $moneyDelta) : array {
+    private static function possibleExchangesFor(Enclosure $src_enc, array $encs) : array {
         if ($src_enc->isBarn()) {
             throw new ModelException("barns cannot be exchange sources");
         }
@@ -106,12 +104,12 @@ class PossibleExchange {
             }
             if ($dest_enc->isBarn()) {
                 foreach (TileType::allCanonicalAnimals() as $anim) {
-                    if ($x = self::possibleExchange($src_enc, $dest_enc, $anim, $encs[0], $moneyDelta)) {
+                    if ($x = self::possibleExchange($src_enc, $dest_enc, $anim, $encs[0])) {
                         $result[] = $x;
                     }
                 }
             }
-            else if ($x = self::possibleExchange($src_enc, $dest_enc, $dest_enc->animalType(), $encs[0], $moneyDelta)) {
+            else if ($x = self::possibleExchange($src_enc, $dest_enc, $dest_enc->animalType(), $encs[0])) {
                 $result[] = $x;
             }
         }
@@ -119,7 +117,7 @@ class PossibleExchange {
         return $result;
     }
 
-     private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType, Enclosure $barn, Moneys $moneyDelta): PossibleExchange | null {
+     private static function possibleExchange(Enclosure $src_enc, Enclosure $dest_enc, TileType $animalType, Enclosure $barn): PossibleExchange | null {
         if ($animalType->isEmpty()) {
             // no animals of that type at destination
             return null;
@@ -184,6 +182,6 @@ class PossibleExchange {
         $sp = $src_pos;
         /** @var list<int> */
         $dp = $dest_pos;
-        return new PossibleExchange($src_enc->id, $sp, $dest_enc->id, $dp, $spaces, $moneyDelta);
+        return new PossibleExchange($src_enc->id, $sp, $dest_enc->id, $dp, $spaces);
     }
 }

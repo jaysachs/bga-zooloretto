@@ -52,23 +52,33 @@ interface LoadDrawnTileArgs {
 
 // PlayerTurn state
 
+interface PossibleMoves {
+  moves: PossibleMove[];
+  money_delta: Moneys;
+}
+
 interface PossibleMove {
   src_player_id: number;
   src: Space;
-  money_delta: Moneys | null;
   dests: Destination[];
+  // FIXME: here since this is also used for purchases. Create a different type for purchases.
+  money_delta: Moneys | null;
+}
+
+interface PossibleExchanges {
+  exchanges: PossibleExchange[];
+  money_delta: Moneys;
 }
 
 interface PossibleExchange {
   src: Space[];
   dest: Space[];
   offspring: Offspring[];
-  money_delta: Moneys;
 }
 
-interface PossibleDiscard {
+interface PossibleDiscards {
   spaces: Space[];
-  money_delta: Moneys | null;
+  money_delta: Moneys;
 }
 
 interface PlayState {
@@ -76,9 +86,9 @@ interface PlayState {
   can_draw: boolean;
   extension_available: number;
   available_trucks: number[];
-  possible_discards: PossibleDiscard;
-  possible_moves: PossibleMove[];
-  possible_exchanges: PossibleExchange[];
+  possible_discards: PossibleDiscards;
+  possible_moves: PossibleMoves;
+  possible_exchanges: PossibleExchanges;
   possible_purchases: PossibleMove[];
 }
 
@@ -151,12 +161,12 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
 }
 
-class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
+class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  protected override doStart(possible_exchanges: PossibleExchange[]) {
+  protected override doStart(possible_exchanges: PossibleExchanges) {
     let exchangesBySrc : PossibleExchange[][] = [];
-    for (let pe of possible_exchanges) {
+    for (let pe of possible_exchanges.exchanges) {
       let src = pe.src[0]!;
       let p = exchangesBySrc[src.enclosure_id];
       if (!p) {
@@ -174,26 +184,28 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
       src.forEach((p) => {
         if (Elements.enclosureTile(this.player_id, p)) {
           let es = Elements.enclosureSpace(this.player_id, p);
-          console.log("add selectExchangeDest to", es);
           this.addSelectableOnclick(
             Elements.enclosureSpace(this.player_id, p),
-            () => this.callUndoably("selectExchangeDest", async () => {
-              src.forEach(s => this.markSelected(Elements.enclosureSpace(this.player_id, s)));
-              this.selectDestinationForExchange(pes);
-            }),
+            () => {
+              this.callUndoably("selectExchangeDest", async () => {
+                src.forEach(s => this.markSelected(Elements.enclosureSpace(this.player_id, s)));
+                this.selectDestinationForExchange(pes, possible_exchanges.money_delta);
+              }
+            )},
             _('Exchange tiles'));
         }
       })
     });
   }
 
-  private selectDestinationForExchange(pes: PossibleExchange[]) {
+  private selectDestinationForExchange(pes: PossibleExchange[], money_delta: Moneys) {
     this.initStatusBar(_("Select the animals to exchange with"));
     pes.forEach((pe : PossibleExchange) =>
       pe.dest.forEach(d =>
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, d),
           async () =>  {
+            this.updateMoneyDelta(money_delta);
             let anims: AnimationList = [];
             for (let i = 0; i < pe.src.length; ++i) {
               anims.push(() => this.moreAnimations.swapFirstChildren(
@@ -205,7 +217,6 @@ class ExchangeFlow extends ZooFlow<PossibleExchange[]> {
             if (pe.offspring) {
               pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             }
-            this.updateMoneyDelta(pe.money_delta);
             this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
             await this.animationManager.playParallel(anims)
               .then(() => pe.dest.forEach(d => this.markMoved(Elements.enclosureSpace(this.player_id, d))))
@@ -415,10 +426,10 @@ class TakeTruckFlow extends ZooFlow<number[]> {
   }
 };
 
-class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
+class DiscardTileFlow extends ZooFlow<PossibleDiscards> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(discardables: PossibleDiscard) {
+  override doStart(discardables: PossibleDiscards) {
     if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_('Select a tile in your barn to discard'));
       this.addRestartAndUndoButtons();
@@ -444,15 +455,15 @@ class DiscardTileFlow extends ZooFlow<PossibleDiscard> {
   }
 }
 
-class MoveTileFlow extends ZooFlow<PossibleMove[]> {
+class MoveTileFlow extends ZooFlow<PossibleMoves> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(possibleMoves: PossibleMove[]) {
+  override doStart(possibleMoves: PossibleMoves) {
     if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_('Select a tile to move'));
       this.addRestartAndUndoButtons();
     }
-    possibleMoves.forEach((m: PossibleMove) => {
+    possibleMoves.moves.forEach((m: PossibleMove) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
         () => this.callUndoably("chooseMoveDest", async () => this.chooseDest(m))
@@ -515,19 +526,19 @@ class SpaceMultimapMap<T> {
   }
 }
 
-class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], possible_discards: PossibleDiscard}> {
+class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, possible_discards: PossibleDiscards}> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(args: { possible_moves: PossibleMove[], possible_discards: PossibleDiscard}) {
+  override doStart(args: { possible_moves: PossibleMoves, possible_discards: PossibleDiscards}) {
 
     const asInt = (s:Space) => s.enclosure_id * 100 + s.pos;
 
     let movesrcs: number[] = [];
-    args.possible_moves.forEach((m: PossibleMove) => movesrcs.push(asInt(m.src)));
+    args.possible_moves.moves.forEach((m: PossibleMove) => movesrcs.push(asInt(m.src)));
     let dissrcs: number[] = [];
     args.possible_discards.spaces.forEach((space: Space) => dissrcs.push(asInt(space)));
 
-    args.possible_moves.forEach((m: PossibleMove) => {
+    args.possible_moves.moves.forEach((m: PossibleMove) => {
       let es = Elements.enclosureSpace(this.player_id, m.src);
       const discardable = dissrcs.indexOf(asInt(m.src)) >= 0;
       this.addSelectableOnclick(
@@ -542,12 +553,9 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, space),
           async () => {
+            this.updateMoneyDelta(args.possible_discards.money_delta);
             await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
-              .then(() => {
-                // should always have money delta
-                this.updateMoneyDelta(args.possible_discards.money_delta!);
-                this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
-              })
+              .then(() => this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space)))
           }, _('Discard tile'));
         }
     });
@@ -563,23 +571,21 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMove[], pos
     if (discardMoneyDelta) {
       this.bga.statusBar.addActionButton(_('Discard the tile'),
         async () => {
-          // FIXME: should this be exposed? better way to do this? wraap addActionButton?
+          // FIXME: should this be exposed? better way to do this? wrap addActionButton?
           this.clearOnclicks();
+          this.game.updateMoneyDelta(discardMoneyDelta);
           await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!,$(IDS.OFF_BOARD))
-          .then(() => {
-            this.game.updateMoneyDelta(discardMoneyDelta);
-            this.confirmDiscard(pm.src);
-          })
+            .then(() => this.confirmDiscard(pm.src));
         });
     }
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
       let elem = Elements.enclosureTile(this.player_id, pm.src);
       let destElem = Elements.enclosureSpace(this.player_id, dest.space)
-      console.log("Adding onclick to ", destElem, "for ", pm.src);
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
+            // FIXME: this doesn't work; that's for purchases.
             this.updateMoneyDelta(pm.money_delta);
             // FIXME: is this line needed?
             destElem.classList.add(CSS.MOVED);
@@ -613,11 +619,11 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         this.bga.statusBar.addActionButton(_('Take truck'),
           () => new TakeTruckFlow(this.game, this.flowState).start(playState.available_trucks));
       }
-      if (playState.possible_moves.length > 0) {
+      if (playState.possible_moves.moves.length > 0) {
         this.bga.statusBar.addActionButton(_('Move tile'),
           () => new MoveTileFlow(this.game, this.flowState).start(playState.possible_moves));
       }
-      if (playState.possible_exchanges.length > 0) {
+      if (playState.possible_exchanges.exchanges.length > 0) {
         this.bga.statusBar.addActionButton(_('Exchange animals'),
           () => new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges));
       }
@@ -676,7 +682,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
 
       // Animals in enclosures can only be exchanged, so these are also fine to just do.
-      if (playState.possible_exchanges.length > 0) {
+      if (playState.possible_exchanges.exchanges.length > 0) {
         new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
       }
 
@@ -876,7 +882,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   public updateMoneyDelta(delta: Moneys): void {
-    Object.entries(delta).forEach(pv => this.moneyCounter[pv[0]]!.incValue(pv[1]));
+    Object.entries(delta).forEach(pv => this.addMoney(Number(pv[0]), pv[1]));
   }
 
   // FIXME: consider making async to permit animations
