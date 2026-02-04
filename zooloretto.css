@@ -263,7 +263,7 @@ body.mobile_version {
     opacity: 60%;
     font-size: calc(0.33 * var(--zoo-tile-size));
     z-index: 10;
-    color: yellow;
+    color: orange;
     position: absolute !important;
     top: 0;
     left: 0;

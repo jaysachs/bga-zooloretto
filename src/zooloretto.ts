@@ -839,6 +839,16 @@ export class Game extends BaseGame<ZGamedatas> {
     this.renderTrucks(gamedatas);
     this.renderEnclosures(gamedatas);
     this.updateEnclosureSummaries(gamedatas.enclosure_summaries);
+    this.bga.userPreferences.onChange = (prefId: number, value: number) => {
+      switch (prefId) {
+        case 104:
+          if (value) {
+            $(IDS.GAME).classList.add('zoo-indicators');
+          } else {
+            $(IDS.GAME).classList.remove('zoo-indicators');
+          }
+      }
+    }
   }
 
   private setupTranslations(gamedatas: ZGamedatas): void {

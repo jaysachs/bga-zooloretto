@@ -26,7 +26,20 @@
         "default": 1
     },
     "102": {
-        "name": "Use piece-directred UI",
+        "name": "Use piece-directed UI",
+        "needReload": false,
+        "values": {
+            "0": {
+                "name": "No"
+            },
+            "1": {
+                "name": "Yes"
+            }
+        },
+        "default": 1
+    },
+    "104": {
+        "name": "Use animated star-indicators for selectable items",
         "needReload": false,
         "values": {
             "0": {
@@ -38,5 +51,4 @@
         },
         "default": 1
     }
-
 }
