@@ -56,16 +56,16 @@ class DeliverTruckTiles extends AbstractState
         if (!$truck_id) {
             throw new \BgaUserException("no truck delivering");
         }
-        $truck = $model->getTruck($truck_id);
-        $pps = PossiblePlacement::possiblePlacementFor($active_player_id, $truck, $model->getEnclosuresForPlayer($active_player_id));
+        $pds = [];
+        foreach ($model->getPossibleDeliveries($truck_id) as $pos => $dests) {
+            $pds[] = [
+                'truck_pos' => $pos,
+                'dests' => array_map(fn ($d) => $d->serialize(), $dests),
+            ];
+        }
         return [
             "truck_id" => $truck_id,
-            "possible_deliveries" => array_map(fn ($pp) => [
-                'truck_pos' => $pp->truck_pos,
-                'tile' => $pp->tile_type,
-                'tile_id' => $truck->tileAt($pp->truck_pos)->id,
-                'dests' => array_map(fn ($ppe) => $ppe->serialize(), $pp->next),
-            ], $pps->placements),
+            "possible_deliveries" => $pds,
         ];
     }
 
@@ -94,7 +94,7 @@ class DeliverTruckTiles extends AbstractState
     #[PossibleAction]
     public function actDeliverTile(int $active_player_id, int $truck_pos, int $enclosure_id, int $enclosure_pos, bool $confirm_if_done): mixed {
         $model = $this->createModel($active_player_id);
-        $delivery = $model->placeTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
+        $delivery = $model->deliverTruckTile($truck_pos, new Space($enclosure_id, $enclosure_pos));
         $this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description}'), [
             'player_id' => $active_player_id,
             'delivery' => $delivery->serialize(),

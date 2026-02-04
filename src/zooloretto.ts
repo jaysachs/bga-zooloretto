@@ -361,8 +361,10 @@ type TruckPlacement = {
 
 interface PossibleDelivery {
     truck_pos: number;
+    /*
     tile: string;
     tile_id: number;
+    */
     dests: Destination[];
 }
 

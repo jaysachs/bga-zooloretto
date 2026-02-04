@@ -176,7 +176,47 @@ class Model {
         return $this->retrieveAll()["enclosures"][$player_id];
     }
 
-    public function placeTruckTile(int $truck_pos, Space $space): Delivery {
+    /** @return array<int,list<Destination>> */
+    public function getPossibleDeliveries(int $truck_id): array {
+        $truck = $this->getTruck($truck_id);
+        $enclosures = $this->getEnclosuresForPlayer($this->player_id);
+        return $this->possibleDeliveriesFor($truck, $enclosures);
+    }
+
+    /**
+     * FIXME: this shouldn't be public, but it is for testing. Better to
+     * mock PersistentStore or use a fake DB.
+     *
+     * @param array<int,Enclosure> $enclosures
+     * @return array<int,list<Destination>>
+     */
+    public function possibleDeliveriesFor(Truck $truck, array $enclosures): array {
+        $result = [];
+        foreach ($truck->getAllTiles() as $pos => $tile) {
+            if ($tile->type->isPlaceable()) {
+                foreach ($enclosures as $eid => $enclosure) {
+                    $epos = $enclosure->availablePos($tile->type);
+                    if ($epos > 0) {
+                        $enc = $enclosure->clone();
+                        $pl = $enc->placeTile($tile, $epos);
+                        $offspring = $enc->checkForOffspring($enclosures[0]->clone());
+                        /** @var Moneys|null */
+                        $moneyDelta = null;
+                        if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
+                            $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
+                        }
+                        if (!isset($result[$pos])) {
+                            $result[$pos] = [];
+                        }
+                        $result[$pos][] = new Destination(new Space($eid,$epos), $offspring, $moneyDelta);
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function deliverTruckTile(int $truck_pos, Space $space): Delivery {
         $player = $this->getActivePlayer();
         $truck_id = $this->ps->getDeliveringTruckId();
         if (!$truck_id) {
@@ -259,14 +299,6 @@ class Model {
             "truck" => $truck,
             "coin_positions" => $coinPositions,
         ];
-    }
-
-    private function getPossiblePlacement(Truck $truck): PossiblePlacement {
-        return PossiblePlacement::possiblePlacementFor(
-            $this->player_id,
-            $truck,
-            $this->getEnclosuresForPlayer()
-        );
     }
 
     /** @return list<int> */
