@@ -15,6 +15,19 @@ type Continuation = {
   mark: number;
 }
 
+function strElem(el: HTMLElement | undefined): string {
+    if (!el) { return "undefined"; }
+    var elem : HTMLElement | null = el;
+    var s = "";
+    while (elem) {
+      if (elem.id) { return "#" + elem.id + s; }
+      s = ">" + elem.tagName + s;
+      elem = elem.parentElement;
+    }
+    return s;
+  }
+
+
 export type OpList = Op[];
 
 export class FlowState {
@@ -81,7 +94,7 @@ export class FlowState {
         this.current = undefined;
         this.continuations = [];
         this.ops = [];
-        this.marked = [];
+        this.clearMarked();
         this.resetController();
     }
 
@@ -98,6 +111,36 @@ export class FlowState {
     abortSignal(): AbortSignal {
       return this.onClickAbortController.signal;
     }
+
+  clearMarked() {
+    console.debug("clearMarked");
+    while (this.marked.length > 0) {
+      let elem = this.marked.pop()!;
+      if (!this.inUndo) {
+        console.debug("clearMarked **AS UNDOABLE OP**", elem);
+        let c = elem.className;
+        this.pushOp({
+          desc: `clearMarkedNotUndo:${strElem(elem)}:[${c}]`,
+          op: async () => { elem.className = c }
+        })
+      }
+      console.debug("clearing marked", elem);
+      elem.title = '';
+      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED);
+    }
+  }
+
+  private inUndo: boolean = false;
+  async rollback() {
+    // this.clearMarked();
+    this.inUndo = true;
+    this.resetController();
+    await this.reset().then(() => {
+      this.inUndo = false;
+    });
+  }
+
+
 }
 
 export abstract class PlayFlow<T> {
@@ -121,6 +164,13 @@ export abstract class PlayFlow<T> {
 
   protected pushUndoOp(desc: string, anim: Op): void {
     this.flowState.pushOp({ desc: desc, op: anim });
+  }
+
+  public onLeavingState(args: T, isCurrentPlayerActive: boolean) {
+    console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
+    if (isCurrentPlayerActive) {
+      this.flowState.clear();
+    }
   }
 
   public onEnteringState(args: T, isCurrentPlayerActive: boolean) {
@@ -149,29 +199,17 @@ export abstract class PlayFlow<T> {
     await this.animationManager.playParallel(anims);
   }
 
-  protected strElem(el: HTMLElement | undefined): string {
-    if (!el) { return "undefined"; }
-    var elem : HTMLElement | null = el;
-    var s = "";
-    while (elem) {
-      if (elem.id) { return "#" + elem.id + s; }
-      s = ">" + elem.tagName + s;
-      elem = elem.parentElement;
-    }
-    return s;
-  }
-
   protected abstract offboard(): HTMLElement | undefined;
 
   protected async slide(elem: HTMLElement, newParent: HTMLElement) {
     let currParent = elem.parentElement as HTMLElement;
-    this.pushUndoOp(`slide:${this.strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
+    this.pushUndoOp(`slide:${strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
     await this.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
   }
 
   protected async slideIn(elem: HTMLElement, newParent: HTMLElement) {
-    this.pushUndoOp(`sideIn:$${this.strElem(elem)}`, () => this.animationManager.slideOutAndDestroy(elem, this.offboard(), {}));
+    this.pushUndoOp(`sideIn:$${strElem(elem)}`, () => this.animationManager.slideOutAndDestroy(elem, this.offboard(), {}));
     newParent.appendChild(elem);
     await this.animationManager.slideIn(elem, this.offboard(), { });
   }
@@ -179,7 +217,7 @@ export abstract class PlayFlow<T> {
   protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {
     let backup = elem.cloneNode() as HTMLElement;
     let parent = elem.parentElement as HTMLElement;
-    this.pushUndoOp(`slideOutAndDestroy:${this.strElem(elem)}`, async () => {
+    this.pushUndoOp(`slideOutAndDestroy:${strElem(elem)}`, async () => {
       parent.appendChild(backup);
       await this.animationManager.slideIn(backup, toElem, {});
     });
@@ -187,12 +225,7 @@ export abstract class PlayFlow<T> {
   }
 
   protected async rollback() {
-    // this.clearMarked();
-    this.inUndo = true;
-    this.flowState.resetController();
-    await this.flowState.reset().then(() => {
-      this.inUndo = false;
-    });
+    this.flowState.rollback();
   }
 
   protected initStatusBar(title: string, args?: any) {
@@ -204,7 +237,7 @@ export abstract class PlayFlow<T> {
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>}) {
     let doAct = async () => {
-        this.clearMarked();
+        this.flowState.clearMarked();
         await this.bga.actions.performAction(bgaAction, args);
     };
     if (!this.confirmationsEnabled())  {
@@ -258,10 +291,11 @@ export abstract class PlayFlow<T> {
     if (!elem) {
       return;
     }
+    console.debug("markClass", elem, classToAdd);
     this.flowState.marked.push(elem);
     let c = elem.className;
     elem.classList.add(classToAdd);
-    this.pushUndoOp(`markClass:${classToAdd}:${c} ${this.strElem(elem)}`, async () => elem.className = c);
+    this.pushUndoOp(`markClass:${classToAdd}:${c} ${strElem(elem)}`, async () => elem.className = c);
   }
 
   protected markSelected(elem: HTMLElement | undefined) {
@@ -280,23 +314,6 @@ export abstract class PlayFlow<T> {
     this.markClass(elem, CSS.SELECTABLE);
   }
 
-  private inUndo: boolean = false;
-
-  private clearMarked() {
-    while (this.flowState.marked.length > 0) {
-      let elem = this.flowState.marked.pop()!;
-      if (!this.inUndo) {
-        let c = elem.className;
-        this.flowState.pushOp({
-          desc: `clearMarkedNotUndo:${this.strElem(elem)}:[${c}]`,
-          op: async () => { elem.className = c }
-        })
-      }
-      elem.title = '';
-      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED);
-    }
-  }
-
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any, desc?: string ) {
     this.markSelectable(elem);
     if (desc) {
@@ -305,9 +322,9 @@ export abstract class PlayFlow<T> {
     elem.addEventListener(
       "click",
       async (ev: MouseEvent) => {
-        console.debug(`clicked on ${this.strElem(elem)}`);
+        console.debug(`clicked on ${strElem(elem)}`);
         this.clearOnclicks();
-        this.clearMarked();
+        this.flowState.clearMarked();
         this.markSelected(elem);
         await onclick(ev);
       },
