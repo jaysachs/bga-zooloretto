@@ -154,7 +154,6 @@ export class MoreAnimations {
     async swapFirstChildren(elem: HTMLElement, other: HTMLElement) {
         let ghost1 = elem.firstElementChild ? null : elem.appendChild(document.createElement('span'));
         let ghost2 = other.firstElementChild ? null : other.appendChild(document.createElement('span'));
-        console.log("swapping first children of ", elem, other);
         return this.animationManager.swap([elem.firstElementChild as HTMLElement,
                                            other.firstElementChild as HTMLElement], {})
             .then(() => { ghost1?.remove(); ghost2?.remove(); });
