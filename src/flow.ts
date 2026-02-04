@@ -185,8 +185,8 @@ export abstract class PlayFlow<T> {
     this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
     // this.flowState.resetController();
-    // this.callUndoably(desc, () => this.doStart(args));
-    this.doStart(args);
+    this.callUndoably(desc, () => this.doStart(args));
+    // this.doStart(args);
   }
 
   protected async callUndoably(desc: string, thing: () => Promise<any>) {
