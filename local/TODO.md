@@ -1,3 +1,5 @@
+Restart turn for discard does not restore money (clientside).
+
 Hmm. Flows are "wired up" to something, either an action button or one or more elements. And some flows are "compound", consisting of the "select the thing" followed by "do the thing".
 
 Maybe just have PlayerTurnFlow:
