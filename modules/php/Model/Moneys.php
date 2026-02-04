@@ -52,11 +52,9 @@ class Moneys {
         return $this->players == $other->players;
     }
 
-    /** @return array<string,mixed> */
+    /** @return int[] */
     public function serialize(): array {
-        return [
-            'players' => $this->players,
-        ];
+        return $this->players;
     }
 
     public function __toString(): string

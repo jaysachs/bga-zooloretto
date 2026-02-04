@@ -25,14 +25,12 @@ interface Offspring {
   father: Tile;
 }
 
-interface Moneys {
-  players: { [ playerId: number ]: number };
-}
+type Moneys = { [playerId: number]: number };
 
 interface Destination {
   space: Space;
   offspring: Offspring;
-  money_delta: Moneys;
+  money_delta: Moneys | null;
 }
 
 // FIXME: is this useful?
@@ -57,7 +55,7 @@ interface LoadDrawnTileArgs {
 interface PossibleMove {
   src_player_id: number;
   src: Space;
-  money_delta: Moneys;
+  money_delta: Moneys | null;
   dests: Destination[];
 }
 
@@ -70,7 +68,7 @@ interface PossibleExchange {
 
 interface PossibleDiscard {
   spaces: Space[];
-  money_delta: Moneys;
+  money_delta: Moneys | null;
 }
 
 interface PlayState {
@@ -126,9 +124,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
   }
 
   private negate(moneyDelta: Moneys): Moneys {
-    return {
-      players: Object.fromEntries(Object.entries(moneyDelta.players).map(kv => [kv[0], -kv[1]])),
-    };
+    return Object.fromEntries(Object.entries(moneyDelta).map(kv => [kv[0], -kv[1]]));
   }
 
   protected updateMoneyDelta(moneyDelta?: Moneys): void {
@@ -870,14 +866,12 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   public updateMoneyDelta(delta: Moneys): void {
-    for (let player_id in delta.players) {
-      this.moneyCounter[player_id]!.incValue(delta.players[player_id]!);
-    }
+    Object.entries(delta).forEach(pv => this.moneyCounter[pv[0]]!.incValue(pv[1]));
   }
 
   // FIXME: consider making async to permit animations
   private updateMoneys(moneys: Moneys): void {
-    Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
+    Object.entries(moneys).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
   }
 
   private addMoney(player_id: number, delta: number): void {

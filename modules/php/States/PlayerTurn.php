@@ -128,7 +128,7 @@ class PlayerTurn extends AbstractState
                  'player_id' => $active_player_id,
                  'truck_id' => $truck_id,
                                'coin_positions' => $info["coin_positions"],
-                               'moneys' => $model->currentMoneys(),
+                               'moneys' => $model->currentMoneys()->serialize(),
                  'truck' => Truck::translated($truck_id),
                  'i18n' => [
                      'truck',
