@@ -55,18 +55,6 @@ interface LoadDrawnTileArgs {
 
 // PlayerTurn state
 
-interface PossibleEnclosurePlacement {
-  space: Space;
-  next: PossiblePlacement[];
-  offspring: Offspring | undefined;
-  money_delta: Moneys | undefined;
-}
-
-interface PossiblePlacement {
-  truck_pos: number;
-  encs: PossibleEnclosurePlacement[];
-}
-
 interface PossibleMove {
   src_player_id: number;
   src: Space;
@@ -349,14 +337,6 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
     // FIXME: restart doesn't re-highlight the truck spaces.
     this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
   }
-};
-
-
-type TruckPlacement = {
-  // truck_id is implicit
-  truck_pos: number;
-  enclosure_id: number;
-  enclosure_pos: number;
 };
 
 interface PossibleDelivery {
