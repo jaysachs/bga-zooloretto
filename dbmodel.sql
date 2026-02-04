@@ -54,12 +54,11 @@ CREATE TABLE IF NOT EXISTS `tiles` (
 
 CREATE TABLE IF NOT EXISTS `zglobals` (
   `id` int(10) unsigned NOT NULL DEFAULT 0,
-  `bank_money` int(10) unsigned NOT NULL DEFAULT 30,
   `delivering_truck` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `zglobals` (`bank_money`, `delivering_truck`) VALUES(30, 0);
+INSERT INTO `zglobals` (`delivering_truck`) VALUES(0);
 
 ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;

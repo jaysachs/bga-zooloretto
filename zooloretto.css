@@ -48,7 +48,7 @@ body.mobile_version {
 }
 
 /*
- * Shared components -- draw pile, bank money, trucks
+ * Shared components -- draw pile, stock, trucks
  */
 
 #zoo-shared-container {
@@ -64,26 +64,10 @@ body.mobile_version {
     width: auto;
 }
 
-#zoo-stock-and-bank {
+#zoo-stock {
     display: flex;
     flex-direction: row;
     margin: 1vw 0 1vw 0;
-}
-
-#zoo-bank {
-    flex: 1;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    background: url('img/Money.png') center / 100% no-repeat;
-}
-
-#zoo-bank-money {
-    color: white;
-    font-style: bold;
-    font-weight: bold;
-    font-size: 1.5vw;
-    display: flex;
 }
 
 #zoo-primary-pile, #zoo-endgame-pile {

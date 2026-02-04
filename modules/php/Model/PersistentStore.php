@@ -75,15 +75,6 @@ class PersistentStore {
                             WHERE player_id = {$player->id}");
     }
 
-    public function setBankMoney(int $money): void {
-        $this->db->execute("UPDATE zglobals SET bank_money = {$money}");
-    }
-
-    public function getBankMoney(): int {
-        $row = $this->db->getSingleFieldList("SELECT bank_money FROM zglobals");
-        return intval($row[0]);
-    }
-
     public function setDeliveringTruckId(int $truck_id): void {
         $this->db->execute("UPDATE zglobals SET delivering_truck = {$truck_id}");
     }

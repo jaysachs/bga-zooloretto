@@ -11,7 +11,7 @@ final class PossibleExchangeTest extends TestCase
     private Moneys $moneys;
 
     public function setUp(): void {
-        $this->moneys = new Moneys(0);
+        $this->moneys = new Moneys();
     }
 
     public function testEmpty(): void

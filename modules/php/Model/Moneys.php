@@ -33,7 +33,6 @@ use Bga\Games\zooloretto\Utils\Arrays;
 class Moneys {
     /** @param int[] $players keyed by player_id */
     public function __construct(
-        public readonly int $bank,
         public readonly array $players = [])
     {}
 
@@ -42,28 +41,26 @@ class Moneys {
     }
 
     public static function chargePlayerDelta(int $player_id, int $amount): Moneys {
-        return new Moneys($amount, [ $player_id => -$amount ]);
+        return new Moneys([ $player_id => -$amount ]);
     }
 
     public static function giftPlayerDelta(int $player_id, int $amt): Moneys {
-        return new Moneys(0, [ $player_id => $amt ]);
+        return new Moneys([ $player_id => $amt ]);
     }
 
     public function equals(Moneys $other): bool {
-        return $this->bank == $other->bank
-           && $this->players == $other->players;
+        return $this->players == $other->players;
     }
 
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
-            'bank' => $this->bank,
             'players' => $this->players,
         ];
     }
 
     public function __toString(): string
     {
-        return "Moneys{bank:{$this->bank},players:" . Arrays::arrayToString($this->players) . "}";
+        return "Moneys{players:" . Arrays::arrayToString($this->players) . "}";
     }
 }

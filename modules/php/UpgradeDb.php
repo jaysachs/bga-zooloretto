@@ -39,6 +39,7 @@ class UpgradeDb {
         if ($from_version > 2504011715) {
             return null;
         }
+        return null;
         $sql = [];
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT(10) UNSIGNED NOT NULL,
@@ -52,10 +53,9 @@ class UpgradeDb {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         $sql[] ="CREATE TABLE DBPREFIX_zglobals (
                 `id` int(10) unsigned NOT NULL DEFAULT 0,
-                `bank_money` int(10) unsigned NOT NULL,
+                `delivering_truck` int(10) unsigned NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $sql[] = "INSERT INTO DBPREFIX_zglobals (`bank_money`) VALUES(30)";
         $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0";
         $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned";
 

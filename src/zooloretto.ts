@@ -26,7 +26,6 @@ interface Offspring {
 }
 
 interface Moneys {
-  bank: number;
   players: { [ playerId: number ]: number };
 }
 
@@ -128,7 +127,6 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
   private negate(moneyDelta: Moneys): Moneys {
     return {
-      bank: -moneyDelta.bank,
       players: Object.fromEntries(Object.entries(moneyDelta.players).map(kv => [kv[0], -kv[1]])),
     };
   }
@@ -702,7 +700,6 @@ type UIStyle = 'pieces' | 'actionbuttons';
 export class Game extends BaseGame<ZGamedatas> {
   tileTranslations = new Map<string, string>();;
 
-  private bankCounter: Counter;
   private moneyCounter: Counter[] = [];
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
@@ -838,8 +835,6 @@ export class Game extends BaseGame<ZGamedatas> {
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
     }
-    this.bankCounter = new ebg.counter();
-    this.bankCounter.create(IDS.BANK_MONEY, { value: gamedatas.bank_money });
     this.primaryStockCounter = new ebg.counter();
     this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: gamedatas.primary_pile_size == 1000 ? null : gamedatas.primary_pile_size });
     this.endgameStockCounter = new ebg.counter();
@@ -875,9 +870,6 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   public updateMoneyDelta(delta: Moneys): void {
-    if (delta.bank) {
-      this.bankCounter.incValue(delta.bank);
-    }
     for (let player_id in delta.players) {
       this.moneyCounter[player_id]!.incValue(delta.players[player_id]!);
     }
@@ -885,7 +877,6 @@ export class Game extends BaseGame<ZGamedatas> {
 
   // FIXME: consider making async to permit animations
   private updateMoneys(moneys: Moneys): void {
-    this.bankCounter.toValue(moneys.bank);
     Object.entries(moneys.players).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
   }
 

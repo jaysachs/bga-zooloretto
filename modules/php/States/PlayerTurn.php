@@ -246,7 +246,7 @@ class PlayerTurn extends AbstractState
 		#[JsonParam] array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys(0)));
+		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, [], new Moneys()));
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',

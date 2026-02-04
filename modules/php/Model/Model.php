@@ -59,7 +59,6 @@ class Model {
         foreach ($trucks as $truck) {
             $ps->updateTruck($truck);
         }
-        $ps->setBankMoney(30 - 2 * $player_count);
 
         foreach ($player_ids as $player_id) {
             $player = new Player($player_id, 2, $player_count, 0, null);
@@ -376,7 +375,7 @@ class Model {
         if (! $this->getActivePlayer()->canAfford(Cost::DISCARD)) {
             return [
                 'spaces' => [],
-                'money_delta' => new Moneys(0),
+                'money_delta' => new Moneys(),
             ];
         }
         $money_delta = Moneys::costPlayerDelta($this->player_id, Cost::DISCARD);
@@ -540,7 +539,6 @@ class Model {
         $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
-        $this->incBankMoney(1);
         $seller->receiveMoney(1);
         $this->ps->updatePlayer($seller);
         $seller_barn = $this->getEnclosuresForPlayer($seller_player_id)[0];
@@ -601,7 +599,7 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $delta = new Moneys(1, [ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
+                    $delta = new Moneys([ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
                     $result[] = new PossibleMove($player->id, new Space($seller_barn->id, $pos), $dests, $delta);
                 }
             }
@@ -690,30 +688,14 @@ class Model {
         return new CompletedExchange($ex->src_enclosure_id, $stype, $ex->dest_enclosure_id, $dtype, $placedTiles, $offspring);
     }
 
-    private ?int $_bankMoney = null;
-    public function bankMoney() : int {
-        if ($this->_bankMoney === null) {
-            $this->_bankMoney = $this->ps->getBankMoney();
-        }
-        return $this->_bankMoney;
-    }
-
-    private function incBankMoney(int $amt): void {
-        $this->_bankMoney = $this->bankMoney() + $amt;
-        $this->ps->setBankMoney($this->_bankMoney);
-    }
-
     private function chargePlayer(Player $player, Cost $cost) : void {
         $player->payMoney($cost);
         $this->ps->updatePlayer($player);
-        $this->incBankMoney($cost->amount());
     }
 
     private function payPlayer(Player $player, int $amt) : int {
-        $amt = min($this->ps->getBankMoney(), $amt);
         $player->receiveMoney($amt);
         $this->ps->updatePlayer($player);
-        $this->incBankMoney(-$amt);
         return $amt;
     }
 
@@ -731,6 +713,6 @@ class Model {
     }
 
     public function currentMoneys(): Moneys {
-        return new Moneys($this->bankMoney(), array_map(fn (Player $p) => $p->money, $this->getAllPlayers()));
+        return new Moneys(array_map(fn (Player $p) => $p->money, $this->getAllPlayers()));
     }
 }

@@ -46,7 +46,6 @@ export class IDS {
   static readonly PRIMARY_PILE_COUNT = 'zoo-primary-pile-count';
   static readonly ENDGAME_PILE_COUNT = 'zoo-endgame-pile-count';
   static readonly OFF_BOARD = 'overall-footer';
-  static readonly BANK_MONEY = 'zoo-bank-money';
   static readonly DISK = 'zoo-disk';
   static readonly SCORE_SHEET = 'zoo-score-sheet';
 
@@ -170,7 +169,7 @@ export class ZoolorettoHtml {
           ... otherplayers.map((p) => this.playerBoardDiv(p))
         ),
         Html.div({ id: 'zoo-shared-container' },
-          Html.div({ id: 'zoo-stock-and-bank' },
+          Html.div({ id: 'zoo-stock' },
             Html.div({ id: 'zoo-primary-pile' },
               Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
               Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
@@ -178,9 +177,6 @@ export class ZoolorettoHtml {
             Html.div({ id: 'zoo-endgame-pile' },
               Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
               Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
-            ),
-            Html.div({ id: 'zoo-bank' },
-              Html.div({ id: IDS.BANK_MONEY, text: '27' })
             )
           ),
           ... this.gamedatas.trucks.map(truck =>

@@ -44,7 +44,6 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
   endgame_pile_size: number;
   lastround: boolean;
   drawntile: Tile | undefined;
-  bank_money: number;
   // Should always be 3.
   trucks: Truck[];
   // keyed by player_id
@@ -53,6 +52,7 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
 
   // name is translated/able
   tile_translations: { type: string, name: string }[];
+  // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
 }
 
