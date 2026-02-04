@@ -38,6 +38,7 @@ use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\PlayerTurn;
 use Bga\Games\zooloretto\Utils\Arrays;
 use Bga\Games\zooloretto\Utils\DefaultDb;
+use Override;
 
 class Game extends \Bga\GameFramework\Table
 {
@@ -63,10 +64,11 @@ class Game extends \Bga\GameFramework\Table
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
+	// #[Override]
 	/** @return array<string,mixed> */
-	protected function getAllDatas(): array
+	protected function getAllDatas(?int $player_id): array
 	{
-		$model = new Model(intval($this->getCurrentPlayerId()));
+		$model = new Model(intval($player_id));
 		$stock = $model->getStock();
 		$encs = [];
 		$esumms = [];
@@ -218,8 +220,7 @@ class Game extends \Bga\GameFramework\Table
 
 	#[Debug(reload: true)]
 	public function debug_fillTrucks(): void {
-		$player_id = intval($this->getActivePlayerId());
-		$model = new Model($player_id);
+		$model = new Model(0);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
