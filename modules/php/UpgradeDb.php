@@ -39,7 +39,9 @@ class UpgradeDb {
         if ($from_version > 2504011715) {
             return null;
         }
-        return null;
+        if ($from_version >= 0) {
+            return null;
+        }
         $sql = [];
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT(10) UNSIGNED NOT NULL,
