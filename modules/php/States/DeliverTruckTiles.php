@@ -29,6 +29,7 @@ namespace Bga\Games\zoolorettoalpha\States;
 
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
+use Bga\GameFramework\UserException;
 use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
@@ -54,7 +55,7 @@ class DeliverTruckTiles extends AbstractState
         $model = $this->createModel($active_player_id);
         $truck_id = $model->getDeliveringTruckId();
         if (!$truck_id) {
-            throw new \BgaUserException("no truck delivering");
+            throw new UserException("no truck delivering");
         }
         $pds = [];
         foreach ($model->getPossibleDeliveries($truck_id) as $pos => $dests) {
@@ -114,7 +115,7 @@ class DeliverTruckTiles extends AbstractState
         $model = $this->createModel($player_id);
         $truck_id = $model->getActivePlayer()->truck_taken;
         if (!$truck_id) {
-            throw new \BgaUserException("no truck selected");
+            throw new UserException("no truck selected");
         }
         $truck = $model->getTruck($model->getDeliveringTruckId());
         foreach ($truck->getAllTiles() as $pos => $tile) {
