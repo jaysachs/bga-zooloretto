@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto\Model;
 
+use Bga\GameFramework\UserException;
 use Bga\Games\zooloretto\Utils\DefaultDb;
 use Bga\Games\zooloretto\Utils\Arrays;
 
@@ -112,10 +113,10 @@ class Model {
 
     public function drawTile(): Stock {
         if ($this->getActivePlayer()->truck_taken) {
-            throw new \BgaVisibleSystemException("player already took truck");
+            throw new UserException("player already took truck");
         }
         if ($this->spacesOnTrucks() == 0) {
-            throw new \BgaVisibleSystemException("all trucks filled");
+            throw new UserException("all trucks filled");
         }
         $stock = $this->getStock();
         $stock->drawTile();
@@ -219,7 +220,7 @@ class Model {
         $player = $this->getActivePlayer();
         $truck_id = $this->ps->getDeliveringTruckId();
         if (!$truck_id) {
-            throw new \BgaUserException("no truck selected");
+            throw new UserException("no truck selected");
         }
         $truck = $this->getTruck($truck_id);
         $tile = $truck->removeTileAt($truck_pos);
@@ -257,11 +258,11 @@ class Model {
     public function setDeliveryCompleted(): Truck {
         $delivering_id = $this->getDeliveringTruckId();
         if (!$delivering_id) {
-            throw new \BgaUserException("no truck selected");
+            throw new UserException("no truck selected");
         }
         $truck = $this->getTruck($delivering_id);
         if (!$truck->isEmpty()) {
-            throw new \BgaUserException("truck {$delivering_id} not empty");
+            throw new UserException("truck {$delivering_id} not empty");
         }
         $player =$this->getActivePlayer();
         $player->takeTruck($truck);

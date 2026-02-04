@@ -30,6 +30,7 @@ namespace Bga\Games\zooloretto\States;
 use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\GameFramework\UserException;
 use Bga\Games\zooloretto\Game;
 use Bga\Games\zooloretto\Model\Cost;
 use Bga\Games\zooloretto\Model\Enclosure;
@@ -369,7 +370,7 @@ class PlayerTurn extends AbstractState
 		// We should never get here. If there are no tiles to draw, or places to put the tiles
 		// there should be at least one spot on one truck. That's why there are 15 tiles in
 		// the end game pile -- 3 for each possible player.
-		throw new \BgaVisibleSystemException("cannot draw, nor are there non-empty trucks available to take?!?");
+		throw new UserException("cannot draw, nor are there non-empty trucks available to take?!?");
 
 	/*
 		$truck = $model->getAvailableTrucks()[0];
