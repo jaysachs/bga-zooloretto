@@ -7,7 +7,7 @@ namespace Bga\Games\zooloretto\Model;
 use Bga\Games\zooloretto\Utils\TestDb;
 use PHPUnit\Framework\TestCase;
 
-function e(int $x, int $y, array $z = null, ?Offspring $offspring = null, ?Moneys $moneyDelta = null) {
+function e(int $x, int $y, ?Offspring $offspring = null, ?Moneys $moneyDelta = null): Destination {
     return new Destination(new Space($x, $y), $offspring, $moneyDelta);
 }
 
@@ -84,7 +84,7 @@ final class ModelTest extends TestCase
         $truck->placeTileAt($mother, 1);
         $truck->placeTileAt($father, 2);
 
-        $kid = function($eid, $pos, $comp = false) use(&$rm, &$rf) : Offspring {
+        $kid = function(int $eid, int $pos, bool $comp = false) use(&$rm, &$rf) : Offspring {
             return new Offspring(
                 new PlacedTile(new Tile($rm->id*10000+$rf->id, TileType::CAMEL_KID), new Space($eid, $pos), $comp),
                 $rm, $rf);

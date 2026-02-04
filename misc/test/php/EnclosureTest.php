@@ -71,7 +71,7 @@ final class EnclosureTest extends TestCase
         $this->assertEquals(0, $enc->availablePos(TileType::POPCORN));
     }
 
-    public function testTakeTile()
+    public function testTakeTile(): void
     {
         $enc = Enclosure::forTest(1, 3, 2);
 
@@ -107,8 +107,7 @@ final class EnclosureTest extends TestCase
             new Offspring(
                 new PlacedTile(new Tile(30004, TileType::CAMEL_KID), new Space(1, 3)),
                 new Tile(3, TileType::CAMEL_FEMALE, true),
-                new Tile(4, TileType::CAMEL_MALE, true),
-                false),
+                new Tile(4, TileType::CAMEL_MALE, true)),
             $e->checkForOffspring($barn));
         $this->assertNull($e->checkForOffspring($barn));
 
@@ -118,8 +117,7 @@ final class EnclosureTest extends TestCase
             new Offspring(
                 new PlacedTile(new Tile(360054, TileType::ELEPHANT_KID), new Space(0, 3)),
                 new Tile(36, TileType::ELEPHANT_FEMALE, true),
-                new Tile(54, TileType::ELEPHANT_MALE, true),
-                false),
+                new Tile(54, TileType::ELEPHANT_MALE, true)),
             $e->checkForOffspring($barn));
         $this->assertEquals(new Tile(360054, TileType::ELEPHANT_KID), $barn->tileAt(3));
     }
