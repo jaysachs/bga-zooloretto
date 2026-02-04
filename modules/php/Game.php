@@ -25,19 +25,19 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto;
+namespace Bga\Games\zoolorettoalpha;
 
 use Bga\GameFramework\Actions\Debug;
-use Bga\Games\zooloretto\Model\EnclosureSummary;
-use Bga\Games\zooloretto\Model\Model;
-use Bga\Games\zooloretto\Model\PersistentStore;
-use Bga\Games\zooloretto\Model\Space;
-use Bga\Games\zooloretto\Model\Tile;
-use Bga\Games\zooloretto\Model\TileType;
-use Bga\Games\zooloretto\Model\Truck;
-use Bga\Games\zooloretto\States\PlayerTurn;
-use Bga\Games\zooloretto\Utils\Arrays;
-use Bga\Games\zooloretto\Utils\DefaultDb;
+use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
+use Bga\Games\zoolorettoalpha\Model\Model;
+use Bga\Games\zoolorettoalpha\Model\PersistentStore;
+use Bga\Games\zoolorettoalpha\Model\Space;
+use Bga\Games\zoolorettoalpha\Model\Tile;
+use Bga\Games\zoolorettoalpha\Model\TileType;
+use Bga\Games\zoolorettoalpha\Model\Truck;
+use Bga\Games\zoolorettoalpha\States\PlayerTurn;
+use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
 use Override;
 
 class Game extends \Bga\GameFramework\Table

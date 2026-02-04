@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto;
+namespace Bga\Games\zoolorettoalpha;
 
 class LogDecorator {
 

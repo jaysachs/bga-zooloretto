@@ -25,15 +25,15 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto\States;
+namespace Bga\Games\zoolorettoalpha\States;
 
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
-use Bga\Games\zooloretto\Game;
-use Bga\Games\zooloretto\Model\Enclosure;
-use Bga\Games\zooloretto\Model\EnclosureSummary;
-use Bga\Games\zooloretto\Model\PossiblePlacement;
-use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zoolorettoalpha\Game;
+use Bga\Games\zoolorettoalpha\Model\Enclosure;
+use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
+use Bga\Games\zoolorettoalpha\Model\PossiblePlacement;
+use Bga\Games\zoolorettoalpha\Model\Space;
 
 class DeliverTruckTiles extends AbstractState
 {

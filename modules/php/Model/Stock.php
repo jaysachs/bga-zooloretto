@@ -25,9 +25,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto\Model;
+namespace Bga\Games\zoolorettoalpha\Model;
 
-use Bga\Games\zooloretto\Utils;
+use Bga\Games\zoolorettoalpha\Utils;
 
 class Stock {
 

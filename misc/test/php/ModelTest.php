@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zooloretto\Model;
+namespace Bga\Games\zoolorettoalpha\Model;
 
-use Bga\Games\zooloretto\Utils\TestDb;
+use Bga\Games\zoolorettoalpha\Utils\TestDb;
 use PHPUnit\Framework\TestCase;
 
 function e(int $x, int $y, ?Offspring $offspring = null, ?Moneys $moneyDelta = null): Destination {
