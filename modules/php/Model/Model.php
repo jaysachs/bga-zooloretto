@@ -155,12 +155,12 @@ class Model {
     }
 
     private function spacesOnTrucks() : int {
-        return array_sum(
+        return intval(array_sum(
             array_map(
                 function (Truck $t): int { return $t->freeSpaces(); },
                 array_filter($this->getTrucks(), fn ($t) => $t->taken_by === null)
             )
-        );
+        ));
     }
 
     /**
@@ -329,6 +329,7 @@ class Model {
                 $pids[] = $pid;
             }
             else {
+                /** @var list<Tile> */
                 $dumped = array_merge($dumped, $truck->dumpTiles());
             }
         }
