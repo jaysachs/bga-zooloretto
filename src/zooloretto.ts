@@ -377,7 +377,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
 
   private async chooseTruckTileToPlace(pps: PossibleDelivery[], truck_id: number) {
       */
-  private restart = { restart: () => this.bga.actions.performAction('actUndo', {}) };
+  private restart = { restart: async () => this.bga.actions.performAction('actUndo', {}) };
   protected async doStart(args: DeliverTilesArgs) {
     if (!args.possible_deliveries || args.possible_deliveries.length == 0) {
       this.initStatusBar(_('Confirm your truck tile deliveries'));
@@ -411,7 +411,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
         });
       });
     });
-    this.addRestartAndUndoButtons({ restart: () => this.bga.actions.performAction('actUndo', {}) });
+    this.addRestartAndUndoButtons(this.restart);
   }
 }
 
