@@ -57,12 +57,16 @@ interface PossibleMoves {
   money_delta: Moneys;
 }
 
-interface PossibleMove {
+interface PossiblePurchase {
   src_player_id: number;
   src: Space;
   dests: Destination[];
-  // FIXME: here since this is also used for purchases. Create a different type for purchases.
-  money_delta: Moneys | null;
+  money_delta: Moneys;
+}
+
+interface PossibleMove {
+  src: Space;
+  dests: Destination[];
 }
 
 interface PossibleExchanges {
@@ -89,7 +93,7 @@ interface PlayState {
   possible_discards: PossibleDiscards;
   possible_moves: PossibleMoves;
   possible_exchanges: PossibleExchanges;
-  possible_purchases: PossibleMove[];
+  possible_purchases: PossiblePurchase[];
 }
 
 // notif_TakeTruckAndPlaceTiles
@@ -239,15 +243,15 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   }
 }
 
-class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
+class PurchaseTilesFlow extends ZooFlow<PossiblePurchase[]> {
   constructor(g: Game, flowState: FlowState) {
     super(g, flowState);
   }
 
-  protected override doStart(possible_purchases: PossibleMove[]) {
+  protected override doStart(possible_purchases: PossiblePurchase[]) {
     this.initStatusBar(_("Select a tile to purchase from another player's barn"));
     this.addRestartAndUndoButtons();
-    possible_purchases.forEach((pp: PossibleMove) => {
+    possible_purchases.forEach((pp: PossiblePurchase) => {
         this.addSelectableOnclick(
           Elements.enclosureSpace(pp.src_player_id, pp.src),
           () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.flowState).start(pp))
@@ -256,12 +260,12 @@ class PurchaseTilesFlow extends ZooFlow<PossibleMove[]> {
   }
 }
 
-class PurchaseTileFlow extends ZooFlow<PossibleMove> {
+class PurchaseTileFlow extends ZooFlow<PossiblePurchase> {
   constructor(g: Game, flowState: FlowState) {
     super(g, flowState);
   }
 
-  protected override doStart(pp: PossibleMove) {
+  protected override doStart(pp: PossiblePurchase) {
     this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
     pp.dests.forEach((dest: Destination) =>
@@ -280,7 +284,7 @@ class PurchaseTileFlow extends ZooFlow<PossibleMove> {
     this.addRestartAndUndoButtons();
   }
 
-  private confirmPurchase(pp: PossibleMove, dest: Destination) {
+  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
@@ -472,7 +476,6 @@ class MoveTileFlow extends ZooFlow<PossibleMoves> {
   }
 
   private chooseDest(pm: PossibleMove) {
-    this.updateMoneyDelta(pm.money_delta);
     this.initStatusBar(_('Select a destination space'));
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
@@ -540,12 +543,12 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
 
     args.possible_moves.moves.forEach((m: PossibleMove) => {
       let es = Elements.enclosureSpace(this.player_id, m.src);
-      const discardable = dissrcs.indexOf(asInt(m.src)) >= 0;
+      const alsoDiscardable = dissrcs.indexOf(asInt(m.src)) >= 0;
       this.addSelectableOnclick(
         es,
         () => this.callUndoably("chooseMoveDest" + asInt(m.src), async () =>
-          this.chooseDest(m, discardable ? args.possible_discards.money_delta : null),
-      ), discardable ? _('Discard or move tile') : _('Move tile')
+          this.chooseDest(m, alsoDiscardable, args.possible_discards.money_delta, args.possible_moves.money_delta),
+      ), alsoDiscardable ? _('Discard or move tile') : _('Move tile')
       )
     });
     args.possible_discards.spaces.forEach((space: Space) => {
@@ -566,9 +569,9 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: space.pos });
   }
 
-  private chooseDest(pm: PossibleMove, discardMoneyDelta?: Moneys) {
+  private chooseDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
     this.initStatusBar(_('Select a destination space or'));
-    if (discardMoneyDelta) {
+    if (discardable) {
       this.bga.statusBar.addActionButton(_('Discard the tile'),
         async () => {
           // FIXME: should this be exposed? better way to do this? wrap addActionButton?
@@ -585,8 +588,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
-            // FIXME: this doesn't work; that's for purchases.
-            this.updateMoneyDelta(pm.money_delta);
+            this.updateMoneyDelta(moveMoneyDelta);
             // FIXME: is this line needed?
             destElem.classList.add(CSS.MOVED);
             this.markMoved(destElem);
@@ -672,7 +674,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
 
       // These can be separate since they exclusively are on other players' boards.
       if (playState.possible_purchases.length > 0) {
-        playState.possible_purchases.forEach((pp: PossibleMove) => {
+        playState.possible_purchases.forEach((pp: PossiblePurchase) => {
           this.addSelectableOnclick(
             Elements.enclosureSpace(pp.src_player_id, pp.src),
             () => new PurchaseTileFlow(this.game, this.flowState).start(pp),
