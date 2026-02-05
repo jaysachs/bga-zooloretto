@@ -62,7 +62,7 @@ class Model {
         }
 
         foreach ($player_ids as $player_id) {
-            $player = new Player($player_id, 2, $player_count, 0, null);
+            $player = new Player($player_id, 2, $player_count, 0, 0, 0);
             $ps->updatePlayer($player);
         }
     }
@@ -159,7 +159,7 @@ class Model {
         return intval(array_sum(
             array_map(
                 function (Truck $t): int { return $t->freeSpaces(); },
-                array_filter($this->getTrucks(), fn ($t) => $t->taken_by === null)
+                array_filter($this->getTrucks(), fn ($t) => $t->taken_by == 0)
             )
         ));
     }
@@ -218,7 +218,7 @@ class Model {
 
     public function deliverTruckTile(int $truck_pos, Space $space): Delivery {
         $player = $this->getActivePlayer();
-        $truck_id = $this->ps->getDeliveringTruckId();
+        $truck_id = $player->delivering_truck;
         if (!$truck_id) {
             throw new UserException("no truck selected");
         }
@@ -251,36 +251,20 @@ class Model {
         return $result;
     }
 
-    public function getDeliveringTruckId(): int {
-        return $this->ps->getDeliveringTruckId();
-    }
-
     public function setDeliveryCompleted(): Truck {
-        $delivering_id = $this->getDeliveringTruckId();
-        if (!$delivering_id) {
-            throw new UserException("no truck selected");
-        }
-        $truck = $this->getTruck($delivering_id);
-        if (!$truck->isEmpty()) {
-            throw new UserException("truck {$delivering_id} not empty");
-        }
-        $player =$this->getActivePlayer();
-        $player->takeTruck($truck);
+        $player = $this->getActivePlayer();
+        $t1 = $this->getTruck(2);
+        $player->takeTruck();
+        $truck = $this->getTruck($player->truck_taken);
+        $truck->setTakenBy($player->id);
         $this->ps->updatePlayer($player);
-        $this->ps->setDeliveringTruckId(0);
         return $truck;
     }
 
     /** @return array{truck:Truck,coin_positions:list<int>} */
     public function startTruckDelivery(int $truck_id): array {
         $player = $this->getActivePlayer();
-        if ($player->truck_taken) {
-            throw new ModelException("Player " . $player->id . " can't start delivery since they already took a took");
-        }
-        if ($this->getDeliveringTruckId()) {
-            throw new ModelException("Can't start a delivery as one is already in progress.");
-        }
-        $this->ps->setDeliveringTruckId($truck_id);
+        $player->startDeliveryForTruck($this->getTruck($truck_id));
 
         $truck = $this->getTruck($truck_id);
         $coinPositions = $truck->coinPositions();

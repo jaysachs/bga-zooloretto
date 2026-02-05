@@ -39,10 +39,7 @@ class Truck {
     public function __construct(
         public readonly int $id,
         ?array $tiles = null,
-        public private(set) ?int $taken_by = null) {
-        if ($this->taken_by === 0) {
-            $this->taken_by = null;
-        }
+        public private(set) int $taken_by = 0) {
         if ($tiles == null) {
             $this->tiles = [Tile::empty(), Tile::empty(), Tile::empty()];
         } else {
@@ -98,7 +95,7 @@ class Truck {
 
     /** @return list<Tile> the tiles emptied. */
     public function dumpTiles(): array {
-        if ($this->taken_by !== null) {
+        if ($this->taken_by != 0) {
             throw new ModelException("Cannot dump a non-taken truck");
         }
         $t = [];
@@ -112,14 +109,14 @@ class Truck {
     }
 
     public function returnTruck(): int {
-        if ($this->taken_by === null) {
+        if ($this->taken_by == 0) {
             throw new ModelException("Cannot return a non-taken truck {$this}");
         }
         if (!$this->isEmpty()) {
             throw new ModelException("Cannot return a non-empty truck {$this}");
         }
         $pid = $this->taken_by;
-        $this->taken_by = null;
+        $this->taken_by = 0;
         return $pid;
     }
 
@@ -127,7 +124,7 @@ class Truck {
         if ($player_id == 0) {
             throw new ModelException("0 player cannot take a truck");
         }
-        if ($this->taken_by === null) {
+        if ($this->taken_by == 0) {
             $this->taken_by = $player_id;
         } else {
             throw new ModelException("Attempt to take truck {$this->id} by {$player_id} that was already taken by {$this->taken_by}");
@@ -135,7 +132,7 @@ class Truck {
     }
 
     public function canBeTaken(): bool {
-        return ($this->taken_by === null) && !$this->isEmpty();
+        return ($this->taken_by == 0) && !$this->isEmpty();
     }
 
     public function removeTileAt(int $pos): Tile {

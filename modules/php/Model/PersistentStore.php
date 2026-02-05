@@ -58,30 +58,13 @@ class PersistentStore {
                             WHERE player_id = {$player_id}");
     }
 
-    private static function nullableIntStr(?int $val): string {
-        return $val === null ? "NULL" : "{$val}";
-    }
-
-    private static function nullableIntVal(?string $val): ?int {
-        return $val === null ? null : intval($val);
-    }
-
     public function updatePlayer(Player $player): void {
-        $taken = self::nullableIntStr($player->truck_taken);
         $this->db->execute("UPDATE player
                             SET money = {$player->money},
                                 purchased_extensions = {$player->purchased_extensions},
-                                truck_taken = {$taken}
+                                truck_taken = {$player->truck_taken},
+                                truck_delivering = {$player->delivering_truck}
                             WHERE player_id = {$player->id}");
-    }
-
-    public function setDeliveringTruckId(int $truck_id): void {
-        $this->db->execute("UPDATE zglobals SET delivering_truck = {$truck_id}");
-    }
-
-    public function getDeliveringTruckId(): int {
-        $row = $this->db->getSingleFieldList("SELECT delivering_truck FROM zglobals");
-        return intval($row[0]);
     }
 
     /**
@@ -129,7 +112,7 @@ class PersistentStore {
             }
         }
         foreach ($players as $player) {
-            if ($player->truck_taken !== null) {
+            if ($player->truck_taken != 0) {
                 $trucks[$player->truck_taken]->setTakenBy($player->id);
             }
         }
@@ -144,7 +127,7 @@ class PersistentStore {
     /** @return array<int,Player> */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken FROM player");
+        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken, truck_delivering FROM player");
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
@@ -153,7 +136,8 @@ class PersistentStore {
                 intval($row["money"]),
                 $numPlayers,
                 intval($row["purchased_extensions"]),
-                self::nullableIntVal($row["truck_taken"]));
+                intval($row["truck_taken"]),
+                intval($row["truck_delivering"]));
         }
         return $players;
     }

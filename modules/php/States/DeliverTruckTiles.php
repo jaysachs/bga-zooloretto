@@ -53,7 +53,8 @@ class DeliverTruckTiles extends AbstractState
     public function getArgs(int $active_player_id): array {
         // return truck_id, and map of positions to possible destinations
         $model = $this->createModel($active_player_id);
-        $truck_id = $model->getDeliveringTruckId();
+        $player = $model->getActivePlayer();
+        $truck_id = $player->delivering_truck;
         if (!$truck_id) {
             throw new UserException("no truck delivering");
         }
@@ -113,11 +114,11 @@ class DeliverTruckTiles extends AbstractState
 
 	function zombie(int $player_id): mixed {
         $model = $this->createModel($player_id);
-        $truck_id = $model->getActivePlayer()->truck_taken;
+        $truck_id = $model->getActivePlayer()->delivering_truck;
         if (!$truck_id) {
             throw new UserException("no truck selected");
         }
-        $truck = $model->getTruck($model->getDeliveringTruckId());
+        $truck = $model->getTruck($truck_id);
         foreach ($truck->getAllTiles() as $pos => $tile) {
             if (!$tile->isEmpty()) {
                 $barn = $model->getEnclosuresForPlayer($player_id)[0];
