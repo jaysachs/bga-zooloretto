@@ -30,4 +30,3 @@
   * Consider clicking on any space in an enclosure as "that's the destination"
 * (?) Automatic delivery choices? How can that really be good except in trivial cases? I guess with a "restart turn" it can be flawed.
 * Generate PHP/TS classes from user preferences?
-* Eliminate zglobal tables, replace with extra field on player
