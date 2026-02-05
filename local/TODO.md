@@ -2,7 +2,7 @@
 * Truck animation into/out of player boards "glitch" (temporarily grows player board area -- need to keep size of truck small until removed / before added)
 * (?) Add undo back
 * Verify all notifications are properly handled
-* Verify all log messages are complete and correct
+* Verify all notif messages are complete and correct
 * (?) If just one option, automatically do it, e.g.
   * draw: only one truck spot open, or all equivalent
   * deliver tile: if only one spot or all equivalent
@@ -12,9 +12,11 @@
 * Verify completion bonuses generated at right times
 * Mobile testing
 * (?) add back player aid
+* extension click target is covered by enclosures
 * Update layout for mobile (trucks at top)
 * Potential improvements
-  * Add "redo" to flows
+  * Tabbled single-panel view?
+  * Add "redo" to flows (if we add undo)
   * UX: consider: when other player's turn, scroll their board into view. or reorder as turns go?
   * consider clicking on enclosures as a whole (for exchange, at least)
   * When only one action just do it (?)
