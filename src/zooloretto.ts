@@ -1202,7 +1202,7 @@ export class Game extends BaseGame<ZGamedatas> {
     tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.tile_type), title: _(args.tile_description)}),
     src_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.src_tile_type), title: _(args.src_tile_description)}),
     dest_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.dest_tile_type), title: _(args.dest_tile_description)}),
-    coins: (args: any) => Html.span({text: ""+args.coins},
+    coins: (args: any) => Html.span({text: ""+args.coins+" "},
         Html.span({classes: 'zoo-money-label', title: _("coins")}))
   };
 }
