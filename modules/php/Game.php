@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zoolorettoalpha;
 
 use Bga\GameFramework\Actions\Debug;
+use Bga\GameFramework\Table;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
@@ -38,9 +39,36 @@ use Bga\Games\zoolorettoalpha\Model\Truck;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
+use Bga\Games\zoolorettoalpha\Utils\Log;
+use Bga\Games\zoolorettoalpha\Utils\Logger;
+use Bga\Games\zoolorettoalpha\Utils\LogImpl;
 use Override;
 
-class Game extends \Bga\GameFramework\Table
+class GameLogger implements Logger {
+	function __construct(private Table $table) { }
+
+	public function debug(string $msg): void {
+		$this->table->debug($msg);
+	}
+
+	public function dump(string $prefix, mixed $obj): void {
+		$this->table->dump($prefix, $obj);
+	}
+
+	public function error(string $msg): void {
+		$this->table->error($msg);
+	}
+
+	public function trace(string $msg): void {
+		$this->table->trace($msg);
+	}
+
+	public function warn(string $msg): void {
+		$this->table->warn($msg);
+	}
+}
+
+class Game extends Table
 {
 
 	public Stats $stats;
@@ -48,6 +76,7 @@ class Game extends \Bga\GameFramework\Table
 	{
 		parent::__construct();
 
+		Log::setImpl(new GameLogger($this));
 		$logDecorator = new LogDecorator(\Closure::fromCallable($this->getPlayerNameById(...)));
 		$this->notify->addDecorator($logDecorator->playerNames(...));
  		$this->stats = Stats::createForGame($this);
