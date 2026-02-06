@@ -10,7 +10,6 @@
 * Verify completion bonuses generated at right times
 * Mobile testing
 * (?) add back player aid
-* extension click target is covered by enclosures
 * Update layout for mobile (trucks at top)
 * Potential improvements
   * Tabbled single-panel view?
