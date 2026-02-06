@@ -644,7 +644,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
     }
     else if (this.uiStyle() == 'pieces') {
       // FIXME: need to update the status bar title based on what's possible.
-
+      console.log("doStart PlayerTurnFlow", playState);
       // Drawing a tile is orthogonal to other actions.
       if (playState.can_draw) {
         let topTile = Elements.drawnTile(playState.lastround);

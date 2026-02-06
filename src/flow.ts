@@ -38,7 +38,7 @@ export class FlowState {
     private continuations: Continuation[] = [];
     private onClickAbortController : AbortController = new AbortController();
     private current: Continuation | undefined;
-    private consumer: (OpList) => any;
+    private readonly consumer: (OpList) => any;
     constructor(consumer: (OpList) => any) {
       this.consumer = consumer;
     }
@@ -98,10 +98,6 @@ export class FlowState {
         this.resetController();
     }
 
-    async reset()  {
-      await this.undoTo(0).then(this.clear.bind(this));
-    }
-
     resetController() {
       console.debug("flowState resetController");
       this.onClickAbortController.abort();
@@ -132,15 +128,13 @@ export class FlowState {
 
   private inUndo: boolean = false;
   async rollback() {
+    console.debug("***");
+    console.debug("flowstate rollback");
     // this.clearMarked();
     this.inUndo = true;
     this.resetController();
-    await this.reset().then(() => {
-      this.inUndo = false;
-    });
+    await this.undoTo(0).then(this.clear.bind(this)).then(() => this.inUndo = false );
   }
-
-
 }
 
 export abstract class PlayFlow<T> {
@@ -169,19 +163,20 @@ export abstract class PlayFlow<T> {
   public onLeavingState(args: T, isCurrentPlayerActive: boolean) {
     console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
-      this.flowState.clear();
+      // this.flowState.clear();
     }
   }
 
   public onEnteringState(args: T, isCurrentPlayerActive: boolean) {
     console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
-      this.flowState.clear();
+      // this.flowState.clear();
       this.start(args);
     }
   }
 
   start(args: T) {
+    console.log("start:", (this as any).constructor?.name);
     this.player_id = this.bga.gameui.player_id;
     let desc = "Start " + (this as any).constructor?.name;
     this.callUndoably(desc, () => this.doStart(args));
@@ -223,7 +218,7 @@ export abstract class PlayFlow<T> {
   }
 
   protected async rollback() {
-    this.flowState.rollback();
+    await this.flowState.rollback();
   }
 
   protected initStatusBar(title: string, args?: any) {
@@ -253,8 +248,10 @@ export abstract class PlayFlow<T> {
             settings.confirm.remove();
           }
           if (settings?.restart) {
+            console.debug("using setting restart", settings.restart)
             await settings.restart();
           } else {
+            console.debug("rollback then restoreServerGameState")
             await this.rollback().then(() => {
               this.bga.states.restoreServerGameState();
             })
