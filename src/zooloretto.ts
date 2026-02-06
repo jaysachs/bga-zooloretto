@@ -302,6 +302,8 @@ class ExpandZooFlow extends ZooFlow {
     this.initStatusBar(_('Expand zoo?'));
     let current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
+    $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
+    // FIXME: Need to undo that removal as well?
     this.pushUndoOp('expandZoo', async () => this.game.renderExtensions(this.player_id, current));
     this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
@@ -1014,7 +1016,6 @@ export class Game extends BaseGame<ZGamedatas> {
     coin_positions: number[],
     moneys: Moneys,
   }) {
-    // FIXME: highlight the truck in question
     Elements.truck(args.truck_id).classList.add(CSS.SELECTED);
     let coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
     await this.animationManager.playParallel(coinElems.map(elem =>
