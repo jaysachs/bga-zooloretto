@@ -1,5 +1,3 @@
-* Fix restart
-* Truck animation into/out of player boards "glitch" (temporarily grows player board area -- need to keep size of truck small until removed / before added)
 * (?) Add undo back
 * Verify all notifications are properly handled
 * Verify all notif messages are complete and correct

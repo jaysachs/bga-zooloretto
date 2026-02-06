@@ -1015,6 +1015,7 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
   }) {
     // FIXME: highlight the truck in question
+    Elements.truck(args.truck_id).classList.add(CSS.SELECTED);
     let coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
     await this.animationManager.playParallel(coinElems.map(elem =>
       () => this.animationManager.slideOutAndDestroy(
@@ -1028,11 +1029,10 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    await this.moreAnimations.slideAndAttach(
-        Elements.truck(args.truck_id),
-        $(IDS.takenTruck(args.player_id))
-      )
+    let elem = Elements.truck(args.truck_id);
+    await this.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)))
       .then(() => {
+        elem.classList.remove(CSS.SELECTED);
         this.updateMoneys(args.moneys);
         this.updateEnclosureSummaries(args.enclosure_summaries);
         this.bga.gameui.disablePlayerPanel(args.player_id);
