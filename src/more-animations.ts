@@ -19,7 +19,7 @@ export class MoreAnimations {
         if (elem.parentElement == newParent) {
             return Promise.resolve();
         }
-        return this.animationManager.slideAndAttach(elem, newParent, {});
+        return this.animationManager.slideAndAttach(elem, newParent, { toPlaceholder: 'off', fromPlaceholder: 'on' });
     }
 
     async slideOutAndDestroy(elem?: HTMLElement | undefined,
