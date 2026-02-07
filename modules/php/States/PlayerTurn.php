@@ -36,10 +36,7 @@ use Bga\Games\zoolorettoalpha\Model\Cost;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
-use Bga\Games\zoolorettoalpha\Model\Offspring;
 use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
-use Bga\Games\zoolorettoalpha\Model\PossibleMove;
-use Bga\Games\zoolorettoalpha\Model\PossiblePurchase;
 use Bga\Games\zoolorettoalpha\Model\Space;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 

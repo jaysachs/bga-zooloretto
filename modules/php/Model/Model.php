@@ -424,7 +424,7 @@ class Model {
                 }
             }
             if (count($dests) > 0) {
-                $result[] = new PossibleMove($src, $dests, $moneyDelta);
+                $result[] = new PossibleMove($src, $dests);
             }
         }
         // or stall from one (non-barn) enclosure to another
@@ -444,7 +444,7 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $result[] = new PossibleMove($src, $dests, $moneyDelta);
+                    $result[] = new PossibleMove($src, $dests);
                 }
             }
         }

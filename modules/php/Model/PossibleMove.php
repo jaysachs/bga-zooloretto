@@ -34,15 +34,13 @@ class PossibleMove implements Serializable {
      */
     public function __construct(
         public readonly Space $src,
-        public readonly array $dests,
-        public readonly Moneys $money_delta
+        public readonly array $dests
     ) { }
 
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'src' => $this->src->serialize(),
-			'money_delta' => $this->money_delta->serialize(),
 			'dests' => array_map(fn (Destination $d) => $d->serialize(), $this->dests),
         ];
     }

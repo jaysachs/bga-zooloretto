@@ -31,9 +31,7 @@ use Bga\Games\zoolorettoalpha\Utils\Arrays;
 
 class PossibleExchange {
     /**
-     * @ param list<int> $src_positions
      * @param list<int> $src_positions
-     * @ param list<int> $dest_positions
      * @param list<int> $dest_positions
      * @param list<Offspring> $offspring
      */
