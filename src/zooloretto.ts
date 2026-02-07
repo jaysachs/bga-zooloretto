@@ -510,14 +510,12 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
 
   override doStart(args: { possible_moves: PossibleMoves, possible_discards: PossibleDiscards}) {
 
-    let movesrcs: number[] = [];
-    args.possible_moves.moves.forEach((m: PossibleMove) => movesrcs.push(m.src));
-    let dissrcs: number[] = [];
-    args.possible_discards.spaces.forEach((space: number) => dissrcs.push(space));
+    const isMoveable = (s : number) => args.possible_moves.moves.findIndex((m : PossibleMove) => m.src == s) >= 0;
+    const isDiscardable = (m: PossibleMove) => args.possible_discards.spaces.indexOf(m.src) >= 0;
 
     args.possible_moves.moves.forEach((m: PossibleMove) => {
       let es = Elements.enclosureSpace(this.player_id, m.src);
-      const alsoDiscardable = dissrcs.indexOf(m.src) >= 0;
+      const alsoDiscardable = isDiscardable(m);
       this.addSelectableOnclick(
         es,
         () => this.callUndoably("chooseMoveDest" + m.src, async () =>
@@ -526,7 +524,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
       )
     });
     args.possible_discards.spaces.forEach((space: number) => {
-      if (movesrcs.indexOf(space) < 0) {
+      if (!isMoveable(space)) {
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, space),
           async () => {
