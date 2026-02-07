@@ -38,6 +38,7 @@ use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
 use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
 use Bga\Games\zoolorettoalpha\Model\PossibleMove;
+use Bga\Games\zoolorettoalpha\Model\PossiblePurchase;
 use Bga\Games\zoolorettoalpha\Model\Space;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 
@@ -62,10 +63,6 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-
-		$pms = array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves());
-
-		$pb = array_map(fn (PossibleMove $b) => $b->serialize(), $model->getPurchaseableTiles());
 
 		$pxs = [];
 		/*
@@ -97,11 +94,11 @@ class PlayerTurn extends AbstractState
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $model->getAvailableTruckIds(),
 			'possible_moves' => [
-				'moves' => $pms,
+				'moves' => array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves()),
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::MOVE)->serialize(),
 			],
-			'can_move' => count($pms) > 0,
-			'possible_purchases' => $pb,
+			'possible_purchases' =>
+				array_map(fn (PossiblePurchase $b) => $b->serialize(), $model->getPurchaseableTiles()),
 			'possible_discards' => [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
 				'spaces' => array_map(fn ($s) => $s->serialize(), $model->getDiscardables())

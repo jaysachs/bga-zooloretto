@@ -27,12 +27,13 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class PossibleMove {
+class PossiblePurchase {
     /**
      * @param Space $src
      * @param list<Destination> $dests
      */
     public function __construct(
+        public readonly int $src_player_id,
         public readonly Space $src,
         public readonly array $dests,
         public readonly Moneys $money_delta
@@ -41,6 +42,7 @@ class PossibleMove {
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
+            'src_player_id' => $this->src_player_id,
             'src' => $this->src->serialize(),
 			'money_delta' => $this->money_delta->serialize(),
 			'dests' => array_map(fn ($d) => $d->serialize(), $this->dests),

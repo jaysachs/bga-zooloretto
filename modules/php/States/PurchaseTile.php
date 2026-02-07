@@ -32,7 +32,7 @@ use Bga\GameFramework\StateType;
 use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
-use Bga\Games\zoolorettoalpha\Model\PossibleMove;
+use Bga\Games\zoolorettoalpha\Model\PossiblePurchase;
 use Bga\Games\zoolorettoalpha\Model\Space;
 
 class PurchaseTile extends AbstractState
@@ -52,7 +52,7 @@ class PurchaseTile extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-		$pb = array_map(fn (PossibleMove $b) => $b->serialize(), $model->getPurchaseableTiles());
+		$pb = array_map(fn (PossiblePurchase $b) => $b->serialize(), $model->getPurchaseableTiles());
 
 		return [
 			'possible_purchases' => $pb,

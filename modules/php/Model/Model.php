@@ -424,7 +424,7 @@ class Model {
                 }
             }
             if (count($dests) > 0) {
-                $result[] = new PossibleMove($this->player_id, $src, $dests, $moneyDelta);
+                $result[] = new PossibleMove($src, $dests, $moneyDelta);
             }
         }
         // or stall from one (non-barn) enclosure to another
@@ -444,7 +444,7 @@ class Model {
                     }
                 }
                 if (count($dests) > 0) {
-                    $result[] = new PossibleMove($this->player_id, $src, $dests, $moneyDelta);
+                    $result[] = new PossibleMove($src, $dests, $moneyDelta);
                 }
             }
         }
@@ -555,7 +555,7 @@ class Model {
         return $result;
     }
 
-    /** @return list<PossibleMove> */
+    /** @return list<PossiblePurchase> */
     public function getPurchaseableTiles(): array {
         if (! $this->getActivePlayer()->canAfford(Cost::PURCHASE)) {
             return [];
@@ -563,7 +563,7 @@ class Model {
         // FIXME: We need to gather up all the Buys into an object, and attach
         //   a MoneyDelta there for the purchase price.
         $enclosures = $this->getEnclosuresForPlayer();
-        /** @var list<PossibleMove> */
+        /** @var list<PossiblePurchase> */
         $result = [];
         foreach ($this->getAllPlayers() as $player) {
             if ($player->id == $this->player_id) {
@@ -580,7 +580,7 @@ class Model {
                 }
                 if (count($dests) > 0) {
                     $delta = new Moneys([ $player->id => 1, $this->player_id => -Cost::PURCHASE->amount() ]);
-                    $result[] = new PossibleMove($player->id, new Space($seller_barn->id, $pos), $dests, $delta);
+                    $result[] = new PossiblePurchase($player->id, new Space($seller_barn->id, $pos), $dests, $delta);
                 }
             }
         }
