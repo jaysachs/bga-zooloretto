@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class Offspring {
+class Offspring implements Serializable {
     public function __construct(
         public readonly PlacedTile $child,
         public readonly Tile $mother,

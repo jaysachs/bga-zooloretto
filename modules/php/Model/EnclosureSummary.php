@@ -29,7 +29,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 
 use \Bga\Games\zoolorettoalpha\Utils;
 
-class EnclosureSummary {
+class EnclosureSummary implements Serializable {
     public function __construct(
         public readonly int $player_id,
         public readonly int $enclosure_id,

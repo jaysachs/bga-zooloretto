@@ -36,6 +36,7 @@ use Bga\Games\zoolorettoalpha\Model\Cost;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
+use Bga\Games\zoolorettoalpha\Model\Offspring;
 use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
 use Bga\Games\zoolorettoalpha\Model\PossibleMove;
 use Bga\Games\zoolorettoalpha\Model\PossiblePurchase;
@@ -80,12 +81,11 @@ class PlayerTurn extends AbstractState
 		*/
 		foreach ($model->getPossibleExchanges() as $px) {
 			$pxs[] = [
-				'offspring' => array_map(
-					fn ($o) => $o->serialize(), $px->offspring),
+				'offspring' => self::serializeArray($px->offspring),
 				'src' => array_map(
-					fn ($p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
+					fn (int $p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
 				'dest' => array_map(
-					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
+					fn (int $p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
 			];
 		}
 
@@ -94,14 +94,13 @@ class PlayerTurn extends AbstractState
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
 			'available_trucks' => $model->getAvailableTruckIds(),
 			'possible_moves' => [
-				'moves' => array_map(fn (PossibleMove $pm) => $pm->serialize(), $model->getPossibleMoves()),
+				'moves' => self::serializeArray($model->getPossibleMoves()),
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::MOVE)->serialize(),
 			],
-			'possible_purchases' =>
-				array_map(fn (PossiblePurchase $b) => $b->serialize(), $model->getPurchaseableTiles()),
+			'possible_purchases' => self::serializeArray($model->getPurchaseableTiles()),
 			'possible_discards' => [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
-				'spaces' => array_map(fn ($s) => $s->serialize(), $model->getDiscardables())
+				'spaces' => self::serializeArray($model->getDiscardables())
 			],
 			'possible_exchanges' => [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),

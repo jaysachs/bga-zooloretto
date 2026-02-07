@@ -30,7 +30,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 use \Bga\Games\zoolorettoalpha\Utils;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 
-class Moneys {
+class Moneys implements Serializable {
     /** @param int[] $players keyed by player_id */
     public function __construct(
         public readonly array $players = [])

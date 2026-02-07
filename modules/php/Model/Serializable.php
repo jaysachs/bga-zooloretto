@@ -27,39 +27,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class Destination implements Serializable {
-    public function __construct(
-        public readonly Space $space,
-        public readonly ?Offspring $offspring = null,
-        public readonly ?Moneys $moneyDelta = null) {
-    }
-
-    public function __toString(): string
-    {
-        return "dest(space:{$this->space},offspring:{$this->offspring},delta:{$this->moneyDelta})";
-    }
-
-    public function equals(Destination $other): bool
-    {
-        return $this->space == $other->space
-            && $this->offspring == $other->offspring
-            && $this->moneyDelta == $other->moneyDelta
-            ;
-    }
-
-    /** @return array<string,mixed> */
-    public function serialize(): array {
-		$result = [
-			'space' => $this->space->serialize(),
-        ];
-        if ($this->offspring) {
-			$result['offspring'] = $this->offspring->serialize();
-        }
-        if ($this->moneyDelta) {
-            $result['money_delta'] = $this->moneyDelta->serialize();
-        }
-        return $result;
-	}
-
-
+interface Serializable {
+    public function serialize(): mixed;
 }

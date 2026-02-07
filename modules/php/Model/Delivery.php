@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class Delivery {
+class Delivery implements Serializable {
     public function __construct(
         public int $truck_id,
         public int $truck_pos,

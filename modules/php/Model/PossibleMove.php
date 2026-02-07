@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class PossibleMove {
+class PossibleMove implements Serializable {
     /**
      * @param Space $src
      * @param list<Destination> $dests
@@ -43,7 +43,7 @@ class PossibleMove {
         return [
             'src' => $this->src->serialize(),
 			'money_delta' => $this->money_delta->serialize(),
-			'dests' => array_map(fn ($d) => $d->serialize(), $this->dests),
+			'dests' => array_map(fn (Destination $d) => $d->serialize(), $this->dests),
         ];
     }
 }

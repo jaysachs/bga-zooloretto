@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class PlacedTile {
+class PlacedTile implements Serializable {
     public function __construct(
         public readonly Tile $tile,
         public readonly Space $space,

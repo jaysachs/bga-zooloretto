@@ -33,6 +33,7 @@ use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\Offspring;
+use Bga\Games\zoolorettoalpha\Model\Serializable;
 
 abstract class AbstractState extends GameState
 {
@@ -68,6 +69,11 @@ abstract class AbstractState extends GameState
 
     protected function stockCount(int $count): int {
         return $this->game->stockCount($count);
+    }
+
+    /** @param array<Serializable> $a */
+    protected static function serializeArray(array $a): mixed {
+        return array_map(fn (Serializable $x) => $x->serialize(), $a);
     }
 
 	protected function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
