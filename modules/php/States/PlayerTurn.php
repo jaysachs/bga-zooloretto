@@ -68,6 +68,19 @@ class PlayerTurn extends AbstractState
 		$pb = array_map(fn (PossibleMove $b) => $b->serialize(), $model->getPurchaseableTiles());
 
 		$pxs = [];
+		/*
+			More compact representation:
+			   pairs => [ [ e1, e2 ], [ e1, e3 ], ... ]
+			      for all non-barns
+			or
+			   { e1 => [e2, e3], e2 => [e1, e4, e5], ... }
+			but then also need the barn stuff
+			'barn' => { e1 => [pos1, pos2], e2 => [pos3, pos4, pos6], ... }
+			Need to also get offspring into the barn though:
+			'barn' => { e1 => { pos: [1,2], offspring: ... }, ...}
+
+
+		*/
 		foreach ($model->getPossibleExchanges() as $px) {
 			$pxs[] = [
 				'offspring' => array_map(
