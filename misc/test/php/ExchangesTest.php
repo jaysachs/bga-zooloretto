@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
+use Bga\Games\zoolorettoalpha\Utils\Arrays;
 use PHPUnit\Framework\TestCase;
 
 final class ExchangesTest extends TestCase
@@ -68,8 +69,6 @@ final class ExchangesTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchanges::forEnclosures($encs);
-        var_dump($actual);
         $this->assertEquals(
             new Exchanges(
                 [1 => [2], 2 => [1,3], 3 => [2]],
@@ -96,8 +95,6 @@ final class ExchangesTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchanges::forEnclosures($encs);
-        var_dump($actual);
         $this->assertEquals(
             new Exchanges(
                 [1 => [2], 2 => [1,3], 3 => [2]],
@@ -131,8 +128,6 @@ final class ExchangesTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchanges::forEnclosures($encs);
-        var_dump($actual);
         $this->assertEquals(
             new Exchanges(
                 [2 => [3], 3 => [2]],
@@ -147,5 +142,7 @@ final class ExchangesTest extends TestCase
                     new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
             Exchanges::forEnclosures($encs));
+
+        // error_log(Arrays::arrayToString(Exchanges::forEnclosures($encs)->serialize(), true));
     }
 }

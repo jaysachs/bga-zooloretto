@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
+use Bga\Games\zoolorettoalpha\Utils\Arrays;
 use PHPUnit\Framework\TestCase;
 
 final class PossibleExchangeTest extends TestCase
@@ -121,5 +122,18 @@ final class PossibleExchangeTest extends TestCase
                     new Tile(8, TileType::CAMEL_MALE, true))]),
         ], PossibleExchange::getPossibleExchanges($encs));
 
+/*
+        $pxs = [];
+		foreach (PossibleExchange::getPossibleExchanges($encs) as $px) {
+			$pxs[] = [
+				'offspring' => $px->offspring ? $px->offspring[0]->serialize() : null,
+				'src' => array_map(
+					fn (int $p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
+				'dest' => array_map(
+					fn (int $p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
+			];
+		}
+        error_log(Arrays::arrayToString($pxs, true));
+*/
     }
 }
