@@ -1,3 +1,6 @@
+* Separate PossibleMove and PossiblePurchase
+* Trim down payload size for PossibleExchanges
+* Put "possibles" in private args?
 * (?) Add undo back
 * Verify all notifications are properly handled
 * Verify all notif messages are complete and correct
