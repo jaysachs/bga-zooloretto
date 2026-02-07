@@ -16,7 +16,6 @@ interface PlacedTile {
   tile: Tile;
   space: number;
   money_delta: Moneys | null;
-  completed_enclosure: boolean;
 }
 
 interface Offspring {

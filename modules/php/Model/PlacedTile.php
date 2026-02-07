@@ -37,12 +37,18 @@ class PlacedTile implements Serializable {
 
     /** @return array<string,mixed> */
     public function serialize(): array {
-        return [
+        $result = [
             'tile' => $this->tile->serialize(),
             'space' => $this->space->serialize(),
-            'money_delta' => $this->money_delta ? $this->money_delta->serialize() : null,
-            'completed_enclosure' => $this->completedEnclosure,
         ];
+        if ($this->money_delta) {
+            $result['money_delta'] = $this->money_delta->serialize();
+        }
+        // FIXME: not needed clientside (but maybe could be?)
+        // if ($this->completedEnclosure) {
+        //     $result['completed_enclosure'] = $this->completedEnclosure;
+        // }
+        return $result;
     }
 
     public function equals(PlacedTile $other): bool {
