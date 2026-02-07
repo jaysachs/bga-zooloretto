@@ -34,18 +34,16 @@ class Arrays
      * @param T[] $arr
      */
     public static function arrayToString(array $arr, ?bool $keys = false): string {
-        if ($keys) {
-            /** @var string[] */
-            $arr = array_map(
-                /** @param array|scalar|null $k */
-                function ($k, $v) use (&$keys) : string {
-                    $ks = "{$k}";
-                    $vs = is_array($v) ? self::arrayToString($v, $keys) : "{$v}";
-                    return "{$ks}=>{$vs}" ;
-                },
-                array_keys($arr),
-                array_values($arr));
-        }
+        /** @var string[] */
+        $arr = array_map(
+            /** @param array|scalar|null $k */
+            function ($k, $v) use (&$keys) : string {
+                $ks = "{$k}";
+                $vs = is_array($v) ? self::arrayToString($v, $keys) : "{$v}";
+                return $keys ? "{$ks}=>{$vs}" : "{$vs}";
+            },
+            array_keys($arr),
+            array_values($arr));
         // FIXME: not sure why this is needed.
         /** @phpstan-ignore argument.type */
         return "[" . implode(',', $arr) . "]";

@@ -22,4 +22,9 @@ final class ArraysTest extends TestCase
     {
         $this->assertSame('[7,5,2]', Arrays::arrayToString([7,5,2]));
     }
+
+    public function testNested(): void
+    {
+        $this->assertSame('[[1,2],[3,4]]', Arrays::arrayToString([[1,2],[3,4]]));
+    }
 }
