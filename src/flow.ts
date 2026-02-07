@@ -44,7 +44,7 @@ export class FlowState {
     }
 
     private async undoTo(mark: number) {
-      let anims: OpList = [];
+      const anims: OpList = [];
       while (this.ops.length > mark) {
         anims.push(this.ops.pop()!.op);
       }
@@ -66,7 +66,7 @@ export class FlowState {
 
     undo() : Op | undefined {
       console.debug("flowState undo");
-      let x = this.continuations.at(-1);
+      const x = this.continuations.at(-1);
       if (x) {
         console.debug("   flowState undo ", x.op.desc);
         // this.current = x;
@@ -111,10 +111,10 @@ export class FlowState {
   clearMarked() {
     console.debug("clearMarked");
     while (this.marked.length > 0) {
-      let elem = this.marked.pop()!;
+      const elem = this.marked.pop()!;
       if (!this.inUndo) {
         console.debug("clearMarked **AS UNDOABLE OP**", elem);
-        let c = elem.className;
+        const c = elem.className;
         this.pushOp({
           desc: `clearMarkedNotUndo:${strElem(elem)}:[${c}]`,
           op: async () => { elem.className = c }
@@ -178,7 +178,7 @@ export abstract class PlayFlow<T> {
   start(args: T) {
     console.log("start:", (this as any).constructor?.name);
     this.player_id = this.bga.gameui.player_id;
-    let desc = "Start " + (this as any).constructor?.name;
+    const desc = "Start " + (this as any).constructor?.name;
     this.callUndoably(desc, () => this.doStart(args));
   }
 
@@ -195,7 +195,7 @@ export abstract class PlayFlow<T> {
   protected abstract offboard(): HTMLElement | undefined;
 
   protected async slide(elem: HTMLElement, newParent: HTMLElement) {
-    let currParent = elem.parentElement as HTMLElement;
+    const currParent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slide:${strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
     await this.animationManager.slideAndAttach(elem, newParent, {})
       .then(() => this.markMoved(newParent));
@@ -208,8 +208,8 @@ export abstract class PlayFlow<T> {
   }
 
   protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {
-    let backup = elem.cloneNode() as HTMLElement;
-    let parent = elem.parentElement as HTMLElement;
+    const backup = elem.cloneNode() as HTMLElement;
+    const parent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slideOutAndDestroy:${strElem(elem)}`, async () => {
       parent.appendChild(backup);
       await this.animationManager.slideIn(backup, toElem, {});
@@ -229,14 +229,14 @@ export abstract class PlayFlow<T> {
   protected abstract confirmationsEnabled(): boolean;
 
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>}) {
-    let doAct = async () => {
+    const doAct = async () => {
         this.flowState.clearMarked();
         await this.bga.actions.performAction(bgaAction, args);
     };
     if (!this.confirmationsEnabled())  {
       return await doAct();
     }
-    let confirmButton = this.bga.statusBar.addActionButton(_('Confirm'), doAct, { autoclick: this.useAutoclick() });
+    const confirmButton = this.bga.statusBar.addActionButton(_('Confirm'), doAct, { autoclick: this.useAutoclick() });
     this.addRestartAndUndoButtons({ ...settings, confirm: confirmButton });
   }
 
@@ -260,7 +260,7 @@ export abstract class PlayFlow<T> {
       { color: "secondary"});
 
     /*
-    let undoReturn = this.flowState.undo();
+    const undoReturn = this.flowState.undo();
     if (undoReturn) {
       this.bga.statusBar.addActionButton(_('Undo'),
         async () => {
@@ -285,7 +285,7 @@ export abstract class PlayFlow<T> {
     }
     console.debug("markClass", elem, classToAdd);
     this.flowState.marked.push(elem);
-    let c = elem.className;
+    const c = elem.className;
     elem.classList.add(classToAdd);
     this.pushUndoOp(`markClass:${classToAdd}:${c} ${strElem(elem)}`, async () => elem.className = c);
   }

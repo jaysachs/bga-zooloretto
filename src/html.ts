@@ -4,7 +4,7 @@ export interface AttrLike {
 
 export class Html {
   public static makeElem(ty: string, args: {id?: string, text?: string, title?: string, attrs?: Record<string, string> | AttrLike , classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []): HTMLElement  {
-    let e = document.createElement(ty);
+    const e = document.createElement(ty);
     if (args.id) { e.id = args.id; }
     if (args.classes) {
       if (typeof(args.classes) == "string") { args.classes = [args.classes]; }

@@ -31,15 +31,15 @@ export class MoreAnimations {
     }
 
     async flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {
-        let on = () => {
+        const on = () => {
             elems.forEach(e => e?.classList.add(css));
             return this.wait(250);
         }
-        let off =  () => {
+        const off =  () => {
             elems.forEach(e => e?.classList.remove(css));
             return this.wait(250);
         }
-        let anims: AnimationList = [];
+        const anims: AnimationList = [];
         for (let i = 0; i < iterations; ++i) {
             anims.push(on, off);
         }
@@ -62,10 +62,10 @@ export class MoreAnimations {
 
     async slideToObject(el: HTMLElement, target: HTMLElement, duration: number = 500): Promise<any> {
         console.debug("slidetoObject", el.id, target.id);
-        let targetRect = target.getBoundingClientRect();
-        let parRect = el.parentElement!.getBoundingClientRect();
-        let newX = targetRect.left - parRect.left;
-        let newY = targetRect.top - parRect.top;
+        const targetRect = target.getBoundingClientRect();
+        const parRect = el.parentElement!.getBoundingClientRect();
+        const newX = targetRect.left - parRect.left;
+        const newY = targetRect.top - parRect.top;
         if (!this.animationManager.animationsActive()) {
             el.style.left = newX + "px";
             el.style.top = newY + "px";
@@ -94,8 +94,8 @@ export class MoreAnimations {
         Object.assign(back.style, flipStyles);
         Object.assign(front.style, flipStyles);
 
-        let liftAndFlip = (el : Element, start: string, end: string) => {
-            let anim = el.animate([
+        const liftAndFlip = (el : Element, start: string, end: string) => {
+            const anim = el.animate([
                 { transform: start },
                 { transform: lift + start },
                 { transform: lift + end },
@@ -152,8 +152,8 @@ export class MoreAnimations {
     }
 
     async swapFirstChildren(elem: HTMLElement, other: HTMLElement) {
-        let ghost1 = elem.firstElementChild ? null : elem.appendChild(document.createElement('span'));
-        let ghost2 = other.firstElementChild ? null : other.appendChild(document.createElement('span'));
+        const ghost1 = elem.firstElementChild ? null : elem.appendChild(document.createElement('span'));
+        const ghost2 = other.firstElementChild ? null : other.appendChild(document.createElement('span'));
         return this.animationManager.swap([elem.firstElementChild as HTMLElement,
                                            other.firstElementChild as HTMLElement], {})
             .then(() => { ghost1?.remove(); ghost2?.remove(); });

@@ -132,14 +132,13 @@ export class ZoolorettoHtml {
   private playerBoardDiv(player?: ZPlayer): HTMLElement | undefined {
     if (!player) { return undefined; }
 
-    let enclosure = (e: number, n: number): HTMLElement => {
+    const enclosure = (e: number, n: number): HTMLElement => {
       return Html.div({id: IDS.enclosure(player.player_id, e), attrs: Attrs.enclosure(e) },
         ... ZoolorettoHtml.range(1, n).map(i => Html.div({ id: IDS.enclosureSpace(player.player_id, toSpace(e, i)), classes: "zoo-cell"} ))
       );
     };
 
-    let board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
-    let extnum = this.twoPlayer ? 2 : 1;
+    const board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
     board.append(
       enclosure(0, 20), // the barn
       enclosure(1, 6),
@@ -148,6 +147,7 @@ export class ZoolorettoHtml {
       enclosure(4, 6),
       this.twoPlayer ? enclosure(5, 6) : undefined
     );
+    let extnum = this.twoPlayer ? 2 : 1;
     board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
     if (this.twoPlayer) {
       extnum--;
@@ -163,8 +163,8 @@ export class ZoolorettoHtml {
   }
 
   baseStructure(): HTMLElement {
-    let currentPlayer = this.gamedatas.players[this.player_id];
-    let otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
+    const currentPlayer = this.gamedatas.players[this.player_id];
+    const otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
 
     return Html
       .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
@@ -202,7 +202,7 @@ export class ZoolorettoHtml {
     const playerId = player.player_id;
     console.log('Setting up panel for player ' + player.player_id);
 
-    let summaryDivs : HTMLElement[] = [];
+    const summaryDivs : HTMLElement[] = [];
     if (this.twoPlayer) {
       summaryDivs.push(
         Html.div({},

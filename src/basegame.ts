@@ -28,12 +28,12 @@ export abstract class BaseGame<T extends Gamedatas> {
 
   bgaFormatText(log: string, args: any): { log: string, args: any } {
     try {
-      let shadowParent = document.createElement('span');
+      const shadowParent = document.createElement('span');
       if (log && args && !args.processed) {
         args.processed = true;
         for (const key in this.special_log_args) {
           if (key in args) {
-            let e = this.special_log_args[key](args);
+            const e = this.special_log_args[key](args);
             shadowParent.appendChild(e);
             args[key] = shadowParent.getHTML();
             e.remove();
