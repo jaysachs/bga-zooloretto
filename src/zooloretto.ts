@@ -153,7 +153,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     if (offspring) {
       // if it's already on-screen, skip animation.
       if (!$(IDS.tile(offspring.placed_tile.tile))) {
-        let offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
+        const offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
         // FIXME: why needed?
         offspringElem.style.transform = 'rotate(0deg)';
         return this.game.flashParents(offspring)
@@ -169,11 +169,11 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   protected override doStart(possible_exchanges: PossibleExchanges) {
-    let exchangesBySrc : PossibleExchange[][] = [];
-    for (let pe of possible_exchanges.exchanges) {
-      let src = pe.src[0]!;
-      let e = encOf(src);
-      let p = exchangesBySrc[e];
+    const exchangesBySrc : PossibleExchange[][] = [];
+    for (const pe of possible_exchanges.exchanges) {
+      const src = pe.src[0]!;
+      const e = encOf(src);
+      const p = exchangesBySrc[e];
       if (!p) {
         exchangesBySrc[e] = [];
       }
@@ -185,10 +185,10 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
       this.addRestartAndUndoButtons();
     }
     exchangesBySrc.forEach((pes: PossibleExchange[], encid: number) => {
-      let src = pes[0]!.src;
+      const src = pes[0]!.src;
       src.forEach((p) => {
         if (Elements.enclosureTile(this.player_id, p)) {
-          let es = Elements.enclosureSpace(this.player_id, p);
+          const es = Elements.enclosureSpace(this.player_id, p);
           this.addSelectableOnclick(
             Elements.enclosureSpace(this.player_id, p),
             () => {
@@ -211,7 +211,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
           Elements.enclosureSpace(this.player_id, d),
           async () =>  {
             this.updateMoneyDelta(money_delta);
-            let anims: AnimationList = [];
+            const anims: AnimationList = [];
             for (let i = 0; i < pe.src.length; ++i) {
               anims.push(() => this.moreAnimations.swapFirstChildren(
                 Elements.enclosureSpace(this.player_id, pe.src[i]!),
@@ -301,7 +301,7 @@ class ExpandZooFlow extends ZooFlow {
 
   override doStart() {
     this.initStatusBar(_('Expand zoo?'));
-    let current = this.game.getCurrentExtensions(this.player_id);
+    const current = this.game.getCurrentExtensions(this.player_id);
     this.game.renderExtensions(this.player_id, current + 1);
     $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
     // FIXME: Need to undo that removal as well?
@@ -327,7 +327,7 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
         { tile_type: args.tile.type,
           tile_description: this.game.tileTranslations.get(args.tile.type) });
-    let elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
+    const elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
@@ -337,7 +337,7 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   }
 
   private async placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
-    let space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
+    const space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
     this.slide(tileElem, space).then(() => this.confirmLoadDrawnTile(tile, truckLoc));
   }
 
@@ -390,7 +390,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
     else {
       this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
       args.possible_deliveries.forEach((pp: PossibleDelivery) => {
-        let elem = Elements.truckSpace(args.truck_id, pp.truck_pos);
+        const elem = Elements.truckSpace(args.truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, async () => {
           this.callUndoably("chooseDest", () => this.chooseDestination(pp, args.truck_id));
         });
@@ -403,9 +403,9 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
     pp.dests.forEach((dest: Destination) => {
-      let encElem = Elements.enclosureSpace(this.player_id, dest.space);
+      const encElem = Elements.enclosureSpace(this.player_id, dest.space);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
-        let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
+        const tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(dest.offspring).then( () => {
             this.updateMoneyDelta(dest.money_delta);
@@ -482,8 +482,8 @@ class MoveTileFlow extends ZooFlow<PossibleMoves> {
     this.initStatusBar(_('Select a destination space'));
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
-      let elem = Elements.enclosureTile(this.player_id, pm.src);
-      let destElem = Elements.enclosureSpace(this.player_id, dest.space)
+      const elem = Elements.enclosureTile(this.player_id, pm.src);
+      const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
@@ -514,7 +514,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     const isDiscardable = (m: PossibleMove) => args.possible_discards.spaces.indexOf(m.src) >= 0;
 
     args.possible_moves.moves.forEach((m: PossibleMove) => {
-      let es = Elements.enclosureSpace(this.player_id, m.src);
+      const es = Elements.enclosureSpace(this.player_id, m.src);
       const alsoDiscardable = isDiscardable(m);
       this.addSelectableOnclick(
         es,
@@ -555,8 +555,8 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     }
     this.addRestartAndUndoButtons();
     pm.dests.forEach((dest: Destination) => {
-      let elem = Elements.enclosureTile(this.player_id, pm.src);
-      let destElem = Elements.enclosureSpace(this.player_id, dest.space)
+      const elem = Elements.enclosureTile(this.player_id, pm.src);
+      const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
         () => this.slide(elem!, destElem)
           .then(() => {
@@ -693,7 +693,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
-    let setTile = () => {
+    const setTile = () => {
       elem.id = IDS.tile(tile);
       elem.setAttribute(Attrs.TILE, tile.type);
     };
@@ -702,8 +702,8 @@ export class Game extends BaseGame<ZGamedatas> {
       return Promise.resolve(null);
     }
     // Create the front and back of the tile to flip
-    let back = this.makeTileBackSpan();
-    let front = this.makeTileSpan(tile);
+    const back = this.makeTileBackSpan();
+    const front = this.makeTileSpan(tile);
 
     // "hide" the original tile
     elem.removeAttribute(Attrs.TILE);
@@ -723,7 +723,7 @@ export class Game extends BaseGame<ZGamedatas> {
       return this.makeTileBackSpan();
     }
     const id = IDS.tile(tile);
-    let elem = $(id);
+    const elem = $(id);
     if (elem) {
       if (elem.getAttribute(Attrs.TILE) != tile.type) {
         console.error("Found existing tile", elem, "with different type than ", tile);
@@ -748,7 +748,7 @@ export class Game extends BaseGame<ZGamedatas> {
       addStockTile(IDS.ENDGAME_PILE_TILES);
     }
     if (gamedatas.drawntile) {
-      let top = Elements.drawnTile(gamedatas.lastround);
+      const top = Elements.drawnTile(gamedatas.lastround);
       if (top) {
         // FIXME: might be nicer to create this properly ...
         top.setAttribute(Attrs.TILE, gamedatas.drawntile.type);
@@ -761,7 +761,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private renderTrucks(gamedatas: ZGamedatas): void {
-    for (let truck of gamedatas.trucks) {
+    for (const truck of gamedatas.trucks) {
       truck.contents.forEach(contents => {
         if (contents.tile) {
           Elements.truckSpace(truck.truck_id, contents.pos).append(this.makeTileSpan(contents.tile));
@@ -770,7 +770,7 @@ export class Game extends BaseGame<ZGamedatas> {
 
       if (truck.taken_by_player_id) {
         // move it to player panel
-        let tElem = $(IDS.depotSpace(truck.truck_id)).firstElementChild as HTMLElement;
+        const tElem = $(IDS.depotSpace(truck.truck_id)).firstElementChild as HTMLElement;
         $(IDS.takenTruck(truck.taken_by_player_id)).appendChild(tElem);
         this.bga.gameui.disablePlayerPanel(truck.taken_by_player_id);
       }
@@ -778,7 +778,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private renderEnclosures(gamedatas: ZGamedatas): void {
-    for (let player_id in gamedatas.enclosures) {
+    for (const player_id in gamedatas.enclosures) {
       gamedatas.enclosures[player_id]!.forEach(es => {
         if (es.tile) {
           Elements.enclosureSpace(Number(player_id), es.space).append(this.makeTileSpan(es.tile));
@@ -789,8 +789,8 @@ export class Game extends BaseGame<ZGamedatas> {
 
   private updateEnclosureSummaries(summaries: EnclosureSummary[]) {
     summaries.forEach(summary => {
-      let elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
-      let type = summary.animal_type;
+      const elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
+      const type = summary.animal_type;
       elem.setAttribute(Attrs.TILE, summary.animal_type);
       if (type) {
         elem.title = this.tileTranslations.get(type) ?? type;
@@ -803,11 +803,11 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
-    let zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
+    const zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
     this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
-      let counter = new ebg.counter();
+      const counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
       this.moneyCounter[player.player_id] = counter;
     }
@@ -870,12 +870,12 @@ export class Game extends BaseGame<ZGamedatas> {
 
   // FIXME: consider making this async to allow for animation
   renderExtensions(player_id : number, extensions: number): void {
-    let elem = $(IDS.boardId(player_id));
+    const elem = $(IDS.boardId(player_id));
     elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
   }
 
   getCurrentExtensions(player_id : number): number {
-    let elem = $(IDS.boardId(player_id));
+    const elem = $(IDS.boardId(player_id));
     return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
   }
 
@@ -889,7 +889,7 @@ export class Game extends BaseGame<ZGamedatas> {
       drawn_from_endgame_pile: boolean,
     }
   ): Promise<void> {
-    let disk = $(IDS.DISK);
+    const disk = $(IDS.DISK);
     if (args.drawn_from_endgame_pile) {
       this.showLastTurnBanner();
       if (disk) {
@@ -950,7 +950,7 @@ export class Game extends BaseGame<ZGamedatas> {
       truck_id: number,
       delivery: Delivery,
   }) {
-    let dest = args.delivery.dest;
+    const dest = args.delivery.dest;
     if (!dest) {
       // coin
       await this.moreAnimations.slideOutAndDestroy(
@@ -959,18 +959,18 @@ export class Game extends BaseGame<ZGamedatas> {
         ).then(() => this.addMoney(args.player_id, 1));
     }
     else {
-      let anims : AnimationList = [];
+      const anims : AnimationList = [];
       anims.push(() => this.moreAnimations.slideAndAttach(
         Elements.tile(args.delivery.tile)!,
         Elements.enclosureSpace(args.player_id, dest.space))
       );
       if (dest.offspring) {
-        let offspring = dest.offspring!;
+        const offspring = dest.offspring!;
         if (!$(IDS.tile(offspring.placed_tile.tile))) {
           anims.push(() => this.flashParents(offspring));
           anims.push(() => {
-            let elem = this.makeTileSpan(offspring.placed_tile.tile);
-            let parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+            const elem = this.makeTileSpan(offspring.placed_tile.tile);
+            const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
             parent.appendChild(elem);
             return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
           });
@@ -987,7 +987,7 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
   }) {
     Elements.truck(args.truck_id).classList.add(CSS.SELECTED);
-    let coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
+    const coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
     await this.animationManager.playParallel(coinElems.map(elem =>
       () => this.animationManager.slideOutAndDestroy(
               elem!, this.bga.playerPanels.getElement(args.player_id),{})))
@@ -1000,7 +1000,7 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    let elem = Elements.truck(args.truck_id);
+    const elem = Elements.truck(args.truck_id);
     await this.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)))
       .then(() => {
         elem.classList.remove(CSS.SELECTED);
@@ -1056,7 +1056,7 @@ export class Game extends BaseGame<ZGamedatas> {
     last_round: boolean }
   ) {
 
-    let anims: AnimationList = [];
+    const anims: AnimationList = [];
     args.dumped_tiles.forEach(tile =>
       anims.push(() => this.moreAnimations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
     );
@@ -1079,13 +1079,13 @@ export class Game extends BaseGame<ZGamedatas> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     this.updateMoneys(args.moneys);
-    let anims: AnimationList = [];
+    const anims: AnimationList = [];
     args.placed_tiles.forEach(pt =>  {
-      let elem = Elements.tile(pt.tile);
+      const elem = Elements.tile(pt.tile);
       if (elem) {
         anims.push(() => this.moreAnimations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
       } else {
-        let elem = this.makeTileSpan(pt.tile);
+        const elem = this.makeTileSpan(pt.tile);
         // FIXME: needed?
         elem.style.transform = 'rotate(0deg)';
         // a created offspring, create and slide it in
