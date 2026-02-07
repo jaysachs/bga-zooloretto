@@ -6,49 +6,49 @@ namespace Bga\Games\zoolorettoalpha\Model;
 
 use PHPUnit\Framework\TestCase;
 
-final class ExchangeTest extends TestCase
+final class ExchangesTest extends TestCase
 {
-    private Exchange $none;
+    private Exchanges $none;
 
     protected function setUp(): void {
-        $this->none = new Exchange([], []);
+        $this->none = new Exchanges([], []);
     }
 
     public function testEmpty(): void
     {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
-        $this->assertEquals($this->none, Exchange::forEnclosures($encs));
+        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
-        $this->assertEquals($this->none, Exchange::forEnclosures($encs));
+        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
     }
 
     public function testNoBarn_SameAnimal() : void {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals($this->none, Exchange::forEnclosures($encs));
+        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
     }
 
     public function testNoBarn_Simple(): void {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::ELEPHANT));
-        $this->assertEquals(new Exchange([1 => [2], 2 => [1]], []), Exchange::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
 
         $encs[0]->placeTile(new Tile(3, TileType::CAMEL_MALE));
-        $this->assertEquals(new Exchange([1 => [2], 2 => [1]], []), Exchange::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
     }
 
     public function testWithBarn(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1)];
-        $this->assertEquals($this->none, Exchange::forEnclosures($encs));
+        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals($this->none, Exchange::forEnclosures($encs));
+        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(3, TileType::ELEPHANT));
         $this->assertEquals(
-            new Exchange([],[1 => [new BarnExchange([2])]]),
-            Exchange::forEnclosures($encs));
+            new Exchanges([],[1 => [new BarnExchange([2])]]),
+            Exchanges::forEnclosures($encs));
     }
 
     public function testFullNoOffspring(): void {
@@ -68,15 +68,15 @@ final class ExchangeTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchange::forEnclosures($encs);
+        $actual = Exchanges::forEnclosures($encs);
         var_dump($actual);
         $this->assertEquals(
-            new Exchange(
+            new Exchanges(
                 [1 => [2], 2 => [1,3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [new BarnExchange([1,5]), new BarnExchange([3]),new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
-            Exchange::forEnclosures($encs));
+            Exchanges::forEnclosures($encs));
     }
 
     public function testFullWithOffspring(): void {
@@ -96,10 +96,10 @@ final class ExchangeTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchange::forEnclosures($encs);
+        $actual = Exchanges::forEnclosures($encs);
         var_dump($actual);
         $this->assertEquals(
-            new Exchange(
+            new Exchanges(
                 [1 => [2], 2 => [1,3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [
@@ -111,7 +111,7 @@ final class ExchangeTest extends TestCase
                     new BarnExchange([3]),
                     new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
-            Exchange::forEnclosures($encs));
+            Exchanges::forEnclosures($encs));
     }
 
     public function testFullWithOffspringIntoBarn(): void {
@@ -131,10 +131,10 @@ final class ExchangeTest extends TestCase
         $encs[2]->placeTile(new Tile(9, TileType::ZEBRA));
 
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
-        $actual = Exchange::forEnclosures($encs);
+        $actual = Exchanges::forEnclosures($encs);
         var_dump($actual);
         $this->assertEquals(
-            new Exchange(
+            new Exchanges(
                 [2 => [3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [
@@ -146,6 +146,6 @@ final class ExchangeTest extends TestCase
                     new BarnExchange([3]),
                     new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
-            Exchange::forEnclosures($encs));
+            Exchanges::forEnclosures($encs));
     }
 }

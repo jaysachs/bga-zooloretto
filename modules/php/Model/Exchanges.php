@@ -29,11 +29,11 @@ namespace Bga\Games\zoolorettoalpha\Model;
 
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 
-class Exchange implements Serializable {
+class Exchanges implements Serializable {
 
 	/**
 	 * @param array<int,list<int>> $enclosures key: encid; val: other enclosures
-	 * @param array<int,BarnExchange> $barn  key: ebcud; val: BarnExchange
+	 * @param array<int,list<BarnExchange>> $barn  key: ebcud; val: BarnExchange
 	 */
 	public function __construct(
 		public private(set) array $enclosures,
@@ -41,14 +41,18 @@ class Exchange implements Serializable {
 
 	/** @return array<string,mixed> */
 	public function serialize(): array {
+		$barns = [];
+		foreach ($this->barn as $e => $b) {
+			$barns[$e] = array_map(fn (BarnExchange $be) => $be->serialize(), $b);
+		}
 		return [
 			'enclosures' => $this->enclosures,
-			'barn' => array_map(fn (BarnExchange $be) => $be->serialize(), $this->barn),
+			'barn' => $barns,
 		];
 	}
 
 	/** @param list<Enclosure> $enclosures*/
-	public static function forEnclosures(array $enclosures): Exchange {
+	public static function forEnclosures(array $enclosures): Exchanges {
 		$ex = [];
 		$bx = [];
 		$occ = [];
@@ -89,7 +93,7 @@ class Exchange implements Serializable {
 		}
 		if ($barn == null) {
 			// throw new ModelException("no barn supplied in enclosures");
-			return new Exchange($ex, $bx);
+			return new Exchanges($ex, $bx);
 		}
 
 		// now barn
@@ -116,10 +120,12 @@ class Exchange implements Serializable {
 				$bx[$enc->id][] = new BarnExchange($dest_pos, $offspring);
 			}
 		}
-		return new Exchange($ex, $bx);
+		return new Exchanges($ex, $bx);
 	}
 
-	/** @param list<int> $barn_pos */
+	/**
+	 * @param list<int> $barn_pos
+	 */
 	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): ?Offspring {
 		$enc = $enc->clone();
 		$barn = $barn->clone();
@@ -140,8 +146,10 @@ class Exchange implements Serializable {
 }
 
 class BarnExchange implements Serializable{
-	/** @param list<list<int>> sets of barn positions getting exchanged */
-	/** @param Offspring potential offspring from the exchange */
+	/**
+	 * @param list<int> $positions set of barn positions getting exchanged
+	 * @param Offspring $offspring potential offspring from the exchange
+	 */
 	public function __construct(
 		public private(set) array $positions,
 		public private(set) ?Offspring $offspring = null) { }
