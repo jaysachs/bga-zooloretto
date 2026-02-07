@@ -583,8 +583,8 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
-    this.initStatusBar(_("You must take an action"));
     if (this.uiStyle() == 'actionbuttons') {
+      this.initStatusBar(_("You must take an action"));
       if (playState.can_draw) {
           this.bga.statusBar.addActionButton(_('Draw tile'),
             () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround));
@@ -615,6 +615,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
     }
     else if (this.uiStyle() == 'pieces') {
+      this.initStatusBar(_("You must click on a tile to take an action"));
       // FIXME: need to update the status bar title based on what's possible.
       console.log("doStart PlayerTurnFlow", playState);
       // Drawing a tile is orthogonal to other actions.
