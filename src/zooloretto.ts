@@ -1,8 +1,8 @@
 import { Html } from './html';
-import { Tile, ZGamedatas, Space, EnclosureSummary } from './zgametypes';
+import { Tile, ZGamedatas, EnclosureSummary } from './zgametypes';
 import { PlayFlow, FlowState } from './flow';
 import { BaseGame } from './basegame';
-import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
+import { CSS, IDS, Elements, ZoolorettoHtml, Attrs, encOf, posOf, toSpace } from './zhtml';
 import { AnimationList, MoreAnimations } from './more-animations';
 import { BgaScoreSheet, ScoreSheet } from './libs';
 
@@ -14,7 +14,7 @@ import { BgaScoreSheet, ScoreSheet } from './libs';
 
 interface PlacedTile {
   tile: Tile;
-  space: Space;
+  space: number;
   money_delta: Moneys | null;
   completed_enclosure: boolean;
 }
@@ -28,7 +28,7 @@ interface Offspring {
 type Moneys = { [playerId: number]: number };
 
 interface Destination {
-  space: Space;
+  space: number;
   offspring: Offspring;
   money_delta: Moneys | null;
 }
@@ -59,13 +59,13 @@ interface PossibleMoves {
 
 interface PossiblePurchase {
   src_player_id: number;
-  src: Space;
+  src: number;
   dests: Destination[];
   money_delta: Moneys;
 }
 
 interface PossibleMove {
-  src: Space;
+  src: number;
   dests: Destination[];
 }
 
@@ -75,13 +75,13 @@ interface PossibleExchanges {
 }
 
 interface PossibleExchange {
-  src: Space[];
-  dest: Space[];
+  src: number[];
+  dest: number[];
   offspring: Offspring[];
 }
 
 interface PossibleDiscards {
-  spaces: Space[];
+  spaces: number[];
   money_delta: Moneys;
 }
 
@@ -102,7 +102,7 @@ interface Delivery {
   truck_pos: number;
   tile: Tile;
   dest: {
-    space: Space;
+    space: number;
     offspring: Offspring | undefined;
   } | undefined;
 }
@@ -172,11 +172,12 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
     let exchangesBySrc : PossibleExchange[][] = [];
     for (let pe of possible_exchanges.exchanges) {
       let src = pe.src[0]!;
-      let p = exchangesBySrc[src.enclosure_id];
+      let e = encOf(src);
+      let p = exchangesBySrc[e];
       if (!p) {
-        exchangesBySrc[src.enclosure_id] = [];
+        exchangesBySrc[e] = [];
       }
-      exchangesBySrc[src.enclosure_id]!.push(pe);
+      exchangesBySrc[e]!.push(pe);
     }
 
     if (this.uiStyle() == 'actionbuttons') {
@@ -235,10 +236,10 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   private confirmExchange(pe: PossibleExchange) {
     this.initStatusBar(_("Confirm exchange"));
     this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : pe.src[0]!.enclosure_id,
-		  src_positions: JSON.stringify(pe.src.map((s) => s.pos)),
-		  dest_enclosure_id: pe.dest[0]!.enclosure_id,
-      dest_positions: JSON.stringify(pe.dest.map((s) => s.pos)),
+  		src_enclosure_id : encOf(pe.src[0]!),
+		  src_positions: JSON.stringify(pe.src.map((s) => posOf(s))),
+		  dest_enclosure_id: encOf(pe.dest[0]!),
+      dest_positions: JSON.stringify(pe.dest.map((s) => posOf(s))),
     });
   }
 }
@@ -288,9 +289,9 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase> {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
-      barn_pos: pp.src.pos,
-      enclosure_id: dest.space.enclosure_id,
-      enclosure_pos: dest.space.pos
+      barn_pos: posOf(pp.src),
+      enclosure_id: encOf(dest.space),
+      enclosure_pos: posOf(dest.space)
     });
   }
 }
@@ -408,7 +409,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
         this.slide(tileElem,encElem).then(() => {
           return this.offspringSlide(dest.offspring).then( () => {
             this.updateMoneyDelta(dest.money_delta);
-            this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: dest.space.enclosure_id, enclosure_pos: dest.space.pos, confirm_if_done: false })
+            this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: encOf(dest.space), enclosure_pos: posOf(dest.space), confirm_if_done: false })
           });
         });
       });
@@ -441,7 +442,7 @@ class DiscardTileFlow extends ZooFlow<PossibleDiscards> {
       this.addRestartAndUndoButtons();
     }
 
-    discardables.spaces.forEach((space: Space) => {
+    discardables.spaces.forEach((space: number) => {
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, space),
         async () => {
@@ -455,9 +456,9 @@ class DiscardTileFlow extends ZooFlow<PossibleDiscards> {
     });
   }
 
-  private confirmDiscard(space: Space) {
+  private confirmDiscard(space: number) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: space.pos });
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
   }
 }
 
@@ -495,39 +496,12 @@ class MoveTileFlow extends ZooFlow<PossibleMoves> {
     });
   }
 
-  private async confirmMove(src: Space, dest: Destination) {
+  private async confirmMove(src: number, dest: Destination) {
     await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
-      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
+      src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
     });
-  }
-}
-
-class SpaceMultimapMap<T> {
-  private data: Record<number, T[]> = {};
-
-  private asInt(s:Space): number {
-    return s.enclosure_id * 100 + s.pos;
-  }
-
-  public add(s: Space, t: T) {
-    const ix = this.asInt(s);
-    let ts = this.data[ix];
-    if (!ts) {
-      ts = [];
-      this.data[ix] = ts;
-    }
-    ts.push(t);
-  }
-
-  public getAll(s: Space) : T[] {
-    let ts = this.data[this.asInt(s)];
-    return ts ?? [];
-  }
-
-  public contains(s: Space): boolean {
-    return Boolean(this.data[this.asInt(s)]);
   }
 }
 
@@ -536,25 +510,23 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
 
   override doStart(args: { possible_moves: PossibleMoves, possible_discards: PossibleDiscards}) {
 
-    const asInt = (s:Space) => s.enclosure_id * 100 + s.pos;
-
     let movesrcs: number[] = [];
-    args.possible_moves.moves.forEach((m: PossibleMove) => movesrcs.push(asInt(m.src)));
+    args.possible_moves.moves.forEach((m: PossibleMove) => movesrcs.push(m.src));
     let dissrcs: number[] = [];
-    args.possible_discards.spaces.forEach((space: Space) => dissrcs.push(asInt(space)));
+    args.possible_discards.spaces.forEach((space: number) => dissrcs.push(space));
 
     args.possible_moves.moves.forEach((m: PossibleMove) => {
       let es = Elements.enclosureSpace(this.player_id, m.src);
-      const alsoDiscardable = dissrcs.indexOf(asInt(m.src)) >= 0;
+      const alsoDiscardable = dissrcs.indexOf(m.src) >= 0;
       this.addSelectableOnclick(
         es,
-        () => this.callUndoably("chooseMoveDest" + asInt(m.src), async () =>
+        () => this.callUndoably("chooseMoveDest" + m.src, async () =>
           this.chooseDest(m, alsoDiscardable, args.possible_discards.money_delta, args.possible_moves.money_delta),
       ), alsoDiscardable ? _('Discard or move tile') : _('Move tile')
       )
     });
-    args.possible_discards.spaces.forEach((space: Space) => {
-      if (movesrcs.indexOf(asInt(space)) < 0) {
+    args.possible_discards.spaces.forEach((space: number) => {
+      if (movesrcs.indexOf(space) < 0) {
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, space),
           async () => {
@@ -566,9 +538,9 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     });
   }
 
-  private confirmDiscard(space: Space) {
+  private confirmDiscard(space: number) {
     this.initStatusBar(_('Confirm discard'));
-    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: space.pos });
+    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
   }
 
   private chooseDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
@@ -600,11 +572,11 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     });
   }
 
-  private async confirmMove(src: Space, dest: Destination) {
+  private async confirmMove(src: number, dest: Destination) {
     await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
-      src_id: src.enclosure_id, src_pos: src.pos, dest_id: dest.space.enclosure_id, dest_pos: dest.space.pos
+      src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
     });
   }
 }
@@ -1043,7 +1015,7 @@ export class Game extends BaseGame<ZGamedatas> {
   private async notif_MoveTile(args: {
     player_id: number,
     tile: Tile,
-    dest: Space,
+    dest: number,
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {

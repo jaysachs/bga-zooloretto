@@ -28,7 +28,7 @@ export interface Truck {
 }
 
 export interface EnclosureContents {
-  space: Space;
+  space: number;
   tile: Tile | undefined;
 }
 
@@ -54,9 +54,4 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
   tile_translations: { type: string, name: string }[];
   // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
-}
-
-export interface Space {
-  enclosure_id: number;
-  pos: number;
 }

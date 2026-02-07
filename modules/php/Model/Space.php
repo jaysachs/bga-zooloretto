@@ -46,12 +46,8 @@ class Space {
         return $this->enclosure_id == $other->enclosure_id && $this->pos == $other->pos;
     }
 
-    /** @return array<string,mixed> */
-    public function serialize(): array {
-		return [
-			'enclosure_id' => $this->enclosure_id,
-			'pos' => $this->pos,
-		];
+    public function serialize(): int {
+		return $this->enclosure_id * 100 + $this->pos;
 	}
 
 }

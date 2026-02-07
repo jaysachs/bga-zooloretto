@@ -3,8 +3,12 @@
 //
 
 
-import { ZGamedatas, ZPlayer, Tile, Space } from './zgametypes';
+import { ZGamedatas, ZPlayer, Tile } from './zgametypes';
 import { Html, AttrLike } from './html';
+
+export function encOf(space: number): number { return Math.round(space / 100) }
+export function posOf(space: number): number { return space % 100 }
+export function toSpace(enc: number, pos: number) { return enc * 100 + pos }
 
 export class Attrs implements AttrLike {
   toRecord(): Record<string, string> {
@@ -53,7 +57,7 @@ export class IDS {
   static truck(truck_id : number) { return `zoo-truck-${truck_id}`; }
   static truckSpace(truck_id : number, pos: number) { return `zoo-truck-${truck_id}-${pos}`; }
   static enclosure(player_id: number, enclosure_id: number): string { return `zoo-enc-${player_id}-${enclosure_id}`; }
-  static enclosureSpace(player_id: number, enclosure_id: number, pos: number): string { return `zoo-enc-${player_id}-${enclosure_id}-${pos}`; }
+  static enclosureSpace(player_id: number, space: number): string { return `zoo-enc-${player_id}-${space}`; }
   static extension(player_id: number, ext_num: number): string { return `zoo-ext-${player_id}-${ext_num}`}
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `zoo-money-counter-${player_id}` };
@@ -101,11 +105,11 @@ export class Elements {
     return this.truckSpace(truck_id, truck_pos).firstChild as (HTMLElement | undefined);
   }
 
-  static enclosureSpace(player_id: number, space: Space) : HTMLElement {
-    return $(IDS.enclosureSpace(player_id, space.enclosure_id, space.pos));
+  static enclosureSpace(player_id: number, space: number) : HTMLElement {
+    return $(IDS.enclosureSpace(player_id, space));
   }
 
-  static enclosureTile(player_id: number, space: Space) : HTMLElement | undefined {
+  static enclosureTile(player_id: number, space: number) : HTMLElement | undefined {
     return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
@@ -130,7 +134,7 @@ export class ZoolorettoHtml {
 
     let enclosure = (e: number, n: number): HTMLElement => {
       return Html.div({id: IDS.enclosure(player.player_id, e), attrs: Attrs.enclosure(e) },
-        ... ZoolorettoHtml.range(1, n).map(i => Html.div({ id: IDS.enclosureSpace(player.player_id, e, i), classes: "zoo-cell"} ))
+        ... ZoolorettoHtml.range(1, n).map(i => Html.div({ id: IDS.enclosureSpace(player.player_id, toSpace(e, i)), classes: "zoo-cell"} ))
       );
     };
 
