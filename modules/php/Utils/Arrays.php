@@ -44,8 +44,6 @@ class Arrays
             },
             array_keys($arr),
             array_values($arr));
-        // FIXME: not sure why this is needed.
-        /** @phpstan-ignore argument.type */
         return "[" . implode(',', $arr) . "]";
     }
 
