@@ -26,10 +26,10 @@ final class EnclosureTest extends TestCase
     public function testBarnPlacements(): void
     {
         $barn = Enclosure::barn();
-        // barns have "infinite" capacity and don't care about species
+        // barns have "large" (20) capacity and don't care about species
         $pos = 1;
         $id = 10;
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i <6; $i++) {
             $tile = new Tile($id++, TileType::CAMEL);
             $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile));
             $tile = new Tile($id++, TileType::BARROW);
