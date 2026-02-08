@@ -35,7 +35,6 @@ class CompletedExchange {
         public readonly int $src_enclosure_id,
         public readonly TileType $src_tile_type,
         public readonly int $dest_enclosure_id,
-        public readonly TileType $dest_tile_type,
         public readonly array $placedTiles,
         public readonly ?Offspring $offspring,
     ) {}

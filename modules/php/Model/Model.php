@@ -601,50 +601,67 @@ class Model {
         $this->ps->insertTiles([$offspring->child->tile]);
     }
 
-    public function exchange(PossibleExchange $ex): CompletedExchange {
-        $found = false;
-        $pxs = $this->getPossibleExchanges();
-        foreach ($pxs as $px) {
-            if ($ex->matches($px)) {
-                $found = true;
-                break;
+    /**
+     * @param list<int> $dest_positions
+     */
+    public function exchange(int $src_enclosure_id, int $dest_enclosure_id, ?array $dest_positions): CompletedExchange {
+        $encs = $this->getEnclosuresForPlayer();
+        if ($src_enclosure_id == 0) {
+            throw new ModelException("Exchange source must not be barn.");
+        }
+        if ($src_enclosure_id == $dest_enclosure_id) {
+            throw new ModelException("Source and destination exchange enclosures must be different");
+        }
+        if ($dest_enclosure_id == 0) {
+            if (!$dest_positions || count($dest_positions) == 0) {
+                throw new ModelException("Exchange into barn requires positions to be specified");
             }
+            $barn = $encs[0];
+            $animalType = $barn->tileAt($dest_positions[0])->type->canonicalType();
+            $types = [];
+            foreach ($dest_positions as $pos) {
+                $t = $barn->tileAt($pos);
+                if (!$t->type->isAnimal()) {
+                    throw new ModelException("Non-animal tile exchange attempted");
+                }
+                if ($t->type->canonicalType() != $animalType) {
+                    throw new ModelException("More than one dest animal type found");
+                }
+            }
+
+            // Now make sure we didn't leave any animals behind
+            foreach ($barn->filledAnimalPositions() as $pos) {
+                if (!array_search($pos, $dest_positions)) {
+                    if ($barn->tileAt($pos)->type->canonicalType() == $animalType) {
+                        throw new ModelException("Barn destinations did not specify all animals of type {$animalType->value}");
+                    }
+                }
+            }
+        } else if ($dest_positions) {
+            throw new ModelException("Exchange into non-barn cannot specify positions");
+        } else {
+            $dest_positions = $encs[$dest_enclosure_id]->filledAnimalPositions();
         }
-        if (! $found) {
-            throw new ModelException("Illegal exchange of {$ex}");
-        }
+        $src_positions = $encs[$src_enclosure_id]->filledAnimalPositions();
 
         $player = $this->getActivePlayer();
         $this->chargePlayer($player, Cost::EXCHANGE);
 
-        $encs = $this->getEnclosuresForPlayer();
-        $se = $encs[$ex->src_enclosure_id];
-        $de = $encs[$ex->dest_enclosure_id];
+        $se = $encs[$src_enclosure_id];
+        $de = $encs[$dest_enclosure_id];
 
         /** @var list<PlacedTile> */
         $placedTiles = [];
 
-        $stype = TileType::EMPTY;
-        $dtype = TileType::EMPTY;
-        for ($p = 0; $p < count($ex->src_positions); $p++) {
-            $srctile = Tile::empty();
-            $desttile = Tile::empty();
-            if (!$se->tileAt($ex->src_positions[$p])->isEmpty()) {
-                $srctile = $se->takeTileAt($ex->src_positions[$p]);
-            }
-            if (!$de->tileAt($ex->dest_positions[$p])->isEmpty()) {
-                $desttile = $de->takeTileAt($ex->dest_positions[$p]);
-            }
-            if (!$desttile->isEmpty()) {
-                $dtype = $desttile->type->canonicalType();
-                $placement = $se->placeTile($desttile, $ex->src_positions[$p]);
-                $placedTiles[] = new PlacedTile($desttile, $placement->space);
-            }
-            if (!$srctile->isEmpty()) {
-                $stype = $srctile->type->canonicalType();
-                $placement = $de->placeTile($srctile, $ex->dest_positions[$p]);
-                $placedTiles[] = new PlacedTile($srctile, $placement->space);
-            }
+        $srcTiles = array_map(fn ($p) => $se->takeTileAt($p), $src_positions);
+        $destTiles = array_map(fn ($p) => $de->takeTileAt($p), $dest_positions);
+        foreach($srcTiles as $t) {
+            $placement = $de->placeTile($t, array_shift($dest_positions) ?? 0);
+            $placedTiles[] = new PlacedTile($t, $placement->space);
+        }
+        foreach($destTiles as $t) {
+            $placement = $se->placeTile($t, array_shift($src_positions) ?? 0);
+            $placedTiles[] = new PlacedTile($t, $placement->space);
         }
 
         $barn = $encs[0];
@@ -653,6 +670,7 @@ class Model {
             $this->saveOffspring($offspring);
             $placedTiles[] = $offspring->child;
         }
+        /// FIXME: don't think it's actually possible to generate offspring in the destination
         $offspring = $de->checkForOffspring($barn);
         if ($offspring) {
             $this->saveOffspring($offspring);
@@ -663,7 +681,7 @@ class Model {
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
 
-        return new CompletedExchange($ex->src_enclosure_id, $stype, $ex->dest_enclosure_id, $dtype, $placedTiles, $offspring);
+        return new CompletedExchange($src_enclosure_id, $animalType, $dest_enclosure_id, $placedTiles, $offspring);
     }
 
     private function chargePlayer(Player $player, Cost $cost) : void {

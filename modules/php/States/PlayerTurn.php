@@ -35,6 +35,7 @@ use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Cost;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
+use Bga\Games\zoolorettoalpha\Model\Exchanges;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
 use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
 use Bga\Games\zoolorettoalpha\Model\Space;
@@ -101,7 +102,7 @@ class PlayerTurn extends AbstractState
 			],
 			'possible_exchanges' => [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),
-				'exchanges' => $pxs,
+				'exchanges' => Exchanges::forEnclosures($model->getEnclosuresForPlayer($active_player_id))->serialize(),
 			],
 			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),
@@ -256,17 +257,16 @@ class PlayerTurn extends AbstractState
 	public function actExchangeEnclosureAnimals(
 		int $active_player_id,
 		int $src_enclosure_id,
-		#[JsonParam] array $src_positions,
 		int $dest_enclosure_id,
-		#[JsonParam] array $dest_positions): mixed
+		#[JsonParam] ?array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
+		$completedExchange = $model->exchange($src_enclosure_id, $dest_enclosure_id, $dest_positions);
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',
 			// FIXME: need to handle barn
-            clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
+            clienttranslate('${player_name} exchanged ${tile_type} between ${src_enclosure} and ${dest_enclosure}'),
             [
                 'player_id' => $active_player_id,
                 'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
@@ -275,17 +275,14 @@ class PlayerTurn extends AbstractState
                 'moneys' => $model->currentMoneys()->serialize(),
                 'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
                 'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
-                'src_tile_type' => $completedExchange->src_tile_type,
-                'dest_tile_type' => $completedExchange->dest_tile_type,
-                'src_tile_description' => $completedExchange->src_tile_type->translated(),
-                'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
+                'tile_type' => $completedExchange->src_tile_type,
+                'tile_description' => $completedExchange->src_tile_type->translated(),
                 'enclosure_summaries' => [
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
                 ],
                 'i18n' => [
-                    'src_tile_description',
-                    'dest_tile_description',
+                    'tile_description',
                     'src_enclosure',
                     'dest_enclosure',
                 ]

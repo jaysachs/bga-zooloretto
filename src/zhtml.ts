@@ -57,7 +57,7 @@ export class IDS {
   static truck(truck_id : number) { return `zoo-truck-${truck_id}`; }
   static truckSpace(truck_id : number, pos: number) { return `zoo-truck-${truck_id}-${pos}`; }
   static enclosure(player_id: number, enclosure_id: number): string { return `zoo-enc-${player_id}-${enclosure_id}`; }
-  static enclosureSpace(player_id: number, space: number): string { return `zoo-enc-${player_id}-${space}`; }
+  static enclosureSpace(player_id: number, space: number): string { return `zoo-space-${player_id}-${space}`; }
   static extension(player_id: number, ext_num: number): string { return `zoo-ext-${player_id}-${ext_num}`}
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `zoo-money-counter-${player_id}` };
@@ -113,6 +113,18 @@ export class Elements {
     return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
+  static enclosureTiles(player_id, encid: number) : HTMLElement[] {
+    return this.enclosureSpaces(player_id, encid).map(e => e.firstElementChild as HTMLElement).filter(e => e);
+  }
+
+  static enclosureSpaces(player_id, encid: number) : HTMLElement[] {
+    const elems: HTMLElement[] = [];
+    const children = $(IDS.enclosure(player_id, encid)).children;
+    for (let i = 0; i < children.length; ++i) {
+        elems.push(children[i] as HTMLElement);
+    }
+    return elems;
+  }
 }
 
 export class ZoolorettoHtml {

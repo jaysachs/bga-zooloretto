@@ -68,15 +68,25 @@ interface PossibleMove {
   dests: Destination[];
 }
 
-interface PossibleExchanges {
-  exchanges: PossibleExchange[];
-  money_delta: Moneys;
+interface BarnExchange {
+  // the positions in the barn
+  positions: number[];
+  offspring: Offspring | null;
 }
 
-interface PossibleExchange {
-  src: number[];
-  dest: number[];
-  offspring: Offspring[];
+type EnclosureSwaps = Record<number, number[]>;
+
+interface Exchanges {
+  // No keys are barn (0).
+  // key is src enclosure ID, value is possible dest enclosure IDs excluding barn
+  enclosures: EnclosureSwaps;
+  // key is enc ID, value is the possible exchanges with the barn
+  barn: Record<number,BarnExchange[]>;
+}
+
+interface PossibleExchanges {
+  exchanges: Exchanges;
+  money_delta: Moneys | null;
 }
 
 interface PossibleDiscards {
@@ -168,77 +178,91 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
   protected override doStart(possible_exchanges: PossibleExchanges) {
-    const exchangesBySrc : PossibleExchange[][] = [];
-    for (const pe of possible_exchanges.exchanges) {
-      const src = pe.src[0]!;
-      const e = encOf(src);
-      const p = exchangesBySrc[e];
-      if (!p) {
-        exchangesBySrc[e] = [];
-      }
-      exchangesBySrc[e]!.push(pe);
-    }
+    const srcEncs: number[] = [];
+    const exchanges = possible_exchanges.exchanges;
+    Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
+    Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
 
     if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_("Select the first enclosure to exchange"));
       this.addRestartAndUndoButtons();
     }
-    exchangesBySrc.forEach((pes: PossibleExchange[], encid: number) => {
-      const src = pes[0]!.src;
-      src.forEach((p) => {
-        if (Elements.enclosureTile(this.player_id, p)) {
-          const es = Elements.enclosureSpace(this.player_id, p);
-          this.addSelectableOnclick(
-            Elements.enclosureSpace(this.player_id, p),
-            () => {
-              this.callUndoably("selectExchangeDest", async () => {
-                src.forEach(s => this.markSelected(Elements.enclosureSpace(this.player_id, s)));
-                this.selectDestinationForExchange(pes, possible_exchanges.money_delta);
-              }
-            )},
-            _('Exchange tiles'));
-        }
-      })
+    Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
+      // FIXME: need to exclude stalls
+      const occupiedSpaces = Elements.enclosureTiles(this.player_id, encid).map(e => e.parentElement);
+      occupiedSpaces.forEach(spaceElem => {
+        this.addSelectableOnclick(
+          spaceElem,
+          () => {
+            this.callUndoably("selectExchangeDest", async () => {
+              occupiedSpaces.forEach(s => this.markSelected(s));
+              this.selectExchangeDest(
+                encid,
+                exchanges.enclosures[encid],
+                exchanges.barn[encid] ?? [])
+            })
+          });
+      });
     });
   }
 
-  private selectDestinationForExchange(pes: PossibleExchange[], money_delta: Moneys) {
+  private selectExchangeDest(srcid: number, destEncs: number[], barnDests: BarnExchange[]) {
     this.initStatusBar(_("Select the animals to exchange with"));
-    pes.forEach((pe : PossibleExchange) =>
-      pe.dest.forEach(d =>
-        this.addSelectableOnclick(
-          Elements.enclosureSpace(this.player_id, d),
-          async () =>  {
-            this.updateMoneyDelta(money_delta);
+    const srcTiles = Elements.enclosureTiles(this.player_id, srcid);
+    destEncs.forEach(destid => {
+      const destTiles = Elements.enclosureTiles(this.player_id, destid);
+      destTiles.forEach(s => {
+        this.addSelectableOnclick(s.parentElement, async () => {
+            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
+            const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
             const anims: AnimationList = [];
-            for (let i = 0; i < pe.src.length; ++i) {
+            let len = Math.max(srcTiles.length, destTiles.length);
+            for (let i = 0; i < len; ++i) {
               anims.push(() => this.moreAnimations.swapFirstChildren(
-                Elements.enclosureSpace(this.player_id, pe.src[i]!),
-                Elements.enclosureSpace(this.player_id, pe.dest[i]!))
+                srcSpaces[i],
+                destSpaces[i])
               );
-            }
-            // FIXME: this should probably happen in the "then".
-            if (pe.offspring) {
-              pe.offspring.forEach(o => anims.push(() => this.offspringSlide(o)));
             }
             this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
             await this.animationManager.playParallel(anims)
-              .then(() => pe.dest.forEach(d => this.markMoved(Elements.enclosureSpace(this.player_id, d))))
-              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(pe)));
-          }
-        )
-      )
-    );
+              .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
+              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid)));
+        });
+      });
+    });
+    // Now handle barn as destination, also dealing with possible offspring in the non-barn
+    // Note that there is no enclosure completion bonus for exchanges, so we don't
+    //  need to apply money deltas in here.
+    barnDests.forEach(be => {
+      be.positions.forEach(pos => {
+        const barnSpace = Elements.enclosureSpace(this.player_id, toSpace(0, pos));
+        this.addSelectableOnclick(barnSpace, async () => {
+            const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
+            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
+            let len = Math.max(srcTiles.length, destTiles.length);
+            const anims: AnimationList = [];
+            for (let i = 0; i < len; ++i) {
+              anims.push(() => this.moreAnimations.swapFirstChildren(
+                srcSpaces[i],
+                Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i]))
+              ));
+            }
+            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
+            await this.animationManager.playParallel(anims)
+              .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
+              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, 0, be.positions)));
+        });
+      })
+    });
     this.addRestartAndUndoButtons();
   }
 
-  private confirmExchange(pe: PossibleExchange) {
+  private confirmExchange(srcid: number, destid: number, barnPos?: number[]) {
     this.initStatusBar(_("Confirm exchange"));
     this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : encOf(pe.src[0]!),
-		  src_positions: JSON.stringify(pe.src.map((s) => posOf(s))),
-		  dest_enclosure_id: encOf(pe.dest[0]!),
-      dest_positions: JSON.stringify(pe.dest.map((s) => posOf(s))),
+  		src_enclosure_id : srcid,
+		  dest_enclosure_id: destid,
+      dest_positions: JSON.stringify(barnPos),
     });
   }
 }
@@ -596,7 +620,8 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         this.bga.statusBar.addActionButton(_('Move tile'),
           () => new MoveTileFlow(this.game, this.flowState).start(playState.possible_moves));
       }
-      if (playState.possible_exchanges.exchanges.length > 0) {
+      if (Object.keys(playState.possible_exchanges.exchanges.enclosures).length > 0
+          || Object.keys(playState.possible_exchanges.exchanges.barn).length > 0) {
         this.bga.statusBar.addActionButton(_('Exchange animals'),
           () => new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges));
       }
@@ -656,9 +681,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       }
 
       // Animals in enclosures can only be exchanged, so these are also fine to just do.
-      if (playState.possible_exchanges.exchanges.length > 0) {
-        new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
-      }
+      new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
 
       // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
       //   can be discarded and possibly moved.
