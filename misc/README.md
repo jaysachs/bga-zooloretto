@@ -5,3 +5,5 @@
   * The barn doesn't distinguish "types" of spaces. Its spaces are 1-20.
     (the only conceptual limit is the UI, and then only if we insist the tiles have the same size everywhere).
 * Server-side an enclosure space is represented by the Space class; client-side, a space is represented by a single number which is `100 * enclosure_id + pos`.
+
+* Exchanges can generate offspring, but only if exchanging with the barn. If an exchange is with the barn, no offspring in barn, but maybe two offspring, if somehow got two fertile pairs. (Could be done, but boy is that weird.). If two enclosures are exchanged, no offpsring possible, since they would have already been generated.

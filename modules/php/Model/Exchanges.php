@@ -33,9 +33,10 @@ class Exchanges implements Serializable {
 
 	/**
 	 * @param array<int,list<int>> $enclosures key: encid; val: other enclosures
-	 * @param array<int,list<BarnExchange>> $barn  key: ebcud; val: BarnExchange
+	 * @param array<int,list<BarnExchange>> $barn  key: encid; val: BarnExchange
 	 */
 	public function __construct(
+		// FIXME: could also include enclosure filled animal positions.
 		public private(set) array $enclosures,
 		public private(set) array $barn) {}
 

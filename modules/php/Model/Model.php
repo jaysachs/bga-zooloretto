@@ -672,12 +672,9 @@ class Model {
             $this->saveOffspring($offspring);
             $placedTiles[] = $offspring->child;
         }
-        /// FIXME: don't think it's actually possible to generate offspring in the destination
-        $offspring = $de->checkForOffspring($barn);
-        if ($offspring) {
-            $this->saveOffspring($offspring);
-            $placedTiles[] = $offspring->child;
-        }
+        // not possible to generate offspring in the destination:
+        //   barn simply not done
+        //   if another enclosure, the offspring would have already been generated in the src
 
         // note: no check fo completion bonus in enclosures
 

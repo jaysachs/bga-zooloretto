@@ -1,4 +1,6 @@
 * Allow barn to have infinite size; shrink barn tiles when size goes above 9.
+* Thread through enclosure "shape" to client
+* Handle multiple offspring (difficult but possible to arrange)
 * Trim down payload size for PossibleExchanges
   * nearly done.
   * Need to thread enclosure "shapes" through gamedatas
