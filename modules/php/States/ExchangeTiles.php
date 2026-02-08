@@ -77,25 +77,23 @@ class ExchangeTiles extends AbstractState
         return PlayerTurn::class;
     }
 
-    /**
-	 * @param list<int> $src_positions
+	/**
 	 * @param list<int> $dest_positions
 	 */
 	#[PossibleAction]
 	public function actExchangeEnclosureAnimals(
 		int $active_player_id,
 		int $src_enclosure_id,
-		#[JsonParam()] array $src_positions,
 		int $dest_enclosure_id,
-		#[JsonParam] array $dest_positions): mixed
+		#[JsonParam] ?array $dest_positions): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$completedExchange = $model->exchange(new PossibleExchange($src_enclosure_id, $src_positions, $dest_enclosure_id, $dest_positions, []));
+		$completedExchange = $model->exchange($src_enclosure_id, $dest_enclosure_id, $dest_positions);
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',
 			// FIXME: need to handle barn
-            clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
+            clienttranslate('${player_name} exchanged ${tile_type} between ${src_enclosure} and ${dest_enclosure}'),
             [
                 'player_id' => $active_player_id,
                 'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
@@ -104,17 +102,14 @@ class ExchangeTiles extends AbstractState
                 'moneys' => $model->currentMoneys()->serialize(),
                 'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
                 'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
-                'src_tile_type' => $completedExchange->src_tile_type,
-                'dest_tile_type' => $completedExchange->dest_tile_type,
-                'src_tile_description' => $completedExchange->src_tile_type->translated(),
-                'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
+                'tile_type' => $completedExchange->src_tile_type,
+                'tile_description' => $completedExchange->src_tile_type->translated(),
                 'enclosure_summaries' => [
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
                 ],
                 'i18n' => [
-                    'src_tile_description',
-                    'dest_tile_description',
+                    'tile_description',
                     'src_enclosure',
                     'dest_enclosure',
                 ]
@@ -134,7 +129,6 @@ class ExchangeTiles extends AbstractState
         $model = $this->createModel($player_id);
         $px = $model->getPossibleExchanges()[0];
         return $this->actExchangeEnclosureAnimals($player_id,
-           $px->src_enclosure_id, $px->src_positions,
-           $px->dest_enclosure_id, $px->dest_positions);
+           $px->src_enclosure_id, $px->dest_enclosure_id, $px->dest_positions);
    }
 }

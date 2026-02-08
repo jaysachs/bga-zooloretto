@@ -250,7 +250,6 @@ class PlayerTurn extends AbstractState
 	}
 
 	/**
-	 * @param list<int> $src_positions
 	 * @param list<int> $dest_positions
 	 */
 	#[PossibleAction]

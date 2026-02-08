@@ -51,7 +51,7 @@ class Exchanges implements Serializable {
 		];
 	}
 
-	/** @param list<Enclosure> $enclosures*/
+	/** @param array<Enclosure> $enclosures*/
 	public static function forEnclosures(array $enclosures): Exchanges {
 		$ex = [];
 		$bx = [];

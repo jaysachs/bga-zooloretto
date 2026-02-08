@@ -605,20 +605,22 @@ class Model {
      * @param list<int> $dest_positions
      */
     public function exchange(int $src_enclosure_id, int $dest_enclosure_id, ?array $dest_positions): CompletedExchange {
-        $encs = $this->getEnclosuresForPlayer();
         if ($src_enclosure_id == 0) {
             throw new ModelException("Exchange source must not be barn.");
         }
         if ($src_enclosure_id == $dest_enclosure_id) {
             throw new ModelException("Source and destination exchange enclosures must be different");
         }
+        $encs = $this->getEnclosuresForPlayer();
+        $se = $encs[$src_enclosure_id];
+        $de = $encs[$dest_enclosure_id];
+
         if ($dest_enclosure_id == 0) {
-            if (!$dest_positions || count($dest_positions) == 0) {
+            if ($dest_positions === null || count($dest_positions) == 0) {
                 throw new ModelException("Exchange into barn requires positions to be specified");
             }
             $barn = $encs[0];
             $animalType = $barn->tileAt($dest_positions[0])->type->canonicalType();
-            $types = [];
             foreach ($dest_positions as $pos) {
                 $t = $barn->tileAt($pos);
                 if (!$t->type->isAnimal()) {
@@ -640,15 +642,13 @@ class Model {
         } else if ($dest_positions) {
             throw new ModelException("Exchange into non-barn cannot specify positions");
         } else {
-            $dest_positions = $encs[$dest_enclosure_id]->filledAnimalPositions();
+            $dest_positions = $de->filledAnimalPositions();
         }
-        $src_positions = $encs[$src_enclosure_id]->filledAnimalPositions();
+        $src_positions = $se->filledAnimalPositions();
 
+        $animalType = $se->tileAt($src_positions[0])->type->canonicalType();
         $player = $this->getActivePlayer();
         $this->chargePlayer($player, Cost::EXCHANGE);
-
-        $se = $encs[$src_enclosure_id];
-        $de = $encs[$dest_enclosure_id];
 
         /** @var list<PlacedTile> */
         $placedTiles = [];
