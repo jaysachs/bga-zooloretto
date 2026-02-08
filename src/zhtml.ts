@@ -151,21 +151,14 @@ export class ZoolorettoHtml {
     };
 
     const board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
-    // FIXME: thread enclosure info into here, and use it. Also include animal capacity
-    board.append(
-      enclosure(0, 20), // the barn
-      enclosure(1, 6),
-      enclosure(2, 6),
-      enclosure(3, 7),
-      enclosure(4, 6),
-      this.twoPlayer ? enclosure(5, 6) : undefined
-    );
-    let extnum = this.twoPlayer ? 2 : 1;
-    board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
-    if (this.twoPlayer) {
-      extnum--;
-      board.appendChild(Html.div({id: IDS.extension(player.player_id, extnum), attrs: { 'zoo-extension': String(extnum) }}));
-    }
+    this.gamedatas.enclosure_shapes.forEach(es => {
+      board.append(enclosure(es.id, es.animal_capacity + es.stall_capacity));
+    });
+    this.gamedatas.enclosure_shapes.forEach(es => {
+      if (es.extension) {
+        board.appendChild(Html.div({id: IDS.extension(player.player_id, es.extension), attrs: { 'zoo-extension': String(es.extension) }}));
+      }
+    });
     return Html
       .div({ classes: [ "zoo-playerboard"] },
         Html.div({},

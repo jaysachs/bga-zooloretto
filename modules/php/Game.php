@@ -29,6 +29,7 @@ namespace Bga\Games\zoolorettoalpha;
 
 use Bga\GameFramework\Actions\Debug;
 use Bga\GameFramework\Table;
+use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
@@ -99,22 +100,47 @@ class Game extends Table
 	{
 		$model = new Model(intval($player_id));
 		$stock = $model->getStock();
+
+		$encshapes = [];
+		{
+			$toShape = function (Enclosure $e, ?int $extnum = null): array {
+				$result = [
+					'id' => $e->id,
+					'animal_capacity' => $e->animal_capacity,
+					'stall_capacity' => $e->stall_capacity,
+				];
+				if ($extnum) {
+					$result['extension'] = $extnum;
+				}
+				return $result;
+			};
+			foreach(Enclosure::forPlayer(array_values($model->getAllPlayers())[0]) as $e) {
+				$encshapes[] = $toShape($e);
+			}
+			for ($en = 1; $en <= 2; $en++) {
+				$encshapes[] = $toShape(Enclosure::extension($en), $en);
+			}
+		}
+
 		$encs = [];
 		$esumms = [];
-		foreach ($model->getAllPlayers() as $player) {
-			$contents = [];
-			foreach ($model->getEnclosuresForPlayer($player->id) as $e) {
-				$esumms[] = EnclosureSummary::forEnclosure($player->id, $e);
-				foreach ($e->nonEmptyContents() as $pos => $tile) {
-					$contents[] = [
-						'space' => new Space($e->id, $pos)->serialize(),
-						'tile' => $tile->serialize(),
-					];
+		{
+			foreach ($model->getAllPlayers() as $player) {
+				$contents = [];
+				foreach ($model->getEnclosuresForPlayer($player->id) as $e) {
+					$esumms[] = EnclosureSummary::forEnclosure($player->id, $e);
+					foreach ($e->nonEmptyContents() as $pos => $tile) {
+						$contents[] = [
+							'space' => new Space($e->id, $pos)->serialize(),
+							'tile' => $tile->serialize(),
+						];
+					}
 				}
+				$encs[$player->id] = $contents;
 			}
-			$encs[$player->id] = $contents;
 		}
 		$datas = [
+			'enclosure_shapes' => $encshapes,
             'trucks' => array_map(function (Truck $truck): array {
 				$tiles = $truck->getAllTiles();
 				return [

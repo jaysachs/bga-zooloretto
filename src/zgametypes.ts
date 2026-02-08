@@ -39,7 +39,15 @@ export interface EnclosureSummary {
   count: number;
 }
 
+export interface EnclosureShape {
+  id: number;
+  animal_capacity: number;
+  stall_capacity: number;
+  extension: number | null;
+}
+
 export interface ZGamedatas extends Gamedatas<ZPlayer> {
+  enclosure_shapes: EnclosureShape[];
   primary_pile_size: number;
   endgame_pile_size: number;
   lastround: boolean;
