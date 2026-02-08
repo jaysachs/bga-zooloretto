@@ -16,9 +16,10 @@ export class Attrs implements AttrLike {
   }
   private r: any = {};
 
-  static readonly EXTENSIONS ='zoo-extensions';
-  static readonly TILE ='zoo-tile';
-  static readonly ENCLOSURE ='zoo-enclosure';
+  static readonly EXTENSIONS = 'zoo-extensions';
+  static readonly TILE = 'zoo-tile';
+  static readonly ENCLOSURE = 'zoo-enclosure';
+  static readonly MARK = 'zoo-mark';
   static enclosure(enc : number): Attrs {
     return new Attrs().enclosure(enc);
   }
@@ -39,6 +40,14 @@ export class Attrs implements AttrLike {
   }
   tile(tile_type: string): Attrs {
     this.r[Attrs.TILE] = tile_type;
+    return this;
+  }
+
+  static mark(mark: 'selected' | 'selectable' | 'moved' ): Attrs {
+    return new Attrs().mark(mark);
+  }
+  mark(mark: 'selected' | 'selectable' | 'moved'): Attrs {
+    this.r[Attrs.MARK] = mark;
     return this;
   }
 }
@@ -72,7 +81,6 @@ export class CSS {
   static readonly TRUCK = 'zoo-truck';
   static readonly SELECTABLE = 'zoo-selectable';
   static readonly SELECTED = 'zoo-selected';
-  static readonly MOVED = 'zoo-moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
   static readonly PILE = 'zoo-pile';
   static readonly FLASH = 'zoo-flash';

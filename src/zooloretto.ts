@@ -299,8 +299,8 @@ class PurchaseTileFlow extends ZooFlow<PossiblePurchase> {
     pp.dests.forEach((dest: Destination) =>
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
-        () => {
-          this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
+        async () => {
+          await this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
                      Elements.enclosureSpace(this.player_id, dest.space))
             .then(() => this.updateMoneyDelta(dest.money_delta))
             .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
@@ -358,8 +358,7 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
         this.addSelectableOnclick(Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos),
-          () =>
-              this.callUndoably("chooseTiletoPlace",
+          () => this.callUndoably("chooseTiletoPlace",
                 () => this.placeDrawnTile(elem, args.tile, truckLoc))));
   }
 
@@ -433,8 +432,8 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
       const encElem = Elements.enclosureSpace(this.player_id, dest.space);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         const tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
-        this.slide(tileElem,encElem).then(() => {
-          return this.offspringSlide(dest.offspring).then( () => {
+        await this.slide(tileElem,encElem).then(async () => {
+          this.offspringSlide(dest.offspring).then( () => {
             this.updateMoneyDelta(dest.money_delta);
             this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: encOf(dest.space), enclosure_pos: posOf(dest.space), confirm_if_done: false })
           });
@@ -512,10 +511,8 @@ class MoveTileFlow extends ZooFlow<PossibleMoves> {
       const elem = Elements.enclosureTile(this.player_id, pm.src);
       const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
-        () => this.slide(elem!, destElem)
+        async () => await this.slide(elem!, destElem)
           .then(() => {
-            // FIXME: is this line needed?
-            destElem.classList.add(CSS.MOVED);
             this.markMoved(destElem);
             this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
           })
@@ -585,11 +582,9 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
       const elem = Elements.enclosureTile(this.player_id, pm.src);
       const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
-        () => this.slide(elem!, destElem)
+        async () => await this.slide(elem!, destElem)
           .then(() => {
             this.updateMoneyDelta(moveMoneyDelta);
-            // FIXME: is this line needed?
-            destElem.classList.add(CSS.MOVED);
             this.markMoved(destElem);
             this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
           })
@@ -654,7 +649,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         }
         this.addSelectableOnclick(
           topTile,
-          () => { new DrawTileFlow(this.game, this.flowState).start(playState.lastround) },
+          () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround),
           _('Draw tile')
         );
       }

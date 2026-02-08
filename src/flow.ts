@@ -1,7 +1,7 @@
 // import { Gamedatas } from './bga-framework';
 // FIXME: this isn't right.
-import { CSS } from './zhtml';
-import { BgaAnimations, AnimationManager } from './libs';
+import { Attrs, CSS } from './zhtml';
+import { AnimationManager } from './libs';
 
 export type Op = () => Promise<any>;
 
@@ -114,15 +114,15 @@ export class FlowState {
       const elem = this.marked.pop()!;
       if (!this.inUndo) {
         console.debug("clearMarked **AS UNDOABLE OP**", elem);
-        const c = elem.className;
+        const m = elem.getAttribute(Attrs.MARK);
         this.pushOp({
-          desc: `clearMarkedNotUndo:${strElem(elem)}:[${c}]`,
-          op: async () => { elem.className = c }
+          desc: `clearMarkedNotUndo:${strElem(elem)}:[${m}]`,
+          op: async () => elem.setAttribute(Attrs.MARK, m)
         })
       }
       console.debug("clearing marked", elem);
       elem.title = '';
-      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.MOVED);
+      elem.removeAttribute(Attrs.MARK);
     }
   }
 
@@ -249,7 +249,7 @@ export abstract class PlayFlow<T> {
           }
           if (settings?.restart) {
             console.debug("using setting restart", settings.restart)
-            await settings.restart();
+            await this.rollback().then(() => settings.restart());
           } else {
             console.debug("rollback then restoreServerGameState")
             await this.rollback().then(() => {
@@ -279,27 +279,27 @@ export abstract class PlayFlow<T> {
     this.flowState.resetController();
   }
 
-  private markClass(elem: HTMLElement | undefined, classToAdd: string): void {
+  private mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' ): void {
     if (!elem) {
       return;
     }
-    console.debug("markClass", elem, classToAdd);
+    console.debug("mark", elem, mark);
     this.flowState.marked.push(elem);
-    const c = elem.className;
-    elem.classList.add(classToAdd);
-    this.pushUndoOp(`markClass:${classToAdd}:${c} ${strElem(elem)}`, async () => elem.className = c);
+    const m = elem.getAttribute(Attrs.MARK);
+    elem.setAttribute(Attrs.MARK, mark);
+    this.pushUndoOp(`mark:${mark}:${m} ${strElem(elem)}`, async () => elem.setAttribute(Attrs.MARK, m));
   }
 
   protected markSelected(elem: HTMLElement | undefined) {
-    this.markClass(elem, CSS.SELECTED);
+    this.mark(elem, 'selected');
   }
 
   protected markMoved(elem: HTMLElement) {
-    this.markClass(elem, CSS.MOVED);
+    this.mark(elem, 'moved');
   }
 
   protected markSelectable(elem: HTMLElement | undefined) {
-    this.markClass(elem, CSS.SELECTABLE);
+    this.mark(elem, 'selectable');
   }
 
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any, desc?: string ) {
