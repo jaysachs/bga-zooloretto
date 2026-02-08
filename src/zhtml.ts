@@ -151,6 +151,7 @@ export class ZoolorettoHtml {
     };
 
     const board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
+    // FIXME: thread enclosure info into here, and use it. Also include animal capacity
     board.append(
       enclosure(0, 20), // the barn
       enclosure(1, 6),
