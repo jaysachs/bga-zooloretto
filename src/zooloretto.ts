@@ -716,7 +716,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
-    return this.moreAnimations.flash(CSS.PARENT, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
+    return this.moreAnimations.flash(CSS.FLASH, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
   }
 
   private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {

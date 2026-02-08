@@ -288,8 +288,8 @@ body.mobile_version {
     box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) yellow;
 }
 
-.zoo-parent {
-    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) blueviolet !important;
+.zoo-flash {
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) rgb(188, 26, 8) !important;
 }
 
 [zoo-tile] {

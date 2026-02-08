@@ -75,7 +75,7 @@ export class CSS {
   static readonly MOVED = 'zoo-moved';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
   static readonly PILE = 'zoo-pile';
-  static readonly PARENT = 'zoo-parent';
+  static readonly FLASH = 'zoo-flash';
 }
 
 export class Elements {
