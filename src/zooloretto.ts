@@ -77,6 +77,8 @@ interface BarnExchange {
 type EnclosureSwaps = Record<number, number[]>;
 
 interface Exchanges {
+  // key is src enclosure ID, value is positions with animals
+  animal_positions: Record<number, number[]>;
   // No keys are barn (0).
   // key is src enclosure ID, value is possible dest enclosure IDs excluding barn
   enclosures: EnclosureSwaps;
@@ -177,46 +179,48 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 class ExchangeFlow extends ZooFlow<PossibleExchanges> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
+  private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
+    return exchanges.animal_positions[encid].map(
+        pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
+  }
+
   protected override doStart(possible_exchanges: PossibleExchanges) {
-    const srcEncs: number[] = [];
     const exchanges = possible_exchanges.exchanges;
+    const srcEncs: number[] = [];
     Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
     Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
-
     if (this.uiStyle() == 'actionbuttons') {
       this.initStatusBar(_("Select the first enclosure to exchange"));
       this.addRestartAndUndoButtons();
     }
     Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
-      // FIXME: need to exclude stalls
-      const occupiedSpaces = Elements.enclosureTiles(this.player_id, encid).map(e => e.parentElement);
-      occupiedSpaces.forEach(spaceElem => {
+      const srcSpaceElems = this.animalSpaces(exchanges, encid);
+      srcSpaceElems.forEach(spaceElem => {
         this.addSelectableOnclick(
           spaceElem,
           () => {
             this.callUndoably("selectExchangeDest", async () => {
-              occupiedSpaces.forEach(s => this.markSelected(s));
-              this.selectExchangeDest(
-                encid,
-                exchanges.enclosures[encid],
-                exchanges.barn[encid] ?? [])
+              srcSpaceElems.forEach(s => this.markSelected(s));
+              this.updateMoneyDelta(possible_exchanges.money_delta);
+              this.selectExchangeDest(exchanges, encid);
             })
           });
       });
     });
   }
 
-  private selectExchangeDest(srcid: number, destEncs: number[], barnDests: BarnExchange[]) {
+  private selectExchangeDest(exchanges: Exchanges, srcid: number) {
     this.initStatusBar(_("Select the animals to exchange with"));
-    const srcTiles = Elements.enclosureTiles(this.player_id, srcid);
-    destEncs.forEach(destid => {
-      const destTiles = Elements.enclosureTiles(this.player_id, destid);
-      destTiles.forEach(s => {
-        this.addSelectableOnclick(s.parentElement, async () => {
+    const barnDests = exchanges.barn[srcid] ?? [];
+    const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
+    exchanges.enclosures[srcid].forEach(destid => {
+      const destAnimalSpaces = this.animalSpaces(exchanges, destid);
+      destAnimalSpaces.forEach(s => {
+        this.addSelectableOnclick(s, async () => {
             const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
             const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
             const anims: AnimationList = [];
-            let len = Math.max(srcTiles.length, destTiles.length);
+            let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
             for (let i = 0; i < len; ++i) {
               anims.push(() => this.moreAnimations.swapFirstChildren(
                 srcSpaces[i],
@@ -225,7 +229,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
             }
             this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
             await this.animationManager.playParallel(anims)
-              .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
+              .then(() => destAnimalSpaces.forEach(t => this.markMoved(t)))
               .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid)));
         });
       });
@@ -239,7 +243,7 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
         this.addSelectableOnclick(barnSpace, async () => {
             const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
             const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
-            let len = Math.max(srcTiles.length, destTiles.length);
+            let len = Math.max(srcAnimalSpaces.length, destTiles.length);
             const anims: AnimationList = [];
             for (let i = 0; i < len; ++i) {
               anims.push(() => this.moreAnimations.swapFirstChildren(

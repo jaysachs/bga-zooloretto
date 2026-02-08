@@ -113,10 +113,6 @@ export class Elements {
     return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
-  static enclosureTiles(player_id, encid: number) : HTMLElement[] {
-    return this.enclosureSpaces(player_id, encid).map(e => e.firstElementChild as HTMLElement).filter(e => e);
-  }
-
   static enclosureSpaces(player_id, encid: number) : HTMLElement[] {
     const elems: HTMLElement[] = [];
     const children = $(IDS.enclosure(player_id, encid)).children;

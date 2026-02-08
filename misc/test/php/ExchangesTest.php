@@ -9,46 +9,40 @@ use PHPUnit\Framework\TestCase;
 
 final class ExchangesTest extends TestCase
 {
-    private Exchanges $none;
-
-    protected function setUp(): void {
-        $this->none = new Exchanges([], []);
-    }
-
     public function testEmpty(): void
     {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
-        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1=>[], 2=>[]],[],[]), Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
-        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [1],2=>[]],[],[]), Exchanges::forEnclosures($encs));
     }
 
     public function testNoBarn_SameAnimal() : void {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [1], 2 => [1]],[],[]), Exchanges::forEnclosures($encs));
     }
 
     public function testNoBarn_Simple(): void {
         $encs = [ Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::ELEPHANT));
-        $this->assertEquals(new Exchanges([1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [1], 2 => [1]], [1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
 
         $encs[0]->placeTile(new Tile(3, TileType::CAMEL_MALE));
-        $this->assertEquals(new Exchanges([1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([1 => [1,2], 2 => [1]], [1 => [2], 2 => [1]], []), Exchanges::forEnclosures($encs));
     }
 
     public function testWithBarn(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1)];
-        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([0=>[], 1=>[]],[],[]), Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
         $encs[1]->placeTile(new Tile(2, TileType::CAMEL_FEMALE));
-        $this->assertEquals($this->none, Exchanges::forEnclosures($encs));
+        $this->assertEquals(new Exchanges([0=>[1], 1=>[1]],[],[]), Exchanges::forEnclosures($encs));
         $encs[0]->placeTile(new Tile(3, TileType::ELEPHANT));
         $this->assertEquals(
-            new Exchanges([],[1 => [new BarnExchange([2])]]),
+            new Exchanges([0 => [1,2], 1 => [1]],[],[1 => [new BarnExchange([2])]]),
             Exchanges::forEnclosures($encs));
     }
 
@@ -71,6 +65,7 @@ final class ExchangesTest extends TestCase
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
         $this->assertEquals(
             new Exchanges(
+                [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [1 => [2], 2 => [1,3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [new BarnExchange([1,5]), new BarnExchange([3]),new BarnExchange([7,8])],
@@ -97,6 +92,7 @@ final class ExchangesTest extends TestCase
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
         $this->assertEquals(
             new Exchanges(
+                [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [1 => [2], 2 => [1,3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [
@@ -130,6 +126,7 @@ final class ExchangesTest extends TestCase
         $encs[3]->placeTile(new Tile(10, TileType::MONKEY));
         $this->assertEquals(
             new Exchanges(
+                [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [2 => [3], 3 => [2]],
                 [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
                  2 => [

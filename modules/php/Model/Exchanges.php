@@ -32,11 +32,13 @@ use Bga\Games\zoolorettoalpha\Utils\Arrays;
 class Exchanges implements Serializable {
 
 	/**
+	 * @param array<int,list<int>> $animal_positions key: encid; val: positions with animals
 	 * @param array<int,list<int>> $enclosures key: encid; val: other enclosures
 	 * @param array<int,list<BarnExchange>> $barn  key: encid; val: BarnExchange
 	 */
 	public function __construct(
 		// FIXME: could also include enclosure filled animal positions.
+		public private(set) array $animal_positions,
 		public private(set) array $enclosures,
 		public private(set) array $barn) {}
 
@@ -47,6 +49,7 @@ class Exchanges implements Serializable {
 			$barns[$e] = array_map(fn (BarnExchange $be) => $be->serialize(), $b);
 		}
 		return [
+			'animal_positions' => $this->animal_positions,
 			'enclosures' => $this->enclosures,
 			'barn' => $barns,
 		];
@@ -57,8 +60,10 @@ class Exchanges implements Serializable {
 		$ex = [];
 		$bx = [];
 		$occ = [];
+		$animals = [];
 		foreach ($enclosures as $enc) {
-			$occ[$enc->id] = count($enc->filledAnimalPositions());
+			$animals[$enc->id] = $enc->filledAnimalPositions();
+			$occ[$enc->id] = count($animals[$enc->id]);
 		}
 		/** @var Enclosure|null */
 		$barn = null;
@@ -94,7 +99,7 @@ class Exchanges implements Serializable {
 		}
 		if ($barn == null) {
 			// throw new ModelException("no barn supplied in enclosures");
-			return new Exchanges($ex, $bx);
+			return new Exchanges($animals, $ex, $bx);
 		}
 
 		// now barn
@@ -121,7 +126,7 @@ class Exchanges implements Serializable {
 				$bx[$enc->id][] = new BarnExchange($dest_pos, $offspring);
 			}
 		}
-		return new Exchanges($ex, $bx);
+		return new Exchanges($animals, $ex, $bx);
 	}
 
 	/**
