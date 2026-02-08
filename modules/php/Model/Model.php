@@ -637,9 +637,9 @@ class Model {
 
             // Now make sure we didn't leave any animals behind
             foreach ($barn->filledAnimalPositions() as $pos) {
-                if (!array_search($pos, $dest_positions)) {
+                if (array_search($pos, $dest_positions) === false) {
                     if ($barn->tileAt($pos)->type->canonicalType() == $animalType) {
-                        throw new ModelException("Barn destinations did not specify all animals of type {$animalType->value}");
+                        throw new ModelException("Barn destinations did not specify all animals of type {$animalType->value} {$pos} ".Arrays::arrayToString($dest_positions));
                     }
                 }
             }
