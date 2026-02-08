@@ -1,5 +1,8 @@
-* Separate PossibleMove and PossiblePurchase
+* Allow barn to have infinite size; shrink barn tiles when size goes above 9.
 * Trim down payload size for PossibleExchanges
+  * nearly done.
+  * Need to thread enclosure "shapes" through gamedatas
+    * this will let fix the bug where stall tiles are included.
 * Put "possibles" in private args?
 * (?) Add undo back
 * Verify all notifications are properly handled
