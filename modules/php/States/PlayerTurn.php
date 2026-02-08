@@ -37,7 +37,6 @@ use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Exchanges;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
-use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
 use Bga\Games\zoolorettoalpha\Model\Space;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 
@@ -62,31 +61,7 @@ class PlayerTurn extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-
-		$pxs = [];
-		/*
-			More compact representation:
-			   pairs => [ [ e1, e2 ], [ e1, e3 ], ... ]
-			      for all non-barns
-			or
-			   { e1 => [e2, e3], e2 => [e1, e4, e5], ... }
-			but then also need the barn stuff
-			'barn' => { e1 => [pos1, pos2], e2 => [pos3, pos4, pos6], ... }
-			Need to also get offspring into the barn though:
-			'barn' => { e1 => { pos: [1,2], offspring: ... }, ...}
-
-
-		*/
-		foreach ($model->getPossibleExchanges() as $px) {
-			$pxs[] = [
-				'offspring' => self::serializeArray($px->offspring),
-				'src' => array_map(
-					fn (int $p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
-				'dest' => array_map(
-					fn (int $p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
-			];
-		}
-
+		$pe = $model->getPossibleExchanges();
 		return [
 			'can_draw' => $model->canDraw(),
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
@@ -100,9 +75,9 @@ class PlayerTurn extends AbstractState
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
 				'spaces' => self::serializeArray($model->getDiscardables())
 			],
-			'possible_exchanges' => [
+			'possible_exchanges' => $pe == null ? null : [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),
-				'exchanges' => Exchanges::forEnclosures($model->getEnclosuresForPlayer($active_player_id))->serialize(),
+				'exchanges' => $pe->serialize(),
 			],
 			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),

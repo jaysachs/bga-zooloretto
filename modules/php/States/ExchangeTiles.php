@@ -31,11 +31,11 @@ use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\zoolorettoalpha\Game;
+use Bga\Games\zoolorettoalpha\Model\Cost;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
+use Bga\Games\zoolorettoalpha\Model\Exchanges;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
-use Bga\Games\zoolorettoalpha\Model\PossibleExchange;
-use Bga\Games\zoolorettoalpha\Model\Space;
 
 class ExchangeTiles extends AbstractState
 {
@@ -54,19 +54,11 @@ class ExchangeTiles extends AbstractState
 	public function getArgs(int $active_player_id): array
 	{
         $model = $this->createModel($active_player_id);
-		$pxs = [];
-		foreach ($model->getPossibleExchanges() as $px) {
-			$pxs[] = [
-				'offspring' => array_map(
-					fn ($o) => $o->serialize(), $px->offspring),
-				'src' => array_map(
-					fn ($p) => new Space($px->src_enclosure_id, $p)->serialize(), $px->src_positions),
-				'dest' => array_map(
-					fn ($p) => new Space($px->dest_enclosure_id, $p)->serialize(), $px->dest_positions),
-			];
-		}
 		return [
-			'possible_exchanges' => $pxs,
+			'possible_exchanges' => [
+				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),
+				'exchanges' => Exchanges::forEnclosures($model->getEnclosuresForPlayer($active_player_id))->serialize(),
+			],
 		];
 	}
 
@@ -127,8 +119,6 @@ class ExchangeTiles extends AbstractState
 
 	function zombie(int $player_id): mixed {
         $model = $this->createModel($player_id);
-        $px = $model->getPossibleExchanges()[0];
-        return $this->actExchangeEnclosureAnimals($player_id,
-           $px->src_enclosure_id, $px->dest_enclosure_id, $px->dest_positions);
+        return $this->actUndo($player_id);
    }
 }

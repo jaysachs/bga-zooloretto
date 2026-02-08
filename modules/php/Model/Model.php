@@ -587,13 +587,12 @@ class Model {
         return $result;
     }
 
-    /** @return list<PossibleExchange> */
-    public function getPossibleExchanges() : array {
+    public function getPossibleExchanges() : ?Exchanges {
         if (! $this->getActivePlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
-            return [];
+            return null;
         }
-        return PossibleExchange::getPossibleExchanges($this->getEnclosuresForPlayer());
+        return Exchanges::forEnclosures($this->getEnclosuresForPlayer($this->player_id));
     }
 
     private function saveOffspring(Offspring $offspring): void {
@@ -605,6 +604,11 @@ class Model {
      * @param list<int> $dest_positions
      */
     public function exchange(int $src_enclosure_id, int $dest_enclosure_id, ?array $dest_positions): CompletedExchange {
+        $player = $this->getActivePlayer();
+        if (!$player->canAfford(Cost::EXCHANGE)) {
+            throw new ModelException("player cannot afford exchange");
+        }
+        $this->chargePlayer($player, Cost::EXCHANGE);
         if ($src_enclosure_id == 0) {
             throw new ModelException("Exchange source must not be barn.");
         }
@@ -647,8 +651,6 @@ class Model {
         $src_positions = $se->filledAnimalPositions();
 
         $animalType = $se->tileAt($src_positions[0])->type->canonicalType();
-        $player = $this->getActivePlayer();
-        $this->chargePlayer($player, Cost::EXCHANGE);
 
         /** @var list<PlacedTile> */
         $placedTiles = [];
@@ -677,7 +679,7 @@ class Model {
             $placedTiles[] = $offspring->child;
         }
 
-        // no check fo completion bonus in enclosures
+        // note: no check fo completion bonus in enclosures
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
 
