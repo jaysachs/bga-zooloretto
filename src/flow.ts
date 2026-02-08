@@ -122,7 +122,7 @@ export class FlowState {
       }
       console.debug("clearing marked", elem);
       elem.title = '';
-      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.TARGETABLE, CSS.MOVED);
+      elem.classList.remove(CSS.SELECTABLE, CSS.SELECTED, CSS.MOVED);
     }
   }
 
@@ -296,10 +296,6 @@ export abstract class PlayFlow<T> {
 
   protected markMoved(elem: HTMLElement) {
     this.markClass(elem, CSS.MOVED);
-  }
-
-  protected markTargetable(elem: HTMLElement) {
-    this.markClass(elem, CSS.TARGETABLE);
   }
 
   protected markSelectable(elem: HTMLElement | undefined) {

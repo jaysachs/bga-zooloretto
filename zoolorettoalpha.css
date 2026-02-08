@@ -235,7 +235,7 @@ body.mobile_version {
 }
 
 .zoo-selected {
-    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #ffbb44;
+    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) #2f5cc3;
 }
 
 @keyframes selected {
@@ -286,11 +286,6 @@ body.mobile_version {
     transition-timing-function: cubic-bezier;
 */
     box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) yellow;
-}
-
-.zoo-targetable {
-    cursor: crosshair;
-    box-shadow: 0px 0px calc(var(--zoo-highlight-width)) calc(var(--zoo-highlight-width)) blue;
 }
 
 .zoo-parent {
