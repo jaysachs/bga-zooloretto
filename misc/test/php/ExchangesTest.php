@@ -46,6 +46,18 @@ final class ExchangesTest extends TestCase
             Exchanges::forEnclosures($encs));
     }
 
+    public function testWithBarn_moreInEnclosure(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1)];
+        $this->assertEquals(new Exchanges([0=>[], 1=>[]],[],[]), Exchanges::forEnclosures($encs));
+        $encs[0]->placeTile(new Tile(1, TileType::CAMEL));
+        $encs[1]->placeTile(new Tile(2, TileType::ELEPHANT));
+        $this->assertEquals(new Exchanges([0=>[1], 1=>[1]],[],[1 => [new BarnExchange([1])]]), Exchanges::forEnclosures($encs));
+        $encs[1]->placeTile(new Tile(3, TileType::ELEPHANT_FEMALE));
+        $this->assertEquals(
+            new Exchanges([0 => [1], 1 => [1,2]],[],[1 => [new BarnExchange([1, 2])]]),
+            Exchanges::forEnclosures($encs));
+    }
+
     public function testFullNoOffspring(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2), Enclosure::forTest(3,1,0) ];
 
@@ -67,7 +79,7 @@ final class ExchangesTest extends TestCase
             new Exchanges(
                 [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [1 => [2], 2 => [1,3], 3 => [2]],
-                [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
+                [1 => [new BarnExchange([3,4,6]), new BarnExchange([7,8,4])],
                  2 => [new BarnExchange([1,5]), new BarnExchange([3]),new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
             Exchanges::forEnclosures($encs));
@@ -94,7 +106,7 @@ final class ExchangesTest extends TestCase
             new Exchanges(
                 [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [1 => [2], 2 => [1,3], 3 => [2]],
-                [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
+                [1 => [new BarnExchange([3,4,6]), new BarnExchange([7,8,4])],
                  2 => [
                     new BarnExchange([1,5],
                         new Offspring(
@@ -128,7 +140,7 @@ final class ExchangesTest extends TestCase
             new Exchanges(
                 [0 => [1,3,5,7,8], 1 => [1,2,3], 2=>[1], 3=>[1]],
                 [2 => [3], 3 => [2]],
-                [1 => [new BarnExchange([3]), new BarnExchange([7,8])],
+                [1 => [new BarnExchange([3,4,6]), new BarnExchange([7,8,4])],
                  2 => [
                     new BarnExchange([1,5],
                         new Offspring(

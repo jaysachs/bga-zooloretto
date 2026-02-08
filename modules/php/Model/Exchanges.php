@@ -108,17 +108,26 @@ class Exchanges implements Serializable {
 				continue;
 			}
 			foreach (TileType::allCanonicalAnimals() as $animalType) {
+				$barn2 = $barn->clone();
 				if ($enc->animalType()->isSameSpecies($animalType)) {
 					continue;
 				}
-		        $dest_pos = $barn->filledAnimalPositions($animalType);
+		        $dest_pos = $barn2->filledAnimalPositions($animalType);
 		        if (count($dest_pos) == 0) {
 					continue;
 		        }
 				if (count($dest_pos) > $enc->animal_capacity) {
 					continue;
 		        }
-				$offspring = self::checkOffspring($enc, $barn, $dest_pos);
+
+				// now extend barn pos with empty spots to accomodate extra.
+				// figure this BEFORE offspring possibly added to barn.
+				$extra_needed = count($enc->filledAnimalPositions()) - count($dest_pos);
+				while ($extra_needed-- > 0) {
+					$dest_pos[] = $barn2->placeTile(new Tile(100000, TileType::CAMEL))->space->pos;
+				}
+
+				$offspring = self::checkOffspring($enc, $barn2, $dest_pos);
 
 				if (!isset($bx[$enc->id])) {
 					$bx[$enc->id] = [];
