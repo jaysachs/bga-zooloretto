@@ -74,7 +74,7 @@ class DeliverTruckTiles extends AbstractState
     #[PossibleAction]
     public function actUndo(int $active_player_id): mixed {
         $this->game->undoRestorePoint();
-        return PlayerTurn::class;
+        return null;
     }
 
     #[PossibleAction]

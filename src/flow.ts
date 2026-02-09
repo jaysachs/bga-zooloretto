@@ -228,10 +228,10 @@ export abstract class PlayFlow<T> {
 
   protected abstract confirmationsEnabled(): boolean;
 
-  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>}) {
+  protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>, post?: () => Promise<any>}) {
     const doAct = async () => {
         this.flowState.clearMarked();
-        await this.bga.actions.performAction(bgaAction, args);
+        await this.bga.actions.performAction(bgaAction, args).then(settings?.post);
     };
     if (!this.confirmationsEnabled())  {
       return await doAct();

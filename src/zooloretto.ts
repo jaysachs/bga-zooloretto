@@ -406,12 +406,15 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
 
   private async chooseTruckTileToPlace(pps: PossibleDelivery[], truck_id: number) {
       */
-  private restart = { restart: async () => this.bga.actions.performAction('actUndo', {}) };
   protected async doStart(args: DeliverTilesArgs) {
+    const restart = {
+      restart: async () => this.bga.actions.performAction('actUndo', {}),
+      post: async () =>  Elements.truck(args.truck_id).removeAttribute(Attrs.MARK)
+    };
     if (!args.possible_deliveries || args.possible_deliveries.length == 0) {
       this.initStatusBar(_('Confirm your truck tile deliveries'));
       // FIXME: clear marked on confirmation
-      this.addConfirmAndRestartActionButtons('actConfirmDelivery', {}, this.restart);
+      this.addConfirmAndRestartActionButtons('actConfirmDelivery', {}, restart);
     }
     else {
       this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
@@ -421,7 +424,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
           this.callUndoably("chooseDest", () => this.chooseDestination(pp, args.truck_id));
         });
       });
-      this.addRestartAndUndoButtons(this.restart);
+      this.addRestartAndUndoButtons(restart);
     }
   }
 
@@ -433,14 +436,15 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         const tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         await this.slide(tileElem,encElem).then(async () => {
-          this.offspringSlide(dest.offspring).then( () => {
+          this.offspringSlide(dest.offspring).then(async () => {
             this.updateMoneyDelta(dest.money_delta);
-            this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: encOf(dest.space), enclosure_pos: posOf(dest.space), confirm_if_done: false })
+            await this.bga.actions.performAction('actDeliverTile', { truck_pos: pp.truck_pos, enclosure_id: encOf(dest.space), enclosure_pos: posOf(dest.space), confirm_if_done: false })
           });
         });
       });
     });
-    this.addRestartAndUndoButtons(this.restart);
+    this.addRestartAndUndoButtons({
+      restart: async () => this.bga.actions.performAction('actUndo', {})});
   }
 }
 
