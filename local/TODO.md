@@ -2,10 +2,18 @@ Open
 ====
 1. Restart not working properly for delivery. The issue seems to be that the undo-s go back too far or something. Need to only "reset" when an actual state change happens (not a leave state / re-enter same state -- that shouldn't reset.) And depending, maybe even more general, should be explicit with undo boundaries.
 2. Delivered trucks stay "blue" after being returned to play area from player board.
-3. Put "possibles" in private args. (Very important in Babylonia.)
+  * Hacked it in. But this is related to (1).
+  * Consider marking truck "delivering" on StartDelivery notif, and clearing that on "DeliveryCompleted". Will need a "DeliveryCanceled" notif probably.
+15. Consider a "pendingChanges" table, same structure as tiles. When reading stuff in, read them both and "overlay" the pending changes. On confirm delivery, apply the pending changes; on undo, just delete the rows. Then don't need undoSavepoint. (And utilize the "DeliveryCanceled" notif idea.)
+    * Or, could just have new status "P" for "pending delivery" and "O" for "pending offspring". That's what gets updated on delivering a tile; and confirm delivery just changes "P" to "E" and "O" to "E". This is actually pretty simple.
+      * That doesn't allow for granular undo, and isn't easily extended to that. To do that, we'd need the pending table with an additional "sequence" column (the value of which would be shared by both the offspring and the delivered tile rows.) Then, undo would be just read & delete the latest sequence number rows.
+  * An even more radical approach would be to never update or delete a row (except for undos), but only add a new ones with a larger sequence IDs. That would make reading more complex; first read in every row, keeping only the latest for each tile ID. Then go through the rows, sorted by `location,loc_id,pos` as is done now.
+
+
 
 Deferred
 ========
+3. Put "possibles" in private args. (Very important in Babylonia, however.)
 4. Handle multiple offspring (difficult but possible to arrange)
 5. Allow barn to have infinite size; shrink barn tiles when size goes above 9.
 
