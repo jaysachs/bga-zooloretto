@@ -7,7 +7,7 @@ Open
 15. Consider a "pendingChanges" table, same structure as tiles. When reading stuff in, read them both and "overlay" the pending changes. On confirm delivery, apply the pending changes; on undo, just delete the rows. Then don't need undoSavepoint. (And utilize the "DeliveryCanceled" notif idea.)
     * Or, could just have new status "P" for "pending delivery" and "O" for "pending offspring". That's what gets updated on delivering a tile; and confirm delivery just changes "P" to "E" and "O" to "E". This is actually pretty simple.
       * That doesn't allow for granular undo, and isn't easily extended to that. To do that, we'd need the pending table with an additional "sequence" column (the value of which would be shared by both the offspring and the delivered tile rows.) Then, undo would be just read & delete the latest sequence number rows.
-  * An even more radical approach would be to never update or delete a row (except for undos), but only add a new ones with a larger sequence IDs. That would make reading more complex; first read in every row, keeping only the latest for each tile ID. Then go through the rows, sorted by `location,loc_id,pos` as is done now.
+  * An even more radical approach would be to never update or delete a row (except for undos), but only add a new ones with a larger sequence IDs. To read, read in reverse sequence ID order, keeping track of which tileIDs we've seen and skip over already-seen ones. Each tile will eventually have 4+ entries (stock, drawn, truck, enclosure, plus one for each move/exchange/discard/purchase), so we're looking at ~500 rows by end of game.
 
 
 
