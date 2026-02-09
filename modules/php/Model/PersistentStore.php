@@ -80,9 +80,7 @@ class PersistentStore {
         $stocktiles = [];
         $drawn = Tile::Empty();
         $reproduced = [];
-        // N.B. later operations depend on the ordering here,in particular, the stock is retrieved
-        //   by the loc_pos, which is initialized randoomly.
-        $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X' ORDER BY location,loc_id,loc_pos");
+        $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X'");
         foreach ($rows as $row) {
             $id = intval($row['id']);
             if ($id > 10000) {
@@ -96,7 +94,7 @@ class PersistentStore {
             $loc = $row['location'];
             switch ($loc) {
             case 'S':
-                $stocktiles[] = $tile;
+                $stocktiles[intval($row['loc_pos'])] = $tile;
                 break;
             case 'D':
                 $drawn = $tile;
@@ -116,7 +114,8 @@ class PersistentStore {
                 $trucks[$player->truck_taken]->setTakenBy($player->id);
             }
         }
-        $stock = new Stock($stocktiles, $drawn);
+        krsort($stocktiles);
+        $stock = new Stock(array_values($stocktiles), $drawn);
         return [
             "trucks" => $trucks,
             "stock" => $stock,
