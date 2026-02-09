@@ -52,16 +52,6 @@ class Stock {
         return count($this->endgame) + ((!$this->drawn->isEmpty() && $this->inLastRound()) ? 1 : 0);
     }
 
-    /** @return int[] */
-    public function primaryIds(): array {
-        return array_map(fn (Tile $t):int => $t->id, $this->primary);
-    }
-
-    /** @return int[] */
-    public function endgameIds(): array {
-        return array_map(fn (Tile $t):int => $t->id, $this->endgame);
-    }
-
     public function removeDrawnTile(): Tile {
         if ($this->drawn->isEmpty()) {
             throw new ModelException("Attmpt to remove a drawn tile but none drawn");
