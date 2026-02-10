@@ -367,20 +367,6 @@ interface DeliverTilesArgs {
 }
 
 class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
-  /*
-  protected async doStart(args: DeliverTilesArgs) {
-    await this.playParallel(truck.coin_positions.map(pos =>
-      () => this.slideOutAndDestroy(
-        Elements.truckTile(args.truck_id, pos)!,
-        this.getPlayerPanelElement(this.player_id))))
-      .then(() => {
-        this.updateMoneyDelta(truck.money_delta);
-        this.callUndoably("chooseTiletoPlace", () => this.chooseTruckTileToPlace(args.possible_deliveries, args.truck_id));
-      });
-  }
-
-  private async chooseTruckTileToPlace(pps: PossibleDelivery[], truck_id: number) {
-      */
   protected async doStart(args: DeliverTilesArgs) {
     const restart = {
       restart: async () => this.bga.actions.performAction('actUndo', {}),
