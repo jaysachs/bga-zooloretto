@@ -1,4 +1,3 @@
-import { FlowState } from "./flow";
 import { ZooFlow } from "./zflow";
 import { Tile, TruckLocation } from "./zgametypes";
 import { Elements } from "./zhtml";
@@ -13,7 +12,7 @@ interface LoadDrawnTileArgs {
 };
 
 export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
-  constructor(gameView: GameView, flowState: FlowState) { super(gameView, flowState); }
+  constructor(gameView: GameView) { super(gameView); }
 
   protected override start(args: LoadDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),

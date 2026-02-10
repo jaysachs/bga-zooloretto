@@ -1,11 +1,11 @@
 // import { Gamedatas } from './bga-framework';
 // FIXME: this isn't right.
-import { Attrs, CSS } from './zhtml';
+import { Attrs } from './zhtml';
 import { AnimationManager } from './libs';
 
-export type Op = () => Promise<any>;
+type Op = () => Promise<any>;
 
-export interface NamedOp {
+interface NamedOp {
   desc: string;
   op: Op;
 }
@@ -28,9 +28,9 @@ function strElem(el: HTMLElement | undefined): string {
   }
 
 
-export type OpList = Op[];
+type OpList = Op[];
 
-export class FlowState {
+class FlowState {
     // FIXME: this needs to be part of this, but it shouldn't be exposed.
     marked: HTMLElement[] = [];
 
@@ -145,10 +145,10 @@ export abstract class PlayFlow<T> {
   protected flowState: FlowState;
   protected player_id: number;
 
-  constructor(animationManager: AnimationManager, bga: Bga, flowState: FlowState) {
+  constructor(animationManager: AnimationManager, bga: Bga) {
     this.animationManager = animationManager;
     this.bga = bga;
-    this.flowState = flowState;
+    this.flowState = new FlowState(animationManager.playSequentially);
     this.id = PlayFlow.lastId++;
   }
 

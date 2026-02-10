@@ -1,12 +1,10 @@
 import { Html } from './html';
-import { Tile, ZGamedatas, EnclosureSummary, Moneys, Offspring, PlacedTile, Delivery, Destination } from './zgametypes';
-import { PlayFlow, FlowState } from './flow';
+import { Tile, ZGamedatas, EnclosureSummary, Moneys, PlacedTile, Delivery } from './zgametypes';
 import { BaseGame } from './basegame';
-import { CSS, IDS, Elements, ZoolorettoHtml, Attrs, encOf, posOf, toSpace } from './zhtml';
-import { AnimationList, MoreAnimations } from './more-animations';
+import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
+import { AnimationList } from './more-animations';
 import { BgaScoreSheet, ScoreSheet } from './libs';
 import { GameView } from './zview';
-import { ZooFlow } from './zflow';
 import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { DeliverTilesFlow } from './deliverTilesFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
@@ -24,8 +22,8 @@ export class Game extends BaseGame<ZGamedatas> {
     super(bga, Game.special_log_args);
     this.view = new GameView(bga, this.animationManager, this.moneyCounter);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));
-    this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view, new FlowState(this.animationManager.playSequentially)));
-    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this.view, new FlowState(this.animationManager.playSequentially)));
+    this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view));
+    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this.view));
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {

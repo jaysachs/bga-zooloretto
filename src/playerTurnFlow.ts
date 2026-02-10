@@ -1,4 +1,3 @@
-import { FlowState } from "./flow";
 import { AnimationList } from "./more-animations";
 import { ZooFlow } from "./zflow";
 import { Destination, Moneys, Offspring } from "./zgametypes";
@@ -65,7 +64,7 @@ interface PlayState {
 }
 
 export class PlayerTurnFlow extends ZooFlow<PlayState> {
-  constructor(gameView: GameView) { super(gameView, new FlowState(gameView.animationManager.playSequentially)); }
+  constructor(gameView: GameView) { super(gameView); }
 
   protected override start(playState: PlayState) {
     // FIXME: update the status bar title based on what's possible?

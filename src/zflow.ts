@@ -1,4 +1,4 @@
-import { FlowState, PlayFlow } from "./flow";
+import { PlayFlow } from "./flow";
 import { Moneys, Offspring } from "./zgametypes";
 import { Elements, IDS } from "./zhtml";
 import { GameView } from "./zview";
@@ -6,8 +6,8 @@ import { GameView } from "./zview";
 export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
   protected readonly view: GameView;
-  constructor(view: GameView, flowState: FlowState) {
-    super(view.animationManager, view.bga, flowState);
+  constructor(view: GameView) {
+    super(view.animationManager, view.bga);
     this.view = view;
   }
 
