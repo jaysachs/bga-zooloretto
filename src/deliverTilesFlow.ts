@@ -3,12 +3,8 @@ import { Destination } from "./zgametypes";
 import { Attrs, Elements, encOf, posOf } from "./zhtml";
 
 interface PossibleDelivery {
-    truck_pos: number;
-    /*
-    tile: string;
-    tile_id: number;
-    */
-    dests: Destination[];
+  truck_pos: number;
+  dests: Destination[];
 }
 
 interface DeliverTilesArgs {

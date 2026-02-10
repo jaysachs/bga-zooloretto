@@ -79,8 +79,6 @@ export class IDS {
 
 export class CSS {
   static readonly TRUCK = 'zoo-truck';
-  static readonly SELECTABLE = 'zoo-selectable';
-  static readonly SELECTED = 'zoo-selected';
   static readonly DEPOT_SPACE = 'zoo-depot-space';
   static readonly PILE = 'zoo-pile';
   static readonly FLASH = 'zoo-flash';

@@ -181,7 +181,7 @@ export class Game extends BaseGame<ZGamedatas> {
     coin_positions: number[],
     moneys: Moneys,
   }) {
-    Elements.truck(args.truck_id).classList.add(CSS.SELECTED);
+    Elements.truck(args.truck_id).setAttribute(Attrs.MARK, 'selected');
     const coinElems = args.coin_positions.map(pos => Elements.truckTile(args.truck_id, pos)).filter(e => e);
     await this.animationManager.playParallel(coinElems.map(elem =>
       () => this.animationManager.slideOutAndDestroy(
@@ -198,7 +198,7 @@ export class Game extends BaseGame<ZGamedatas> {
     const elem = Elements.truck(args.truck_id);
     await this.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)))
       .then(() => {
-        elem.classList.remove(CSS.SELECTED);
+        Elements.truck(args.truck_id).removeAttribute(Attrs.MARK);
         this.view.updateMoneys(args.moneys);
         this.view.updateEnclosureSummaries(args.enclosure_summaries);
         this.bga.gameui.disablePlayerPanel(args.player_id);
