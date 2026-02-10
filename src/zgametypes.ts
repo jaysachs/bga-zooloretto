@@ -63,3 +63,37 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
   // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
 }
+
+export interface PlacedTile {
+  tile: Tile;
+  space: number;
+  money_delta: Moneys | null;
+}
+
+export interface Offspring {
+  placed_tile: PlacedTile;
+  mother: Tile;
+  father: Tile;
+}
+
+export type Moneys = { [playerId: number]: number };
+
+export interface TruckLocation {
+  truck_id: number,
+  truck_pos: number
+}
+
+export interface Delivery {
+  truck_pos: number;
+  tile: Tile;
+  dest: {
+    space: number;
+    offspring: Offspring | undefined;
+  } | undefined;
+}
+
+export interface Destination {
+  space: number;
+  offspring: Offspring;
+  money_delta: Moneys | null;
+}
