@@ -140,10 +140,6 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     return this.bga.userPreferences.get(101) > 0;
   }
 
-  protected uiStyle(): UIStyle {
-    return this.bga.userPreferences.get(102) ? 'pieces' : 'actionbuttons';
-  }
-
   override offboard(): HTMLElement {
     return $(IDS.OFF_BOARD);
   }
@@ -189,10 +185,6 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
     const srcEncs: number[] = [];
     Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
     Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
-    if (this.uiStyle() == 'actionbuttons') {
-      this.initStatusBar(_("Select the first enclosure to exchange"));
-      this.addRestartAndUndoButtons();
-    }
     Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
       const srcSpaceElems = this.animalSpaces(exchanges, encid);
       srcSpaceElems.forEach(spaceElem => {
@@ -268,23 +260,6 @@ class ExchangeFlow extends ZooFlow<PossibleExchanges> {
 		  dest_enclosure_id: destid,
       dest_positions: JSON.stringify(barnPos),
     });
-  }
-}
-
-class PurchaseTilesFlow extends ZooFlow<PossiblePurchase[]> {
-  constructor(g: Game, flowState: FlowState) {
-    super(g, flowState);
-  }
-
-  protected override doStart(possible_purchases: PossiblePurchase[]) {
-    this.initStatusBar(_("Select a tile to purchase from another player's barn"));
-    this.addRestartAndUndoButtons();
-    possible_purchases.forEach((pp: PossiblePurchase) => {
-        this.addSelectableOnclick(
-          Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => this.callUndoably("selectPurcaseDest", async () => new PurchaseTileFlow(this.game, this.flowState).start(pp))
-        );
-      });
   }
 }
 
@@ -448,91 +423,6 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
   }
 }
 
-class TakeTruckFlow extends ZooFlow<number[]> {
-
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  override doStart(availableTruckIds: number[]) {
-    this.initStatusBar(_('Select a truck'));
-
-    availableTruckIds.forEach((truck_id: number) => {
-      this.addSelectableOnclick($(IDS.truck(truck_id)),
-        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }));
-    });
-    this.addRestartAndUndoButtons();
-  }
-};
-
-class DiscardTileFlow extends ZooFlow<PossibleDiscards> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  override doStart(discardables: PossibleDiscards) {
-    if (this.uiStyle() == 'actionbuttons') {
-      this.initStatusBar(_('Select a tile in your barn to discard'));
-      this.addRestartAndUndoButtons();
-    }
-
-    discardables.spaces.forEach((space: number) => {
-      this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, space),
-        async () => {
-          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
-            .then(() => {
-              // should always have money delta
-              this.updateMoneyDelta(discardables.money_delta!);
-              this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
-            })
-        });
-    });
-  }
-
-  private confirmDiscard(space: number) {
-    this.initStatusBar(_('Confirm discard'));
-    this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
-  }
-}
-
-class MoveTileFlow extends ZooFlow<PossibleMoves> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  override doStart(possibleMoves: PossibleMoves) {
-    if (this.uiStyle() == 'actionbuttons') {
-      this.initStatusBar(_('Select a tile to move'));
-      this.addRestartAndUndoButtons();
-    }
-    possibleMoves.moves.forEach((m: PossibleMove) => {
-      this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, m.src),
-        () => this.callUndoably("chooseMoveDest", async () => this.chooseDest(m))
-      )
-    });
-  }
-
-  private chooseDest(pm: PossibleMove) {
-    this.initStatusBar(_('Select a destination space'));
-    this.addRestartAndUndoButtons();
-    pm.dests.forEach((dest: Destination) => {
-      const elem = Elements.enclosureTile(this.player_id, pm.src);
-      const destElem = Elements.enclosureSpace(this.player_id, dest.space)
-      this.addSelectableOnclick(destElem,
-        async () => await this.slide(elem!, destElem)
-          .then(() => {
-            this.markMoved(destElem);
-            this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
-          })
-      )
-    });
-  }
-
-  private async confirmMove(src: number, dest: Destination) {
-    await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
-    this.initStatusBar(_('Confirm move'));
-    this.addConfirmAndRestartActionButtons('actMoveTile', {
-      src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
-    });
-  }
-}
-
 class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, possible_discards: PossibleDiscards}> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
@@ -609,94 +499,80 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
 
   protected override doStart(playState: PlayState) {
-    if (this.uiStyle() == 'actionbuttons') {
-      this.initStatusBar(_("You must take an action"));
-      if (playState.can_draw) {
-          this.bga.statusBar.addActionButton(_('Draw tile'),
-            () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround));
+    this.initStatusBar(_("You must click on a tile to take an action"));
+    // FIXME: need to update the status bar title based on what's possible.
+    console.log("doStart PlayerTurnFlow", playState);
+    // Drawing a tile is orthogonal to other actions.
+    if (playState.can_draw) {
+      let topTile = Elements.drawnTile(playState.lastround);
+      if (!topTile && !playState.lastround) {
+        topTile = Elements.drawnTile(true);
       }
-      if (playState.available_trucks.length > 0) {
-        this.bga.statusBar.addActionButton(_('Take truck'),
-          () => new TakeTruckFlow(this.game, this.flowState).start(playState.available_trucks));
-      }
-      if (playState.possible_moves.moves.length > 0) {
-        this.bga.statusBar.addActionButton(_('Move tile'),
-          () => new MoveTileFlow(this.game, this.flowState).start(playState.possible_moves));
-      }
-      if (Object.keys(playState.possible_exchanges.exchanges.enclosures).length > 0
-          || Object.keys(playState.possible_exchanges.exchanges.barn).length > 0) {
-        this.bga.statusBar.addActionButton(_('Exchange animals'),
-          () => new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges));
-      }
-      if (playState.possible_purchases.length > 0) {
-        this.bga.statusBar.addActionButton(_('Purchase tile'),
-          () => new PurchaseTilesFlow(this.game, this.flowState).start(playState.possible_purchases));
-      }
-      if (playState.possible_discards.spaces.length > 0) {
-        this.bga.statusBar.addActionButton(_('Discard tile'),
-          () => new DiscardTileFlow(this.game, this.flowState).start(playState.possible_discards));
-      }
-      if (playState.extension_available > 0) {
-        this.bga.statusBar.addActionButton(_('Expand zoo'),
-          () => new ExpandZooFlow(this.game, this.flowState).start(null));
-      }
+      this.addSelectableOnclick(
+        topTile,
+        () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround),
+        _('Draw tile')
+      );
     }
-    else if (this.uiStyle() == 'pieces') {
-      this.initStatusBar(_("You must click on a tile to take an action"));
-      // FIXME: need to update the status bar title based on what's possible.
-      console.log("doStart PlayerTurnFlow", playState);
-      // Drawing a tile is orthogonal to other actions.
-      if (playState.can_draw) {
-        let topTile = Elements.drawnTile(playState.lastround);
-        if (!topTile && !playState.lastround) {
-          topTile = Elements.drawnTile(true);
-        }
+
+    // Truck delivery is orthogonal.
+    playState.available_trucks.forEach(
+      truck_id => this.addSelectableOnclick(
+        Elements.truck(truck_id),
+        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
+        _('Take truck'))
+      );
+
+    // Expanding is orthogonal to other actions.
+    if (playState.extension_available > 0) {
+      this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
+        () => new ExpandZooFlow(this.game, this.flowState).start(null), _('Expand zoo'));
+    }
+
+    // These can be separate since they exclusively are on other players' boards.
+    if (playState.possible_purchases.length > 0) {
+      playState.possible_purchases.forEach((pp: PossiblePurchase) => {
         this.addSelectableOnclick(
-          topTile,
-          () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround),
-          _('Draw tile')
+          Elements.enclosureSpace(pp.src_player_id, pp.src),
+          () => new PurchaseTileFlow(this.game, this.flowState).start(pp),
+          _('Purchase tile')
         );
-      }
-
-      // Truck delivery is orthogonal.
-      playState.available_trucks.forEach(
-        truck_id => this.addSelectableOnclick(
-          Elements.truck(truck_id),
-          () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
-          _('Take truck'))
-        );
-
-      // Expanding is orthogonal to other actions.
-      if (playState.extension_available > 0) {
-        this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
-          () => new ExpandZooFlow(this.game, this.flowState).start(null), _('Expand zoo'));
-      }
-
-      // These can be separate since they exclusively are on other players' boards.
-      if (playState.possible_purchases.length > 0) {
-        playState.possible_purchases.forEach((pp: PossiblePurchase) => {
-          this.addSelectableOnclick(
-            Elements.enclosureSpace(pp.src_player_id, pp.src),
-            () => new PurchaseTileFlow(this.game, this.flowState).start(pp),
-            _('Purchase tile')
-          );
-        });
-      }
-
-      // Animals in enclosures can only be exchanged, so these are also fine to just do.
-      new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
-
-      // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
-      //   can be discarded and possibly moved.
-      // Probably want:
-      //   if can be moved, then highlight destinations but also give 'Discard' button.
-      //   if can't be moved, just give 'Discard' button.
-      new MoveOrDiscardTileFlow(this.game, this.flowState).start(playState)
+      });
     }
+
+    // Animals in enclosures can only be exchanged, so these are also fine to just do.
+    new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
+
+    // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
+    //   can be discarded and possibly moved.
+    // Probably want:
+    //   if can be moved, then highlight destinations but also give 'Discard' button.
+    //   if can't be moved, just give 'Discard' button.
+    new MoveOrDiscardTileFlow(this.game, this.flowState).start(playState)
   }
 }
 
-type UIStyle = 'pieces' | 'actionbuttons';
+class DeliverTilesStateHandler {
+  private game : Game;
+
+  constructor(game: Game) {
+    this.game = game;
+  }
+
+  public onLeavingState(args: DeliverTilesArgs, isCurrentPlayerActive: boolean) {
+    console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
+    if (isCurrentPlayerActive) {
+      // this.flowState.clear();
+    }
+  }
+
+  public onEnteringState(args: DeliverTilesArgs, isCurrentPlayerActive: boolean) {
+    console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
+    if (isCurrentPlayerActive) {
+      new DeliverTilesFlow(this.game, new FlowState(this.game.animationManager.playSequentially)).start(args);
+    }
+  }
+}
 
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
@@ -711,7 +587,7 @@ export class Game extends BaseGame<ZGamedatas> {
     super(bga, Game.special_log_args);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
-    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this, new FlowState(this.animationManager.playSequentially)));
+    this.bga.states.register('DeliverTruckTiles', new DeliverTilesStateHandler(this));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
