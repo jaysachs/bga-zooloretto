@@ -273,7 +273,7 @@ export abstract class PlayFlow<T> {
     // this.clearMarked();
     this.inUndo = true;
     this.resetController();
-    await this.undoTo(0).then(this.clear).then(() => this.inUndo = false );
+    await this.undoTo(0).then(this.clear.bind(this)).then(() => this.inUndo = false );
   }
 
   private clearMarked() {
