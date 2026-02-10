@@ -175,7 +175,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
-  override doStart(args: LoadDrawnTileArgs) {
+  protected override start(args: LoadDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
         { tile_type: args.tile.type,
           tile_description: this.game.tileTranslations.get(args.tile.type) });
@@ -217,7 +217,7 @@ interface DeliverTilesArgs {
 }
 
 class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
-  protected async doStart(args: DeliverTilesArgs) {
+  protected async start(args: DeliverTilesArgs) {
     const restart = {
       restart: async () => this.bga.actions.performAction('actUndo', {}),
       post: async () =>  Elements.truck(args.truck_id).removeAttribute(Attrs.MARK)
@@ -262,7 +262,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
 class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
 
-  protected override doStart(playState: PlayState) {
+  protected override start(playState: PlayState) {
     // FIXME: update the status bar title based on what's possible?
     this.initStatusBar(_("You must click on a tile to take an action"));
 

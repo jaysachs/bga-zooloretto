@@ -171,22 +171,18 @@ export abstract class PlayFlow<T> {
     console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
       // this.flowState.clear();
-      this.start(args);
+      console.log("start:", (this as any).constructor?.name);
+      this.player_id = this.bga.gameui.player_id;
+      const desc = "Start " + (this as any).constructor?.name;
+      this.callUndoably(desc, () => this.start(args));
     }
-  }
-
-  start(args: T) {
-    console.log("start:", (this as any).constructor?.name);
-    this.player_id = this.bga.gameui.player_id;
-    const desc = "Start " + (this as any).constructor?.name;
-    this.callUndoably(desc, () => this.doStart(args));
   }
 
   protected async callUndoably(desc: string, thing: () => Promise<any>) {
     this.flowState.callUndoably(desc, thing);
   }
 
-  protected abstract doStart(args?: T);
+  protected abstract start(args?: T);
 
   protected async playParallel(anims: OpList) {
     await this.animationManager.playParallel(anims);
