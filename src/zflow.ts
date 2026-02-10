@@ -1,6 +1,6 @@
 import { PlayFlow } from "./flow";
 import { Moneys, Offspring } from "./zgametypes";
-import { Elements, IDS } from "./zhtml";
+import { Attrs, Elements, IDS } from "./zhtml";
 import { GameView } from "./zview";
 
 export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
@@ -48,6 +48,12 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
       }
     }
     return Promise.resolve();
+  }
+
+  protected mark(elem: HTMLElement | undefined, mark: "selected" | "selectable" | "moved" | "none"): (() => Promise<any>) | undefined {
+    const m = elem.getAttribute(Attrs.MARK);
+    elem.setAttribute(Attrs.MARK, mark);
+    return async () => elem.setAttribute(Attrs.MARK, m);
   }
 
 }

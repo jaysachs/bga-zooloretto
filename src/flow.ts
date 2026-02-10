@@ -1,7 +1,5 @@
-// import { Gamedatas } from './bga-framework';
-// FIXME: this isn't right.
-import { Attrs } from './zhtml';
 import { AnimationManager } from './libs';
+import { AnimationList } from './more-animations';
 
 type Op = () => Promise<any>;
 
@@ -28,8 +26,6 @@ function strElem(el: HTMLElement | undefined): string {
 }
 
 
-type OpList = Op[];
-
 export abstract class PlayFlow<T> {
   private ops: NamedOp[] = [];
   private continuations: Continuation[] = [];
@@ -46,7 +42,7 @@ export abstract class PlayFlow<T> {
   protected constructor(animationManager: AnimationManager, bga: Bga) {
     this.animationManager = animationManager;
     this.bga = bga;
-    this.consumer = animationManager.playSequentially;
+    this.consumer = (x : AnimationList) => animationManager.playSequentially(x);
   }
 
   public onLeavingState(args: T, isCurrentPlayerActive: boolean) {
@@ -68,6 +64,8 @@ export abstract class PlayFlow<T> {
   }
 
   protected abstract start(args?: T);
+
+  protected abstract mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' | 'none'): Op | undefined;
 
   protected abstract useAutoclick(): boolean;
 
@@ -172,15 +170,15 @@ export abstract class PlayFlow<T> {
   }
 
   protected markSelected(elem: HTMLElement | undefined) {
-    this.mark(elem, 'selected');
+    this.setMarked(elem, 'selected');
   }
 
   protected markMoved(elem: HTMLElement) {
-    this.mark(elem, 'moved');
+    this.setMarked(elem, 'moved');
   }
 
   protected markSelectable(elem: HTMLElement | undefined) {
-    this.mark(elem, 'selectable');
+    this.setMarked(elem, 'selectable');
   }
 
   protected addSelectableOnclick(elem: HTMLElement, onclick: (evt: MouseEvent) => any, desc?: string ) {
@@ -209,7 +207,7 @@ export abstract class PlayFlow<T> {
   }
 
   private async undoTo(mark: number) {
-    const anims: OpList = [];
+    const anims: Op[] = [];
     while (this.ops.length > mark) {
       anims.push(this.ops.pop()!.op);
     }
@@ -255,15 +253,13 @@ export abstract class PlayFlow<T> {
   }
   */
 
-  private mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' ): void {
+  private setMarked(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' ): void {
     if (!elem) {
       return;
     }
-    console.debug("mark", elem, mark);
+    console.debug("setMarked", elem, mark);
     this.marked.push(elem);
-    const m = elem.getAttribute(Attrs.MARK);
-    elem.setAttribute(Attrs.MARK, mark);
-    this.pushUndoOp(`mark:${mark}:${m} ${strElem(elem)}`, async () => elem.setAttribute(Attrs.MARK, m));
+    this.pushUndoOp(`unmark:${mark} ${strElem(elem)}`, this.mark(elem, mark));
   }
 
   private async rollback() {
@@ -280,17 +276,16 @@ export abstract class PlayFlow<T> {
     console.debug("clearMarked");
     while (this.marked.length > 0) {
       const elem = this.marked.pop()!;
+      const undoMark = this.mark(elem, 'none');
       if (!this.inUndo) {
         console.debug("clearMarked **AS UNDOABLE OP**", elem);
-        const m = elem.getAttribute(Attrs.MARK);
         this.pushOp({
-          desc: `clearMarkedNotUndo:${strElem(elem)}:[${m}]`,
-          op: async () => elem.setAttribute(Attrs.MARK, m)
+          desc: `clearMarkedNotUndo:${strElem(elem)}`,
+          op: undoMark,
         })
       }
-      console.debug("clearing marked", elem);
+      console.debug("cleared marked", elem);
       elem.title = '';
-      elem.removeAttribute(Attrs.MARK);
     }
   }
 
