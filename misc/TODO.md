@@ -1,6 +1,6 @@
 Open
 ====
-1. Restart not working properly for delivery. The issue seems to be that the undo-s go back too
+1. FIXED Restart not working properly for delivery. The issue seems to be that the undo-s go back too
    far or something. Need to only "reset" when an actual state change happens (not a leave state / re-enter same state -- that shouldn't reset.) And depending, maybe even more general, should be explicit with undo boundaries.
 2. Delivered trucks stay "blue" after being returned to play area from player board.
   * Hacked it in. But this is related to (1).
