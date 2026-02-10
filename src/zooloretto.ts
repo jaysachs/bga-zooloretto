@@ -552,28 +552,6 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 }
 
-class DeliverTilesStateHandler {
-  private game : Game;
-
-  constructor(game: Game) {
-    this.game = game;
-  }
-
-  public onLeavingState(args: DeliverTilesArgs, isCurrentPlayerActive: boolean) {
-    console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
-    if (isCurrentPlayerActive) {
-      // this.flowState.clear();
-    }
-  }
-
-  public onEnteringState(args: DeliverTilesArgs, isCurrentPlayerActive: boolean) {
-    console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
-    if (isCurrentPlayerActive) {
-      new DeliverTilesFlow(this.game, new FlowState(this.game.animationManager.playSequentially)).start(args);
-    }
-  }
-}
-
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
   tileTranslations = new Map<string, string>();;
@@ -587,7 +565,7 @@ export class Game extends BaseGame<ZGamedatas> {
     super(bga, Game.special_log_args);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
-    this.bga.states.register('DeliverTruckTiles', new DeliverTilesStateHandler(this));
+    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this, new FlowState(this.animationManager.playSequentially)));
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
