@@ -71,54 +71,55 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.initStatusBar(_("You must click on a tile to take an action"));
 
     // Drawing a tile is orthogonal to other actions.
-    if (playState.can_draw) {
-      let topTile = Elements.drawnTile(playState.lastround);
-      if (!topTile && !playState.lastround) {
-        topTile = Elements.drawnTile(true);
-      }
-      this.addSelectableOnclick(
-        topTile,
-        () => this.drawTile(playState.lastround),
-        _('Draw tile')
-      );
-    }
+    this.wireUpDraw(playState.can_draw, playState.lastround);
 
     // Truck delivery is orthogonal.
-    playState.available_trucks.forEach(
-      truck_id => this.addSelectableOnclick(
-        Elements.truck(truck_id),
-        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
-        _('Take truck'))
-      );
+    this.wireUpDeliveries(playState.available_trucks);
 
     // Expanding is orthogonal to other actions.
-    if (playState.extension_available > 0) {
-      this.addSelectableOnclick(
-        $(IDS.extension(this.player_id, playState.extension_available)),
-        () => this.expandZoo());
-    }
+    this.wireUpExpansions(playState.extension_available);
 
     // These can be separate since they exclusively are on other players' boards.
-    playState.possible_purchases.forEach((pp: PossiblePurchase) => {
-      this.addSelectableOnclick(
-        Elements.enclosureSpace(pp.src_player_id, pp.src),
-        () => this.purchase(pp),
-        _('Purchase tile')
-      );
-    });
+    this.wireUpPurchases(playState.possible_purchases);
 
     // Animals in enclosures can only be exchanged, so these are also fine to just do.
-    this.exchanges(playState.possible_exchanges);
+    this.wireUpExchanges(playState.possible_exchanges);
 
-    // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
-    //   can be discarded and possibly moved.
-    // Probably want:
-    //   if can be moved, then highlight destinations but also give 'Discard' button.
-    //   if can't be moved, just give 'Discard' button.
-    this.movesOrDiscards(playState.possible_moves, playState.possible_discards);
+    // It's moves and discards that are non-orthogonal,
+    //   i.e. a tile in the barn can be discarded and possibly moved.
+    this.wireUpMovesOrDiscards(playState.possible_moves, playState.possible_discards);
   }
 
-  private movesOrDiscards(possible_moves: PossibleMoves, possible_discards: PossibleDiscards) {
+    private wireUpDraw(canDraw: boolean, lastRound: boolean) {
+        if (canDraw) {
+            let topTile = Elements.drawnTile(lastRound);
+            if (!topTile && !lastRound) {
+                topTile = Elements.drawnTile(true);
+            }
+            this.addSelectableOnclick(
+                topTile,
+                () => this.drawTile(lastRound),
+                _('Draw tile')
+            );
+        }
+    }
+
+  private drawTile(lastround: boolean) {
+    this.initStatusBar(_('Draw a tile? (cannot undo)'));
+    this.markSelected(Elements.drawnTile(lastround));
+    this.addConfirmAndRestartActionButtons('actDrawTile', {});
+  }
+
+    private wireUpDeliveries(available_trucks: number[]) {
+        available_trucks.forEach(
+            truck_id => this.addSelectableOnclick(
+                Elements.truck(truck_id),
+                () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
+                _('Take truck'))
+        );
+    }
+
+  private wireUpMovesOrDiscards(possible_moves: PossibleMoves, possible_discards: PossibleDiscards) {
     const isMoveable = (s : number) => possible_moves.moves.findIndex((m : PossibleMove) => m.src == s) >= 0;
     const isDiscardable = (m: PossibleMove) => possible_discards.spaces.indexOf(m.src) >= 0;
 
@@ -189,7 +190,25 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
   }
 
-  private exchanges(possible_exchanges: PossibleExchanges) {
+    private wireUpExpansions(extension_available: number) {
+        if (extension_available > 0) {
+            this.addSelectableOnclick(
+                $(IDS.extension(this.player_id, extension_available)),
+                () => this.expandZoo());
+        }
+    }
+
+  private expandZoo() {
+    this.initStatusBar(_('Expand zoo?'));
+    const current = this.view.getCurrentExtensions(this.player_id);
+    this.view.renderExtensions(this.player_id, current + 1);
+    $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
+    // FIXME: Need to undo that removal as well?
+    this.pushUndoOp('expandZoo', async () => this.view.renderExtensions(this.player_id, current));
+    this.addConfirmAndRestartActionButtons('actExpandZoo', {});
+  }
+
+  private wireUpExchanges(possible_exchanges: PossibleExchanges) {
     const exchanges = possible_exchanges.exchanges;
     const srcEncs: number[] = [];
     Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
@@ -273,6 +292,16 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
+    private wireUpPurchases(possible_purchases: PossiblePurchase[]) {
+        possible_purchases.forEach((pp: PossiblePurchase) => {
+            this.addSelectableOnclick(
+                Elements.enclosureSpace(pp.src_player_id, pp.src),
+                () => this.purchase(pp),
+                _('Purchase tile')
+            );
+        });
+    }
+
   private purchase(pp: PossiblePurchase) {
     this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
@@ -300,22 +329,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       enclosure_id: encOf(dest.space),
       enclosure_pos: posOf(dest.space)
     });
-  }
-
-  private drawTile(lastround: boolean) {
-    this.initStatusBar(_('Draw a tile? (cannot undo)'));
-    this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmAndRestartActionButtons('actDrawTile', {});
-  }
-
-  private expandZoo() {
-    this.initStatusBar(_('Expand zoo?'));
-    const current = this.view.getCurrentExtensions(this.player_id);
-    this.view.renderExtensions(this.player_id, current + 1);
-    $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
-    // FIXME: Need to undo that removal as well?
-    this.pushUndoOp('expandZoo', async () => this.view.renderExtensions(this.player_id, current));
-    this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
 
 }
