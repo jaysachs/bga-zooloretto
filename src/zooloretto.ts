@@ -172,156 +172,6 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
 }
 
-class ExchangeFlow extends ZooFlow<PossibleExchanges> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
-    return exchanges.animal_positions[encid].map(
-        pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
-  }
-
-  protected override doStart(possible_exchanges: PossibleExchanges) {
-    const exchanges = possible_exchanges.exchanges;
-    const srcEncs: number[] = [];
-    Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
-    Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
-    Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
-      const srcSpaceElems = this.animalSpaces(exchanges, encid);
-      srcSpaceElems.forEach(spaceElem => {
-        this.addSelectableOnclick(
-          spaceElem,
-          () => {
-            this.callUndoably("selectExchangeDest", async () => {
-              srcSpaceElems.forEach(s => this.markSelected(s));
-              this.updateMoneyDelta(possible_exchanges.money_delta);
-              this.selectExchangeDest(exchanges, encid);
-            })
-          });
-      });
-    });
-  }
-
-  private selectExchangeDest(exchanges: Exchanges, srcid: number) {
-    this.initStatusBar(_("Select the animals to exchange with"));
-    const barnDests = exchanges.barn[srcid] ?? [];
-    const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
-    exchanges.enclosures[srcid].forEach(destid => {
-      const destAnimalSpaces = this.animalSpaces(exchanges, destid);
-      destAnimalSpaces.forEach(s => {
-        this.addSelectableOnclick(s, async () => {
-            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
-            const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
-            const anims: AnimationList = [];
-            let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
-            for (let i = 0; i < len; ++i) {
-              anims.push(() => this.moreAnimations.swapFirstChildren(
-                srcSpaces[i],
-                destSpaces[i])
-              );
-            }
-            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
-            await this.animationManager.playParallel(anims)
-              .then(() => destAnimalSpaces.forEach(t => this.markMoved(t)))
-              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid)));
-        });
-      });
-    });
-    // Now handle barn as destination, also dealing with possible offspring in the non-barn
-    // Note that there is no enclosure completion bonus for exchanges, so we don't
-    //  need to apply money deltas in here.
-    barnDests.forEach(be => {
-      be.positions.forEach(pos => {
-        const barnSpace = Elements.enclosureSpace(this.player_id, toSpace(0, pos));
-        this.addSelectableOnclick(barnSpace, async () => {
-            const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
-            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
-            let len = Math.max(srcAnimalSpaces.length, destTiles.length);
-            const anims: AnimationList = [];
-            for (let i = 0; i < len; ++i) {
-              anims.push(() => this.moreAnimations.swapFirstChildren(
-                srcSpaces[i],
-                Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i]))
-              ));
-            }
-            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
-            await this.animationManager.playParallel(anims)
-              .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
-              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, 0, be.positions)));
-        });
-      })
-    });
-    this.addRestartAndUndoButtons();
-  }
-
-  private confirmExchange(srcid: number, destid: number, barnPos?: number[]) {
-    this.initStatusBar(_("Confirm exchange"));
-    this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
-  		src_enclosure_id : srcid,
-		  dest_enclosure_id: destid,
-      dest_positions: JSON.stringify(barnPos),
-    });
-  }
-}
-
-class PurchaseTileFlow extends ZooFlow<PossiblePurchase> {
-  constructor(g: Game, flowState: FlowState) {
-    super(g, flowState);
-  }
-
-  protected override doStart(pp: PossiblePurchase) {
-    this.updateMoneyDelta(pp.money_delta);
-    this.initStatusBar(_("Select a destination for the purchased tile"));
-    pp.dests.forEach((dest: Destination) =>
-      this.addSelectableOnclick(
-        Elements.enclosureSpace(this.player_id, dest.space),
-        async () => {
-          await this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
-                     Elements.enclosureSpace(this.player_id, dest.space))
-            .then(() => this.updateMoneyDelta(dest.money_delta))
-            .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
-          if (dest.offspring) {
-            this.offspringSlide(dest.offspring);
-          }
-        }
-      ));
-    this.addRestartAndUndoButtons();
-  }
-
-  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
-    this.initStatusBar(_("Confirm purchase"));
-    this.addConfirmAndRestartActionButtons('actPurchaseTile', {
-      from_player_id: pp.src_player_id,
-      barn_pos: posOf(pp.src),
-      enclosure_id: encOf(dest.space),
-      enclosure_pos: posOf(dest.space)
-    });
-  }
-}
-
-class ExpandZooFlow extends ZooFlow {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  override doStart() {
-    this.initStatusBar(_('Expand zoo?'));
-    const current = this.game.getCurrentExtensions(this.player_id);
-    this.game.renderExtensions(this.player_id, current + 1);
-    $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
-    // FIXME: Need to undo that removal as well?
-    this.pushUndoOp('expandZoo', async () => this.game.renderExtensions(this.player_id, current));
-    this.addConfirmAndRestartActionButtons('actExpandZoo', {});
-  }
-};
-
-class DrawTileFlow extends ZooFlow<boolean> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
-
-  override doStart(lastround: boolean) {
-    this.initStatusBar(_('Draw a tile? (cannot undo)'));
-    this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmAndRestartActionButtons('actDrawTile', {});
-  }
-};
-
 class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   constructor(g: Game, flowState: FlowState) { super(g, flowState); }
 
@@ -409,30 +259,80 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
   }
 }
 
-class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, possible_discards: PossibleDiscards}> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
+class PlayerTurnFlow extends ZooFlow<PlayState> {
+  constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
 
-  override doStart(args: { possible_moves: PossibleMoves, possible_discards: PossibleDiscards}) {
+  protected override doStart(playState: PlayState) {
+    // FIXME: update the status bar title based on what's possible?
+    this.initStatusBar(_("You must click on a tile to take an action"));
 
-    const isMoveable = (s : number) => args.possible_moves.moves.findIndex((m : PossibleMove) => m.src == s) >= 0;
-    const isDiscardable = (m: PossibleMove) => args.possible_discards.spaces.indexOf(m.src) >= 0;
+    // Drawing a tile is orthogonal to other actions.
+    if (playState.can_draw) {
+      let topTile = Elements.drawnTile(playState.lastround);
+      if (!topTile && !playState.lastround) {
+        topTile = Elements.drawnTile(true);
+      }
+      this.addSelectableOnclick(
+        topTile,
+        () => this.drawTile(playState.lastround),
+        _('Draw tile')
+      );
+    }
 
-    args.possible_moves.moves.forEach((m: PossibleMove) => {
-      const es = Elements.enclosureSpace(this.player_id, m.src);
+    // Truck delivery is orthogonal.
+    playState.available_trucks.forEach(
+      truck_id => this.addSelectableOnclick(
+        Elements.truck(truck_id),
+        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
+        _('Take truck'))
+      );
+
+    // Expanding is orthogonal to other actions.
+    if (playState.extension_available > 0) {
+      this.addSelectableOnclick(
+        $(IDS.extension(this.player_id, playState.extension_available)),
+        () => this.expandZoo());
+    }
+
+    // These can be separate since they exclusively are on other players' boards.
+    playState.possible_purchases.forEach((pp: PossiblePurchase) => {
+      this.addSelectableOnclick(
+        Elements.enclosureSpace(pp.src_player_id, pp.src),
+        () => this.purchase(pp),
+        _('Purchase tile')
+      );
+    });
+
+    // Animals in enclosures can only be exchanged, so these are also fine to just do.
+    this.exchanges(playState.possible_exchanges);
+
+    // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
+    //   can be discarded and possibly moved.
+    // Probably want:
+    //   if can be moved, then highlight destinations but also give 'Discard' button.
+    //   if can't be moved, just give 'Discard' button.
+    this.movesOrDiscards(playState.possible_moves, playState.possible_discards);
+  }
+
+  private movesOrDiscards(possible_moves: PossibleMoves, possible_discards: PossibleDiscards) {
+    const isMoveable = (s : number) => possible_moves.moves.findIndex((m : PossibleMove) => m.src == s) >= 0;
+    const isDiscardable = (m: PossibleMove) => possible_discards.spaces.indexOf(m.src) >= 0;
+
+    possible_moves.moves.forEach((m: PossibleMove) => {
       const alsoDiscardable = isDiscardable(m);
       this.addSelectableOnclick(
-        es,
+        Elements.enclosureSpace(this.player_id, m.src),
         () => this.callUndoably("chooseMoveDest" + m.src, async () =>
-          this.chooseDest(m, alsoDiscardable, args.possible_discards.money_delta, args.possible_moves.money_delta),
-      ), alsoDiscardable ? _('Discard or move tile') : _('Move tile')
+          this.chooseMoveDest(m, alsoDiscardable, possible_discards.money_delta, possible_moves.money_delta),
+        ), alsoDiscardable ? _('Discard or move tile') : _('Move tile')
       )
     });
-    args.possible_discards.spaces.forEach((space: number) => {
+    possible_discards.spaces.forEach((space: number) => {
       if (!isMoveable(space)) {
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, space),
           async () => {
-            this.updateMoneyDelta(args.possible_discards.money_delta);
+            this.updateMoneyDelta(possible_discards.money_delta);
             await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!,$(IDS.OFF_BOARD))
               .then(() => this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space)))
           }, _('Discard tile'));
@@ -445,7 +345,7 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
     this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
   }
 
-  private chooseDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
+  private chooseMoveDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
     this.initStatusBar(_('Select a destination space or'));
     if (discardable) {
       this.bga.statusBar.addActionButton(_('Discard the tile'),
@@ -479,63 +379,139 @@ class MoveOrDiscardTileFlow extends ZooFlow<{possible_moves: PossibleMoves, poss
       src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
     });
   }
-}
 
-class PlayerTurnFlow extends ZooFlow<PlayState> {
-  constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
-
-  protected override doStart(playState: PlayState) {
-    this.initStatusBar(_("You must click on a tile to take an action"));
-    // FIXME: need to update the status bar title based on what's possible.
-    console.log("doStart PlayerTurnFlow", playState);
-    // Drawing a tile is orthogonal to other actions.
-    if (playState.can_draw) {
-      let topTile = Elements.drawnTile(playState.lastround);
-      if (!topTile && !playState.lastround) {
-        topTile = Elements.drawnTile(true);
-      }
-      this.addSelectableOnclick(
-        topTile,
-        () => new DrawTileFlow(this.game, this.flowState).start(playState.lastround),
-        _('Draw tile')
-      );
-    }
-
-    // Truck delivery is orthogonal.
-    playState.available_trucks.forEach(
-      truck_id => this.addSelectableOnclick(
-        Elements.truck(truck_id),
-        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
-        _('Take truck'))
-      );
-
-    // Expanding is orthogonal to other actions.
-    if (playState.extension_available > 0) {
-      this.addSelectableOnclick($(IDS.extension(this.player_id, playState.extension_available)),
-        () => new ExpandZooFlow(this.game, this.flowState).start(null), _('Expand zoo'));
-    }
-
-    // These can be separate since they exclusively are on other players' boards.
-    if (playState.possible_purchases.length > 0) {
-      playState.possible_purchases.forEach((pp: PossiblePurchase) => {
-        this.addSelectableOnclick(
-          Elements.enclosureSpace(pp.src_player_id, pp.src),
-          () => new PurchaseTileFlow(this.game, this.flowState).start(pp),
-          _('Purchase tile')
-        );
-      });
-    }
-
-    // Animals in enclosures can only be exchanged, so these are also fine to just do.
-    new ExchangeFlow(this.game, this.flowState).start(playState.possible_exchanges);
-
-    // It's moves and discards that are non-orthogonal, i.e. a tile in the barn
-    //   can be discarded and possibly moved.
-    // Probably want:
-    //   if can be moved, then highlight destinations but also give 'Discard' button.
-    //   if can't be moved, just give 'Discard' button.
-    new MoveOrDiscardTileFlow(this.game, this.flowState).start(playState)
+  private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
+    return exchanges.animal_positions[encid].map(
+        pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
   }
+
+  private exchanges(possible_exchanges: PossibleExchanges) {
+    const exchanges = possible_exchanges.exchanges;
+    const srcEncs: number[] = [];
+    Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
+    Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
+    Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
+      const srcSpaceElems = this.animalSpaces(exchanges, encid);
+      srcSpaceElems.forEach(spaceElem => {
+        this.addSelectableOnclick(
+          spaceElem,
+          () => {
+            this.callUndoably("selectExchangeDest", async () => {
+              srcSpaceElems.forEach(s => this.markSelected(s));
+              this.updateMoneyDelta(possible_exchanges.money_delta);
+              this.selectExchangeDest(exchanges, encid);
+            })
+          });
+      });
+    });
+  }
+
+  private selectExchangeDest(exchanges: Exchanges, srcid: number) {
+    this.initStatusBar(_("Select the animals to exchange with"));
+    const barnDests = exchanges.barn[srcid] ?? [];
+    const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
+    exchanges.enclosures[srcid].forEach(destid => {
+      const destAnimalSpaces = this.animalSpaces(exchanges, destid);
+      destAnimalSpaces.forEach(s => {
+        this.addSelectableOnclick(s, async () => {
+            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
+            const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
+            const anims: AnimationList = [];
+            let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
+            for (let i = 0; i < len; ++i) {
+              anims.push(() => this.moreAnimations.swapFirstChildren(
+                srcSpaces[i],
+                destSpaces[i])
+              );
+            }
+            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
+            await this.animationManager.playParallel(anims)
+              .then(() => destAnimalSpaces.forEach(t => this.markMoved(t)))
+              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid)));
+        });
+      });
+    });
+    // Now handle barn as destination, also dealing with possible offspring in the non-barn
+    // Note that there is no enclosure completion bonus for exchanges, so we don't
+    //  need to apply money deltas in here.
+    barnDests.forEach(be => {
+      be.positions.forEach(pos => {
+        const barnSpace = Elements.enclosureSpace(this.player_id, toSpace(0, pos));
+        this.addSelectableOnclick(barnSpace, async () => {
+            const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
+            const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
+            let len = Math.max(srcAnimalSpaces.length, destTiles.length);
+            const anims: AnimationList = [];
+            for (let i = 0; i < len; ++i) {
+              anims.push(() => this.moreAnimations.swapFirstChildren(
+                srcSpaces[i],
+                Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i]))
+              ));
+            }
+            this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
+            await this.animationManager.playParallel(anims)
+              .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
+              .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, 0, be.positions)));
+        });
+      })
+    });
+    this.addRestartAndUndoButtons();
+  }
+
+  private confirmExchange(srcid: number, destid: number, barnPos?: number[]) {
+    this.initStatusBar(_("Confirm exchange"));
+    this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
+  		src_enclosure_id : srcid,
+		  dest_enclosure_id: destid,
+      dest_positions: JSON.stringify(barnPos),
+    });
+  }
+
+  private purchase(pp: PossiblePurchase) {
+    this.updateMoneyDelta(pp.money_delta);
+    this.initStatusBar(_("Select a destination for the purchased tile"));
+    pp.dests.forEach((dest: Destination) =>
+      this.addSelectableOnclick(
+        Elements.enclosureSpace(this.player_id, dest.space),
+        async () => {
+          await this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
+                     Elements.enclosureSpace(this.player_id, dest.space))
+            .then(() => this.updateMoneyDelta(dest.money_delta))
+            .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
+          if (dest.offspring) {
+            this.offspringSlide(dest.offspring);
+          }
+        }
+      ));
+    this.addRestartAndUndoButtons();
+  }
+
+  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
+    this.initStatusBar(_("Confirm purchase"));
+    this.addConfirmAndRestartActionButtons('actPurchaseTile', {
+      from_player_id: pp.src_player_id,
+      barn_pos: posOf(pp.src),
+      enclosure_id: encOf(dest.space),
+      enclosure_pos: posOf(dest.space)
+    });
+  }
+
+  private drawTile(lastround: boolean) {
+    this.initStatusBar(_('Draw a tile? (cannot undo)'));
+    this.markSelected(Elements.drawnTile(lastround));
+    this.addConfirmAndRestartActionButtons('actDrawTile', {});
+  }
+
+  private expandZoo() {
+    this.initStatusBar(_('Expand zoo?'));
+    const current = this.game.getCurrentExtensions(this.player_id);
+    this.game.renderExtensions(this.player_id, current + 1);
+    $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
+    // FIXME: Need to undo that removal as well?
+    this.pushUndoOp('expandZoo', async () => this.game.renderExtensions(this.player_id, current));
+    this.addConfirmAndRestartActionButtons('actExpandZoo', {});
+  }
+
 }
 
 /** Game class */
