@@ -161,10 +161,6 @@ class Game extends Table
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->serialize(),
             'lastround' => $stock->inLastRound(),
 			'enclosure_summaries' => array_map(fn ($s) => $s->serialize(), $esumms),
-			'tile_translations' => array_map(fn ($t) => [
-				'type' => $t->value,
-				'name' => $t->translated(),
-			], TileType::cases()),
 		];
 		foreach ($model->getAllPlayers() as $player) {
 			$datas['players'][$player->id]['player_id'] = $player->id;

@@ -178,7 +178,7 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   protected override start(args: LoadDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
         { tile_type: args.tile.type,
-          tile_description: this.game.tileTranslations.get(args.tile.type) });
+          tile_description: _(args.tile.description) });
     const elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
@@ -195,7 +195,7 @@ class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   private confirmLoadDrawnTile(tile: Tile, tl: TruckLocation) {
     this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,
-          tile_description: this.game.tileTranslations.get(tile.type),
+          tile_description: _(tile.description),
           truck_id: tl.truck_id });
     // FIXME: restart doesn't re-highlight the truck spaces.
     this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
@@ -516,8 +516,6 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
 
 /** Game class */
 export class Game extends BaseGame<ZGamedatas> {
-  tileTranslations = new Map<string, string>();;
-
   private moneyCounter: Counter[] = [];
   private primaryStockCounter: Counter;
   private endgameStockCounter: Counter;
@@ -635,7 +633,7 @@ export class Game extends BaseGame<ZGamedatas> {
       const type = summary.animal_type;
       elem.setAttribute(Attrs.TILE, summary.animal_type);
       if (type) {
-        elem.title = this.tileTranslations.get(type) ?? type;
+        elem.title = _(summary.animal_description);
         elem.firstElementChild!.textContent = `${summary.count}`;
       } else {
         elem.title = '';
@@ -673,12 +671,7 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private setupTranslations(gamedatas: ZGamedatas): void {
-    gamedatas.tile_translations.forEach(v => this.tileTranslations.set(v.type, v.name));
-  }
-
   setup(gamedatas: ZGamedatas) {
-    this.setupTranslations(gamedatas);
     this.setupHtml(gamedatas);
     this.setupNotifications();
     this.setupScoreSheet(gamedatas);

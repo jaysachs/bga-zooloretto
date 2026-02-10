@@ -47,6 +47,7 @@ class Tile {
 		return [
 			"id" => $this->id,
 			"type" => $this->type->value,
+			"description" => $this->type->translated(),
 		];
 	}
 
