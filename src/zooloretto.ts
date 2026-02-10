@@ -4,7 +4,7 @@ import { PlayFlow, FlowState } from './flow';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs, encOf, posOf, toSpace } from './zhtml';
 import { AnimationList, MoreAnimations } from './more-animations';
-import { BgaScoreSheet, ScoreSheet } from './libs';
+import { AnimationManager, BgaScoreSheet, ScoreSheet } from './libs';
 
 //
 // interfaces for args & notifs
@@ -123,12 +123,10 @@ interface Delivery {
 //
 abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 
-  protected readonly game: Game;
-  protected readonly moreAnimations: MoreAnimations;
-  constructor(g: Game, flowState: FlowState) {
-    super(g.animationManager, g.bga, flowState);
-    this.moreAnimations = new MoreAnimations(this.animationManager);
-    this.game = g;
+  protected readonly view: GameView;
+  constructor(view: GameView, flowState: FlowState) {
+    super(view.animationManager, view.bga, flowState);
+    this.view = view;
   }
 
   protected override confirmationsEnabled(): boolean {
@@ -152,18 +150,18 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     if (! moneyDelta) {
       return;
     }
-    this.pushUndoOp('updateMoneyDelta', async () => this.game.updateMoneyDelta(this.negate(moneyDelta)));
-    this.game.updateMoneyDelta(moneyDelta);
+    this.pushUndoOp('updateMoneyDelta', async () => this.view.updateMoneyDelta(this.negate(moneyDelta)));
+    this.view.updateMoneyDelta(moneyDelta);
   }
 
   protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
     if (offspring) {
       // if it's already on-screen, skip animation.
       if (!$(IDS.tile(offspring.placed_tile.tile))) {
-        const offspringElem = this.game.makeTileSpan(offspring.placed_tile.tile);
+        const offspringElem = this.view.makeTileSpan(offspring.placed_tile.tile);
         // FIXME: why needed?
         offspringElem.style.transform = 'rotate(0deg)';
-        return this.game.flashParents(offspring)
+        return this.view.flashParents(offspring)
           .then(() => this.slideIn(offspringElem, Elements.enclosureSpace(this.player_id, offspring.placed_tile.space)));
       }
     }
@@ -173,7 +171,7 @@ abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
 }
 
 class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
-  constructor(g: Game, flowState: FlowState) { super(g, flowState); }
+  constructor(gameView: GameView, flowState: FlowState) { super(gameView, flowState); }
 
   protected override start(args: LoadDrawnTileArgs) {
     this.initStatusBar(_('Place ${tile_type} in an available truck'),
@@ -224,7 +222,6 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
     };
     if (!args.possible_deliveries || args.possible_deliveries.length == 0) {
       this.initStatusBar(_('Confirm your truck tile deliveries'));
-      // FIXME: clear marked on confirmation
       this.addConfirmAndRestartActionButtons('actConfirmDelivery', {}, restart);
     }
     else {
@@ -260,7 +257,7 @@ class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
 }
 
 class PlayerTurnFlow extends ZooFlow<PlayState> {
-  constructor(g: Game) { super(g, new FlowState(g.animationManager.playSequentially)); }
+  constructor(gameView: GameView) { super(gameView, new FlowState(gameView.animationManager.playSequentially)); }
 
   protected override start(playState: PlayState) {
     // FIXME: update the status bar title based on what's possible?
@@ -352,7 +349,7 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
         async () => {
           // FIXME: should this be exposed? better way to do this? wrap addActionButton?
           this.clearOnclicks();
-          this.game.updateMoneyDelta(discardMoneyDelta);
+          this.view.updateMoneyDelta(discardMoneyDelta);
           await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!,$(IDS.OFF_BOARD))
             .then(() => this.confirmDiscard(pm.src));
         });
@@ -414,12 +411,13 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       const destAnimalSpaces = this.animalSpaces(exchanges, destid);
       destAnimalSpaces.forEach(s => {
         this.addSelectableOnclick(s, async () => {
+            // FIXME: make a "swapEnclosures" method on GameView and use it here and below ...
             const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
             const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
             const anims: AnimationList = [];
             let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
             for (let i = 0; i < len; ++i) {
-              anims.push(() => this.moreAnimations.swapFirstChildren(
+              anims.push(() => this.view.moreAnimations.swapFirstChildren(
                 srcSpaces[i],
                 destSpaces[i])
               );
@@ -438,12 +436,13 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
       be.positions.forEach(pos => {
         const barnSpace = Elements.enclosureSpace(this.player_id, toSpace(0, pos));
         this.addSelectableOnclick(barnSpace, async () => {
+            // FIXME: ... and here
             const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
             const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
             let len = Math.max(srcAnimalSpaces.length, destTiles.length);
             const anims: AnimationList = [];
             for (let i = 0; i < len; ++i) {
-              anims.push(() => this.moreAnimations.swapFirstChildren(
+              anims.push(() => this.view.moreAnimations.swapFirstChildren(
                 srcSpaces[i],
                 Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i]))
               ));
@@ -504,58 +503,29 @@ class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private expandZoo() {
     this.initStatusBar(_('Expand zoo?'));
-    const current = this.game.getCurrentExtensions(this.player_id);
-    this.game.renderExtensions(this.player_id, current + 1);
+    const current = this.view.getCurrentExtensions(this.player_id);
+    this.view.renderExtensions(this.player_id, current + 1);
     $(IDS.extension(this.player_id, current+1)).classList.remove(CSS.SELECTED);
     // FIXME: Need to undo that removal as well?
-    this.pushUndoOp('expandZoo', async () => this.game.renderExtensions(this.player_id, current));
+    this.pushUndoOp('expandZoo', async () => this.view.renderExtensions(this.player_id, current));
     this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
 
 }
 
-/** Game class */
-export class Game extends BaseGame<ZGamedatas> {
-  private moneyCounter: Counter[] = [];
-  private primaryStockCounter: Counter;
-  private endgameStockCounter: Counter;
-  private scoreSheet: ScoreSheet;
+class GameView {
+  private readonly moneyCounter: Map<number, Counter>;
+  // FIXME: try to find a way to make this private.
+  //   Consider creating animations here for what these are used for
+  readonly moreAnimations: MoreAnimations;
+  readonly animationManager: AnimationManager;
+  readonly bga: Bga;
 
-  constructor(bga: Bga<ZGamedatas>) {
-    super(bga, Game.special_log_args);
-    this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this));
-    this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this, new FlowState(this.animationManager.playSequentially)));
-    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this, new FlowState(this.animationManager.playSequentially)));
-  }
-
-  flashParents(offspring: Offspring) : Promise<any> {
-    return this.moreAnimations.flash(CSS.FLASH, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
-  }
-
-  private async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
-    const setTile = () => {
-      elem.id = IDS.tile(tile);
-      elem.setAttribute(Attrs.TILE, tile.type);
-    };
-    if (!this.bgaAnimationsActive()) {
-      setTile();
-      return Promise.resolve(null);
-    }
-    // Create the front and back of the tile to flip
-    const back = this.makeTileBackSpan();
-    const front = this.makeTileSpan(tile);
-
-    // "hide" the original tile
-    elem.removeAttribute(Attrs.TILE);
-    // Need them in the document
-    elem.appendChild(front);
-    elem.appendChild(back);
-
-    await this.moreAnimations.flip(front, back).then(_ => {
-      setTile();
-      back.remove();
-      front.remove();
-    });
+  constructor(bga: Bga, animationManager: AnimationManager, moneyCounter: Map<number, Counter>) {
+    this.bga = bga;
+    this.moreAnimations = new MoreAnimations(animationManager);
+    this.animationManager = animationManager;
+    this.moneyCounter = moneyCounter;
   }
 
   makeTileSpan(tile: Tile): HTMLElement {
@@ -573,11 +543,67 @@ export class Game extends BaseGame<ZGamedatas> {
     return Html.span({ id: id, attrs: Attrs.tile(tile.type) });
   }
 
-  private makeTileBackSpan(): HTMLElement {
+  public makeTileBackSpan(): HTMLElement {
     return Html.span({ attrs: Attrs.tile('back') });
   }
 
-  private renderStock(gamedatas: ZGamedatas) : void {
+  flashParents(offspring: Offspring) : Promise<any> {
+    return this.moreAnimations.flash(CSS.FLASH, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
+  }
+
+  public updateMoneyDelta(delta: Moneys): void {
+    Object.entries(delta).forEach(pv => this.addMoney(Number(pv[0]), pv[1]));
+  }
+
+  // FIXME: consider making async to permit animations
+  public updateMoneys(moneys: Moneys): void {
+    Object.entries(moneys).forEach(pv => this.moneyCounter.get(Number(pv[0])).toValue(pv[1]));
+  }
+
+  public addMoney(player_id: number, delta: number): void {
+    this.moneyCounter.get(player_id).incValue(delta);
+  }
+
+  // FIXME: consider making this async to allow for animation
+  public renderExtensions(player_id : number, extensions: number): void {
+    const elem = $(IDS.boardId(player_id));
+    elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
+  }
+
+  getCurrentExtensions(player_id : number): number {
+    const elem = $(IDS.boardId(player_id));
+    return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
+  }
+
+  async renderTileDraw(elem: HTMLElement, tile: Tile): Promise<any> {
+    const setTile = () => {
+      elem.id = IDS.tile(tile);
+      elem.setAttribute(Attrs.TILE, tile.type);
+    };
+
+    // if (!this.bgaAnimationsActive()) {
+    //   setTile();
+    //   return Promise.resolve(null);
+    // }
+
+    // Create the front and back of the tile to flip
+    const back = this.makeTileBackSpan();
+    const front = this.makeTileSpan(tile);
+
+    // "hide" the original tile
+    elem.removeAttribute(Attrs.TILE);
+    // Need them in the document
+    elem.appendChild(front);
+    elem.appendChild(back);
+
+    await this.moreAnimations.flip(front, back).then(_ => {
+      setTile();
+      back.remove();
+      front.remove();
+    });
+  }
+
+  renderStock(gamedatas: ZGamedatas) : void {
     const addStockTile = (elemId: string) =>
       $(elemId).insertAdjacentElement('afterbegin', this.makeTileBackSpan() );
 
@@ -600,7 +626,7 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private renderTrucks(gamedatas: ZGamedatas): void {
+  renderTrucks(gamedatas: ZGamedatas): void {
     for (const truck of gamedatas.trucks) {
       truck.contents.forEach(contents => {
         if (contents.tile) {
@@ -617,7 +643,7 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private renderEnclosures(gamedatas: ZGamedatas): void {
+  renderEnclosures(gamedatas: ZGamedatas): void {
     for (const player_id in gamedatas.enclosures) {
       gamedatas.enclosures[player_id]!.forEach(es => {
         if (es.tile) {
@@ -627,7 +653,7 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private updateEnclosureSummaries(summaries: EnclosureSummary[]) {
+  updateEnclosureSummaries(summaries: EnclosureSummary[]) {
     summaries.forEach(summary => {
       const elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
       const type = summary.animal_type;
@@ -641,6 +667,24 @@ export class Game extends BaseGame<ZGamedatas> {
       }
     });
   }
+}
+
+/** Game class */
+export class Game extends BaseGame<ZGamedatas> {
+
+  private moneyCounter = new Map<number, Counter>();
+  private primaryStockCounter: Counter;
+  private endgameStockCounter: Counter;
+  private scoreSheet: ScoreSheet;
+  private readonly view: GameView;
+
+  constructor(bga: Bga<ZGamedatas>) {
+    super(bga, Game.special_log_args);
+    this.view = new GameView(bga, this.animationManager, this.moneyCounter);
+    this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));
+    this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view, new FlowState(this.animationManager.playSequentially)));
+    this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this.view, new FlowState(this.animationManager.playSequentially)));
+  }
 
   private setupHtml(gamedatas: ZGamedatas): void {
     const zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
@@ -649,16 +693,16 @@ export class Game extends BaseGame<ZGamedatas> {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       const counter = new ebg.counter();
       counter.create(IDS.money(player.player_id), { value: player.money });
-      this.moneyCounter[player.player_id] = counter;
+      this.moneyCounter.set(player.player_id, counter);
     }
     this.primaryStockCounter = new ebg.counter();
     this.primaryStockCounter.create(IDS.PRIMARY_PILE_COUNT, { value: gamedatas.primary_pile_size == 1000 ? null : gamedatas.primary_pile_size });
     this.endgameStockCounter = new ebg.counter();
     this.endgameStockCounter.create(IDS.ENDGAME_PILE_COUNT, { value: gamedatas.endgame_pile_size });
-    this.renderStock(gamedatas);
-    this.renderTrucks(gamedatas);
-    this.renderEnclosures(gamedatas);
-    this.updateEnclosureSummaries(gamedatas.enclosure_summaries);
+    this.view.renderStock(gamedatas);
+    this.view.renderTrucks(gamedatas);
+    this.view.renderEnclosures(gamedatas);
+    this.view.updateEnclosureSummaries(gamedatas.enclosure_summaries);
     this.bga.userPreferences.onChange = (prefId: number, value: number) => {
       switch (prefId) {
         case 104:
@@ -690,30 +734,6 @@ export class Game extends BaseGame<ZGamedatas> {
     this.bga.notifications.setupPromiseNotifications({ logger: console.log });
   }
 
-  public updateMoneyDelta(delta: Moneys): void {
-    Object.entries(delta).forEach(pv => this.addMoney(Number(pv[0]), pv[1]));
-  }
-
-  // FIXME: consider making async to permit animations
-  private updateMoneys(moneys: Moneys): void {
-    Object.entries(moneys).forEach(pv => this.moneyCounter[pv[0]].toValue(pv[1]));
-  }
-
-  private addMoney(player_id: number, delta: number): void {
-    this.moneyCounter[player_id]!.incValue(delta);
-  }
-
-  // FIXME: consider making this async to allow for animation
-  renderExtensions(player_id : number, extensions: number): void {
-    const elem = $(IDS.boardId(player_id));
-    elem.setAttribute(Attrs.EXTENSIONS, String(extensions));
-  }
-
-  getCurrentExtensions(player_id : number): number {
-    const elem = $(IDS.boardId(player_id));
-    return Number(elem.getAttribute(Attrs.EXTENSIONS) || 0);
-  }
-
   //
   // Entry point for player turn
   //
@@ -731,7 +751,7 @@ export class Game extends BaseGame<ZGamedatas> {
         await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
       }
     }
-    await this.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
+    await this.view.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
   }
 
   private replenishPilesAndUpdateCounters(
@@ -743,11 +763,11 @@ export class Game extends BaseGame<ZGamedatas> {
   ): void {
     if (args.drawn_from_endgame_pile) {
       if (args.endgame_pile_size >= 5) {
-        $(IDS.ENDGAME_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileBackSpan());
+        $(IDS.ENDGAME_PILE_TILES).insertAdjacentElement('afterbegin', this.view.makeTileBackSpan());
       }
     } else {
       if (args.primary_pile_size >= 5) {
-        $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.makeTileBackSpan());
+        $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.view.makeTileBackSpan());
       }
     }
     if (args.primary_pile_size != 1000) {
@@ -776,8 +796,8 @@ export class Game extends BaseGame<ZGamedatas> {
       purchased_extensions: number,
       moneys: Moneys,
     }) {
-    this.renderExtensions(args.player_id, args.purchased_extensions);
-    this.updateMoneys(args.moneys);
+    this.view.renderExtensions(args.player_id, args.purchased_extensions);
+    this.view.updateMoneys(args.moneys);
   }
 
   private async notif_DeliverTruckTile(args: {
@@ -791,7 +811,7 @@ export class Game extends BaseGame<ZGamedatas> {
       await this.moreAnimations.slideOutAndDestroy(
         Elements.tile(args.delivery.tile),
           this.bga.playerPanels.getElement(args.player_id),
-        ).then(() => this.addMoney(args.player_id, 1));
+        ).then(() => this.view.addMoney(args.player_id, 1));
     }
     else {
       const anims : AnimationList = [];
@@ -802,9 +822,9 @@ export class Game extends BaseGame<ZGamedatas> {
       if (dest.offspring) {
         const offspring = dest.offspring!;
         if (!$(IDS.tile(offspring.placed_tile.tile))) {
-          anims.push(() => this.flashParents(offspring));
+          anims.push(() => this.view.flashParents(offspring));
           anims.push(() => {
-            const elem = this.makeTileSpan(offspring.placed_tile.tile);
+            const elem = this.view.makeTileSpan(offspring.placed_tile.tile);
             const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
             parent.appendChild(elem);
             return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
@@ -826,7 +846,7 @@ export class Game extends BaseGame<ZGamedatas> {
     await this.animationManager.playParallel(coinElems.map(elem =>
       () => this.animationManager.slideOutAndDestroy(
               elem!, this.bga.playerPanels.getElement(args.player_id),{})))
-      .then(() => this.updateMoneys(args.moneys))
+      .then(() => this.view.updateMoneys(args.moneys))
   }
 
   private async notif_DeliveryCompleted(args: {
@@ -839,8 +859,8 @@ export class Game extends BaseGame<ZGamedatas> {
     await this.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)))
       .then(() => {
         elem.classList.remove(CSS.SELECTED);
-        this.updateMoneys(args.moneys);
-        this.updateEnclosureSummaries(args.enclosure_summaries);
+        this.view.updateMoneys(args.moneys);
+        this.view.updateEnclosureSummaries(args.enclosure_summaries);
         this.bga.gameui.disablePlayerPanel(args.player_id);
       })
   }
@@ -852,12 +872,12 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    this.updateMoneys(args.moneys);
+    this.view.updateMoneys(args.moneys);
     await this.moreAnimations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
     )
-      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_DiscardTile(args: {
@@ -865,9 +885,9 @@ export class Game extends BaseGame<ZGamedatas> {
     tile: Tile,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    this.updateMoneys(args.moneys);
+    this.view.updateMoneys(args.moneys);
     await this.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
-      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_PurchaseTile(args: {
@@ -876,13 +896,13 @@ export class Game extends BaseGame<ZGamedatas> {
 			moneys: Moneys,
       enclosure_summaries: EnclosureSummary[],
     }) {
-    this.updateMoneys(args.moneys);
+    this.view.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
         () => this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
     )
-      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private async notif_EndRound(args: {
@@ -913,14 +933,14 @@ export class Game extends BaseGame<ZGamedatas> {
     moneys: Moneys,
     enclosure_summaries: EnclosureSummary[],
   }) {
-    this.updateMoneys(args.moneys);
+    this.view.updateMoneys(args.moneys);
     const anims: AnimationList = [];
     args.placed_tiles.forEach(pt =>  {
       const elem = Elements.tile(pt.tile);
       if (elem) {
         anims.push(() => this.moreAnimations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
       } else {
-        const elem = this.makeTileSpan(pt.tile);
+        const elem = this.view.makeTileSpan(pt.tile);
         // FIXME: needed?
         elem.style.transform = 'rotate(0deg)';
         // a created offspring, create and slide it in
@@ -928,7 +948,7 @@ export class Game extends BaseGame<ZGamedatas> {
       }
     });
     await this.animationManager.playParallel(anims)
-      .then(() => this.updateEnclosureSummaries(args.enclosure_summaries))
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
   private setupScoreSheet(gamedatas: ZGamedatas): void {

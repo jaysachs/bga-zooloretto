@@ -60,8 +60,6 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
   enclosures: EnclosureContents[][];
   endScores: any;
 
-  // name is translated/able
-  tile_translations: { type: string, name: string }[];
   // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
 }
