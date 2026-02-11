@@ -48,7 +48,8 @@ export abstract class PlayFlow<T> {
   public onLeavingState(args: T, isCurrentPlayerActive: boolean) {
     console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
-      // this.clear();
+      this.clear();
+      this.clearMarked();
     }
   }
 
