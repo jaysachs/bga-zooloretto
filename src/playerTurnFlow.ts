@@ -30,14 +30,12 @@ interface BarnExchange {
   offspring: Offspring | null;
 }
 
-type EnclosureSwaps = Record<number, number[]>;
-
 interface Exchanges {
   // key is src enclosure ID, value is positions with animals
   animal_positions: Record<number, number[]>;
   // No keys are barn (0).
   // key is src enclosure ID, value is possible dest enclosure IDs excluding barn
-  enclosures: EnclosureSwaps;
+  enclosures: Record<number, number[]>;
   // key is enc ID, value is the possible exchanges with the barn
   barn: Record<number, BarnExchange[]>;
 }
