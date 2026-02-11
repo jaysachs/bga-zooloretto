@@ -128,9 +128,6 @@ body.mobile_version {
 }
 
 .zoo-truck {
-    /* replicate these three here so we see it when it slides */
-    height: auto;
-    width: calc(var(--zoo-truck-width));
     aspect-ratio: calc(var(--zoo-truck-aspect-ratio)) !important;
     display: flex;
     background: url('img/Truck.png') center / contain no-repeat;
@@ -741,7 +738,6 @@ body.mobile_version {
 }
 
 .zoo-player-panel-general .zoo-truck {
-    width: auto;
     height: 1.5em;
 }
 
