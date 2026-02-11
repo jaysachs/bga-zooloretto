@@ -1681,7 +1681,7 @@ namespace Bga\GameFramework {
          *
          * @return int the number of players at the table
          */
-        public function getPlayerCount(): int
+        final public function getPlayerCount(): int
         {
             return 0;
         }
@@ -1827,8 +1827,6 @@ namespace Bga\GameFramework {
          *   player_name: string, 
          *   player_color: string, 
          *   player_no: string,
-         *   player_avatar: string,
-         *   player_canal: string,
          *   player_is_admin: string,
          *   player_zombie: int,
          *   player_eliminated: int,
@@ -2176,7 +2174,7 @@ namespace Bga\GameFramework {
          * This method is called only once, when a new game is launched. In this method, you must setup the game
          * according to the game rules, so that the game is ready to be played.
          *
-         * @param array<int, array{ player_canal: string, player_name: string, player_avatar: string, player_colors: array<string> }> $players
+         * @param array<int, array{ player_name: string, player_colors: array<string> }> $players
          * @param array $options
          * @return void
          */

@@ -35,15 +35,12 @@ use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
 use Bga\Games\zoolorettoalpha\Model\Space;
 use Bga\Games\zoolorettoalpha\Model\Tile;
-use Bga\Games\zoolorettoalpha\Model\TileType;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
 use Bga\Games\zoolorettoalpha\Utils\Log;
 use Bga\Games\zoolorettoalpha\Utils\Logger;
-use Bga\Games\zoolorettoalpha\Utils\LogImpl;
-use Override;
 
 class GameLogger implements Logger {
 	function __construct(private Table $table) { }
@@ -223,19 +220,17 @@ class Game extends Table
 		$query_values = [];
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
-            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
+            $query_values[] = vsprintf("('%s', '%s', '%s')", [
                 $player_id,
                 array_shift($default_colors),
-                $player["player_canal"],
                 addslashes($player["player_name"]),
-                addslashes($player["player_avatar"]),
             ]);
         }
 
         // Create players based on generic information.
         static::DbQuery(
             sprintf(
-                "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES %s",
+                "INSERT INTO player (player_id, player_color, player_name) VALUES %s",
                 implode(",", $query_values)
             )
         );
