@@ -15,11 +15,14 @@ export class MoreAnimations {
         return this.animationManager.base.wait(millis);
     }
 
-    async slideAndAttach(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
+    async slideAndAttach(elem: HTMLElement, newParent: HTMLElement,
+        settings?: { bump?: number,
+                     toPlaceholder?: 'on' | 'grow' |  'off',
+                     fromPlaceholder?: 'on' | 'shrink' | 'off' }): Promise<any> {
         if (elem.parentElement == newParent) {
             return Promise.resolve();
         }
-        return this.animationManager.slideAndAttach(elem, newParent, { toPlaceholder: 'off', fromPlaceholder: 'on' });
+        return this.animationManager.slideAndAttach(elem, newParent, settings);
     }
 
     async slideOutAndDestroy(elem?: HTMLElement | undefined,
