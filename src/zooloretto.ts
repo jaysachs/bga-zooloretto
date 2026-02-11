@@ -24,6 +24,9 @@ export class Game extends BaseGame<ZGamedatas> {
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view));
     this.bga.states.register('DeliverTruckTiles', new DeliverTilesFlow(this.view));
+    if (window.location.host == "studio.boardgamearena.com") {
+      (window as any).Zoo.game = this;
+    }
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
@@ -371,4 +374,8 @@ export class Game extends BaseGame<ZGamedatas> {
     coins: (args: any) => Html.span({text: ""+args.coins+" "},
         Html.span({classes: 'zoo-money-label', title: _("coins")}))
   };
+}
+
+if (window.location.host == "studio.boardgamearena.com") {
+  (window as any).Zoo = { Elements: Elements, IDS: IDS, CSS: CSS, Attrs: Attrs };
 }
