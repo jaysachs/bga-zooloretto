@@ -48,3 +48,5 @@ Verification required
 * Verify offspring overflow into barn
 * Verify completion bonuses generated at right times
 * Mobile testing
+
+* Consider implementing some game logic client side, particulary (and first) for truck placements (but eventually moves, discards and exchanges). Will need to keep track of which tile IDs have reproduced (send over in gamedatas, and update notifs). The logic isn't that hard.
