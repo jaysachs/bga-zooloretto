@@ -19,7 +19,9 @@ export class DeliverTilesFlow extends ZooFlow<DeliverTilesArgs> {
       restart: async () => this.bga.actions.performAction('actUndo', {}),
       post: async () =>  Elements.truck(args.truck_id).removeAttribute(Attrs.MARK)
     };
-    this.markSelected(Elements.truck(args.truck_id));
+    // NOTE: directly set attribute so it is "sticky"
+    //      NOT `this.markSelected();`
+    Attrs.mark('selected').setOn(Elements.truck(args.truck_id));
     if (!args.possible_deliveries || args.possible_deliveries.length == 0) {
       this.initStatusBar(_('Confirm your truck tile deliveries'));
       this.addConfirmAndRestartActionButtons('actConfirmDelivery', {}, restart);
