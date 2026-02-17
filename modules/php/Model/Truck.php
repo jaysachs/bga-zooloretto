@@ -199,7 +199,7 @@ class Truck {
         return $trucks;
     }
 
-    /** return array<string,mixed> */
+    /** @return array<string,mixed> */
     public function serialize(): array {
         $contents = [];
         foreach ($this->getAllTiles() as $pos => $tile) {
