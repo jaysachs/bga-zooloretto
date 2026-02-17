@@ -17,6 +17,7 @@ export class MoreAnimations {
 
     async slideAndAttach(elem: HTMLElement, newParent: HTMLElement,
         settings?: { bump?: number,
+                     duration?: number,
                      toPlaceholder?: 'on' | 'grow' |  'off',
                      fromPlaceholder?: 'on' | 'shrink' | 'off' }): Promise<any> {
         if (elem.parentElement == newParent) {

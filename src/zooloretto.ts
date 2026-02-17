@@ -259,7 +259,8 @@ export class Game extends BaseGame<ZGamedatas> {
       anims.push(() => this.moreAnimations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
     );
     args.truck_ids_returned.forEach(tid =>
-      anims.push(() => this.moreAnimations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid)), { bump: 1, fromPlaceholder: 'off'}))
+      anims.push(() => this.moreAnimations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid)),
+      { bump: 1, duration: 3000, toPlaceholder: 'grow', fromPlaceholder: 'off'}))
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
