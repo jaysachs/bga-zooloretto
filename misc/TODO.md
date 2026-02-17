@@ -9,7 +9,8 @@ Open
   * Consider marking truck "delivering" on StartDelivery notif, and clearing that on
     "DeliveryCompleted". Will need a "DeliveryCanceled" notif probably.
 
-16. DONE When marking exchanged tiles, mark all the exchanged tiles; not empty spaces. Also, when selected an exchange destination, hover-highlight all the target tiles.
+16. DONE When marking exchanged tiles, mark all the exchanged tiles; not empty spaces.
+17  Also, when selected an exchange destination, hover-highlight all the target tiles.
 
 Deferred
 ========
