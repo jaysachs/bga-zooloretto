@@ -20,6 +20,7 @@ export class Attrs implements AttrLike {
   static readonly TILE = 'zoo-tile';
   static readonly ENCLOSURE = 'zoo-enclosure';
   static readonly MARK = 'zoo-mark';
+
   static enclosure(enc : number): Attrs {
     return new Attrs().enclosure(enc);
   }
@@ -49,6 +50,10 @@ export class Attrs implements AttrLike {
   mark(mark: 'selected' | 'selectable' | 'moved'): Attrs {
     this.r[Attrs.MARK] = mark;
     return this;
+  }
+
+  setOn(elem: Element) {
+    Object.keys(this.r).forEach(k => elem.setAttribute(k, this.r[k]));
   }
 }
 
