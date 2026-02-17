@@ -183,11 +183,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
-  private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
-    return exchanges.animal_positions[encid].map(
-      pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
-  }
-
   private wireUpExpansions(extension_available: number) {
     if (extension_available > 0) {
       this.addSelectableOnclick(
@@ -226,17 +221,35 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
-  private selectExchangeDest(exchanges: Exchanges, srcid: number) {
-    this.initStatusBar(_("Select the animals to exchange with"));
-    const barnDests = exchanges.barn[srcid] ?? [];
-    const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
-    exchanges.enclosures[srcid].forEach(destid => {
-      const destAnimalSpaces = this.animalSpaces(exchanges, destid);
-      destAnimalSpaces.forEach(s => {
+  private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
+    return exchanges.animal_positions[encid].map(
+      pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
+  }
+
+  private swappedSpaces(exchanges: Exchanges, srcid: number, destid: number): HTMLElement[] {
+    const elems: HTMLElement[] = [];
+    exchanges.animal_positions[srcid].forEach(pos =>
+      elems.push(Elements.enclosureSpace(this.player_id, toSpace(destid, Number(pos)))));
+    exchanges.animal_positions[destid].forEach(pos =>
+      elems.push(Elements.enclosureSpace(this.player_id, toSpace(srcid, Number(pos)))));
+    return elems;
+  }
+
+  private wireUpExchangeDests(
+      swappedSpaces: HTMLElement[],
+      srcid: number, srcAnimalSpaces: HTMLElement[],
+      destid: number, destAnimalSpaces: HTMLElement[],
+      positions?: number[])
+  {
+    // the filter prevents empty barn spaces being clickable
+    destAnimalSpaces.filter(s => s.firstElementChild).forEach(s => {
         this.addSelectableOnclick(s, async () => {
           // FIXME: make a "swapEnclosures" method on GameView and use it here and below ...
           const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
-          const destSpaces = Elements.enclosureSpaces(this.player_id, destid);
+          const destSpaces =
+            positions
+            ? positions.map(p => Elements.enclosureSpace(this.player_id, toSpace(destid, p)))
+            : Elements.enclosureSpaces(this.player_id, destid);
           const anims: AnimationList = [];
           let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
           for (let i = 0; i < len; ++i) {
@@ -245,37 +258,35 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
               destSpaces[i])
             );
           }
+          this.mark(s, 'none');
           this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
           await this.animationManager.playParallel(anims)
-            .then(() => destAnimalSpaces.forEach(t => this.markMoved(t)))
-            .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid)));
+            .then(() => swappedSpaces.forEach(t => this.markMoved(t)))
+            .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid, positions)));
         });
-      });
+    });
+  }
+
+  private selectExchangeDest(exchanges: Exchanges, srcid: number) {
+    this.initStatusBar(_("Select the animals to exchange with"));
+    const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
+    exchanges.enclosures[srcid].forEach(destid => {
+      this.wireUpExchangeDests(this.swappedSpaces(exchanges, srcid, destid),
+          srcid, srcAnimalSpaces, destid, this.animalSpaces(exchanges, destid))
     });
     // Now handle barn as destination, also dealing with possible offspring in the non-barn
     // Note that there is no enclosure completion bonus for exchanges, so we don't
     //  need to apply money deltas in here.
+    const barnDests = exchanges.barn[srcid] ?? [];
     barnDests.forEach(be => {
-      be.positions.forEach(pos => {
-        const barnSpace = Elements.enclosureSpace(this.player_id, toSpace(0, pos));
-        this.addSelectableOnclick(barnSpace, async () => {
-          // FIXME: ... and here
-          const destTiles = be.positions.map(p => Elements.enclosureTile(this.player_id, p));
-          const srcSpaces = Elements.enclosureSpaces(this.player_id, srcid);
-          let len = Math.max(srcAnimalSpaces.length, destTiles.length);
-          const anims: AnimationList = [];
-          for (let i = 0; i < len; ++i) {
-            anims.push(() => this.view.moreAnimations.swapFirstChildren(
-              srcSpaces[i],
-              Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i]))
-            ));
-          }
-          this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
-          await this.animationManager.playParallel(anims)
-            .then(() => destTiles.forEach(t => this.markMoved(t.parentElement)))
-            .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, 0, be.positions)));
-        });
-      })
+      const destSpaces = be.positions.map(p => Elements.enclosureSpace(this.player_id, toSpace(0, p)));
+      const swappedSpaces = [];
+      for (let i = 0; i < be.positions.length; ++i) {
+        swappedSpaces.push(Elements.enclosureSpace(this.player_id, toSpace(srcid, i + 1)));
+        swappedSpaces.push(Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i])))
+      }
+      console.log(swappedSpaces);
+      this.wireUpExchangeDests(swappedSpaces, srcid, srcAnimalSpaces, 0, destSpaces, be.positions);
     });
     this.addRestartAndUndoButtons();
   }
