@@ -198,4 +198,17 @@ class Truck {
         }
         return $trucks;
     }
+
+    /** return array<string,mixed> */
+    public function serialize(): array {
+        $contents = [];
+        foreach ($this->getAllTiles() as $pos => $tile) {
+            $contents[] = ['pos' => $pos, 'tile' => $tile == null ? null : $tile->serialize() ];
+        }
+        return [
+            'truck_id' => $this->id,
+            'taken_by_player_id' => $this->taken_by,
+            'contents' => $contents,
+        ];
+    }
 }

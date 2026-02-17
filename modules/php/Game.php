@@ -139,19 +139,7 @@ class Game extends Table
 		}
 		$datas = [
 			'enclosure_shapes' => $encshapes,
-            'trucks' => array_map(function (Truck $truck): array {
-				$tiles = $truck->getAllTiles();
-				return [
-					'truck_id' => $truck->id,
-					'taken_by_player_id' => $truck->taken_by,
-					'contents' => array_map(
-						function(Tile $tile, int $pos): array {
-							return ['pos' => $pos, 'tile' => $tile == null ? null : $tile->serialize() ];
-						},
-						$tiles,
-						array_keys($tiles)),
-				];
-			}, array_values($model->getTrucks())),
+            'trucks' => array_map(fn ($t) => $t->serialize(), array_values($model->getTrucks())),
             'enclosures' => $encs,
             'primary_pile_size' => $this->stockCount($stock->primaryCount()),
             'endgame_pile_size' => $stock->endgameCount(),
