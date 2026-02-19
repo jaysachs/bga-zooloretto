@@ -178,7 +178,7 @@ export class Game extends BaseGame<ZGamedatas> {
     }
   }
 
-  private async notif_StartDelivery(args: {
+  private async notif_DeliveryStarted(args: {
     player_id: number,
     truck_id: number,
     coin_positions: number[],

@@ -89,7 +89,7 @@ class PlayerTurn extends AbstractState
 		$coin_positions = $model->startTruckDelivery($truck_id)['coin_positions'];
 		$coins = count($coin_positions);
 		$this->notify->all(
-            'StartDelivery',
+            'DeliveryStarted',
 			$coins > 0
 			? clienttranslate('${player_name} started delivery from ${truck} and gained ${coins}')
 			: clienttranslate('${player_name} started delivery from ${truck}'),
