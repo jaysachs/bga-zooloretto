@@ -29,10 +29,9 @@ namespace Bga\Games\zoolorettoalpha\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\GameFramework\VisibleSystemException;
 use Bga\Games\zoolorettoalpha\Game;
-use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\Truck;
-use BgaSystemException;
 
 class LoadDrawnTile extends AbstractState
 {
@@ -46,10 +45,6 @@ class LoadDrawnTile extends AbstractState
     		descriptionMyTurn: clienttranslate('${you} must load a tile on a truck.'),
         );
     }
-
-	public function onEnteringState(int $active_player_id): void {
-		$this->game->undoSavepoint();
-	}
 
     /** @return array<string,mixed> */
     public function getArgs(int $active_player_id): array
@@ -102,12 +97,14 @@ class LoadDrawnTile extends AbstractState
     function zombie(int $player_id): mixed {
         $model = $this->createModel($player_id);
         foreach ($model->getTrucks() as $truck) {
-            $pos = $truck->firstFreePosition();
-            if ($pos > 0) {
-                return $this->actLoadDrawnTile($player_id, $truck->id, $pos);
+            if (! $truck->taken_by) {
+                $pos = $truck->firstFreePosition();
+                if ($pos > 0) {
+                    return $this->actLoadDrawnTile($player_id, $truck->id, $pos);
+                }
             }
         }
-        throw new \BgaVisibleSystemException("In LoadDrawnTile state, but no trucks have an open spot?!");
+        throw new VisibleSystemException("In LoadDrawnTile state, but no trucks have an open spot?!");
         // could instead keep making progress ... ?
         // return NextPlayer::class;
     }
