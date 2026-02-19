@@ -84,26 +84,6 @@ class PlayerTurn extends AbstractState
 	}
 
 	#[PossibleAction]
-	public function actStartMove(int $active_player_id): mixed {
-		return MoveTile::class;
-	}
-
-	#[PossibleAction]
-	public function actStartExchange(int $active_player_id): mixed {
-		return ExchangeTiles::class;
-	}
-
-	#[PossibleAction]
-	public function actStartDiscard(int $active_player_id): mixed {
-		return DiscardTile::class;
-	}
-
-	#[PossibleAction]
-	public function actStartPurchase(int $active_player_id): mixed {
-		return PurchaseTile::class;
-	}
-
-	#[PossibleAction]
 	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
         $model = $this->createModel($active_player_id);
 		$coin_positions = $model->startTruckDelivery($truck_id)['coin_positions'];
