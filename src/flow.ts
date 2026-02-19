@@ -264,13 +264,15 @@ export abstract class PlayFlow<T> {
   }
 
   private async rollback() {
-    this.clearMarked();
     console.debug("***");
     console.debug("   rollback");
-    // this.clearMarked();
     this.inUndo = true;
     this.resetController();
-    await this.undoTo(0).then(this.clear.bind(this)).then(() => this.inUndo = false );
+    await this.undoTo(0).then(() => {
+      this.clearMarked();
+      this.clear();
+      this.inUndo = false;
+    });
   }
 
   private clearMarked() {
