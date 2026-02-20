@@ -260,7 +260,7 @@ export class Game extends BaseGame<ZGamedatas> {
     );
     args.truck_ids_returned.forEach(tid =>
       anims.push(() => this.moreAnimations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid)),
-      { bump: 1, duration: 3000, toPlaceholder: 'grow', fromPlaceholder: 'off'}))
+      { bump: 1, toPlaceholder: 'grow', fromPlaceholder: 'off'}))
     );
 
     await this.animationManager.playSequentially(anims).then( () => {
