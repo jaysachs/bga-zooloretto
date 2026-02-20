@@ -35,6 +35,7 @@ use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
 use Bga\Games\zoolorettoalpha\Model\Player;
 use Bga\Games\zoolorettoalpha\Model\Space;
+use Bga\Games\zoolorettoalpha\Model\Tile;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
@@ -267,6 +268,13 @@ class Game extends Table
 				}
 			}
 		}
+	}
+
+	#[Debug(reload: true)]
+	public function debug_putTile(int $player_id, string $tile_type, int $tile_id, string $location, int $loc_id, int $loc_pos): void {
+		$model = new Model(0);
+		$db = new DefaultDb();
+		$db->execute("INSERT INTO tiles (id, type, player_id, location, loc_id, loc_pos) VALUES ({$tile_id}, '{$tile_type}', {$player_id}, '{$location}', {$loc_id}, {$loc_pos} )");
 	}
 
 	#[Debug(reload: true)]
