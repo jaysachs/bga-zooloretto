@@ -81,11 +81,11 @@ abstract class AbstractState extends GameState
 			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
 			$this->notify->all(
                 'EnclosureBonus',
-                clienttranslate('${player_name} completed ${enclosure} and received ${bonus} coins'),
+                clienttranslate('${player_name} completed ${enclosure} and received ${coins}'),
                 [
                     'player_id' => $active_player_id,
                     'enclosure' => Enclosure::translated($enclosure_id),
-                    'bonus' => $bonus,
+                    'coins' => $bonus,
                     'i18n' => [
                         'enclosure'
                     ]
