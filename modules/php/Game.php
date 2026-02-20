@@ -271,10 +271,15 @@ class Game extends Table
 	}
 
 	#[Debug(reload: true)]
-	public function debug_putTile(int $player_id, string $tile_type, int $tile_id, string $location, int $loc_id, int $loc_pos): void {
-		$model = new Model(0);
+	public function debug_putTile(int $player_id, string $tile_type, string $location, int $loc_id, int $loc_pos, int $tile_id = 0): void {
 		$db = new DefaultDb();
-		$db->execute("INSERT INTO tiles (id, type, player_id, location, loc_id, loc_pos) VALUES ({$tile_id}, '{$tile_type}', {$player_id}, '{$location}', {$loc_id}, {$loc_pos} )");
+		if ($tile_id == 0) {
+			$rows = $db->getSingleFieldList("SELECT MAX(id) FROM tiles WHERE id < 10000");
+			$tile_id = intval($rows[0]);
+			$db->execute("INSERT INTO tiles (id, type, player_id, location, loc_id, loc_pos) VALUES ({$tile_id}, '{$tile_type}', {$player_id}, '{$location}', {$loc_id}, {$loc_pos} )");
+		} else {
+			$db->execute("UPDATE tiles SET (player_id, location, loc_id, loc_pos) = ({$player_id}, '{$location}', {$loc_id}, {$loc_pos} ) WHERE id = {$tile_id}");
+		}
 	}
 
 	#[Debug(reload: true)]

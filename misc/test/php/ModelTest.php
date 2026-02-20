@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-use Bga\Games\zoolorettoalpha\Utils\TestDb;
 use PHPUnit\Framework\TestCase;
 
 function e(int $x, int $y, ?Offspring $offspring = null, ?Moneys $moneyDelta = null): Destination {
@@ -13,16 +12,11 @@ function e(int $x, int $y, ?Offspring $offspring = null, ?Moneys $moneyDelta = n
 
 final class ModelTest extends TestCase
 {
-    private Model $model;
-    protected function setUp(): void {
-        $this->model = new Model(1, new PersistentStore(new TestDb()));
-    }
-
     public function testEmptyTruck(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $this->assertEquals([], $this->model->possibleDeliveriesFor($truck, $encs));
+        $this->assertEquals([], Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
     public function testOne(): void
@@ -32,7 +26,7 @@ final class ModelTest extends TestCase
         $truck->placeTileAt( new Tile(1, TileType::CAMEL), 1);
         $this->assertEquals(
             [1 => [e(0,1), e(1,1), e(2,1)]],
-            $this->model->possibleDeliveriesFor($truck, $encs));
+            Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
     public function testTwoDifferentSpecies(): void
@@ -49,7 +43,7 @@ final class ModelTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            $this->model->possibleDeliveriesFor($truck, $encs));
+            Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
     public function testTwoOfSameSpecies(): void
@@ -66,7 +60,7 @@ final class ModelTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            $this->model->possibleDeliveriesFor($truck, $encs));
+            Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
     public function testFertilePair(): void
@@ -98,6 +92,6 @@ final class ModelTest extends TestCase
 
         $this->assertEquals(
             $expected,
-            $this->model->possibleDeliveriesFor($truck, $encs));
+            Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 }

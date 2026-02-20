@@ -176,11 +176,11 @@ class Model {
         return $this->retrieveAll()["enclosures"][$player_id];
     }
 
-    /** @return array<int,list<Destination>> */
+    /** @return array<int,list<Destination>> keys are truck positions */
     public function getPossibleDeliveries(int $truck_id): array {
         $truck = $this->getTruck($truck_id);
         $enclosures = $this->getEnclosuresForPlayer($this->player_id);
-        return $this->possibleDeliveriesFor($truck, $enclosures);
+        return $this->possibleDeliveriesFor($truck, $enclosures, $this->player_id);
     }
 
     /**
@@ -190,7 +190,7 @@ class Model {
      * @param array<int,Enclosure> $enclosures
      * @return array<int,list<Destination>>
      */
-    public function possibleDeliveriesFor(Truck $truck, array $enclosures): array {
+    public static function possibleDeliveriesFor(Truck $truck, array $enclosures, int $player_id): array {
         $result = [];
         foreach ($truck->getAllTiles() as $pos => $tile) {
             if ($tile->type->isPlaceable()) {
@@ -203,7 +203,7 @@ class Model {
                         /** @var Moneys|null */
                         $moneyDelta = null;
                         if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
-                            $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
+                            $moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
                         }
                         if (!isset($result[$pos])) {
                             $result[$pos] = [];
