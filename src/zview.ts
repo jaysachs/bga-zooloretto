@@ -19,7 +19,7 @@ export class GameView {
     this.moneyCounter = moneyCounter;
   }
 
-  makeTileSpan(tile: Tile): HTMLElement {
+  tileSpan(tile: Tile): HTMLElement {
     if (tile.type == 'block' || tile.type == '') {
       return this.makeTileBackSpan();
     }
@@ -79,7 +79,7 @@ export class GameView {
 
     // Create the front and back of the tile to flip
     const back = this.makeTileBackSpan();
-    const front = this.makeTileSpan(tile);
+    const front = this.tileSpan(tile);
 
     // "hide" the original tile
     elem.removeAttribute(Attrs.TILE);
@@ -121,7 +121,7 @@ export class GameView {
     for (const truck of gamedatas.trucks) {
       truck.contents.forEach(contents => {
         if (contents.tile) {
-          Elements.truckSpace(truck.truck_id, contents.pos).append(this.makeTileSpan(contents.tile));
+          Elements.truckSpace(truck.truck_id, contents.pos).append(this.tileSpan(contents.tile));
         }
       });
 
@@ -138,7 +138,7 @@ export class GameView {
     for (const player_id in gamedatas.enclosures) {
       gamedatas.enclosures[player_id]!.forEach(es => {
         if (es.tile) {
-          Elements.enclosureSpace(Number(player_id), es.space).append(this.makeTileSpan(es.tile));
+          Elements.enclosureSpace(Number(player_id), es.space).append(this.tileSpan(es.tile));
         }
       })
     }

@@ -167,7 +167,7 @@ export class Game extends BaseGame<ZGamedatas> {
         if (!$(IDS.tile(offspring.placed_tile.tile))) {
           anims.push(() => this.view.flashParents(offspring));
           anims.push(() => {
-            const elem = this.view.makeTileSpan(offspring.placed_tile.tile);
+            const elem = this.view.tileSpan(offspring.placed_tile.tile);
             const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
             parent.appendChild(elem);
             return this.animationManager.slideIn(elem, $(IDS.BOX));
@@ -242,7 +242,7 @@ export class Game extends BaseGame<ZGamedatas> {
     this.view.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
-        async () => { console.log("purchased", pt); this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space)) }
+        () => this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
       )
     )
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
@@ -254,7 +254,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }) {
     const elem = Elements.tile(args.offspring.placed_tile.tile);
     if (!elem) {
-      $(IDS.BOX).appendChild(this.view.makeTileSpan(args.offspring.placed_tile.tile));
+      $(IDS.BOX).appendChild(this.view.tileSpan(args.offspring.placed_tile.tile));
     }
   }
 
@@ -294,7 +294,7 @@ export class Game extends BaseGame<ZGamedatas> {
       if (elem) {
         anims.push(() => this.moreAnimations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
       } else {
-        const elem = this.view.makeTileSpan(pt.tile);
+        const elem = this.view.tileSpan(pt.tile);
         // FIXME: needed?
         elem.style.transform = 'rotate(0deg)';
         // a created offspring, create and slide it in

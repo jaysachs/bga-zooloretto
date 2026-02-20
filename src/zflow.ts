@@ -40,7 +40,7 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     if (offspring) {
       // if it's already on-screen, skip animation.
       if (!$(IDS.tile(offspring.placed_tile.tile))) {
-        const offspringElem = this.view.makeTileSpan(offspring.placed_tile.tile);
+        const offspringElem = this.view.tileSpan(offspring.placed_tile.tile);
         // FIXME: why needed?
         offspringElem.style.transform = 'rotate(0deg)';
         return this.view.flashParents(offspring)
