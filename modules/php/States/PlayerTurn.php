@@ -164,6 +164,7 @@ class PlayerTurn extends AbstractState
 		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
 		$placed_tile = $result['placed_tile'];
 		$tile = $placed_tile->tile;
+		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notify->all(
 			"MoveTile",
 			// FIXME: need to handle barn ...
@@ -198,7 +199,6 @@ class PlayerTurn extends AbstractState
 				$this->game->stats->PLAYER_MOVEDSTALLSFROMBARN->inc($active_player_id);
 			}
 		}
-		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notifyBonus($active_player_id, $dest_id, $result['enclosureBonus']);
 		return NextPlayer::class;
 	}
@@ -215,6 +215,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$completedExchange = $model->exchange($src_enclosure_id, $dest_enclosure_id, $dest_positions);
+		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',
@@ -246,7 +247,6 @@ class PlayerTurn extends AbstractState
 		if ($src_enclosure_id == 0 || $dest_enclosure_id == 0) {
 			$this->game->stats->PLAYER_EXCHANGEACTIONSWITHBARN->inc($active_player_id);
 		}
-		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
 
 		return NextPlayer::class;
 	}
@@ -258,6 +258,7 @@ class PlayerTurn extends AbstractState
 		$dest = new Space($enclosure_id, $enclosure_pos);
 		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$purchased = $result['tiles'][0];
+		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notify->all(
             'PurchaseTile',
             clienttranslate('${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}'),
@@ -282,7 +283,6 @@ class PlayerTurn extends AbstractState
         );
 		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
 		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
-		$this->notifyOffspring($active_player_id, $result['offspring']);
 		$this->notifyBonus($active_player_id, $enclosure_id, $result['enclosure_bonus']);
 
 		return NextPlayer::class;
