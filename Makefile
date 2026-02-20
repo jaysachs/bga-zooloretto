@@ -9,7 +9,6 @@ GENSTATS=$(ROOT)/bgautil/genstats/genstats.php
 WORK=work
 STUBS=$(WORK)/module/table/table.game.php
 TS_STUBS=src/bga-framework.d.ts
-TESTSTUBS=$(WORK)/test/module/table/table.game.php
 JS=modules/js/Game.js
 COLORMAP=src/colormap.ts
 PHPSTAN_LEVEL=10
@@ -33,16 +32,11 @@ $(WORK):
 $(TS_STUBS): bga-framework.d.ts
 	cp bga-framework.d.ts $(TS_STUBS)
 
-$(STUBS): $(WORK) _ide_helper.php Makefile _local_ide_helper.php
+$(STUBS): $(WORK) _ide_helper.php Makefile
 	mkdir -p $(WORK)/module/table
 	perl -p -e 's/type_arg=null,/type_arg,/;' -e 's/  exit/\/\/ exit/;' -e 's/APP_GAMEMODULE_PATH = ""/APP_GAMEMODULE_PATH = "work\/"/;' -e 's/{}\(\)\;/{}\;/;' _ide_helper.php > $(STUBS)
-	cat _local_ide_helper.php >> $(STUBS)
 
-$(TESTSTUBS): $(WORK) _ide_helper.php Makefile
-	mkdir -p $(WORK)/test/module/table
-	perl -p -e 's/type_arg=null,/type_arg,/;' -e 's/  exit/\/\/ exit/;' -e 's/APP_GAMEMODULE_PATH = ""/APP_GAMEMODULE_PATH = "work\/"/' _ide_helper.php > $(TESTSTUBS)
-
-test: build $(TESTSTUBS)
+test: build
 	phpunit --bootstrap misc/autoload.php misc --testdox
 
 phpstan: build $(STUBS)
