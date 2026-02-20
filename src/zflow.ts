@@ -21,7 +21,7 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
   }
 
   override offboard(): HTMLElement {
-    return $(IDS.OFF_BOARD);
+    return $(IDS.BOX);
   }
 
   private negate(moneyDelta: Moneys): Moneys {

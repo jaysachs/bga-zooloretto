@@ -823,6 +823,9 @@ th.bga-score-sheet_player-name {
     height: auto !important;
 }
 
+.zoo-box {
+    visibility: hidden;
+}
 
 /*
  * Icons in log

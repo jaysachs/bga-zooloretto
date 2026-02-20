@@ -63,7 +63,7 @@ export class IDS {
   static readonly ENDGAME_PILE_TILES = 'zoo-endgame-pile-tiles';
   static readonly PRIMARY_PILE_COUNT = 'zoo-primary-pile-count';
   static readonly ENDGAME_PILE_COUNT = 'zoo-endgame-pile-count';
-  static readonly OFF_BOARD = 'overall-footer';
+  static readonly BOX = 'zoo-box';
   static readonly DISK = 'zoo-disk';
   static readonly SCORE_SHEET = 'zoo-score-sheet';
 

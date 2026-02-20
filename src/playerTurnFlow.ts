@@ -136,7 +136,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           Elements.enclosureSpace(this.player_id, space),
           async () => {
             this.updateMoneyDelta(possible_discards.money_delta);
-            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!, $(IDS.OFF_BOARD))
+            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!, $(IDS.BOX))
               .then(() => this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space)))
           }, _('Discard tile'));
       }
@@ -156,7 +156,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           // FIXME: should this be exposed? better way to do this? wrap addActionButton?
           this.clearOnclicks();
           this.view.updateMoneyDelta(discardMoneyDelta);
-          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!, $(IDS.OFF_BOARD))
+          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!, $(IDS.BOX))
             .then(() => this.confirmDiscard(pm.src));
         });
     }

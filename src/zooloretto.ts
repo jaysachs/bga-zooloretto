@@ -31,7 +31,7 @@ export class Game extends BaseGame<ZGamedatas> {
 
   private setupHtml(gamedatas: ZGamedatas): void {
     const zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
-    this.bga.gameArea.getElement().appendChild(zhtml.baseStructure());
+    this.bga.gameArea.getElement().append(zhtml.baseStructure(),Html.div({id: IDS.BOX}));
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       const counter = new ebg.counter();
@@ -91,7 +91,7 @@ export class Game extends BaseGame<ZGamedatas> {
     if (args.drawn_from_endgame_pile) {
       this.showLastTurnBanner();
       if (disk) {
-        await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.OFF_BOARD))
+        await this.moreAnimations.slideOutAndDestroy(disk, $(IDS.BOX))
       }
     }
     await this.view.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
@@ -170,7 +170,7 @@ export class Game extends BaseGame<ZGamedatas> {
             const elem = this.view.makeTileSpan(offspring.placed_tile.tile);
             const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
             parent.appendChild(elem);
-            return this.animationManager.slideIn(elem, $(IDS.OFF_BOARD));
+            return this.animationManager.slideIn(elem, $(IDS.BOX));
           });
         }
       }
@@ -229,7 +229,7 @@ export class Game extends BaseGame<ZGamedatas> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     this.view.updateMoneys(args.moneys);
-    await this.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.OFF_BOARD))
+    await this.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.BOX))
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
@@ -256,7 +256,7 @@ export class Game extends BaseGame<ZGamedatas> {
 
     const anims: AnimationList = [];
     args.dumped_tiles.forEach(tile =>
-      anims.push(() => this.moreAnimations.slideOutAndDestroy(Elements.tile(tile), $(IDS.OFF_BOARD)))
+      anims.push(() => this.moreAnimations.slideOutAndDestroy(Elements.tile(tile), $(IDS.BOX)))
     );
     args.truck_ids_returned.forEach(tid =>
       anims.push(() => this.moreAnimations.slideAndAttach(Elements.truck(tid), $(IDS.depotSpace(tid)),
@@ -288,7 +288,7 @@ export class Game extends BaseGame<ZGamedatas> {
         // FIXME: needed?
         elem.style.transform = 'rotate(0deg)';
         // a created offspring, create and slide it in
-        anims.push(() => this.animationManager.slideIn(elem, $(IDS.OFF_BOARD), {}));
+        anims.push(() => this.animationManager.slideIn(elem, $(IDS.BOX), {}));
       }
     });
     await this.animationManager.playParallel(anims)
