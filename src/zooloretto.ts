@@ -1,5 +1,5 @@
 import { Html } from './html';
-import { Tile, ZGamedatas, EnclosureSummary, Moneys, PlacedTile, Delivery } from './zgametypes';
+import { Tile, ZGamedatas, EnclosureSummary, Moneys, PlacedTile, Delivery, Offspring } from './zgametypes';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList } from './more-animations';
@@ -242,10 +242,20 @@ export class Game extends BaseGame<ZGamedatas> {
     this.view.updateMoneys(args.moneys);
     await this.animationManager.playSequentially(
       args.placed_tiles.map(pt =>
-        () => this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+        async () => { console.log("purchased", pt); this.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space)) }
       )
     )
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+  }
+
+  private async notif_Offspring(args: {
+    player_id: number;
+    offspring: Offspring;
+  }) {
+    const elem = Elements.tile(args.offspring.placed_tile.tile);
+    if (!elem) {
+      $(IDS.BOX).appendChild(this.view.makeTileSpan(args.offspring.placed_tile.tile));
+    }
   }
 
   private async notif_EndRound(args: {
