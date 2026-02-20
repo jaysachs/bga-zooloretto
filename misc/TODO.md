@@ -11,6 +11,8 @@ Open
 
 16. DONE When marking exchanged tiles, mark all the exchanged tiles; not empty spaces.
 17  Also, when selected an exchange destination, hover-highlight all the target tiles.
+18. Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
+19. Send a separate notification for enclosure completion (so log is better/simpler).
 
 Deferred
 ========
