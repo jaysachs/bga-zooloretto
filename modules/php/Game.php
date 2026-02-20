@@ -274,8 +274,8 @@ class Game extends Table
 	public function debug_putTile(int $player_id, string $tile_type, string $location, int $loc_id, int $loc_pos, int $tile_id = 0): void {
 		$db = new DefaultDb();
 		if ($tile_id == 0) {
-			$rows = $db->getSingleFieldList("SELECT MAX(id) FROM tiles WHERE id < 10000");
-			$tile_id = intval($rows[0]);
+			$rows = $db->getSingleFieldList("SELECT 1+MAX(id) FROM tiles WHERE id < 10000 AND id > 2000");
+			$tile_id = intval($rows[0]) ?? 2000;
 			$db->execute("INSERT INTO tiles (id, type, player_id, location, loc_id, loc_pos) VALUES ({$tile_id}, '{$tile_type}', {$player_id}, '{$location}', {$loc_id}, {$loc_pos} )");
 		} else {
 			$db->execute("UPDATE tiles SET (player_id, location, loc_id, loc_pos) = ({$player_id}, '{$location}', {$loc_id}, {$loc_pos} ) WHERE id = {$tile_id}");
