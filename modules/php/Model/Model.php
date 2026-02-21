@@ -30,6 +30,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 use Bga\GameFramework\UserException;
 use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zoolorettoalpha\Utils\Db;
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,
@@ -37,7 +38,9 @@ use Bga\Games\zoolorettoalpha\Utils\Arrays;
 */
 
 class Model {
-    public function __construct(private int $player_id, private PersistentStore $ps = new PersistentStore((new DefaultDb()))) {
+    private PersistentStore $ps;
+    public function __construct(private int $player_id, Db $db = new DefaultDb()) {
+        $this->ps = new PersistentStore($db);
     }
 
     /** @param list<int> $player_ids */

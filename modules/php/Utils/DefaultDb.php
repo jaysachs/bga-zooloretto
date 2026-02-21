@@ -32,7 +32,7 @@ use \Bga\GameFramework\Table;
 class DefaultDb implements Db
 {
 
-    public function __construct() {}
+    public function __construct(private bool $readonly = false) {}
 
     /** @return list<array<string,string>> */
     #[\Override]
@@ -53,6 +53,9 @@ class DefaultDb implements Db
     #[\Override]
     public function execute(string $sql): void
     {
+        if ($this->readonly) {
+            throw new \Exception("attempt to execute mutation statement on read-only DB");
+        }
         Table::DbQuery($sql);
     }
 }

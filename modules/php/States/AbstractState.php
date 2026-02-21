@@ -34,6 +34,7 @@ use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\Offspring;
 use Bga\Games\zoolorettoalpha\Model\Serializable;
+use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
 
 abstract class AbstractState extends GameState
 {
@@ -55,8 +56,8 @@ abstract class AbstractState extends GameState
             updateGameProgression: $updateGameProgression);
     }
 
-    protected function createModel(int $player_id): Model {
-        return new Model($player_id);
+    protected function createModel(int $player_id, bool $readonly = false): Model {
+        return new Model($player_id, new DefaultDb($readonly));
     }
 
     protected function giveExtraTime(int $player_id, ?int $specificTime = null): void {
