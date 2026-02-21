@@ -1,6 +1,6 @@
 import { AnimationList } from "./more-animations";
 import { ZooFlow } from "./zflow";
-import { Destination, Moneys, Offspring } from "./zgametypes";
+import { Delivery, Destination, Moneys, Offspring } from "./zgametypes";
 import { Elements, encOf, IDS, CSS, posOf, toSpace } from "./zhtml";
 import { GameView } from "./zview";
 
@@ -50,6 +50,17 @@ interface PossibleDiscards {
   money_delta: Moneys;
 }
 
+interface Placement {
+  truck_pos:number;
+  enclosure_id:number;
+  enclosure_pos:number;
+}
+
+interface PossibleDelivery {
+  truck_pos: number;
+  dests: Destination[];
+}
+
 interface PlayState {
   lastround: boolean;
   can_draw: boolean;
@@ -65,33 +76,19 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(gameView: GameView) { super(gameView); }
 
   protected override start(playState: PlayState) {
-    // FIXME: update the status bar title based on what's possible?
     this.initStatusBar(_("You must click on a tile to take an action"));
 
-    // Drawing a tile is orthogonal to other actions.
+    // All actions are independent to other actions, in terms of what to click on to
+    // initiate that action ...
     this.wireUpDraw(playState.can_draw, playState.lastround);
-
-    // Truck delivery is orthogonal.
     this.wireUpDeliveries(playState.available_trucks);
-
-    // Expanding is orthogonal to other actions.
     this.wireUpExpansions(playState.extension_available);
-
-    // These can be separate since they exclusively are on other players' boards.
     this.wireUpPurchases(playState.possible_purchases);
-
-    // Animals in enclosures can only be exchanged, so these are also fine to just do.
     this.wireUpExchanges(playState.possible_exchanges);
 
-    // It's moves and discards that are non-orthogonal,
-    //   i.e. a tile in the barn can be discarded and possibly moved.
+    // ... except moves and discards, which both start by clicking a tile in the barn
     this.wireUpMovesOrDiscards(playState.possible_moves, playState.possible_discards);
   }
-
-  notif_DeliverPendingTruckTiles(args: any) {
-    console.log(args);
-  }
-
 
   private wireUpDraw(canDraw: boolean, lastRound: boolean) {
     if (canDraw) {
@@ -107,20 +104,15 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     }
   }
 
+  // Draw tile
+
   private drawTile(lastround: boolean) {
     this.initStatusBar(_('Draw a tile? (cannot undo)'));
     this.markSelected(Elements.drawnTile(lastround));
     this.addConfirmAndRestartActionButtons('actDrawTile', {});
   }
 
-  private wireUpDeliveries(available_trucks: number[]) {
-    available_trucks.forEach(
-      truck_id => this.addSelectableOnclick(
-        Elements.truck(truck_id),
-        () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
-        _('Take truck'))
-    );
-  }
+  // move/discard
 
   private wireUpMovesOrDiscards(possible_moves: PossibleMoves, possible_discards: PossibleDiscards) {
     const isMoveable = (s: number) => possible_moves.moves.findIndex((m: PossibleMove) => m.src == s) >= 0;
@@ -148,10 +140,14 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
+  // Discard
+
   private confirmDiscard(space: number) {
     this.initStatusBar(_('Confirm discard'));
     this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
   }
+
+  // Move
 
   private chooseMoveDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
     this.initStatusBar(_('Select a destination space or'));
@@ -188,6 +184,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
+  // Expand
+
   private wireUpExpansions(extension_available: number) {
     if (extension_available > 0) {
       this.addSelectableOnclick(
@@ -204,6 +202,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.pushUndoOp('expandZoo', async () => this.view.renderExtensions(this.player_id, current));
     this.addConfirmAndRestartActionButtons('actExpandZoo', {});
   }
+
+  // Exchange
 
   private wireUpExchanges(possible_exchanges: PossibleExchanges) {
     const exchanges = possible_exchanges.exchanges;
@@ -305,6 +305,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
+  // Purchase tile
+
   private wireUpPurchases(possible_purchases: PossiblePurchase[]) {
     possible_purchases.forEach((pp: PossiblePurchase) => {
       this.addSelectableOnclick(
@@ -344,4 +346,82 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
-}
+  // Truck deliver
+
+  private wireUpDeliveries(available_trucks: number[]) {
+    available_trucks.forEach(
+      truck_id => this.addSelectableOnclick(
+        Elements.truck(truck_id),
+        // server-state approach:
+        //   () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
+        // client-side mostly:
+        () => this.doDelivery(truck_id, []),
+        _('Take truck'))
+    );
+  }
+
+ notif_DeliverPendingTruckTiles(args: {
+    truck_id: number;
+    deliveries: Delivery[];
+    possible_deliveries: PossibleDelivery[];
+  }) {
+    this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
+  }
+
+  doDelivery(truck_id: number, deliveries: Delivery[], truck_pos?: number, dest?:Destination): Promise<any> {
+    let placements: Placement[] = deliveries.map(d => {
+      return {
+        truck_pos: d.truck_pos,
+        enclosure_id: encOf(d.dest.space),
+        enclosure_pos: posOf(d.dest.space)} });
+    if (truck_pos) {
+      placements.push({
+        truck_pos: truck_pos,
+        enclosure_id: encOf(dest.space),
+        enclosure_pos: posOf(dest.space)
+      })
+    }
+    return this.bga.actions.performAction('actDeliverPendingTiles', { truck_id: truck_id, placements: JSON.stringify(placements) });
+  }
+
+  private async chooseTruckTileToPlace(truck_id: number, deliveries: Delivery[], pps: PossibleDelivery[]) {
+    if (!pps || pps.length == 0) {
+      this.initStatusBar(_('Confirm your truck tile placements'));
+      this.addConfirmAndRestartActionButtons(
+        'actTakeTruckAndPlaceTiles', {
+          truck_id: truck_id,
+          delivery_requests: JSON.stringify(deliveries),
+        }
+      );
+    }
+    else {
+      this.initStatusBar(_('Choose a tile to place from the selected truck'));
+      pps.forEach((pp: PossibleDelivery) => {
+        let elem = Elements.truckSpace(truck_id, pp.truck_pos);
+        this.addSelectableOnclick(elem, async () => {
+          this.callUndoably("chooseDest", () => this.chooseDestination(truck_id, pp, deliveries));
+        });
+      });
+      this.addRestartAndUndoButtons();
+    }
+  }
+
+  private async chooseDestination(truck_id: number, pp: PossibleDelivery, deliveries: Delivery[]) {
+    this.initStatusBar(_('Choose a destination for the selected tile'));
+
+    pp.dests.forEach((dest: Destination) => {
+      let encElem = Elements.enclosureSpace(this.player_id, dest.space);
+      // this.markTargetable(encElem);
+      this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
+        let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
+        this.slide(tileElem,encElem).then(() => {
+          return this.offspringSlide(dest.offspring).then( () => {
+            this.updateMoneyDelta(dest.money_delta);
+            this.doDelivery(truck_id, deliveries, pp.truck_pos, dest);
+          });
+        });
+      });
+    });
+    this.addRestartAndUndoButtons();
+  }
+};
