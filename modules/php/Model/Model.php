@@ -244,7 +244,7 @@ class Model {
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
             $coins[] = $tile;
-            $result[] = new Delivery($truck_id, $coin_pos, $tile);
+            $result[] = new Delivery($coin_pos, $tile);
             $player->receiveMoney(1);
         }
         if (!$truck->isEmpty()) {
@@ -286,7 +286,7 @@ class Model {
             }
             $offspring = $encl->checkForOffspring($barn);
 
-            $result[] = new Delivery($truck_id, $truck_pos, $tile, new Destination($placement->space, $offspring));
+            $result[] = new Delivery($truck_pos, $tile, new Destination($placement->space, $offspring));
         }
 
         return $result;
