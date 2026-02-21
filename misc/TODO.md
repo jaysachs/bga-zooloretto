@@ -10,29 +10,27 @@ Open
     "DeliveryCompleted". Will need a "DeliveryCanceled" notif probably.
 
 16. DONE When marking exchanged tiles, mark all the exchanged tiles; not empty spaces.
-17  Also, when selected an exchange destination, hover-highlight all the target tiles.
+
+17.  Also, when selected an exchange destination, hover-highlight all the target tiles.
+
 18. Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
+
 19. Send a separate notification for enclosure completion (so log is better/simpler).
+
+20. When primary stock exhausted, UI is weird.
 
 Deferred
 ========
-3. Put "possibles" in private args. (Very important in Babylonia, however.)
+3. DONE, actually put them in a private notif. Put "possibles" in private args. (Very important in Babylonia, however.)
+
 4. Handle multiple offspring (difficult but possible to arrange)
+
 5. Allow barn to have infinite size; shrink barn tiles when size goes above 9.
 
 Maybe
 =====
 6. Add undo (and redo?)
-  Consider a "pendingChanges" table, same structure as tiles. When reading stuff in, read them
-    both and "overlay" the pending changes. On confirm delivery, apply the pending changes; on undo, just delete the rows. Then don't need undoSavepoint. (And utilize the "DeliveryCanceled" notif idea.)
-  * Or, could just have new status "P" for "pending delivery" and "O" for "pending offspring".
-    That's what gets updated on delivering a tile; and confirm delivery just changes "P" to "E" and "O" to "E". This is actually pretty simple.
-  * That doesn't allow for granular undo, and isn't easily extended to that. To do that, we'd need
-    the pending table with an additional "sequence" column (the value of which would be shared by both the offspring and the delivered tile rows.) Then, undo would be just read & delete the latest sequence number rows. These would theoretically need to include which, if either,
-    trigger a completion bonus. (Though on undo just compare the completion state of the
-    enclosure should do it.)
-  * An even more radical approach would be to never update or delete a row (except for undos), but
-    only add a new ones with a larger sequence IDs. To read, read in reverse sequence ID order, keeping track of which tileIDs we've seen and skip over already-seen ones. Each tile will eventually have 4+ entries (stock, drawn, truck, enclosure, plus one for each move/exchange/discard/purchase), so we're looking at ~500 rows by end of game. Would need to have a global of some sort that indicated where the "undo limit" was. Only update stats when "committed", if possible.
+  Only granular undo if all clientside. We're moving towards that.
 
 8. (?) add back player aid
 
@@ -57,5 +55,3 @@ Verification required
 * Verify offspring overflow into barn
 * Verify completion bonuses generated at right times
 * Mobile testing
-
-* Consider implementing some game logic client side, particulary (and first) for truck placements (but eventually moves, discards and exchanges). Will need to keep track of which tile IDs have reproduced (send over in gamedatas, and update notifs). The logic isn't that hard.
