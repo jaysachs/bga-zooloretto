@@ -282,14 +282,15 @@ class Game extends Table
 	}
 
 	#[Debug(reload: true)]
-	public function debug_drawN(int $n): void {
-		$model = new Model(0);
+	public function debug_drawN(int $active_player_id, int $n): void {
+		$model = new Model($active_player_id);
 		$stock = $model->getStock();
+		$ps = new PersistentStore();
 		while ($n-- > 0) {
 			$stock = $model->drawTile();
 			$drawn = $stock->drawn;
 			$stock->removeDrawnTile();
+			$ps->deleteTile($drawn);
 		}
-		new PersistentStore()->updateStock($stock);
 	}
 }
