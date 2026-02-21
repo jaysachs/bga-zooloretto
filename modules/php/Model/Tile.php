@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class Tile {
+class Tile implements Serializable {
 
 	private static ?Tile $EMPTY = null;
 	public static function empty() : Tile {
