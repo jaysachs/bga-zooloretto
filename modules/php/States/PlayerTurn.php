@@ -53,10 +53,6 @@ class PlayerTurn extends AbstractState
 		);
 	}
 
-	public function onEnteringState(int $active_player_id): void {
-		// $this->game->undoSavepoint();
-	}
-
     /** @return array<string,mixed> */
 	public function getArgs(int $active_player_id): array
 	{
@@ -82,31 +78,6 @@ class PlayerTurn extends AbstractState
 			'extension_available' => $model->extensionAvailable(),
 			'lastround' => $model->getStock()->inLastRound(),
 		];
-	}
-
-	#[PossibleAction]
-	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
-        $model = $this->createModel($active_player_id);
-		$coin_positions = $model->startTruckDelivery($truck_id)['coin_positions'];
-		$coins = count($coin_positions);
-		$this->notify->all(
-            'DeliveryStarted',
-			$coins > 0
-			? clienttranslate('${player_name} started delivery from ${truck} and gained ${coins}')
-			: clienttranslate('${player_name} started delivery from ${truck}'),
-             [
-				'coins' => count($coin_positions),
-				'player_id' => $active_player_id,
-				'truck_id' => $truck_id,
-				'coin_positions' => $coin_positions,
-				'moneys' => $model->currentMoneys()->serialize(),
-				'truck' => Truck::translated($truck_id),
-				'i18n' => [
-					'truck',
-                 ]
-             ]
-         );
-        return DeliverTruckTiles::class;
 	}
 
 	#[PossibleAction]
@@ -433,6 +404,35 @@ class PlayerTurn extends AbstractState
     }
 
 
+	public function onEnteringState(int $active_player_id): void {
+		// $this->game->undoSavepoint();
+	}
+
+	#[PossibleAction]
+	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
+        $model = $this->createModel($active_player_id);
+		$coin_positions = $model->startTruckDelivery($truck_id)['coin_positions'];
+		$coins = count($coin_positions);
+		$this->notify->all(
+            'DeliveryStarted',
+			$coins > 0
+			? clienttranslate('${player_name} started delivery from ${truck} and gained ${coins}')
+			: clienttranslate('${player_name} started delivery from ${truck}'),
+             [
+				'coins' => count($coin_positions),
+				'player_id' => $active_player_id,
+				'truck_id' => $truck_id,
+				'coin_positions' => $coin_positions,
+				'moneys' => $model->currentMoneys()->serialize(),
+				'truck' => Truck::translated($truck_id),
+				'i18n' => [
+					'truck',
+                 ]
+             ]
+         );
+        return DeliverTruckTiles::class;
+	}
+
 	function zombie(int $player_id): mixed
 	{
 		$model = $this->createModel($player_id);
@@ -441,7 +441,8 @@ class PlayerTurn extends AbstractState
 		}
 
 		foreach ($model->getTrucks() as $truck) {
-			if (!$truck->isEmpty()) {
+			if ($truck->canBeTaken()) {
+				// FIXME: this needs to shift to pending delivery system.
 				return $this->actTakeTruck($player_id, $truck->id);
 			}
 		}
