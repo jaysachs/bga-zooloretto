@@ -28,9 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zoolorettoalpha\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\Games\zoolorettoalpha\Game;
-use Bga\Games\zoolorettoalpha\Model\Model;
 
 class ComputeScores extends AbstractState
 {

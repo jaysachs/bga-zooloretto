@@ -27,7 +27,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-use \Bga\Games\zoolorettoalpha\Utils;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 
 class Moneys implements Serializable {

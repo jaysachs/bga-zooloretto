@@ -35,7 +35,6 @@ use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
 use Bga\Games\zoolorettoalpha\Model\Player;
 use Bga\Games\zoolorettoalpha\Model\Space;
-use Bga\Games\zoolorettoalpha\Model\Tile;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
