@@ -250,7 +250,7 @@ class Model {
         if (!$truck->isEmpty()) {
             throw new UserException("Not all tiles delivered for {$truck_id} {$truck}");
         }
-
+        $player->takeTruck($truck_id);
         // Update DB.
         foreach ($coins as $coin) {
             $this->ps->deleteTile($coin);
@@ -330,7 +330,7 @@ class Model {
     public function setDeliveryCompleted(): Truck {
         $player = $this->getActivePlayer();
         $t1 = $this->getTruck(2);
-        $player->takeTruck();
+        $player->takeDeliveringTruck();
         $truck = $this->getTruck($player->truck_taken);
         $truck->setTakenBy($player->id);
         $this->ps->updatePlayer($player);

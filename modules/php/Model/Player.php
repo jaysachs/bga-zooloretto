@@ -81,7 +81,14 @@ class Player {
         $this->delivering_truck = $truck->id;
     }
 
-    public function takeTruck(): void {
+    public function takeTruck(int $truck_id): void {
+        if ($this->truck_taken != 0) {
+            throw new ModelException("Truck already taken by player $this->id");
+        }
+        $this->truck_taken = $truck_id;
+    }
+
+    public function takeDeliveringTruck(): void {
         if ($this->truck_taken != 0) {
             throw new ModelException("Truck already taken by player $this->id");
         }
