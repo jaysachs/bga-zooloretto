@@ -326,38 +326,45 @@ class PlayerTurn extends AbstractState
 		foreach ($deliveries as $delivery) {
 			$dest = $delivery->dest;
 			if (!$dest) {
-				$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} received ${tile_type} from ${truck}'), [
+				$this->notify->all(
+					'DeliverTruckTile',
+					clienttranslate('${player_name} received ${tile_type} from ${truck}'), [
+						'player_id' => $active_player_id,
+						'delivery' => $delivery->serialize(),
+						'tile_type' => $delivery->tile->type,
+						'truck_id' => $truck_id,
+						'truck' => Truck::translated($truck_id),
+						'i18n' => [
+							'truck',
+						]
+					]
+				);
+				continue;
+			}
+			$this->notify->all(
+				'DeliverTruckTile',
+				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure} from ${truck}'), [
 					'player_id' => $active_player_id,
 					'delivery' => $delivery->serialize(),
 					'tile_type' => $delivery->tile->type,
 					'truck_id' => $truck_id,
 					'truck' => Truck::translated($truck_id),
+					'enclosure_description' => Enclosure::translated($dest->space->enclosure_id),
 					'i18n' => [
+						'enclosure_description',
 						'truck',
 					]
-				]);
-				continue;
-			}
-			$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
-				'player_id' => $active_player_id,
-				'delivery' => $delivery->serialize(),
-				'tile_type' => $delivery->tile->type,
-				'truck_id' => $truck_id,
-				'truck' => Truck::translated($truck_id),
-				'enclosure_description' => Enclosure::translated($dest->space->enclosure_id),
-				'i18n' => [
-					'enclosure_description',
-					'truck',
 				]
-			]);
+			);
 			if ($dest->offspring) {
 				$child = $dest->offspring->child;
 				$tile = $child->tile;
 				$space = $child->space;
 				$this->notify->all(
 					'Offspring',
-					clienttranslate('${player_name} received an offspring ${tile} in ${enclosure}'),[
+					clienttranslate('${player_name} received an offspring ${tile_type} in ${enclosure_description}'),[
 						'player_id' => $active_player_id,
+						'offspring' => $dest->offspring->serialize(),
 						'tile_type' => $tile->type->value,
 						'tile_description' => $tile->type->translated(),
 						'enclosure_description' => Enclosure::translated($space->enclosure_id),
