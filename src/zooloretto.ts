@@ -74,7 +74,7 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private setupNotifications(): void {
-    this.bga.notifications.setupPromiseNotifications({ logger: console.log });
+    this.bga.notifications.setupPromiseNotifications({ handlers:[this, ...this.bga.states.getStateClasses()], logger: console.log });
   }
 
   //
