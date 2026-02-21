@@ -219,7 +219,38 @@ class Model {
         return $result;
     }
 
-    public function deliverTruckTile(int $truck_pos, Space $space): Delivery {
+    /**
+	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements
+     * @return list<Delivery>
+     */
+    public function deliverPendingTruckTiles(int $truck_id, array $placements): array {
+        $player = $this->getActivePlayer();
+        $truck = $this->getTruck($truck_id);
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $barn = $encs[0];
+        $result = [];
+        foreach ($placements as $placement) {
+            $enclosure_id = intval($placement['enclosure_id']);
+            $encl = $encs[$enclosure_id];
+            $truck_pos = intval($placement['truck_pos']);
+            $pos = intval($placement['enclosure_pos']);
+            $tile = $truck->removeTileAt($truck_pos);
+            $placement = $encl->placeTile($tile);
+            if ($placement->completedEnclosure) {
+                $player->receiveMoney($encl->coin_bonus);
+            }
+            if ($placement->space->pos <> $pos) {
+                throw new ModelException("put {$truck_id}:{$truck_pos} into {$enclosure_id}:{$pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
+            }
+            $offspring = $encl->checkForOffspring($barn);
+
+            $result[] = new Delivery($truck_id, $truck_pos, $tile, new Destination($placement->space, $offspring));
+        }
+
+        return $result;
+    }
+
+     public function deliverTruckTile(int $truck_pos, Space $space): Delivery {
         $player = $this->getActivePlayer();
         $truck_id = $player->delivering_truck;
         if (!$truck_id) {

@@ -315,6 +315,27 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
+	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements */
+	#[PossibleAction]
+    public function actDeliverPendingTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $placements): mixed {
+        $model = $this->createModel($active_player_id, true);
+		$deliveries = $model->deliverPendingTruckTiles($truck_id, $placements);
+        $pds = [];
+        foreach ($model->getPossibleDeliveries($truck_id) as $pos => $dests) {
+            $pds[] = [
+                'truck_pos' => $pos,
+                'dests' => array_map(fn ($d) => $d->serialize(), $dests),
+            ];
+        }
+		$this->notify->player($active_player_id, 'DeliverPendingTruckTiles', '', [
+            'deliveries' => array_map(fn($d)=>$d->serialize(), $deliveries),
+            "truck_id" => $truck_id,
+            "possible_deliveries" => $pds,
+		]);
+		return null;
+    }
+
+
 	function zombie(int $player_id): mixed
 	{
 		$model = $this->createModel($player_id);
