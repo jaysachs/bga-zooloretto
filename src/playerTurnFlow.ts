@@ -88,6 +88,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.wireUpMovesOrDiscards(playState.possible_moves, playState.possible_discards);
   }
 
+  notif_DeliverPendingTruckTiles(args: any) {
+    console.log(args);
+  }
+
+
   private wireUpDraw(canDraw: boolean, lastRound: boolean) {
     if (canDraw) {
       let topTile = Elements.drawnTile(lastRound);
