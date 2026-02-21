@@ -361,39 +361,38 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     );
   }
 
+  async notif_DeliverCoins(args: { player_id: number, truck_id: number, coins: Tile[] }) {
+    const anims = args.coins.map(c => () => this.view.moreAnimations.slideOutAndDestroy(
+        Elements.tile(c),
+          this.bga.playerPanels.getElement(args.player_id),
+        ).then(() => this.view.addMoney(args.player_id, 1)));
+    await this.view.animationManager.playSequentially(anims);
+  }
+
   async notif_DeliverTruckTile(args: {
       player_id: number,
       truck_id: number,
       delivery: Delivery,
   }) {
     const dest = args.delivery.dest;
-    if (!dest) {
-      // coin
-      await this.view.moreAnimations.slideOutAndDestroy(
-        Elements.tile(args.delivery.tile),
-          this.bga.playerPanels.getElement(args.player_id),
-        ).then(() => this.view.addMoney(args.player_id, 1));
-    }
-    else {
-      const anims : AnimationList = [];
-      anims.push(() => this.view.moreAnimations.slideAndAttach(
-        Elements.tile(args.delivery.tile)!,
-        Elements.enclosureSpace(args.player_id, dest.space))
-      );
-      if (dest.offspring) {
-        const offspring = dest.offspring!;
-        if (!$(IDS.tile(offspring.placed_tile.tile))) {
-          anims.push(() => this.view.flashParents(offspring));
-          anims.push(() => {
-            const elem = this.view.tileSpan(offspring.placed_tile.tile);
-            const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
-            parent.appendChild(elem);
-            return this.animationManager.slideIn(elem, $(IDS.BOX));
-          });
-        }
+    const anims : AnimationList = [];
+    anims.push(() => this.view.moreAnimations.slideAndAttach(
+      Elements.tile(args.delivery.tile)!,
+      Elements.enclosureSpace(args.player_id, dest.space))
+    );
+    if (dest.offspring) {
+      const offspring = dest.offspring!;
+      if (!$(IDS.tile(offspring.placed_tile.tile))) {
+        anims.push(() => this.view.flashParents(offspring));
+        anims.push(() => {
+          const elem = this.view.tileSpan(offspring.placed_tile.tile);
+          const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+          parent.appendChild(elem);
+          return this.animationManager.slideIn(elem, $(IDS.BOX));
+        });
       }
-      await this.animationManager.playSequentially(anims);
     }
+    await this.animationManager.playSequentially(anims);
   }
 
   async notif_Offspring(args: {

@@ -292,7 +292,9 @@ class PlayerTurn extends AbstractState
 	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $placements): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$deliveries = $model->takeTruckAndDeliverTiles($truck_id, $placements);
+		$res = $model->takeTruckAndDeliverTiles($truck_id, $placements);
+		$deliveries = $res['deliveries'];
+		$cointiles = $res['coins'];
 		$this->notify->all(
 			'TakeTruck',
 			clienttranslate('${player_name} took ${truck}'), [
@@ -303,44 +305,25 @@ class PlayerTurn extends AbstractState
 				]
 			]
 		);
-		/*
-		$noncoins = array_filter($deliveries, fn($d) => $d->dest);
-		// Do coins first
-		$coins = count($deliveries) - count($noncoins);
-		if ($coins > 0) {
+
+		if (count($cointiles) > 0) {
+			$coins = count($cointiles);
 			$this->notify->all(
-				'Coins',
+				'DeliverCoins',
 				clienttranslate('${player_name} received ${coins} from ${truck}'), [
 					'player_id' => $active_player_id,
+					'coins' => $this->serializeArray($cointiles),
+					'truck_id' => $truck_id,
 					'truck' => Truck::translated($truck_id),
-					'coins' => $coins,
 					'i18n' => [
 						'truck',
 					]
 				]
 			);
 		}
-			*/
-
 		// Notify for each tile, also send offspring and enclosure completion notifications.
 		foreach ($deliveries as $delivery) {
 			$dest = $delivery->dest;
-			if (!$dest) {
-				$this->notify->all(
-					'DeliverTruckTile',
-					clienttranslate('${player_name} received ${tile_type} from ${truck}'), [
-						'player_id' => $active_player_id,
-						'delivery' => $delivery->serialize(),
-						'tile_type' => $delivery->tile->type,
-						'truck_id' => $truck_id,
-						'truck' => Truck::translated($truck_id),
-						'i18n' => [
-							'truck',
-						]
-					]
-				);
-				continue;
-			}
 			$this->notify->all(
 				'DeliverTruckTile',
 				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
@@ -428,14 +411,10 @@ class PlayerTurn extends AbstractState
 				while (!$truck->isEmpty()) {
 					$deliveries = $model->deliverPendingTruckTiles($truck->id, $placements);
 					$placements = array_map(function (Delivery $d): array {
-						$dest = $d->dest;
-						if (!$dest) {
-							throw new SystemException("got empty dest from deliverPendingTruckTiles");
-						}
 						return [
 							'truck_pos' => $d->truck_pos,
-							'enclosure_id' => $dest->space->enclosure_id,
-							'enclosure_pos' => $dest->space->pos,
+							'enclosure_id' => $d->dest->space->enclosure_id,
+							'enclosure_pos' => $d->dest->space->pos,
 						];
 					}, $deliveries);
 				}
@@ -446,26 +425,5 @@ class PlayerTurn extends AbstractState
 		// there should be at least one spot on one truck. That's why there are 15 tiles in
 		// the end game pile -- 3 for each possible player.
 		throw new SystemException("cannot draw, but there are no non-empty trucks available to take?!?");
-
-	/*
-		$truck = $model->getAvailableTrucks()[0];
-		$pl = $truck->placement->placements[0];
-		$placedTiles = [];
-		while (true) {
-			$placedTiles[] = [
-				'truck_pos' => $pl->truck_pos,
-				'enclosure_id' => $pl->next[0]->space->enclosure_id,
-				'enclosure_pos' => $pl->next[0]->space->pos,
-			];
-			if (count($pl->next) == 0) {
-				break;
-			}
-			if ($pl->next[0]->next == null) {
-				break;
-			}
-			$pl = $pl->next[0]->next->placements[0];
-		};
-		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->truck_id, $placedTiles);
-		*/
 	}
 }

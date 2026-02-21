@@ -89,7 +89,7 @@ export interface Delivery {
   dest: {
     space: number;
     offspring: Offspring | undefined;
-  } | undefined;
+  };
 }
 
 export interface Destination {
