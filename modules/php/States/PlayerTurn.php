@@ -53,7 +53,7 @@ class PlayerTurn extends AbstractState
 	}
 
 	public function onEnteringState(int $active_player_id): void {
-		$this->game->undoSavepoint();
+		// $this->game->undoSavepoint();
 	}
 
     /** @return array<string,mixed> */
@@ -312,6 +312,75 @@ class PlayerTurn extends AbstractState
             ]
         );
 		$this->game->stats->PLAYER_DISCARDEDTILES->inc($active_player_id);
+		return NextPlayer::class;
+	}
+
+	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements */
+	#[PossibleAction]
+	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $placements): mixed
+	{
+        $model = $this->createModel($active_player_id);
+		$deliveries = $model->takeTruckAndDeliverTiles($truck_id, $placements);
+		$this->notify->all(
+			'TakeTruck',
+			clienttranslate('${player_name} took {$truck}'), [
+				'player_id' => $active_player_id,
+				'truck' => Truck::translated($truck_id),
+				'i18n' => [
+					'truck',
+				]
+			]
+		);
+		$coins = 0;
+		// Notify for each tile, also send offspring and enclosure completion notifications.
+		foreach ($deliveries as $delivery) {
+			$dest = $delivery->dest;
+			if (!$dest) {
+				$coins++;
+				continue;
+			}
+			$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description}'), [
+				'player_id' => $active_player_id,
+				'delivery' => $delivery->serialize(),
+				'tile_type' => $delivery->tile->type,
+				'enclosure_description' => Enclosure::translated($dest->space->enclosure_id),
+				'i18n' => [
+					'enclosure_description'
+				]
+			]);
+			if ($dest->offspring) {
+				$child = $dest->offspring->child;
+				$tile = $child->tile;
+				$space = $child->space;
+				$this->notify->all(
+					'Offspring',
+					clienttranslate('${player_name} received an offspring ${tile} in ${enclosure}'),[
+						'player_id' => $active_player_id,
+						'tile_type' => $tile->type->value,
+						'tile_description' => $tile->type->translated(),
+						'enclosure_description' => Enclosure::translated($space->enclosure_id),
+						'i18n' => ['tile_description', 'enclosure_description']
+					]
+				);
+			}
+			// FIXME: handle enclosure completion
+			// if ($delivery->enclosureCompleted) {
+
+			// }
+		}
+		if ($coins > 0) {
+			$this->notify->all(
+				'Coins',
+				clienttranslate('${player_name} received ${coins} from ${truck}'), [
+					'player_id' => $active_player_id,
+					'truck' => Truck::translated($truck_id),
+					'coins' => $coins,
+					'i18n' => [
+						'truck',
+					]
+				]
+			);
+		}
 		return NextPlayer::class;
 	}
 

@@ -223,6 +223,48 @@ class Model {
 	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements
      * @return list<Delivery>
      */
+    public function takeTruckAndDeliverTiles(int $truck_id, array $placements): array {
+        $player = $this->getActivePlayer();
+        $truck = $this->getTruck($truck_id);
+        $encs = $this->getEnclosuresForPlayer($this->player_id);
+        $result = $this->deliverPendingTruckTiles($truck_id, $placements);
+
+        $coins = [];
+        foreach ($result as $delivery) {
+            $dest = $delivery->dest;
+            if (! $dest) {
+                throw new ModelException("got an empty destination for a delivery");
+            }
+            if ($dest->offspring) {
+                $this->saveOffspring($dest->offspring);
+            }
+            // FIXME: handle completion bonus
+        }
+        // Collect the coins, add them as deliveries with no destination.
+        foreach ($truck->coinPositions() as $coin_pos) {
+            $tile = $truck->removeTileAt($coin_pos);
+            $coins[] = $tile;
+            $result[] = new Delivery($truck_id, $coin_pos, $tile);
+            $player->receiveMoney(1);
+        }
+        if (!$truck->isEmpty()) {
+            throw new UserException("Not all tiles delivered for {$truck_id} {$truck}");
+        }
+
+        // Update DB.
+        foreach ($coins as $coin) {
+            $this->ps->deleteTile($coin);
+        }
+        // for now, update all enclosures, optimize later
+        $this->ps->updateEnclosures($player->id, array_values($encs));
+        $this->ps->updatePlayer($player);
+        return $result;
+    }
+
+    /**
+	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements
+     * @return list<Delivery>
+     */
     public function deliverPendingTruckTiles(int $truck_id, array $placements): array {
         $player = $this->getActivePlayer();
         $truck = $this->getTruck($truck_id);

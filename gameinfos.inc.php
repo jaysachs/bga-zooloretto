@@ -104,5 +104,5 @@ $gameinfos = array(
 ),
 
 // Built-in undo support.
-'db_undo_support' => true,
+'db_undo_support' => false,
 );

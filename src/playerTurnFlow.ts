@@ -75,13 +75,15 @@ interface PlayState {
 export class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(gameView: GameView) { super(gameView); }
 
+  useServerStates: boolean = false;
+
   protected override start(playState: PlayState) {
     this.initStatusBar(_("You must click on a tile to take an action"));
 
     // All actions are independent to other actions, in terms of what to click on to
     // initiate that action ...
     this.wireUpDraw(playState.can_draw, playState.lastround);
-    this.wireUpDeliveries(playState.available_trucks);
+    this.wireUpDeliveries(playState.available_trucks, this.useServerStates);
     this.wireUpExpansions(playState.extension_available);
     this.wireUpPurchases(playState.possible_purchases);
     this.wireUpExchanges(playState.possible_exchanges);
@@ -346,16 +348,15 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
-  // Truck deliver
+  // Truck delivery
 
-  private wireUpDeliveries(available_trucks: number[]) {
+  private wireUpDeliveries(available_trucks: number[], useServerStates: boolean) {
     available_trucks.forEach(
       truck_id => this.addSelectableOnclick(
         Elements.truck(truck_id),
-        // server-state approach:
-        //   () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id }),
-        // client-side mostly:
-        () => this.doDelivery(truck_id, []),
+        useServerStates
+            ? () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id })
+            : () => this.doDelivery(truck_id, []),
         _('Take truck'))
     );
   }
@@ -387,10 +388,16 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private async chooseTruckTileToPlace(truck_id: number, deliveries: Delivery[], pps: PossibleDelivery[]) {
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Confirm your truck tile placements'));
+      let placements: Placement[] = deliveries.map(d => {
+        return {
+          truck_pos: d.truck_pos,
+          enclosure_id: encOf(d.dest.space),
+          enclosure_pos: posOf(d.dest.space)} });
+      console.log("will send", deliveries);
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,
-          delivery_requests: JSON.stringify(deliveries),
+          placements: JSON.stringify(placements),
         }
       );
     }
