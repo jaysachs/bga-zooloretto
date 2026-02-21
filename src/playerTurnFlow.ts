@@ -361,7 +361,58 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     );
   }
 
- notif_DeliverPendingTruckTiles(args: {
+  /*
+  notif_Coins(args: { player_id: number, coins: number }) {
+    this.view.addMoney(args.player_id, args.coins);
+  }
+    */
+
+  async notif_DeliverTruckTile(args: {
+      player_id: number,
+      truck_id: number,
+      delivery: Delivery,
+  }) {
+    const dest = args.delivery.dest;
+    if (!dest) {
+      // coin
+      await this.view.moreAnimations.slideOutAndDestroy(
+        Elements.tile(args.delivery.tile),
+          this.bga.playerPanels.getElement(args.player_id),
+        ).then(() => this.view.addMoney(args.player_id, 1));
+    }
+    else {
+      const anims : AnimationList = [];
+      anims.push(() => this.view.moreAnimations.slideAndAttach(
+        Elements.tile(args.delivery.tile)!,
+        Elements.enclosureSpace(args.player_id, dest.space))
+      );
+      if (dest.offspring) {
+        const offspring = dest.offspring!;
+        if (!$(IDS.tile(offspring.placed_tile.tile))) {
+          anims.push(() => this.view.flashParents(offspring));
+          anims.push(() => {
+            const elem = this.view.tileSpan(offspring.placed_tile.tile);
+            const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+            parent.appendChild(elem);
+            return this.animationManager.slideIn(elem, $(IDS.BOX));
+          });
+        }
+      }
+      await this.animationManager.playSequentially(anims);
+    }
+  }
+
+  async notif_Offspring(args: {
+    player_id: number;
+    offspring: Offspring;
+  }) {
+    const elem = Elements.tile(args.offspring.placed_tile.tile);
+    if (!elem) {
+      $(IDS.BOX).appendChild(this.view.tileSpan(args.offspring.placed_tile.tile));
+    }
+  }
+
+  notif_DeliverPendingTruckTiles(args: {
     truck_id: number;
     deliveries: Delivery[];
     possible_deliveries: PossibleDelivery[];

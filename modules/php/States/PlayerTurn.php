@@ -33,6 +33,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\UserException;
 use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Cost;
+use Bga\Games\zoolorettoalpha\Model\Destination;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
 use Bga\Games\zoolorettoalpha\Model\Moneys;
@@ -323,7 +324,7 @@ class PlayerTurn extends AbstractState
 		$deliveries = $model->takeTruckAndDeliverTiles($truck_id, $placements);
 		$this->notify->all(
 			'TakeTruck',
-			clienttranslate('${player_name} took {$truck}'), [
+			clienttranslate('${player_name} took ${truck}'), [
 				'player_id' => $active_player_id,
 				'truck' => Truck::translated($truck_id),
 				'i18n' => [
@@ -331,21 +332,51 @@ class PlayerTurn extends AbstractState
 				]
 			]
 		);
-		$coins = 0;
+		/*
+		$noncoins = array_filter($deliveries, fn($d) => $d->dest);
+		// Do coins first
+		$coins = count($deliveries) - count($noncoins);
+		if ($coins > 0) {
+			$this->notify->all(
+				'Coins',
+				clienttranslate('${player_name} received ${coins} from ${truck}'), [
+					'player_id' => $active_player_id,
+					'truck' => Truck::translated($truck_id),
+					'coins' => $coins,
+					'i18n' => [
+						'truck',
+					]
+				]
+			);
+		}
+			*/
+
 		// Notify for each tile, also send offspring and enclosure completion notifications.
 		foreach ($deliveries as $delivery) {
 			$dest = $delivery->dest;
 			if (!$dest) {
-				$coins++;
+				$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} received ${tile_type} from ${truck}'), [
+					'player_id' => $active_player_id,
+					'delivery' => $delivery->serialize(),
+					'tile_type' => $delivery->tile->type,
+					'truck_id' => $truck_id,
+					'truck' => Truck::translated($truck_id),
+					'i18n' => [
+						'truck',
+					]
+				]);
 				continue;
 			}
-			$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description}'), [
+			$this->notify->all('DeliverTruckTile', clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
 				'player_id' => $active_player_id,
 				'delivery' => $delivery->serialize(),
 				'tile_type' => $delivery->tile->type,
+				'truck_id' => $truck_id,
+				'truck' => Truck::translated($truck_id),
 				'enclosure_description' => Enclosure::translated($dest->space->enclosure_id),
 				'i18n' => [
-					'enclosure_description'
+					'enclosure_description',
+					'truck',
 				]
 			]);
 			if ($dest->offspring) {
@@ -368,19 +399,16 @@ class PlayerTurn extends AbstractState
 
 			// }
 		}
-		if ($coins > 0) {
-			$this->notify->all(
-				'Coins',
-				clienttranslate('${player_name} received ${coins} from ${truck}'), [
-					'player_id' => $active_player_id,
-					'truck' => Truck::translated($truck_id),
-					'coins' => $coins,
-					'i18n' => [
-						'truck',
-					]
-				]
-			);
-		}
+
+        $this->notify->all('DeliveryCompleted','',[
+            'truck_id' => $truck_id,
+            'player_id' => $active_player_id,
+			'moneys' => $model->currentMoneys()->serialize(),
+			'enclosure_summaries' => array_map(
+					fn ($e) => EnclosureSummary::forEnclosure($active_player_id, $e)->serialize(),
+					$model->getEnclosuresForPlayer($active_player_id)
+			),
+        ]);
 		return NextPlayer::class;
 	}
 

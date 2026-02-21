@@ -143,41 +143,6 @@ export class Game extends BaseGame<ZGamedatas> {
     this.view.updateMoneys(args.moneys);
   }
 
-  private async notif_DeliverTruckTile(args: {
-      player_id: number,
-      truck_id: number,
-      delivery: Delivery,
-  }) {
-    const dest = args.delivery.dest;
-    if (!dest) {
-      // coin
-      await this.moreAnimations.slideOutAndDestroy(
-        Elements.tile(args.delivery.tile),
-          this.bga.playerPanels.getElement(args.player_id),
-        ).then(() => this.view.addMoney(args.player_id, 1));
-    }
-    else {
-      const anims : AnimationList = [];
-      anims.push(() => this.moreAnimations.slideAndAttach(
-        Elements.tile(args.delivery.tile)!,
-        Elements.enclosureSpace(args.player_id, dest.space))
-      );
-      if (dest.offspring) {
-        const offspring = dest.offspring!;
-        if (!$(IDS.tile(offspring.placed_tile.tile))) {
-          anims.push(() => this.view.flashParents(offspring));
-          anims.push(() => {
-            const elem = this.view.tileSpan(offspring.placed_tile.tile);
-            const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
-            parent.appendChild(elem);
-            return this.animationManager.slideIn(elem, $(IDS.BOX));
-          });
-        }
-      }
-      await this.animationManager.playSequentially(anims);
-    }
-  }
-
   private async notif_DeliveryStarted(args: {
     player_id: number,
     truck_id: number,
@@ -246,16 +211,6 @@ export class Game extends BaseGame<ZGamedatas> {
       )
     )
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
-  }
-
-  private async notif_Offspring(args: {
-    player_id: number;
-    offspring: Offspring;
-  }) {
-    const elem = Elements.tile(args.offspring.placed_tile.tile);
-    if (!elem) {
-      $(IDS.BOX).appendChild(this.view.tileSpan(args.offspring.placed_tile.tile));
-    }
   }
 
   private async notif_EndRound(args: {
