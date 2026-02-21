@@ -232,7 +232,6 @@ class Game extends Table
 
 		$this->activeNextPlayer();
         $this->stats->TABLE_TURNS_NUMBER->inc();
-        /** @phpstan-ignore return.void */
 		return PlayerTurn::class;
 	}
 
@@ -275,7 +274,7 @@ class Game extends Table
 		$db = new DefaultDb();
 		if ($tile_id == 0) {
 			$rows = $db->getSingleFieldList("SELECT 1+MAX(id) FROM tiles WHERE id < 10000 AND id > 2000");
-			$tile_id = intval($rows[0]) ?? 2000;
+			$tile_id = intval($rows[0] ?? 2000);
 			$db->execute("INSERT INTO tiles (id, type, player_id, location, loc_id, loc_pos) VALUES ({$tile_id}, '{$tile_type}', {$player_id}, '{$location}', {$loc_id}, {$loc_pos} )");
 		} else {
 			$db->execute("UPDATE tiles SET (player_id, location, loc_id, loc_pos) = ({$player_id}, '{$location}', {$loc_id}, {$loc_pos} ) WHERE id = {$tile_id}");
