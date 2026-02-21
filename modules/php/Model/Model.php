@@ -329,7 +329,6 @@ class Model {
 
     public function setDeliveryCompleted(): Truck {
         $player = $this->getActivePlayer();
-        $t1 = $this->getTruck(2);
         $player->takeDeliveringTruck();
         $truck = $this->getTruck($player->truck_taken);
         $truck->setTakenBy($player->id);
