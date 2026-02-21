@@ -1,6 +1,6 @@
 import { ZooFlow } from "./zflow";
 import { Tile, TruckLocation } from "./zgametypes";
-import { Elements } from "./zhtml";
+import { Elements, IDS } from "./zhtml";
 import { GameView } from "./zview";
 
 // LoadDrawnTile state
@@ -38,5 +38,39 @@ export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
           truck_id: tl.truck_id });
     // FIXME: restart doesn't re-highlight the truck spaces.
     this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
+  }
+
+  private replenishPilesAndUpdateCounters(
+    args: {
+      drawn_from_endgame_pile: boolean,
+      primary_pile_size: number,
+      endgame_pile_size: number,
+    }
+  ): void {
+    if (args.drawn_from_endgame_pile) {
+      if (args.endgame_pile_size >= 5) {
+        $(IDS.ENDGAME_PILE_TILES).insertAdjacentElement('afterbegin', this.view.makeTileBackSpan());
+      }
+    } else {
+      if (args.primary_pile_size >= 5) {
+        $(IDS.PRIMARY_PILE_TILES).insertAdjacentElement('afterbegin', this.view.makeTileBackSpan());
+      }
+    }
+    this.view.updateStockCounters(args.primary_pile_size, args.endgame_pile_size);
+  }
+
+  private async notif_LoadDrawnTile(args: {
+    player_id: number,
+    truck_id: number,
+    truck_pos: number,
+    // FIXME: should we figure this out based on where tile is?
+    drawn_from_endgame_pile: boolean,
+    tile: Tile,
+    primary_pile_size: number,
+    endgame_pile_size: number }) {
+      await this.view.moreAnimations.slideAndAttach(
+        Elements.tile(args.tile)!,
+        Elements.truckSpace(args.truck_id, args.truck_pos))
+          .then(() => this.replenishPilesAndUpdateCounters(args));
   }
 };

@@ -30,9 +30,11 @@ namespace Bga\Games\zoolorettoalpha\States;
 use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\GameFramework\SystemException;
 use Bga\GameFramework\UserException;
 use Bga\Games\zoolorettoalpha\Game;
 use Bga\Games\zoolorettoalpha\Model\Cost;
+use Bga\Games\zoolorettoalpha\Model\Delivery;
 use Bga\Games\zoolorettoalpha\Model\Destination;
 use Bga\Games\zoolorettoalpha\Model\Enclosure;
 use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
@@ -343,7 +345,7 @@ class PlayerTurn extends AbstractState
 			}
 			$this->notify->all(
 				'DeliverTruckTile',
-				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure} from ${truck}'), [
+				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
 					'player_id' => $active_player_id,
 					'delivery' => $delivery->serialize(),
 					'tile_type' => $delivery->tile->type,
@@ -410,36 +412,6 @@ class PlayerTurn extends AbstractState
 		return null;
     }
 
-
-	public function onEnteringState(int $active_player_id): void {
-		// $this->game->undoSavepoint();
-	}
-
-	#[PossibleAction]
-	public function actTakeTruck(int $active_player_id, int $truck_id): mixed {
-        $model = $this->createModel($active_player_id);
-		$coin_positions = $model->startTruckDelivery($truck_id)['coin_positions'];
-		$coins = count($coin_positions);
-		$this->notify->all(
-            'DeliveryStarted',
-			$coins > 0
-			? clienttranslate('${player_name} started delivery from ${truck} and gained ${coins}')
-			: clienttranslate('${player_name} started delivery from ${truck}'),
-             [
-				'coins' => count($coin_positions),
-				'player_id' => $active_player_id,
-				'truck_id' => $truck_id,
-				'coin_positions' => $coin_positions,
-				'moneys' => $model->currentMoneys()->serialize(),
-				'truck' => Truck::translated($truck_id),
-				'i18n' => [
-					'truck',
-                 ]
-             ]
-         );
-        return DeliverTruckTiles::class;
-	}
-
 	function zombie(int $player_id): mixed
 	{
 		$model = $this->createModel($player_id);
@@ -449,14 +421,33 @@ class PlayerTurn extends AbstractState
 
 		foreach ($model->getTrucks() as $truck) {
 			if ($truck->canBeTaken()) {
-				// FIXME: this needs to shift to pending delivery system.
-				return $this->actTakeTruck($player_id, $truck->id);
+				$placements = [];
+				$coins = 0;
+				foreach ($truck->coinPositions() as $pos) {
+					$truck->removeTileAt($pos);
+					$coins++;
+				}
+				while (!$truck->isEmpty()) {
+					$deliveries = $model->deliverPendingTruckTiles($truck->id, $placements);
+					$placements = array_map(function (Delivery $d): array {
+						$dest = $d->dest;
+						if (!$dest) {
+							throw new SystemException("got empty dest from deliverPendingTruckTiles");
+						}
+						return [
+							'truck_pos' => $d->truck_pos,
+							'enclosure_id' => $dest->space->enclosure_id,
+							'enclosure_pos' => $dest->space->pos,
+						];
+					}, $deliveries);
+				}
+				return $this->actTakeTruckAndPlaceTiles($player_id, $truck->id, $placements);
 			}
 		}
 		// We should never get here. If there are no tiles to draw, or places to put the tiles
 		// there should be at least one spot on one truck. That's why there are 15 tiles in
 		// the end game pile -- 3 for each possible player.
-		throw new UserException("cannot draw, nor are there non-empty trucks available to take?!?");
+		throw new SystemException("cannot draw, but there are no non-empty trucks available to take?!?");
 
 	/*
 		$truck = $model->getAvailableTrucks()[0];

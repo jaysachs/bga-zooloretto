@@ -6,15 +6,24 @@ import { AnimationManager } from './libs';
 
 export class GameView {
   private readonly moneyCounter: Map<number, Counter>;
+  private readonly primaryStockCounter: Counter;
+  private readonly endgameStockCounter: Counter;
+
   // FIXME: try to find a way to make this private.
   //   Consider creating animations here for what these are used for
   readonly moreAnimations: MoreAnimations;
   readonly animationManager: AnimationManager;
   readonly bga: Bga;
 
-  constructor(bga: Bga, animationManager: AnimationManager, moneyCounter: Map<number, Counter>) {
+  constructor(bga: Bga,
+              animationManager: AnimationManager,
+              moneyCounter: Map<number, Counter>,
+              primaryStockCounter: Counter,
+              endgameStockCounter: Counter) {
     this.bga = bga;
     this.moreAnimations = new MoreAnimations(animationManager);
+    this.primaryStockCounter = primaryStockCounter;
+    this.endgameStockCounter = endgameStockCounter;
     this.animationManager = animationManager;
     this.moneyCounter = moneyCounter;
   }
@@ -158,4 +167,17 @@ export class GameView {
       }
     });
   }
+
+  showLastTurnBanner() {
+    this.bga.gameArea.addLastTurnBanner(_('This is the last round!'));
+  }
+
+  updateStockCounters(primary: number, endgame: number) {
+    if (primary != 1000) {
+      this.primaryStockCounter.toValue(primary);
+    }
+    this.endgameStockCounter.toValue(endgame);
+
+  }
+
 }

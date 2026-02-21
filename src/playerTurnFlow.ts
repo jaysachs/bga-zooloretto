@@ -1,7 +1,7 @@
 import { AnimationList } from "./more-animations";
 import { ZooFlow } from "./zflow";
-import { Delivery, Destination, Moneys, Offspring } from "./zgametypes";
-import { Elements, encOf, IDS, CSS, posOf, toSpace } from "./zhtml";
+import { Delivery, Destination, EnclosureSummary, Moneys, Offspring, PlacedTile, Tile } from "./zgametypes";
+import { Elements, encOf, IDS, CSS, posOf, toSpace, Attrs } from "./zhtml";
 import { GameView } from "./zview";
 
 
@@ -361,12 +361,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     );
   }
 
-  /*
-  notif_Coins(args: { player_id: number, coins: number }) {
-    this.view.addMoney(args.player_id, args.coins);
-  }
-    */
-
   async notif_DeliverTruckTile(args: {
       player_id: number,
       truck_id: number,
@@ -482,4 +476,111 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
     this.addRestartAndUndoButtons();
   }
+
+
+    private async notif_DeliveryCompleted(args: {
+    player_id: number,
+    truck_id: number,
+    moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
+  }) {
+    const elem = Elements.truck(args.truck_id);
+    await this.view.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)), { bump: 1, toPlaceholder: 'off' })
+      .then(() => {
+        Elements.truck(args.truck_id).removeAttribute(Attrs.MARK);
+        this.view.updateMoneys(args.moneys);
+        this.view.updateEnclosureSummaries(args.enclosure_summaries);
+        this.bga.gameui.disablePlayerPanel(args.player_id);
+      })
+  }
+
+  private async notif_MoveTile(args: {
+    player_id: number,
+    tile: Tile,
+    dest: number,
+    moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
+  }) {
+    this.view.updateMoneys(args.moneys);
+    await this.view.moreAnimations.slideAndAttach(
+      Elements.tile(args.tile)!,
+      Elements.enclosureSpace(args.player_id, args.dest)
+    )
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+  }
+
+  private async notif_DiscardTile(args: {
+    moneys: Moneys,
+    tile: Tile,
+    enclosure_summaries: EnclosureSummary[],
+  }) {
+    this.view.updateMoneys(args.moneys);
+    await this.view.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.BOX))
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+  }
+
+  private async notif_PurchaseTile(args: {
+			player_id: number,
+      placed_tiles: PlacedTile[],
+			moneys: Moneys,
+      enclosure_summaries: EnclosureSummary[],
+    }) {
+    this.view.updateMoneys(args.moneys);
+    await this.animationManager.playSequentially(
+      args.placed_tiles.map(pt =>
+        () => this.view.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+      )
+    )
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+  }
+
+  private async notif_ExpandZoo(args: {
+      player_id: number,
+      purchased_extensions: number,
+      moneys: Moneys,
+    }) {
+    this.view.renderExtensions(args.player_id, args.purchased_extensions);
+    this.view.updateMoneys(args.moneys);
+  }
+
+  private async notif_ExchangeEnclosureAnimals(args: {
+    player_id: number,
+    placed_tiles: PlacedTile[],
+    moneys: Moneys,
+    enclosure_summaries: EnclosureSummary[],
+  }) {
+    this.view.updateMoneys(args.moneys);
+    const anims: AnimationList = [];
+    args.placed_tiles.forEach(pt =>  {
+      const elem = Elements.tile(pt.tile);
+      if (elem) {
+        anims.push(() => this.view.moreAnimations.slideAndAttach(elem, Elements.enclosureSpace(args.player_id, pt.space)));
+      } else {
+        const elem = this.view.tileSpan(pt.tile);
+        // FIXME: needed?
+        elem.style.transform = 'rotate(0deg)';
+        // a created offspring, create and slide it in
+        anims.push(() => this.animationManager.slideIn(elem, $(IDS.BOX), {}));
+      }
+    });
+    await this.animationManager.playParallel(anims)
+      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+  }
+
+    private async notif_DrawTile(
+    args: {
+      tile: Tile,
+      drawn_from_endgame_pile: boolean,
+    }
+  ): Promise<void> {
+    const disk = $(IDS.DISK);
+    if (args.drawn_from_endgame_pile) {
+      this.view.showLastTurnBanner();
+      if (disk) {
+        await this.view.moreAnimations.slideOutAndDestroy(disk, $(IDS.BOX))
+      }
+    }
+    await this.view.renderTileDraw(Elements.drawnTile(args.drawn_from_endgame_pile), args.tile);
+  }
+
 };

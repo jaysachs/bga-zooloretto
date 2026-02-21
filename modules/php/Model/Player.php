@@ -33,8 +33,7 @@ class Player {
         public private(set) int $money,
         int $num_players,
         public private(set) int $purchased_extensions,
-        public private(set) int $truck_taken,
-        public private(set) int $delivering_truck) {
+        public private(set) int $truck_taken) {
         $this->extension_limit = $num_players == 2 ? 2 : 1;
     }
 
@@ -45,7 +44,7 @@ class Player {
     public function __toString(): string
     {
         return "Player(id={$this->id},money={$this->money},el={$this->extension_limit},"
-             . "pe={$this->purchased_extensions},truck_taken={$this->truck_taken},delivering={$this->delivering_truck},spent={$this->spent},rec={$this->received})";
+             . "pe={$this->purchased_extensions},truck_taken={$this->truck_taken},spent={$this->spent},rec={$this->received})";
     }
 
     public function extensionAvailable(): int {
@@ -71,32 +70,11 @@ class Player {
         return $t;
     }
 
-    public function startDeliveryForTruck(Truck $truck): void {
-        if ($this->delivering_truck != 0) {
-            throw new ModelException("Truck already being delivered by player $this->id");
-        }
-        if ($this->truck_taken != 0) {
-            throw new ModelException("Truck already taken by player $this->id");
-        }
-        $this->delivering_truck = $truck->id;
-    }
-
     public function takeTruck(int $truck_id): void {
         if ($this->truck_taken != 0) {
             throw new ModelException("Truck already taken by player $this->id");
         }
         $this->truck_taken = $truck_id;
-    }
-
-    public function takeDeliveringTruck(): void {
-        if ($this->truck_taken != 0) {
-            throw new ModelException("Truck already taken by player $this->id");
-        }
-        if ($this->delivering_truck == 0) {
-            throw new ModelException("No truck being delivered by player $this->id");
-        }
-        $this->truck_taken = $this->delivering_truck;
-        $this->delivering_truck = 0;
     }
 
     public function receiveMoney(int $amount): void {

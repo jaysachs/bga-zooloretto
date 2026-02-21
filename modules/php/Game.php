@@ -112,7 +112,7 @@ class Game extends Table
 				}
 				return $result;
 			};
-			$somePlayer = new Player(0, 0, count($model->getAllPlayers()), 0, 0, 0);
+			$somePlayer = new Player(0, 0, count($model->getAllPlayers()), 0, 0);
 			foreach(Enclosure::forPlayer($somePlayer) as $e) {
 				$encshapes[] = $toShape($e);
 			}

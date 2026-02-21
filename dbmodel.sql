@@ -55,4 +55,3 @@ CREATE TABLE IF NOT EXISTS `tiles` (
 ALTER TABLE `player` ADD COLUMN `money` int(10) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD COLUMN `truck_taken` int(10) unsigned NOT NULL DEFAULT 0;
-ALTER TABLE `player` ADD COLUMN `truck_delivering` int(10) unsigned NOT NULL DEFAULT 0;

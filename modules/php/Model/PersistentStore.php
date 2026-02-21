@@ -62,8 +62,7 @@ class PersistentStore {
         $this->db->execute("UPDATE player
                             SET money = {$player->money},
                                 purchased_extensions = {$player->purchased_extensions},
-                                truck_taken = {$player->truck_taken},
-                                truck_delivering = {$player->delivering_truck}
+                                truck_taken = {$player->truck_taken}
                             WHERE player_id = {$player->id}");
     }
 
@@ -126,7 +125,7 @@ class PersistentStore {
     /** @return array<int,Player> */
     public function retrievePlayers(): array {
         $players = [];
-        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken, truck_delivering FROM player");
+        $data = $this->db->getObjectList("SELECT player_id, money, purchased_extensions, truck_taken FROM player");
         $numPlayers = count($data);
         foreach ($data as $row) {
             $id = intval($row["player_id"]);
@@ -135,8 +134,7 @@ class PersistentStore {
                 intval($row["money"]),
                 $numPlayers,
                 intval($row["purchased_extensions"]),
-                intval($row["truck_taken"]),
-                intval($row["truck_delivering"]));
+                intval($row["truck_taken"]));
         }
         return $players;
     }
