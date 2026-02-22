@@ -1,5 +1,5 @@
 import { Html } from './html';
-import { Tile, ZGamedatas, EnclosureSummary, Moneys, PlacedTile, Delivery, Offspring } from './zgametypes';
+import { Tile, ZGamedatas } from './zgametypes';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList } from './more-animations';

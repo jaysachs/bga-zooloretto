@@ -44,10 +44,10 @@ export class Attrs implements AttrLike {
     return this;
   }
 
-  static mark(mark: 'selected' | 'selectable' | 'moved' ): Attrs {
+  static mark(mark: 'selected' | 'selectable'): Attrs {
     return new Attrs().mark(mark);
   }
-  mark(mark: 'selected' | 'selectable' | 'moved'): Attrs {
+  mark(mark: 'selected' | 'selectable'): Attrs {
     this.r[Attrs.MARK] = mark;
     return this;
   }

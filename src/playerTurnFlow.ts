@@ -169,7 +169,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         async () => await this.slide(elem!, destElem)
           .then(() => {
             this.updateMoneyDelta(moveMoneyDelta);
-            this.markMoved(destElem);
             this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
           })
       )
@@ -231,17 +230,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
   }
 
-  private swappedSpaces(exchanges: Exchanges, srcid: number, destid: number): HTMLElement[] {
-    const elems: HTMLElement[] = [];
-    exchanges.animal_positions[srcid].forEach(pos =>
-      elems.push(Elements.enclosureSpace(this.player_id, toSpace(destid, Number(pos)))));
-    exchanges.animal_positions[destid].forEach(pos =>
-      elems.push(Elements.enclosureSpace(this.player_id, toSpace(srcid, Number(pos)))));
-    return elems;
-  }
-
   private wireUpExchangeDests(
-      swappedSpaces: HTMLElement[],
       srcid: number, srcAnimalSpaces: HTMLElement[],
       destid: number, destAnimalSpaces: HTMLElement[],
       positions?: number[])
@@ -266,7 +255,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           this.mark(s, 'none');
           this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
           await this.animationManager.playParallel(anims)
-            .then(() => swappedSpaces.forEach(t => this.markMoved(t)))
             .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid, positions)));
         });
     });
@@ -276,8 +264,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.initStatusBar(_("Select the animals to exchange with"));
     const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
     exchanges.enclosures[srcid].forEach(destid => {
-      this.wireUpExchangeDests(this.swappedSpaces(exchanges, srcid, destid),
-          srcid, srcAnimalSpaces, destid, this.animalSpaces(exchanges, destid))
+      this.wireUpExchangeDests(srcid, srcAnimalSpaces, destid, this.animalSpaces(exchanges, destid))
     });
     // Now handle barn as destination, also dealing with possible offspring in the non-barn
     // Note that there is no enclosure completion bonus for exchanges, so we don't
@@ -285,13 +272,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     const barnDests = exchanges.barn[srcid] ?? [];
     barnDests.forEach(be => {
       const destSpaces = be.positions.map(p => Elements.enclosureSpace(this.player_id, toSpace(0, p)));
-      const swappedSpaces = [];
-      for (let i = 0; i < be.positions.length; ++i) {
-        swappedSpaces.push(Elements.enclosureSpace(this.player_id, toSpace(srcid, i + 1)));
-        swappedSpaces.push(Elements.enclosureSpace(this.player_id, toSpace(0, be.positions[i])))
-      }
-      console.log(swappedSpaces);
-      this.wireUpExchangeDests(swappedSpaces, srcid, srcAnimalSpaces, 0, destSpaces, be.positions);
+      this.wireUpExchangeDests(srcid, srcAnimalSpaces, 0, destSpaces, be.positions);
     });
     this.addRestartAndUndoButtons();
   }

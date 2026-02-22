@@ -66,7 +66,7 @@ export abstract class PlayFlow<T> {
 
   protected abstract start(args?: T);
 
-  protected abstract mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' | 'none'): Op | undefined;
+  protected abstract mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'none'): Op | undefined;
 
   protected abstract useAutoclick(): boolean;
 
@@ -93,7 +93,6 @@ export abstract class PlayFlow<T> {
     const currParent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slide:${strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
     await this.animationManager.slideAndAttach(elem, newParent, {})
-      .then(() => this.markMoved(newParent));
   }
 
   protected async slideIn(elem: HTMLElement, newParent: HTMLElement) {
@@ -174,10 +173,6 @@ export abstract class PlayFlow<T> {
     this.setMarked(elem, 'selected');
   }
 
-  protected markMoved(elem: HTMLElement) {
-    this.setMarked(elem, 'moved');
-  }
-
   protected markSelectable(elem: HTMLElement | undefined) {
     this.setMarked(elem, 'selectable');
   }
@@ -254,7 +249,7 @@ export abstract class PlayFlow<T> {
   }
   */
 
-  private setMarked(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'moved' ): void {
+  private setMarked(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' ): void {
     if (!elem) {
       return;
     }

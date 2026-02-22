@@ -50,7 +50,7 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     return Promise.resolve();
   }
 
-  protected mark(elem: HTMLElement | undefined, mark: "selected" | "selectable" | "moved" | "none"): (() => Promise<any>) | undefined {
+  protected mark(elem: HTMLElement | undefined, mark: "selected" | "selectable" | "none"): (() => Promise<any>) | undefined {
     const m = elem.getAttribute(Attrs.MARK);
     elem.setAttribute(Attrs.MARK, mark);
     return async () => elem.setAttribute(Attrs.MARK, m);
