@@ -15,9 +15,9 @@ Open
 
 18. Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
 
-19. Send a separate notification for enclosure completion (so log is better/simpler).
+19. Very enclosure completion is corretly computed in all cases. Send a separate notification for enclosure completion (so log is better/simpler).
 
-20. When primary stock exhausted, UI is weird.
+20. NOT REPRO  When primary stock exhausted, UI is weird.
 
 Deferred
 ========
