@@ -201,17 +201,11 @@ class Model {
                     $epos = $enclosure->availablePos($tile->type);
                     if ($epos > 0) {
                         $enc = $enclosure->clone();
-                        $pl = $enc->placeTile($tile, $epos);
-                        $offspring = $enc->checkForOffspring($enclosures[0]->clone());
-                        /** @var Moneys|null */
-                        $moneyDelta = null;
-                        if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
-                            $moneyDelta = Moneys::chargePlayerDelta($player_id, -$enc->coin_bonus);
-                        }
+                        $pl = $enc->placeTile($tile, $enclosures[0]->clone(), $epos);
                         if (!isset($result[$pos])) {
                             $result[$pos] = [];
                         }
-                        $result[$pos][] = new PlacedTile($tile, new Space($eid,$epos), false, $moneyDelta, $offspring);
+                        $result[$pos][] = $pl;
                     }
                 }
             }
@@ -273,16 +267,11 @@ class Model {
             $truck_pos = intval($placement['truck_pos']);
             $pos = intval($placement['enclosure_pos']);
             $tile = $truck->removeTileAt($truck_pos);
-            $placement = $encl->placeTile($tile);
-            if ($placement->completedEnclosure) {
-                $player->receiveMoney($encl->coin_bonus);
-            }
+            $placement = $encl->placeTile($tile, $barn);
             if ($placement->space->pos <> $pos) {
                 throw new ModelException("put {$truck_id}:{$truck_pos} into {$enclosure_id}:{$pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
             }
-            $offspring = $encl->checkForOffspring($barn);
-
-            $result[] = new Delivery($truck_pos, new PlacedTile($tile, $placement->space, false, null, $offspring));
+            $result[] = new Delivery($truck_pos, $placement);
         }
 
         return $result;
@@ -390,13 +379,7 @@ class Model {
         if ($ap > 0) {
             $enc = $enc->clone();
             $buyer_barn = $buyer_barn->clone();
-            $pl = $enc->placeTile($tile, $ap);
-            $offspring = $enc->checkForOffspring($buyer_barn);
-            $moneyDelta = null;
-            if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
-                $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
-            }
-            return new PlacedTile($tile, new Space($enc->id, $ap), false, $moneyDelta, $offspring );
+            return $enc->placeTile($tile, $buyer_barn, $ap);
         }
         return null;
     }
@@ -454,7 +437,7 @@ class Model {
         return $result;
     }
 
-    /** @return array{placed_tile: PlacedTile, offspring: Offspring|null, enclosureBonus: int|null} */
+    /** @return array{placed_tile: PlacedTile, enclosureBonus: int|null} */
     public function moveTile(Space $src, Space $dest): array {
         $found = false;
         foreach ($this->getPossibleMoves() as $pm) {
@@ -478,23 +461,22 @@ class Model {
         $srcenc = $encs[$src->enclosure_id];
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
-        $placement = $destenc->placeTile($tile, $dest->pos);
+        $placement = $destenc->placeTile($tile, $encs[0], $dest->pos);
         $amt = null;
         if ($placement->completedEnclosure) {
             $amt = $this->payPlayer($player, $destenc->coin_bonus);
         }
 
-        $offspring = $destenc->checkForOffspring($encs[0]);
-        if ($offspring) {
+        if ($placement->offspring) {
             // FIXME: then check fo completion bonus
-            $this->saveOffspring($offspring);
+            $this->saveOffspring($placement->offspring);
         }
 
         $this->ps->updateEnclosures($this->player_id, [$srcenc, $destenc, $encs[0]]);
-        return [ 'placed_tile' => $placement, 'offspring' => $offspring, 'enclosureBonus' => $amt ];
+        return [ 'placed_tile' => $placement, 'enclosureBonus' => $amt ];
     }
 
-    /** @return array{tiles: list<PlacedTile>, offspring: Offspring | null, enclosure_bonus: int|null} */
+    /** @return array{tiles: list<PlacedTile>, enclosure_bonus: int|null} */
     public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): array {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
@@ -516,7 +498,6 @@ class Model {
 
         $result = [
             'tiles' => [],
-            'offspring' => null,
             'enclosure_bonus' => null,
         ];
         $seller = $this->getPlayer($seller_player_id);
@@ -531,24 +512,21 @@ class Model {
         $buyer_barn = $encs[0];
 
         $tile = $seller_barn->takeTileAt($src->pos);
-        $placement = $enc->placeTile($tile, $target->pos);
-        $result['tiles'][] = new PlacedTile($tile, $placement->space);
+        $placement = $enc->placeTile($tile, $buyer_barn, $target->pos);
+        $result['tiles'][] = $placement;
         $completed_enclosure = $placement->completedEnclosure;
 
-        $offspring = $enc->checkForOffspring($buyer_barn);
         $toUpdate = [$enc];
-        if ($offspring) {
-            $this->saveOffspring($offspring);
-            $te = $offspring->child->space->enclosure_id;
+        if ($placement->offspring) {
+            $this->saveOffspring($placement->offspring);
+            $te = $placement->offspring->child->space->enclosure_id;
             if ($te <> $enc->id) {
                 // it's the barn.
                 $toUpdate[] = $encs[$te];
             }
-            if ($offspring->child->completedEnclosure) {
+            if ($placement->offspring->child->completedEnclosure) {
                 $completed_enclosure = true;
             }
-            $result['offspring'] = $offspring;
-            $result['tiles'][] = $offspring->child;
         }
         if ($completed_enclosure) {
             $result['enclosure_bonus'] = $this->payPlayer($player, $enc->coin_bonus);
@@ -621,12 +599,12 @@ class Model {
         $encs = $this->getEnclosuresForPlayer();
         $se = $encs[$src_enclosure_id];
         $de = $encs[$dest_enclosure_id];
+        $barn = $encs[0];
 
         if ($dest_enclosure_id == 0) {
             if ($dest_positions === null || count($dest_positions) == 0) {
                 throw new ModelException("Exchange into barn requires positions to be specified");
             }
-            $barn = $encs[0];
             $animalType = $barn->tileAt($dest_positions[0])->type->canonicalType();
             foreach ($dest_positions as $pos) {
                 $t = $barn->tileAt($pos);
@@ -660,30 +638,29 @@ class Model {
 
         $srcTiles = array_map(fn ($p) => $se->takeTileAt($p), $src_positions);
         $destTiles = array_map(fn ($p) => $de->takeTileAt($p), $dest_positions);
+        // FIXME: no completion bonus here
         foreach($srcTiles as $t) {
-            $placement = $de->placeTile($t, array_shift($dest_positions) ?? 0);
-            $placedTiles[] = new PlacedTile($t, $placement->space);
+            $placedTiles[] = $de->placeTile($t, $barn, array_shift($dest_positions) ?? 0);
         }
         foreach($destTiles as $t) {
-            $placement = $se->placeTile($t, array_shift($src_positions) ?? 0);
-            $placedTiles[] = new PlacedTile($t, $placement->space);
+            $placedTiles[] = $se->placeTile($t, $barn, array_shift($src_positions) ?? 0);
         }
 
-        $barn = $encs[0];
-        $offspring = $se->checkForOffspring($barn);
-        if ($offspring) {
-            $this->saveOffspring($offspring);
-            $placedTiles[] = $offspring->child;
+        foreach ($placedTiles as $pt) {
+            if ($pt->offspring) {
+                $this->saveOffspring($pt->offspring);
+            }
         }
         // not possible to generate offspring in the destination:
         //   barn simply not done
         //   if another enclosure, the offspring would have already been generated in the src
+        // The only possible way to generate offspringin the source is if the dest is the barn
 
-        // note: no check fo completion bonus in enclosures
+        // FIXME need to ignore any completion bonus in enclosures
 
-        $this->ps->updateEnclosures($this->player_id, [$se, $de, $barn]);
+        $this->ps->updateEnclosures($this->player_id, [$se, $de, $encs[0]]);
 
-        return new CompletedExchange($src_enclosure_id, $animalType, $dest_enclosure_id, $placedTiles, $offspring);
+        return new CompletedExchange($src_enclosure_id, $animalType, $dest_enclosure_id, $placedTiles);
     }
 
     private function chargePlayer(Player $player, Cost $cost) : void {

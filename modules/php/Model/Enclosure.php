@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace Bga\Games\zoolorettoalpha\Model;
 
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zoolorettoalpha\Utils\Log;
 
 class Enclosure {
     /** @var Tile[] */
@@ -264,7 +265,7 @@ class Enclosure {
      *
      * position 0 means "nextavailable"
      */
-    public function placeTile(Tile $tile, int $pos = 0): PlacedTile {
+    public function rawPlaceTile(Tile $tile, int $pos = 0): PlacedTile {
         if (!$tile->type->isPlaceable()) {
             throw new ModelException("Can only place animals and stills in enclosures, not {$tile->type->value}");
         }
@@ -283,7 +284,13 @@ class Enclosure {
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
 
-    public function checkForOffspring(Enclosure $barn): ?Offspring {
+    public function placeTile(Tile $tile, Enclosure $barn, int $pos = 0): PlacedTile {
+        $pt = $this->rawPlaceTile($tile, $pos);
+        $offspring = $this->checkForOffspring($barn);
+        return $pt->withOffspring($offspring);
+    }
+
+    private function checkForOffspring(Enclosure $barn): ?Offspring {
         if ($this->isBarn()) {
             return null;
         }
@@ -301,7 +308,6 @@ class Enclosure {
             return null;
         }
 
-
         $mother = $this->contents[$mp];
         $father = $this->contents[$fp];
         // this will work: baby ID is 300 more than parent ID
@@ -312,8 +318,8 @@ class Enclosure {
         $this->contents[$mp] = $mother;
 
         $space = ($this->availablePos($child->type) == 0)
-            ? $barn->placeTile($child)->space
-            : $this->placeTile($child)->space;
+            ? $barn->rawPlaceTile($child)->space
+            : $this->rawPlaceTile($child)->space;
         $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
         return new Offspring(new PlacedTile($child, $space, $completed), $mother, $father);
     }

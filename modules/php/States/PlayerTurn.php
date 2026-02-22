@@ -136,7 +136,7 @@ class PlayerTurn extends AbstractState
 		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
 		$placed_tile = $result['placed_tile'];
 		$tile = $placed_tile->tile;
-		$this->notifyOffspring($active_player_id, $result['offspring']);
+		$this->notifyOffspring($active_player_id, $placed_tile->offspring);
 		$this->notify->all(
 			"MoveTile",
 			// FIXME: need to handle barn ...
@@ -187,7 +187,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$completedExchange = $model->exchange($src_enclosure_id, $dest_enclosure_id, $dest_positions);
-		$this->notifyOffspring($active_player_id, $completedExchange->offspring);
+		$this->notifyOffspring($active_player_id, $completedExchange->offspring());
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',
@@ -230,7 +230,7 @@ class PlayerTurn extends AbstractState
 		$dest = new Space($enclosure_id, $enclosure_pos);
 		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$purchased = $result['tiles'][0];
-		$this->notifyOffspring($active_player_id, $result['offspring']);
+		$this->notifyOffspring($active_player_id, $purchased->offspring);
 		$this->notify->all(
             'PurchaseTile',
             clienttranslate('${player_name} purchased ${tile_type} from ${player_name2} into ${enclosure}'),

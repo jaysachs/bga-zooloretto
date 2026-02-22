@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
+use Bga\Games\zoolorettoalpha\Utils\Log;
 use PHPUnit\Framework\TestCase;
 
 final class EnclosureTest extends TestCase
@@ -31,19 +32,20 @@ final class EnclosureTest extends TestCase
         $id = 10;
         for ($i = 0; $i <6; $i++) {
             $tile = new Tile($id++, TileType::CAMEL);
-            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile));
+            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile, $barn));
             $tile = new Tile($id++, TileType::BARROW);
-            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile));
+            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile, $barn));
             $tile = new Tile($id++, TileType::ELEPHANT_FEMALE);
-            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile));
+            $this->assertEquals(new PlacedTile($tile, new Space(0, $pos++)), $barn->placeTile($tile, $barn));
         }
     }
 
     public function testPlacements(): void
     {
+        $barn = Enclosure::barn();
         $enc = Enclosure::forTest(1, 3, 2);
         $tile = new Tile(1, TileType::ZEBRA);
-        $this->assertEquals(new PlacedTile($tile, new Space(1, 1)), $enc->placeTile($tile));
+        $this->assertEquals(new PlacedTile($tile, new Space(1, 1)), $enc->placeTile($tile, $barn));
 
         // same species can still go in
         $this->assertEquals(2, $enc->availablePos(TileType::ZEBRA_FEMALE));
@@ -53,34 +55,41 @@ final class EnclosureTest extends TestCase
         $this->assertEquals(4, $enc->availablePos(TileType::KIOSK));
 
         // we can place another zebra
-        $tile = new Tile(2, TileType::ZEBRA_FEMALE);
-        $this->assertEquals(new PlacedTile($tile, new Space(1, 2)), $enc->placeTile($tile));
-        // anod another
-        $tile = new Tile(3, TileType::ZEBRA_MALE);
-        $this->assertEquals(new PlacedTile($tile, new Space(1, 3), true), $enc->placeTile($tile));
+        $tile1 = new Tile(2, TileType::ZEBRA_FEMALE);
+        $tile1r = $tile1->clone()->markReproduced();
+        $this->assertEquals(new PlacedTile($tile1, new Space(1, 2)), $enc->placeTile($tile1, $barn));
+        // and another
+        $tile2 = new Tile(3, TileType::ZEBRA_MALE);
+        $tile2r = $tile2->clone()->markReproduced();
+        $pt = $enc->placeTile($tile2, $barn);
+        $this->assertEquals(new PlacedTile($tile2, new Space(1, 3), true,
+            new Offspring(
+                new PlacedTile(new Tile(20003, TileType::ZEBRA_KID), new Space(0,1), false),
+                $tile1r, $tile2r)), $pt);
         // but now we're full of animals
         $this->assertEquals(0, $enc->availablePos(TileType::ZEBRA_MALE));
 
         // 2 stalls can still go in
         $this->assertEquals(4, $enc->availablePos(TileType::KIOSK));
         $tile = new Tile(4, TileType::KIOSK);
-        $this->assertEquals(new PlacedTile($tile, new Space(1, 4)), $enc->placeTile($tile));
+        $this->assertEquals(new PlacedTile($tile, new Space(1, 4)), $enc->placeTile($tile, $barn));
         $tile = new Tile(5, TileType::BARROW);
-        $this->assertEquals(new PlacedTile($tile, new Space(1, 5)), $enc->placeTile($tile));
+        $this->assertEquals(new PlacedTile($tile, new Space(1, 5)), $enc->placeTile($tile, $barn));
         // and then we're full
         $this->assertEquals(0, $enc->availablePos(TileType::POPCORN));
     }
 
     public function testTakeTile(): void
     {
+        $barn = Enclosure::barn();
         $enc = Enclosure::forTest(1, 3, 2);
 
         $t1 = new Tile(1, TileType::ZEBRA);
         $t2 = new Tile(2, TileType::ZEBRA_FEMALE);
         $t3 = new Tile(3, TileType::KIOSK);
-        $this->assertEquals(new PlacedTile($t1, new Space(1, 1)), $enc->placeTile($t1));
-        $this->assertEquals(new PlacedTile($t2, new Space(1, 2)), $enc->placeTile($t2));
-        $this->assertEquals(new PlacedTile($t3, new Space(1, 4)), $enc->placeTile($t3));
+        $this->assertEquals(new PlacedTile($t1, new Space(1, 1)), $enc->placeTile($t1, $barn));
+        $this->assertEquals(new PlacedTile($t2, new Space(1, 2)), $enc->placeTile($t2, $barn));
+        $this->assertEquals(new PlacedTile($t3, new Space(1, 4)), $enc->placeTile($t3, $barn));
 
         $this->assertEquals($t2, $enc->takeTileAt(2));
         $this->assertEquals([1 => $t1, 4 => $t3], $enc->nonEmptyContents());
@@ -90,35 +99,33 @@ final class EnclosureTest extends TestCase
 
         // no species so we can now place other species.
         $t4 = new Tile(4, TileType::ELEPHANT);
-        $this->assertEquals(new PlacedTile($t4, new Space(1, 1)), $enc->placeTile($t4));
+        $this->assertEquals(new PlacedTile($t4, new Space(1, 1)), $enc->placeTile($t4, $barn));
     }
 
     public function testCheckForOffspring(): void {
         $barn = Enclosure::barn();
         $e = Enclosure::forTest(1, 5, 2);
-        $this->assertNull($e->checkForOffspring($barn));
-        $barn->placeTile(new Tile(1, TileType::CAMEL_FEMALE));
-        $barn->placeTile(new Tile(2, TileType::CAMEL_MALE));
-        $this->assertNull($barn->checkForOffspring($barn));
+        // $this->assertNull($e->checkForOffspring($barn));
+        $this->assertNull($barn->placeTile(new Tile(1, TileType::CAMEL_FEMALE), $barn)->offspring);
+        $this->assertNull($barn->placeTile(new Tile(2, TileType::CAMEL_MALE), $barn)->offspring);
 
-        $e->placeTile(new Tile(3, TileType::CAMEL_FEMALE));
-        $e->placeTile(new Tile(4, TileType::CAMEL_MALE));
+        $this->assertNull($e->placeTile(new Tile(3, TileType::CAMEL_FEMALE), $barn)->offspring);
+        $pt = $e->placeTile(new Tile(4, TileType::CAMEL_MALE), $barn);
         $this->assertEquals(
             new Offspring(
                 new PlacedTile(new Tile(30004, TileType::CAMEL_KID), new Space(1, 3)),
                 new Tile(3, TileType::CAMEL_FEMALE, true),
                 new Tile(4, TileType::CAMEL_MALE, true)),
-            $e->checkForOffspring($barn));
-        $this->assertNull($e->checkForOffspring($barn));
+            $pt->offspring);
 
-        $e->placeTile(new Tile(54, TileType::ELEPHANT_MALE));
-        $e->placeTile(new Tile(36, TileType::ELEPHANT_FEMALE));
+        $this->assertNull($e->placeTile(new Tile(54, TileType::ELEPHANT_MALE), $barn)->offspring);
+        $pt = $e->placeTile(new Tile(36, TileType::ELEPHANT_FEMALE), $barn);
         $this->assertEquals(
             new Offspring(
                 new PlacedTile(new Tile(360054, TileType::ELEPHANT_KID), new Space(0, 3)),
                 new Tile(36, TileType::ELEPHANT_FEMALE, true),
                 new Tile(54, TileType::ELEPHANT_MALE, true)),
-            $e->checkForOffspring($barn));
+            $pt->offspring);
         $this->assertEquals(new Tile(360054, TileType::ELEPHANT_KID), $barn->tileAt(3));
     }
 }

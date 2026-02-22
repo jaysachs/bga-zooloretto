@@ -111,10 +111,12 @@ abstract class AbstractState extends GameState
                     ]
                 ]
             );
+            /*
 			$m = $offspring->child->money_delta;
 			if ($m) {
 				$this->notifyBonus($active_player_id, $offspring->child->space->enclosure_id, $m->players[$active_player_id]);
 			}
+                */
 		}
 	}
 }

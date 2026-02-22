@@ -32,9 +32,15 @@ class PlacedTile implements Serializable {
         public readonly Tile $tile,
         public readonly Space $space,
         public bool $completedEnclosure = false,
-        public readonly ?Moneys $money_delta = null,
         public readonly ?Offspring $offspring = null,
     ) {}
+
+    public function withOffspring(?Offspring $offspring): PlacedTile {
+        if (!$offspring) {
+            return $this;
+        }
+        return new PlacedTile($this->tile, $this->space, $this->completedEnclosure, $offspring);
+    }
 
     /** @return array<string,mixed> */
     public function serialize(): array {
@@ -42,9 +48,6 @@ class PlacedTile implements Serializable {
             'tile' => $this->tile->serialize(),
             'space' => $this->space->serialize(),
         ];
-        if ($this->money_delta) {
-            $result['money_delta'] = $this->money_delta->serialize();
-        }
         if ($this->offspring) {
             $result['offspring'] = $this->offspring->serialize();
         }
@@ -60,7 +63,6 @@ class PlacedTile implements Serializable {
             && $this->space == $other->space
             && $this->completedEnclosure == $other->completedEnclosure
             && $this->offspring == $other->offspring
-            && $this->money_delta == $other->money_delta
             ;
     }
 

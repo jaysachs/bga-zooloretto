@@ -6,8 +6,8 @@ namespace Bga\Games\zoolorettoalpha\Model;
 
 use PHPUnit\Framework\TestCase;
 
-function e(int $x, int $y, Tile $t,?Offspring $offspring = null, ?Moneys $moneyDelta = null): PlacedTile {
-    return new PlacedTile($t, new Space($x, $y), false, $moneyDelta, $offspring);
+function e(int $x, int $y, Tile $t,?Offspring $offspring = null): PlacedTile {
+    return new PlacedTile($t, new Space($x, $y), false, $offspring);
 }
 
 final class ModelTest extends TestCase

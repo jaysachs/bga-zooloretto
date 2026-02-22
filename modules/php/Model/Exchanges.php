@@ -121,8 +121,9 @@ class Exchanges implements Serializable {
 				// now extend barn pos with empty spots to accomodate extra.
 				// figure this BEFORE offspring possibly added to barn.
 				$extra_needed = count($enc->filledAnimalPositions()) - count($dest_pos);
+				$randomTile = new Tile(100000, TileType::CAMEL);
 				while ($extra_needed-- > 0) {
-					$dest_pos[] = $barn2->placeTile(new Tile(100000, TileType::CAMEL))->space->pos;
+					$dest_pos[] = $barn2->placeTile($randomTile, $barn2)->space->pos;
 				}
 
 				$offspring = self::checkOffspring($enc, $barn2, $dest_pos);
@@ -142,19 +143,26 @@ class Exchanges implements Serializable {
 	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): ?Offspring {
 		$enc = $enc->clone();
 		$barn = $barn->clone();
+		$fakeBarn = $barn->clone();
 		$tiles = [];
 		foreach ($enc->filledAnimalPositions() as $apos) {
 			$tiles[] = $enc->takeTileAt($apos);
 		}
+		$offspring = null;
 		foreach ($barn_pos as $bpos) {
 			$tile = $barn->takeTileAt($bpos);
-			$enc->placeTile($tile);
+			$pt = $enc->placeTile($tile, $fakeBarn);
+			if ($pt->offspring) {
+				if ($offspring) {
+					throw new ModelException("Got a second offspring during a barn exchange");
+				}
+				$offspring = $pt->offspring;
+			}
 		}
 		foreach ($tiles as $tile) {
-			$barn->placeTile($tile);
+			$barn->placeTile($tile, $fakeBarn);
 		}
-		// FIXME: need to check overflow!
-		return $enc->checkForOffspring($barn);
+		return $offspring;
 	}
 }
 
