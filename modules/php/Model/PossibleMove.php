@@ -30,7 +30,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 class PossibleMove implements Serializable {
     /**
      * @param Space $src
-     * @param list<Destination> $dests
+     * @param list<PlacedTile> $dests
      */
     public function __construct(
         public readonly Space $src,
@@ -41,7 +41,7 @@ class PossibleMove implements Serializable {
     public function serialize(): array {
         return [
             'src' => $this->src->serialize(),
-			'dests' => array_map(fn (Destination $d) => $d->serialize(), $this->dests),
+			'dests' => array_map(fn (PlacedTile $d) => $d->serialize(), $this->dests),
         ];
     }
 }

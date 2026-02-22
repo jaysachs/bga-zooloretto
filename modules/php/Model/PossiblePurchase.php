@@ -30,7 +30,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 class PossiblePurchase implements Serializable {
     /**
      * @param Space $src
-     * @param list<Destination> $dests
+     * @param list<PlacedTile> $dests
      */
     public function __construct(
         public readonly int $src_player_id,
@@ -45,7 +45,7 @@ class PossiblePurchase implements Serializable {
             'src_player_id' => $this->src_player_id,
             'src' => $this->src->serialize(),
 			'money_delta' => $this->money_delta->serialize(),
-			'dests' => array_map(fn (Destination $d) => $d->serialize(), $this->dests),
+			'dests' => array_map(fn (PlacedTile $d) => $d->serialize(), $this->dests),
         ];
     }
 }

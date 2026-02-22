@@ -1,6 +1,6 @@
 import { AnimationList } from "./more-animations";
 import { ZooFlow } from "./zflow";
-import { Delivery, Destination, EnclosureSummary, Moneys, Offspring, PlacedTile, Tile } from "./zgametypes";
+import { Delivery, EnclosureSummary, Moneys, Offspring, PlacedTile, Tile } from "./zgametypes";
 import { Elements, encOf, IDS, CSS, posOf, toSpace, Attrs } from "./zhtml";
 import { GameView } from "./zview";
 
@@ -15,13 +15,13 @@ interface PossibleMoves {
 interface PossiblePurchase {
   src_player_id: number;
   src: number;
-  dests: Destination[];
+  dests: PlacedTile[];
   money_delta: Moneys;
 }
 
 interface PossibleMove {
   src: number;
-  dests: Destination[];
+  dests: PlacedTile[];
 }
 
 interface BarnExchange {
@@ -58,7 +58,7 @@ interface Placement {
 
 interface PossibleDelivery {
   truck_pos: number;
-  dests: Destination[];
+  dests: PlacedTile[];
 }
 
 interface PlayState {
@@ -164,7 +164,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         });
     }
     this.addRestartAndUndoButtons();
-    pm.dests.forEach((dest: Destination) => {
+    pm.dests.forEach((dest: PlacedTile) => {
       const elem = Elements.enclosureTile(this.player_id, pm.src);
       const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
@@ -178,7 +178,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     });
   }
 
-  private async confirmMove(src: number, dest: Destination) {
+  private async confirmMove(src: number, dest: PlacedTile) {
     await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
@@ -322,7 +322,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private purchase(pp: PossiblePurchase) {
     this.updateMoneyDelta(pp.money_delta);
     this.initStatusBar(_("Select a destination for the purchased tile"));
-    pp.dests.forEach((dest: Destination) =>
+    pp.dests.forEach((dest: PlacedTile) =>
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
         async () => {
@@ -338,7 +338,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.addRestartAndUndoButtons();
   }
 
-  private confirmPurchase(pp: PossiblePurchase, dest: Destination) {
+  private confirmPurchase(pp: PossiblePurchase, dest: PlacedTile) {
     this.initStatusBar(_("Confirm purchase"));
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
@@ -374,10 +374,10 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       truck_id: number,
       delivery: Delivery,
   }) {
-    const dest = args.delivery.dest;
+    const dest = args.delivery.placed_tile;
     const anims : AnimationList = [];
     anims.push(() => this.view.moreAnimations.slideAndAttach(
-      Elements.tile(args.delivery.tile)!,
+      Elements.tile(args.delivery.placed_tile.tile)!,
       Elements.enclosureSpace(args.player_id, dest.space))
     );
     if (dest.offspring) {
@@ -413,12 +413,12 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
   }
 
-  doDelivery(truck_id: number, deliveries: Delivery[], truck_pos?: number, dest?:Destination): Promise<any> {
+  doDelivery(truck_id: number, deliveries: Delivery[], truck_pos?: number, dest?:PlacedTile): Promise<any> {
     let placements: Placement[] = deliveries.map(d => {
       return {
         truck_pos: d.truck_pos,
-        enclosure_id: encOf(d.dest.space),
-        enclosure_pos: posOf(d.dest.space)} });
+        enclosure_id: encOf(d.placed_tile.space),
+        enclosure_pos: posOf(d.placed_tile.space)} });
     if (truck_pos) {
       placements.push({
         truck_pos: truck_pos,
@@ -435,8 +435,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       let placements: Placement[] = deliveries.map(d => {
         return {
           truck_pos: d.truck_pos,
-          enclosure_id: encOf(d.dest.space),
-          enclosure_pos: posOf(d.dest.space)} });
+          enclosure_id: encOf(d.placed_tile.space),
+          enclosure_pos: posOf(d.placed_tile.space)} });
       console.log("will send", deliveries);
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
@@ -460,7 +460,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private async chooseDestination(truck_id: number, pp: PossibleDelivery, deliveries: Delivery[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
-    pp.dests.forEach((dest: Destination) => {
+    pp.dests.forEach((dest: PlacedTile) => {
       let encElem = Elements.enclosureSpace(this.player_id, dest.space);
       // this.markTargetable(encElem);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {

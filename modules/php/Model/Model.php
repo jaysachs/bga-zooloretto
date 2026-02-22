@@ -179,7 +179,7 @@ class Model {
         return $this->retrieveAll()["enclosures"][$player_id];
     }
 
-    /** @return array<int,list<Destination>> keys are truck positions */
+    /** @return array<int,list<PlacedTile>> keys are truck positions */
     public function getPossibleDeliveries(int $truck_id): array {
         $truck = $this->getTruck($truck_id);
         $enclosures = $this->getEnclosuresForPlayer($this->player_id);
@@ -191,7 +191,7 @@ class Model {
      * mock PersistentStore or use a fake DB.
      *
      * @param array<int,Enclosure> $enclosures
-     * @return array<int,list<Destination>>
+     * @return array<int,list<PlacedTile>>
      */
     public static function possibleDeliveriesFor(Truck $truck, array $enclosures, int $player_id): array {
         $result = [];
@@ -211,7 +211,7 @@ class Model {
                         if (!isset($result[$pos])) {
                             $result[$pos] = [];
                         }
-                        $result[$pos][] = new Destination(new Space($eid,$epos), $offspring, $moneyDelta);
+                        $result[$pos][] = new PlacedTile($tile, new Space($eid,$epos), false, $moneyDelta, $offspring);
                     }
                 }
             }
@@ -231,9 +231,9 @@ class Model {
 
         $coins = [];
         foreach ($result as $delivery) {
-            $dest = $delivery->dest;
-            if ($dest->offspring) {
-                $this->saveOffspring($dest->offspring);
+            $pt = $delivery->placed_tile;
+            if ($pt->offspring) {
+                $this->saveOffspring($pt->offspring);
             }
             // FIXME: handle completion bonus
         }
@@ -282,7 +282,7 @@ class Model {
             }
             $offspring = $encl->checkForOffspring($barn);
 
-            $result[] = new Delivery($truck_pos, $tile, new Destination($placement->space, $offspring));
+            $result[] = new Delivery($truck_pos, new PlacedTile($tile, $placement->space, false, null, $offspring));
         }
 
         return $result;
@@ -385,7 +385,7 @@ class Model {
         return $tile;
     }
 
-    private function makePossibleDest(Enclosure $enc, Tile $tile, Enclosure $buyer_barn): Destination | null {
+    private function makePossibleDest(Enclosure $enc, Tile $tile, Enclosure $buyer_barn): PlacedTile | null {
         $ap = $enc->availablePos($tile->type);
         if ($ap > 0) {
             $enc = $enc->clone();
@@ -396,7 +396,7 @@ class Model {
             if ($pl->completedEnclosure || ($offspring && $offspring->child->completedEnclosure)) {
                 $moneyDelta = Moneys::chargePlayerDelta($this->player_id, -$enc->coin_bonus);
             }
-            return new Destination(new Space($enc->id, $ap), $offspring, $moneyDelta);
+            return new PlacedTile($tile, new Space($enc->id, $ap), false, $moneyDelta, $offspring );
         }
         return null;
     }
@@ -418,7 +418,7 @@ class Model {
 
         foreach ($barn->nonEmptyContents() as $pos => $tile) {
             $src = new Space($barn->id, $pos);
-            /** @var list<Destination> */
+            /** @var list<PlacedTile> */
             $dests = [];
             foreach ($enclosures as $enc) {
                 $dest = $this->makePossibleDest($enc, $tile, $barn);
@@ -433,7 +433,7 @@ class Model {
         // or stall from one (non-barn) enclosure to another
         foreach ($enclosures as $enc) {
             foreach ($enc->nonEmptyContents() as $pos => $tile) {
-                /** @var list<Destination> */
+                /** @var list<PlacedTile> */
                 $dests = [];
                 $src = new Space($enc->id, $pos);
                 if ($tile->type->isStall()) {
@@ -441,7 +441,7 @@ class Model {
                         if ($other <> $enc) {
                             $sp = $other->availablePos($tile->type);
                             if ($sp > 0) {
-                                $dests[] = new Destination(new Space($other->id, $sp));
+                                $dests[] = new PlacedTile($tile, new Space($other->id, $sp));
                             }
                         }
                     }

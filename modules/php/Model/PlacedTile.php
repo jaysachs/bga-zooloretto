@@ -33,6 +33,7 @@ class PlacedTile implements Serializable {
         public readonly Space $space,
         public bool $completedEnclosure = false,
         public readonly ?Moneys $money_delta = null,
+        public readonly ?Offspring $offspring = null,
     ) {}
 
     /** @return array<string,mixed> */
@@ -43,6 +44,9 @@ class PlacedTile implements Serializable {
         ];
         if ($this->money_delta) {
             $result['money_delta'] = $this->money_delta->serialize();
+        }
+        if ($this->offspring) {
+            $result['offspring'] = $this->offspring->serialize();
         }
         // FIXME: not needed clientside (but maybe could be?)
         // if ($this->completedEnclosure) {
@@ -55,12 +59,13 @@ class PlacedTile implements Serializable {
         return $this->tile == $other->tile
             && $this->space == $other->space
             && $this->completedEnclosure == $other->completedEnclosure
+            && $this->offspring == $other->offspring
             && $this->money_delta == $other->money_delta
             ;
     }
 
     public function __toString()
     {
-        return "PlacedTile{tile={$this->tile},space={$this->space},completed_enclosure={$this->completedEnclosure}}";
+        return "PlacedTile{tile={$this->tile},space={$this->space},offspring={$this->offspring},completed_enclosure={$this->completedEnclosure}}";
     }
 }

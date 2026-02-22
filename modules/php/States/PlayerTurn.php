@@ -56,7 +56,7 @@ class PlayerTurn extends AbstractState
     /** @return array<string,mixed> */
 	public function getArgs(int $active_player_id): array
 	{
-        $model = $this->createModel($active_player_id);
+        $model = $this->createModel($active_player_id, true);
 		$pe = $model->getPossibleExchanges();
 		return [
 			'can_draw' => $model->canDraw(),
@@ -195,7 +195,7 @@ class PlayerTurn extends AbstractState
             clienttranslate('${player_name} exchanged ${tile_type} between ${src_enclosure} and ${dest_enclosure}'),
             [
                 'player_id' => $active_player_id,
-                'placed_tiles' => array_map(fn($pt) => $pt->serialize(), $completedExchange->placedTiles),
+                'placed_tiles' => self::serializeArray($completedExchange->placedTiles),
                 'src_enclosure_id' => $completedExchange->src_enclosure_id,
                 'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
                 'moneys' => $model->currentMoneys()->serialize(),
@@ -238,7 +238,7 @@ class PlayerTurn extends AbstractState
                 'player_id' => $active_player_id,
                 'player_id2' => $from_player_id,
                 'tile_type' => $purchased->tile->type->value,
-                'placed_tiles' => array_map(fn ($pt) => $pt->serialize(), $result['tiles']),
+                'placed_tiles' => self::serializeArray($result['tiles']),
                 'moneys' => $model->currentMoneys()->serialize(),
                 'enclosure' => Enclosure::translated($enclosure_id),
                 'tile_description' => $purchased->tile->type->translated(),
@@ -323,31 +323,31 @@ class PlayerTurn extends AbstractState
 		}
 		// Notify for each tile, also send offspring and enclosure completion notifications.
 		foreach ($deliveries as $delivery) {
-			$dest = $delivery->dest;
+			$pt = $delivery->placed_tile;
 			$this->notify->all(
 				'DeliverTruckTile',
 				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
 					'player_id' => $active_player_id,
 					'delivery' => $delivery->serialize(),
-					'tile_type' => $delivery->tile->type,
+					'tile_type' => $pt->tile->type,
 					'truck_id' => $truck_id,
 					'truck' => Truck::translated($truck_id),
-					'enclosure_description' => Enclosure::translated($dest->space->enclosure_id),
+					'enclosure_description' => Enclosure::translated($pt->space->enclosure_id),
 					'i18n' => [
 						'enclosure_description',
 						'truck',
 					]
 				]
 			);
-			if ($dest->offspring) {
-				$child = $dest->offspring->child;
+			if ($pt->offspring) {
+				$child = $pt->offspring->child;
 				$tile = $child->tile;
 				$space = $child->space;
 				$this->notify->all(
 					'Offspring',
 					clienttranslate('${player_name} received an offspring ${tile_type} in ${enclosure_description}'),[
 						'player_id' => $active_player_id,
-						'offspring' => $dest->offspring->serialize(),
+						'offspring' => $pt->offspring->serialize(),
 						'tile_type' => $tile->type->value,
 						'tile_description' => $tile->type->translated(),
 						'enclosure_description' => Enclosure::translated($space->enclosure_id),
@@ -382,11 +382,11 @@ class PlayerTurn extends AbstractState
         foreach ($model->getPossibleDeliveries($truck_id) as $pos => $dests) {
             $pds[] = [
                 'truck_pos' => $pos,
-                'dests' => array_map(fn ($d) => $d->serialize(), $dests),
+                'dests' => self::serializeArray($dests),
             ];
         }
 		$this->notify->player($active_player_id, 'DeliverPendingTruckTiles', '', [
-            'deliveries' => array_map(fn($d)=>$d->serialize(), $deliveries),
+            'deliveries' => self::serializeArray($deliveries),
             "truck_id" => $truck_id,
             "possible_deliveries" => $pds,
 		]);
@@ -395,7 +395,7 @@ class PlayerTurn extends AbstractState
 
 	function zombie(int $player_id): mixed
 	{
-		$model = $this->createModel($player_id);
+		$model = $this->createModel($player_id, true);
 		if ($model->canDraw()) {
 			return $this->actDrawTile($player_id);
 		}
@@ -413,8 +413,8 @@ class PlayerTurn extends AbstractState
 					$placements = array_map(function (Delivery $d): array {
 						return [
 							'truck_pos' => $d->truck_pos,
-							'enclosure_id' => $d->dest->space->enclosure_id,
-							'enclosure_pos' => $d->dest->space->pos,
+							'enclosure_id' => $d->placed_tile->space->enclosure_id,
+							'enclosure_pos' => $d->placed_tile->space->pos,
 						];
 					}, $deliveries);
 				}

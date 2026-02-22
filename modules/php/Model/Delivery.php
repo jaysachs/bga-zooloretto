@@ -30,16 +30,14 @@ namespace Bga\Games\zoolorettoalpha\Model;
 class Delivery implements Serializable {
     public function __construct(
         public int $truck_pos,
-        public Tile $tile,
-        public Destination $dest,
+        public PlacedTile $placed_tile,
     ) {}
 
     /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'truck_pos' => $this->truck_pos,
-            'tile' => $this->tile->serialize(),
-            'dest' => $this->dest->serialize(),
+            'placed_tile' => $this->placed_tile->serialize(),
         ];
     }
 }

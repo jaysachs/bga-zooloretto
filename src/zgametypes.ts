@@ -68,6 +68,7 @@ export interface PlacedTile {
   tile: Tile;
   space: number;
   money_delta: Moneys | null;
+  offspring: Offspring | null;
 }
 
 export interface Offspring {
@@ -85,15 +86,5 @@ export interface TruckLocation {
 
 export interface Delivery {
   truck_pos: number;
-  tile: Tile;
-  dest: {
-    space: number;
-    offspring: Offspring | undefined;
-  };
-}
-
-export interface Destination {
-  space: number;
-  offspring: Offspring;
-  money_delta: Moneys | null;
+  placed_tile: PlacedTile;
 }
