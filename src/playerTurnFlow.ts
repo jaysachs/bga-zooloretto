@@ -75,15 +75,13 @@ interface PlayState {
 export class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(gameView: GameView) { super(gameView); }
 
-  useServerStates: boolean = false;
-
   protected override start(playState: PlayState) {
     this.initStatusBar(_("You must click on a tile to take an action"));
 
     // All actions are independent to other actions, in terms of what to click on to
     // initiate that action ...
     this.wireUpDraw(playState.can_draw, playState.lastround);
-    this.wireUpDeliveries(playState.available_trucks, this.useServerStates);
+    this.wireUpDeliveries(playState.available_trucks);
     this.wireUpExpansions(playState.extension_available);
     this.wireUpPurchases(playState.possible_purchases);
     this.wireUpExchanges(playState.possible_exchanges);
@@ -350,13 +348,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   // Truck delivery
 
-  private wireUpDeliveries(available_trucks: number[], useServerStates: boolean) {
+  private wireUpDeliveries(available_trucks: number[]) {
     available_trucks.forEach(
       truck_id => this.addSelectableOnclick(
         Elements.truck(truck_id),
-        useServerStates
-            ? () => this.bga.actions.performAction('actTakeTruck', { truck_id: truck_id })
-            : () => this.doDelivery(truck_id, []),
+        () => this.doDelivery(truck_id, []),
         _('Take truck'))
     );
   }
@@ -462,7 +458,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
     pp.dests.forEach((dest: PlacedTile) => {
       let encElem = Elements.enclosureSpace(this.player_id, dest.space);
-      // this.markTargetable(encElem);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         this.slide(tileElem,encElem).then(() => {
@@ -477,7 +472,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
 
-    private async notif_DeliveryCompleted(args: {
+  private async notif_DeliveryCompleted(args: {
     player_id: number,
     truck_id: number,
     moneys: Moneys,
@@ -566,7 +561,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
-    private async notif_DrawTile(
+  private async notif_DrawTile(
     args: {
       tile: Tile,
       drawn_from_endgame_pile: boolean,
