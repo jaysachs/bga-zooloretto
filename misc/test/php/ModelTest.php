@@ -6,8 +6,8 @@ namespace Bga\Games\zoolorettoalpha\Model;
 
 use PHPUnit\Framework\TestCase;
 
-function e(int $x, int $y, ?Offspring $offspring = null, ?Moneys $moneyDelta = null): Destination {
-    return new Destination(new Space($x, $y), $offspring, $moneyDelta);
+function e(int $x, int $y, Tile $t,?Offspring $offspring = null, ?Moneys $moneyDelta = null): PlacedTile {
+    return new PlacedTile($t, new Space($x, $y), false, $moneyDelta, $offspring);
 }
 
 final class ModelTest extends TestCase
@@ -23,9 +23,10 @@ final class ModelTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt( new Tile(1, TileType::CAMEL), 1);
+        $t1 = new Tile(1, TileType::CAMEL);
+        $truck->placeTileAt( $t1, 1);
         $this->assertEquals(
-            [1 => [e(0,1), e(1,1), e(2,1)]],
+            [1 => [e(0,1,$t1), e(1,1,$t1), e(2,1,$t1)]],
             Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
@@ -33,12 +34,14 @@ final class ModelTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt(new Tile(1, TileType::CAMEL), 1);
-        $truck->placeTileAt(new Tile(2, TileType::ZEBRA), 2);
+        $t1 = new Tile(1, TileType::CAMEL);
+        $t2 = new Tile(2, TileType::ZEBRA);
+        $truck->placeTileAt($t1, 1);
+        $truck->placeTileAt($t2, 2);
 
         $expected = [
-            1 => [e(0, 1),e(1, 1),e(2, 1)],
-            2 => [e(0, 1),e(1, 1),e(2, 1)],
+            1 => [e(0, 1, $t1),e(1, 1, $t1),e(2, 1,$t1)],
+            2 => [e(0, 1,$t2),e(1, 1,$t2),e(2, 1,$t2)],
         ];
 
         $this->assertEquals(
@@ -50,12 +53,14 @@ final class ModelTest extends TestCase
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
-        $truck->placeTileAt(new Tile(1, TileType::CAMEL), 1);
-        $truck->placeTileAt(new Tile(2, TileType::CAMEL_MALE), 2);
+        $t1 = new Tile(1, TileType::CAMEL);
+        $t2 = new Tile(2, TileType::CAMEL_MALE);
+        $truck->placeTileAt($t1, 1);
+        $truck->placeTileAt($t2, 2);
 
         $expected = [
-            1 => [e(0, 1), e(1, 1), e(2, 1)],
-            2 => [e(0, 1), e(1, 1), e(2, 1)],
+            1 => [e(0, 1, $t1), e(1, 1, $t1), e(2, 1, $t1)],
+            2 => [e(0, 1, $t2), e(1, 1, $t2), e(2, 1, $t2)],
         ];
 
         $this->assertEquals(
@@ -86,8 +91,8 @@ final class ModelTest extends TestCase
 
         // FIXME: shouldn't there be offspring here?
         $expected = [
-            1 => [e(0, 1), e(1, 1), e(2, 1)],
-            2 => [e(0, 1), e(1, 1), e(2, 1)],
+            1 => [e(0, 1, $mother), e(1, 1, $mother), e(2, 1, $mother)],
+            2 => [e(0, 1, $father), e(1, 1, $father), e(2, 1, $father)],
         ];
 
         $this->assertEquals(
