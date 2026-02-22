@@ -255,7 +255,7 @@ class Game extends Table
 	#[Debug(reload: true)]
 	public function debug_fillTrucks(int $player_id): void {
 		$model = new Model($player_id);
-		$trucks = $model->getTrucks();
+		$trucks = array_filter($model->getTrucks(), fn ($t) => $t->taken_by == 0);
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
 			foreach ($trucks as $truck) {
