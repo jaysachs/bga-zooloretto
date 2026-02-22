@@ -104,7 +104,7 @@ export class MoreAnimations {
                 { transform: lift + start },
                 { transform: lift + end },
                 { transform: end },
-            ], 1200);
+            ], 800);
             return anim.finished.then(() => anim.commitStyles());
         };
         return this.animationManager.playParallel([
