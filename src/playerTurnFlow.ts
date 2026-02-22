@@ -453,6 +453,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     }
   }
 
+  private pipelineDeliverySlide = true;
+
   private async chooseDestination(truck_id: number, pp: PossibleDelivery, deliveries: Delivery[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
@@ -460,17 +462,24 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       let encElem = Elements.enclosureSpace(this.player_id, dest.space);
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
-        this.slide(tileElem,encElem).then(() => {
-          return this.offspringSlide(dest.offspring).then( () => {
-            this.updateMoneyDelta(dest.money_delta);
-            this.doDelivery(truck_id, deliveries, pp.truck_pos, dest);
-          });
-        });
+        if (this.pipelineDeliverySlide) {
+          Promise.all([
+            this.slide(tileElem,encElem).then(() =>
+              this.offspringSlide(dest.offspring).then( () =>
+                this.updateMoneyDelta(dest.money_delta))),
+            this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
+          ]);
+        } else {
+          this.slide(tileElem,encElem).then(() =>
+            this.offspringSlide(dest.offspring).then( () => {
+              this.updateMoneyDelta(dest.money_delta);
+              this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
+            }));
+        }
       });
     });
     this.addRestartAndUndoButtons();
   }
-
 
   private async notif_DeliveryCompleted(args: {
     player_id: number,
