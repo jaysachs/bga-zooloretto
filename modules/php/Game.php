@@ -253,8 +253,8 @@ class Game extends Table
 	}
 
 	#[Debug(reload: true)]
-	public function debug_fillTrucks(): void {
-		$model = new Model(0);
+	public function debug_fillTrucks(int $player_id): void {
+		$model = new Model($player_id);
 		$trucks = $model->getTrucks();
 		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
 			$drawn = $model->drawTile()->drawn;
