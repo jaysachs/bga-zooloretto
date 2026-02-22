@@ -7,7 +7,7 @@ namespace Bga\Games\zoolorettoalpha\Model;
 use PHPUnit\Framework\TestCase;
 
 function e(int $x, int $y, Tile $t,?Offspring $offspring = null): PlacedTile {
-    return new PlacedTile($t, new Space($x, $y), false, $offspring);
+    return new PlacedTile($t, new Space($x, $y), 0, $offspring);
 }
 
 final class ModelTest extends TestCase
@@ -83,7 +83,7 @@ final class ModelTest extends TestCase
         $truck->placeTileAt($mother, 1);
         $truck->placeTileAt($father, 2);
 
-        $kid = function(int $eid, int $pos, bool $comp = false) use(&$rm, &$rf) : Offspring {
+        $kid = function(int $eid, int $pos, int $comp = 0) use(&$rm, &$rf) : Offspring {
             return new Offspring(
                 new PlacedTile(new Tile($rm->id*10000+$rf->id, TileType::CAMEL_KID), new Space($eid, $pos), $comp),
                 $rm, $rf);

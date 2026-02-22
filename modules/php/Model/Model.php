@@ -437,8 +437,7 @@ class Model {
         return $result;
     }
 
-    /** @return array{placed_tile: PlacedTile, enclosureBonus: int|null} */
-    public function moveTile(Space $src, Space $dest): array {
+    public function moveTile(Space $src, Space $dest): PlacedTile {
         $found = false;
         foreach ($this->getPossibleMoves() as $pm) {
             if ($pm->src == $src) {
@@ -463,8 +462,8 @@ class Model {
         $tile = $srcenc->takeTileAt($src->pos);
         $placement = $destenc->placeTile($tile, $encs[0], $dest->pos);
         $amt = null;
-        if ($placement->completedEnclosure) {
-            $amt = $this->payPlayer($player, $destenc->coin_bonus);
+        if ($placement->completionCoins) {
+            $amt = $this->payPlayer($player, $placement->completionCoins);
         }
 
         if ($placement->offspring) {
@@ -473,10 +472,11 @@ class Model {
         }
 
         $this->ps->updateEnclosures($this->player_id, [$srcenc, $destenc, $encs[0]]);
-        return [ 'placed_tile' => $placement, 'enclosureBonus' => $amt ];
+        // FIXME: don't need to explicitly return enclosure bonus
+        return $placement;
     }
 
-    /** @return array{tiles: list<PlacedTile>, enclosure_bonus: int|null} */
+    /** @return array{tiles: list<PlacedTile>, completion_coins: int|null} */
     public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): array {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
@@ -498,7 +498,7 @@ class Model {
 
         $result = [
             'tiles' => [],
-            'enclosure_bonus' => null,
+            'completion_coins' => null,
         ];
         $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
@@ -514,7 +514,7 @@ class Model {
         $tile = $seller_barn->takeTileAt($src->pos);
         $placement = $enc->placeTile($tile, $buyer_barn, $target->pos);
         $result['tiles'][] = $placement;
-        $completed_enclosure = $placement->completedEnclosure;
+        $bonus = $placement->completionCoins;
 
         $toUpdate = [$enc];
         if ($placement->offspring) {
@@ -524,12 +524,12 @@ class Model {
                 // it's the barn.
                 $toUpdate[] = $encs[$te];
             }
-            if ($placement->offspring->child->completedEnclosure) {
-                $completed_enclosure = true;
-            }
+            $bonus += $placement->offspring->child->completionCoins;
         }
-        if ($completed_enclosure) {
-            $result['enclosure_bonus'] = $this->payPlayer($player, $enc->coin_bonus);
+        if ($bonus) {
+            $this->payPlayer($player, $bonus);
+            // FIXME: maybe should not be needed to include?
+            $result['completion_coins'] = $bonus;
         }
 
         $this->ps->updateEnclosures($this->player_id, $toUpdate);

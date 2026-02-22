@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-use Bga\Games\zoolorettoalpha\Utils\Log;
 use PHPUnit\Framework\TestCase;
 
 final class EnclosureTest extends TestCase
@@ -43,7 +42,7 @@ final class EnclosureTest extends TestCase
     public function testPlacements(): void
     {
         $barn = Enclosure::barn();
-        $enc = Enclosure::forTest(1, 3, 2);
+        $enc = Enclosure::forTest(1, 3, 2, 17);
         $tile = new Tile(1, TileType::ZEBRA);
         $this->assertEquals(new PlacedTile($tile, new Space(1, 1)), $enc->placeTile($tile, $barn));
 
@@ -62,9 +61,9 @@ final class EnclosureTest extends TestCase
         $tile2 = new Tile(3, TileType::ZEBRA_MALE);
         $tile2r = $tile2->clone()->markReproduced();
         $pt = $enc->placeTile($tile2, $barn);
-        $this->assertEquals(new PlacedTile($tile2, new Space(1, 3), true,
+        $this->assertEquals(new PlacedTile($tile2, new Space(1, 3), 17,
             new Offspring(
-                new PlacedTile(new Tile(20003, TileType::ZEBRA_KID), new Space(0,1), false),
+                new PlacedTile(new Tile(20003, TileType::ZEBRA_KID), new Space(0,1)),
                 $tile1r, $tile2r)), $pt);
         // but now we're full of animals
         $this->assertEquals(0, $enc->availablePos(TileType::ZEBRA_MALE));

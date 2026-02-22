@@ -147,7 +147,7 @@ final class ExchangesTest extends TestCase
                  2 => [
                     new BarnExchange([1,5],
                         new Offspring(
-                            new PlacedTile(new Tile(40001, TileType::CAMEL_KID),new Space(0, 4), false),
+                            new PlacedTile(new Tile(40001, TileType::CAMEL_KID),new Space(0, 4)),
                             new Tile(4, TileType::CAMEL_FEMALE, true),
                             new Tile(1, TileType::CAMEL_MALE, true))),
                     new BarnExchange([3]),

@@ -31,7 +31,7 @@ class PlacedTile implements Serializable {
     public function __construct(
         public readonly Tile $tile,
         public readonly Space $space,
-        public bool $completedEnclosure = false,
+        public ?int $completionCoins = null,
         public readonly ?Offspring $offspring = null,
     ) {}
 
@@ -39,7 +39,7 @@ class PlacedTile implements Serializable {
         if (!$offspring) {
             return $this;
         }
-        return new PlacedTile($this->tile, $this->space, $this->completedEnclosure, $offspring);
+        return new PlacedTile($this->tile, $this->space, $this->completionCoins, $offspring);
     }
 
     /** @return array<string,mixed> */
@@ -51,23 +51,22 @@ class PlacedTile implements Serializable {
         if ($this->offspring) {
             $result['offspring'] = $this->offspring->serialize();
         }
-        // FIXME: not needed clientside (but maybe could be?)
-        // if ($this->completedEnclosure) {
-        //     $result['completed_enclosure'] = $this->completedEnclosure;
-        // }
+        if ($this->completionCoins) {
+             $result['completion_coins'] = $this->completionCoins;
+        }
         return $result;
     }
 
     public function equals(PlacedTile $other): bool {
         return $this->tile == $other->tile
             && $this->space == $other->space
-            && $this->completedEnclosure == $other->completedEnclosure
+            && $this->completionCoins == $other->completionCoins
             && $this->offspring == $other->offspring
             ;
     }
 
     public function __toString()
     {
-        return "PlacedTile{tile={$this->tile},space={$this->space},offspring={$this->offspring},completed_enclosure={$this->completedEnclosure}}";
+        return "PlacedTile{tile={$this->tile},space={$this->space},offspring={$this->offspring},completionCoins={$this->completionCoins}}";
     }
 }

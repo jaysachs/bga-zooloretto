@@ -77,7 +77,7 @@ abstract class AbstractState extends GameState
         return array_map(fn (Serializable $x) => $x->serialize(), $a);
     }
 
-	protected function notifyBonus(int $active_player_id, int $enclosure_id, ?int $bonus): void {
+	protected function notifyCompletionCoins(int $active_player_id, int $enclosure_id, ?int $bonus): void {
 		if ($bonus !== null) {
 			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
 			$this->notify->all(

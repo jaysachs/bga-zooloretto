@@ -28,7 +28,6 @@ declare(strict_types=1);
 namespace Bga\Games\zoolorettoalpha\Model;
 
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
-use Bga\Games\zoolorettoalpha\Utils\Log;
 
 class Enclosure {
     /** @var Tile[] */
@@ -275,7 +274,7 @@ class Enclosure {
         }
         if ($tile->type->isAnimal()) {
             $pos = $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
-            return new PlacedTile($tile, new Space($this->id, $pos), $this->allAnimalPositionsFilled());
+            return new PlacedTile($tile, new Space($this->id, $pos), $this->allAnimalPositionsFilled() ? $this->coin_bonus : 0);
         }
         if ($tile->type->isStall()) {
             // stalls do not complete
@@ -321,13 +320,13 @@ class Enclosure {
             ? $barn->rawPlaceTile($child)->space
             : $this->rawPlaceTile($child)->space;
         $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
-        return new Offspring(new PlacedTile($child, $space, $completed), $mother, $father);
+        return new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father);
     }
 
     public function __toString(): string
     {
         $contents = Arrays::arrayToString(array_filter($this->contents, fn ($t) => !$t->isEmpty()), true);
-        return "Enclosure(id=$this->id,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
+        return "Enclosure(id=$this->id,coin_bonus=$this->coin_bonus,animal_capacity=$this->animal_capacity,stall_cap=$this->stall_capacity,contents=$contents)";
     }
 
     public function translatedId(): string {

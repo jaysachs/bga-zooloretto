@@ -133,8 +133,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$dest = new Space($dest_id, $dest_pos);
-		$result = $model->moveTile(new Space($src_id, $src_pos), $dest);
-		$placed_tile = $result['placed_tile'];
+		$placed_tile = $model->moveTile(new Space($src_id, $src_pos), $dest);
 		$tile = $placed_tile->tile;
 		$this->notifyOffspring($active_player_id, $placed_tile->offspring);
 		$this->notify->all(
@@ -171,7 +170,7 @@ class PlayerTurn extends AbstractState
 				$this->game->stats->PLAYER_MOVEDSTALLSFROMBARN->inc($active_player_id);
 			}
 		}
-		$this->notifyBonus($active_player_id, $dest_id, $result['enclosureBonus']);
+		$this->notifyCompletionCoins($active_player_id, $dest_id, $placed_tile->completionCoins);
 		return NextPlayer::class;
 	}
 
@@ -255,7 +254,7 @@ class PlayerTurn extends AbstractState
         );
 		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
 		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
-		$this->notifyBonus($active_player_id, $enclosure_id, $result['enclosure_bonus']);
+		$this->notifyCompletionCoins($active_player_id, $enclosure_id, $result['completion_coins']);
 
 		return NextPlayer::class;
 	}
@@ -339,6 +338,8 @@ class PlayerTurn extends AbstractState
 					]
 				]
 			);
+			$this->notifyCompletionCoins($active_player_id, $pt->space->enclosure_id, $pt->completionCoins);
+
 			if ($pt->offspring) {
 				$child = $pt->offspring->child;
 				$tile = $child->tile;
@@ -354,6 +355,7 @@ class PlayerTurn extends AbstractState
 						'i18n' => ['tile_description', 'enclosure_description']
 					]
 				);
+				$this->notifyCompletionCoins($active_player_id, $child->space->enclosure_id, $child->completionCoins);
 			}
 			// FIXME: handle enclosure completion
 			// if ($delivery->enclosureCompleted) {
