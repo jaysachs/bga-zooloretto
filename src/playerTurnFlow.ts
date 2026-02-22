@@ -176,7 +176,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
   private async confirmMove(src: number, dest: PlacedTile) {
-    await this.offspringSlide(dest.offspring).then(() => this.updateMoneyDelta(dest.money_delta));
+    await this.offspringSlide(dest.offspring);
     this.initStatusBar(_('Confirm move'));
     this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
@@ -307,7 +307,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         async () => {
           await this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
             Elements.enclosureSpace(this.player_id, dest.space))
-            .then(() => this.updateMoneyDelta(dest.money_delta))
             .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
           if (dest.offspring) {
             this.offspringSlide(dest.offspring);
@@ -446,16 +445,14 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         if (this.pipelineDeliverySlide) {
           Promise.all([
             this.slide(tileElem,encElem).then(() =>
-              this.offspringSlide(dest.offspring).then( () =>
-                this.updateMoneyDelta(dest.money_delta))),
+              this.offspringSlide(dest.offspring)),
             this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
           ]);
         } else {
           this.slide(tileElem,encElem).then(() =>
-            this.offspringSlide(dest.offspring).then( () => {
-              this.updateMoneyDelta(dest.money_delta);
+            this.offspringSlide(dest.offspring).then( () =>
               this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
-            }));
+            ));
         }
       });
     });

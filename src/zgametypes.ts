@@ -67,7 +67,7 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
 export interface PlacedTile {
   tile: Tile;
   space: number;
-  money_delta: Moneys | null;
+  // money_delta: Moneys | null;
   offspring: Offspring | null;
 }
 
