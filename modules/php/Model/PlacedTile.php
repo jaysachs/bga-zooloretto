@@ -31,7 +31,7 @@ class PlacedTile implements Serializable {
     public function __construct(
         public readonly Tile $tile,
         public readonly Space $space,
-        public ?int $completionCoins = null,
+        private readonly ?int $completion_coins = null,
         public readonly ?Offspring $offspring = null,
     ) {}
 
@@ -39,7 +39,21 @@ class PlacedTile implements Serializable {
         if (!$offspring) {
             return $this;
         }
-        return new PlacedTile($this->tile, $this->space, $this->completionCoins, $offspring);
+        return new PlacedTile($this->tile, $this->space, $this->completion_coins, $offspring);
+    }
+
+    public function completionCoins(): ?int {
+        if ($this->completion_coins === null) {
+            if ($this->offspring) {
+                return $this->offspring->child->completion_coins;
+            }
+            return null;
+        }
+        $occ = null;
+        if ($this->offspring) {
+            $occ = $this->offspring->child->completion_coins;
+        }
+        return $this->completion_coins + ($occ ?? 0);
     }
 
     /** @return array<string,mixed> */
@@ -51,8 +65,8 @@ class PlacedTile implements Serializable {
         if ($this->offspring) {
             $result['offspring'] = $this->offspring->serialize();
         }
-        if ($this->completionCoins) {
-             $result['completion_coins'] = $this->completionCoins;
+        if ($this->completion_coins) {
+             $result['completion_coins'] = $this->completion_coins;
         }
         return $result;
     }
@@ -60,13 +74,13 @@ class PlacedTile implements Serializable {
     public function equals(PlacedTile $other): bool {
         return $this->tile == $other->tile
             && $this->space == $other->space
-            && $this->completionCoins == $other->completionCoins
+            && $this->completion_coins == $other->completion_coins
             && $this->offspring == $other->offspring
             ;
     }
 
     public function __toString()
     {
-        return "PlacedTile{tile={$this->tile},space={$this->space},offspring={$this->offspring},completionCoins={$this->completionCoins}}";
+        return "PlacedTile{tile={$this->tile},space={$this->space},offspring={$this->offspring},completion_coins={$this->completion_coins}}";
     }
 }

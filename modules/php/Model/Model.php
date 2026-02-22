@@ -223,15 +223,19 @@ class Model {
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $result = $this->deliverPendingTruckTiles($truck_id, $placements);
 
-        $coins = [];
+        $completionCoins = 0;
         foreach ($result as $delivery) {
             $pt = $delivery->placed_tile;
+            $completionCoins += $pt->completionCoins() ?? 0;
             if ($pt->offspring) {
                 $this->saveOffspring($pt->offspring);
             }
-            // FIXME: handle completion bonus
+        }
+        if ($completionCoins) {
+            $player->receiveMoney($completionCoins);
         }
         // Collect the coins, add them as deliveries with no destination.
+        $coins = [];
         foreach ($truck->coinPositions() as $coin_pos) {
             $tile = $truck->removeTileAt($coin_pos);
             $coins[] = $tile;
@@ -461,9 +465,9 @@ class Model {
         $destenc = $encs[$dest->enclosure_id];
         $tile = $srcenc->takeTileAt($src->pos);
         $placement = $destenc->placeTile($tile, $encs[0], $dest->pos);
-        $amt = null;
-        if ($placement->completionCoins) {
-            $amt = $this->payPlayer($player, $placement->completionCoins);
+        $cc = $placement->completionCoins();
+        if ($cc) {
+            $this->payPlayer($player, $cc);
         }
 
         if ($placement->offspring) {
@@ -476,8 +480,7 @@ class Model {
         return $placement;
     }
 
-    /** @return array{tiles: list<PlacedTile>, completion_coins: int|null} */
-    public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): array {
+    public function purchaseTile(int $seller_player_id, int $barn_pos, Space $target): PlacedTile {
         $player = $this->getActivePlayer();
         $src = new Space(0, $barn_pos);
 
@@ -496,10 +499,6 @@ class Model {
             throw new ModelException("Illegal purchase {$seller_player_id} {$barn_pos} {$target}");
         }
 
-        $result = [
-            'tiles' => [],
-            'completion_coins' => null,
-        ];
         $seller = $this->getPlayer($seller_player_id);
         $player->payMoney(Cost::PURCHASE);
         $this->ps->updatePlayer($player);
@@ -513,9 +512,8 @@ class Model {
 
         $tile = $seller_barn->takeTileAt($src->pos);
         $placement = $enc->placeTile($tile, $buyer_barn, $target->pos);
-        $result['tiles'][] = $placement;
-        $bonus = $placement->completionCoins;
 
+        $bonus = $placement->completionCoins();
         $toUpdate = [$enc];
         if ($placement->offspring) {
             $this->saveOffspring($placement->offspring);
@@ -524,16 +522,13 @@ class Model {
                 // it's the barn.
                 $toUpdate[] = $encs[$te];
             }
-            $bonus += $placement->offspring->child->completionCoins;
-        }
-        if ($bonus) {
-            $this->payPlayer($player, $bonus);
-            // FIXME: maybe should not be needed to include?
-            $result['completion_coins'] = $bonus;
         }
 
+        if ($bonus !== null) {
+            $this->payPlayer($player, $bonus);
+        }
         $this->ps->updateEnclosures($this->player_id, $toUpdate);
-        return $result;
+        return $placement;
     }
 
     /** @return list<PossiblePurchase> */
@@ -668,10 +663,11 @@ class Model {
         $this->ps->updatePlayer($player);
     }
 
-    private function payPlayer(Player $player, int $amt) : int {
-        $player->receiveMoney($amt);
-        $this->ps->updatePlayer($player);
-        return $amt;
+    private function payPlayer(Player $player, ?int $amt) : void {
+        if ($amt) {
+            $player->receiveMoney($amt);
+            $this->ps->updatePlayer($player);
+        }
     }
 
     /** @return array<int,array<string,int>> */

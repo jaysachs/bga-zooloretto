@@ -81,7 +81,7 @@ abstract class AbstractState extends GameState
 		if ($bonus !== null) {
 			$this->game->stats->PLAYER_COMPLETIONBONUSCOINS->inc($active_player_id, $bonus);
 			$this->notify->all(
-                'EnclosureBonus',
+                'CompletionCoins',
                 clienttranslate('${player_name} completed ${enclosure} and received ${coins}'),
                 [
                     'player_id' => $active_player_id,

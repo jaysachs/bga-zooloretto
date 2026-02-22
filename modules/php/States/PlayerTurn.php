@@ -170,7 +170,7 @@ class PlayerTurn extends AbstractState
 				$this->game->stats->PLAYER_MOVEDSTALLSFROMBARN->inc($active_player_id);
 			}
 		}
-		$this->notifyCompletionCoins($active_player_id, $dest_id, $placed_tile->completionCoins);
+		$this->notifyCompletionCoins($active_player_id, $dest_id, $placed_tile->completionCoins());
 		return NextPlayer::class;
 	}
 
@@ -227,8 +227,7 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$dest = new Space($enclosure_id, $enclosure_pos);
-		$result = $model->purchaseTile($from_player_id, $barn_pos, $dest);
-		$purchased = $result['tiles'][0];
+		$purchased = $model->purchaseTile($from_player_id, $barn_pos, $dest);
 		$this->notifyOffspring($active_player_id, $purchased->offspring);
 		$this->notify->all(
             'PurchaseTile',
@@ -237,7 +236,7 @@ class PlayerTurn extends AbstractState
                 'player_id' => $active_player_id,
                 'player_id2' => $from_player_id,
                 'tile_type' => $purchased->tile->type->value,
-                'placed_tiles' => self::serializeArray($result['tiles']),
+                'placed_tile' => $purchased->serialize(),
                 'moneys' => $model->currentMoneys()->serialize(),
                 'enclosure' => Enclosure::translated($enclosure_id),
                 'tile_description' => $purchased->tile->type->translated(),
@@ -254,7 +253,7 @@ class PlayerTurn extends AbstractState
         );
 		$this->game->stats->PLAYER_TILESPURCHASED->inc($active_player_id);
 		$this->game->stats->PLAYER_TILESSOLD->inc($from_player_id);
-		$this->notifyCompletionCoins($active_player_id, $enclosure_id, $result['completion_coins']);
+		$this->notifyCompletionCoins($active_player_id, $enclosure_id, $purchased->completionCoins());
 
 		return NextPlayer::class;
 	}
@@ -338,7 +337,6 @@ class PlayerTurn extends AbstractState
 					]
 				]
 			);
-			$this->notifyCompletionCoins($active_player_id, $pt->space->enclosure_id, $pt->completionCoins);
 
 			if ($pt->offspring) {
 				$child = $pt->offspring->child;
@@ -355,12 +353,8 @@ class PlayerTurn extends AbstractState
 						'i18n' => ['tile_description', 'enclosure_description']
 					]
 				);
-				$this->notifyCompletionCoins($active_player_id, $child->space->enclosure_id, $child->completionCoins);
 			}
-			// FIXME: handle enclosure completion
-			// if ($delivery->enclosureCompleted) {
-
-			// }
+			$this->notifyCompletionCoins($active_player_id, $pt->space->enclosure_id, $pt->completionCoins());
 		}
 
         $this->notify->all('DeliveryCompleted','',[

@@ -337,6 +337,13 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     );
   }
 
+  async notif_CompletionCoins(args: {
+    player_id: number;
+    coins: number;
+  }) {
+    // no need to update anything?
+  }
+
   async notif_DeliverCoins(args: { player_id: number, truck_id: number, coins: Tile[] }) {
     const anims = args.coins.map(c => () => this.view.moreAnimations.slideOutAndDestroy(
         Elements.tile(c),
@@ -502,16 +509,18 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private async notif_PurchaseTile(args: {
 			player_id: number,
-      placed_tiles: PlacedTile[],
+      placed_tile: PlacedTile,
 			moneys: Moneys,
       enclosure_summaries: EnclosureSummary[],
     }) {
     this.view.updateMoneys(args.moneys);
+    const tiles = [args.placed_tile];
+    if (args.placed_tile.offspring) {
+      tiles.push(args.placed_tile.offspring.placed_tile);
+    }
     await this.animationManager.playSequentially(
-      args.placed_tiles.map(pt =>
-        () => this.view.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space))
+      tiles.map(pt => () => this.view.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space)))
       )
-    )
       .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
   }
 
