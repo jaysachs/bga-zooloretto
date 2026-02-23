@@ -161,8 +161,8 @@ export class Game extends BaseGame<ZGamedatas> {
   }
 
   private async notif_ShowFinalScores(args: { endScores: any, }): Promise<void> {
-    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } )
-      .then(() => this.bga.gameui.wait(5000))
+    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } );
+    return this.bga.gameui.wait(this.bga.userPreferences.get(102));
   }
 
   ///////

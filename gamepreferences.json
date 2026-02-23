@@ -25,6 +25,19 @@
         },
         "default": 1
     },
+    "102": {
+        "name": "Pause after showing final scores",
+        "needReload": false,
+        "values": {
+            "0": {
+                "name": "Off"
+            },
+            "2500": {
+                "name": "On"
+            }
+        },
+        "default": 2500
+    },
     "104": {
         "name": "Use animated star-indicators for selectable items",
         "needReload": false,
