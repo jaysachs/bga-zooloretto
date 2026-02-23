@@ -89,16 +89,16 @@ export abstract class PlayFlow<T> {
     await thing();
   }
 
-  protected async slide(elem: HTMLElement, newParent: HTMLElement) {
+  protected slide(elem: HTMLElement, newParent: HTMLElement) : Promise<any> {
     const currParent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slide:${strElem(elem)}`, () => this.animationManager.slideAndAttach(elem, currParent, {}));
-    await this.animationManager.slideAndAttach(elem, newParent, {})
+    return this.animationManager.slideAndAttach(elem, newParent, {})
   }
 
-  protected async slideIn(elem: HTMLElement, newParent: HTMLElement) {
+  protected slideIn(elem: HTMLElement, newParent: HTMLElement): Promise<any> {
     this.pushUndoOp(`sideIn:$${strElem(elem)}`, () => this.animationManager.slideOutAndDestroy(elem, this.offboard(), {}));
     newParent.appendChild(elem);
-    await this.animationManager.slideIn(elem, this.offboard(), { });
+    return this.animationManager.slideIn(elem, this.offboard(), { });
   }
 
   protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {

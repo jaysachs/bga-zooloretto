@@ -26,9 +26,9 @@ export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
                 () => this.placeDrawnTile(elem, args.tile, truckLoc))));
   }
 
-  private async placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation) {
+  private placeDrawnTile(tileElem: HTMLElement, tile: Tile, truckLoc: TruckLocation): Promise<any> {
     const space = Elements.truckSpace(truckLoc.truck_id, truckLoc.truck_pos);
-    this.slide(tileElem, space).then(() => this.confirmLoadDrawnTile(tile, truckLoc));
+    return this.slide(tileElem, space).then(() => this.confirmLoadDrawnTile(tile, truckLoc));
   }
 
   private confirmLoadDrawnTile(tile: Tile, tl: TruckLocation) {

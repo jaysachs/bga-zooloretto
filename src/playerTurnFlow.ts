@@ -306,11 +306,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         Elements.enclosureSpace(this.player_id, dest.space),
         async () => {
           await this.slide(Elements.enclosureTile(pp.src_player_id, pp.src)!,
-            Elements.enclosureSpace(this.player_id, dest.space))
-            .then(() => this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest)));
+            Elements.enclosureSpace(this.player_id, dest.space));
           if (dest.offspring) {
-            this.offspringSlide(dest.offspring);
+            await this.offspringSlide(dest.offspring);
           }
+          this.callUndoably("confirmPurcase", async () => this.confirmPurchase(pp, dest))
         }
       ));
     this.addRestartAndUndoButtons();
@@ -456,10 +456,9 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
             this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
           ]);
         } else {
-          this.slide(tileElem,encElem).then(() =>
-            this.offspringSlide(dest.offspring).then( () =>
-              this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
-            ));
+          await this.slide(tileElem,encElem);
+          await this.offspringSlide(dest.offspring);
+          this.doDelivery(truck_id, deliveries, pp.truck_pos, dest);
         }
       });
     });
