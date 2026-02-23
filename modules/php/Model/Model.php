@@ -671,14 +671,10 @@ class Model {
     }
 
     /** @return array<int,array<string,int>> */
-    public function computeScores(?bool $persist = false): array {
+    public function computeScores(): array {
         $scores = [];
         foreach ($this->getAllPlayers() as $player) {
-            $details = Scorer::scoreForPlayer($player, $this->getEnclosuresForPlayer($player->id));
-            $scores[$player->id] = $details;
-            if ($persist) {
-                $this->ps->updateScore($player->id, $details['total']);
-            }
+            $scores[$player->id] = Scorer::scoreForPlayer($player, $this->getEnclosuresForPlayer($player->id));
         }
         return $scores;
     }
