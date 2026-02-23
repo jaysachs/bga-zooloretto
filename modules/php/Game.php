@@ -36,6 +36,7 @@ use Bga\Games\zoolorettoalpha\Model\PersistentStore;
 use Bga\Games\zoolorettoalpha\Model\Player;
 use Bga\Games\zoolorettoalpha\Model\Space;
 use Bga\Games\zoolorettoalpha\Model\Truck;
+use Bga\Games\zoolorettoalpha\States\ComputeScores;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
 use Bga\Games\zoolorettoalpha\Utils\Arrays;
 use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
@@ -278,6 +279,12 @@ class Game extends Table
 		} else {
 			$db->execute("UPDATE tiles SET (player_id, location, loc_id, loc_pos) = ({$player_id}, '{$location}', {$loc_id}, {$loc_pos} ) WHERE id = {$tile_id}");
 		}
+	}
+
+	#[Debug(reload: false)]
+	public function debug_endGame(int $active_player_id): void {
+		/** @phpstan-ignore argument.type */
+		$this->gamestate->jumpToState(ComputeScores::class);
 	}
 
 	#[Debug(reload: true)]

@@ -67,6 +67,7 @@ export class Game extends BaseGame<ZGamedatas> {
 
   private setupNotifications(): void {
     this.bga.notifications.setupPromiseNotifications({ handlers:[this, ...this.bga.states.getStateClasses()], logger: console.log });
+    (this.bga.gameui as any).notifqueue.setSynchronous( 'ShowFinalScores' );
   }
 
   private async notif_EndRound(args: {
@@ -160,8 +161,9 @@ export class Game extends BaseGame<ZGamedatas> {
     );
   }
 
-  private async notif_GameEnded(args: { endScores: any, }): Promise<void> {
-    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } );
+  private async notif_ShowFinalScores(args: { endScores: any, }): Promise<void> {
+    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } )
+      .then(() => (this.bga.gameui as any).notifqueue.setSynchronousDuration( 'ShowFinalScores', 0));
   }
 
   ///////

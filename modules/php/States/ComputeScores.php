@@ -60,7 +60,7 @@ class ComputeScores extends AbstractState
             $this->game->bga->playerScoreAux->set($pid, $scores['money']);
         }
         // FIXME: include winner(s) in message?
-        $this->notify->all('GameEnded', clienttranslate('Scoring completed'), [
+        $this->notify->all('ShowFinalScores', clienttranslate('Final scores'), [
             'endScores' => $scoreDetailsByPlayerId,
         ]);
         return 99;
