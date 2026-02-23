@@ -84,12 +84,11 @@ export class Game extends BaseGame<ZGamedatas> {
       { bump: 1, toPlaceholder: 'grow', fromPlaceholder: 'off'}))
     );
 
-    await this.animationManager.playSequentially(anims).then( () => {
-      this.bga.gameui.enableAllPlayerPanels();
-      if (args.last_round) {
-        this.view.showLastTurnBanner();
-      }
-    })
+    await this.animationManager.playSequentially(anims);
+    this.bga.gameui.enableAllPlayerPanels();
+    if (args.last_round) {
+      this.view.showLastTurnBanner();
+    }
   }
 
   private setupScoreSheet(gamedatas: ZGamedatas): void {

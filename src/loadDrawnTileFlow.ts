@@ -70,7 +70,7 @@ export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
     endgame_pile_size: number }) {
       await this.view.moreAnimations.slideAndAttach(
         Elements.tile(args.tile)!,
-        Elements.truckSpace(args.truck_id, args.truck_pos))
-          .then(() => this.replenishPilesAndUpdateCounters(args));
+        Elements.truckSpace(args.truck_id, args.truck_pos));
+      this.replenishPilesAndUpdateCounters(args);
   }
 };

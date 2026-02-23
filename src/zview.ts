@@ -96,11 +96,10 @@ export class GameView {
     elem.appendChild(front);
     elem.appendChild(back);
 
-    await this.moreAnimations.flip(front, back).then(_ => {
-      setTile();
-      back.remove();
-      front.remove();
-    });
+    await this.moreAnimations.flip(front, back);
+    setTile();
+    back.remove();
+    front.remove();
   }
 
   renderStock(gamedatas: ZGamedatas) : void {
