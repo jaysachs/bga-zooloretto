@@ -15,9 +15,11 @@ Open
 
 18. Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
 
-19. Very enclosure completion is corretly computed in all cases. Send a separate notification for enclosure completion (so log is better/simpler).
+19. Ensure every enclosure completion is corretly computed in all cases. Send a separate notification for enclosure completion (so log is better/simpler).
 
 20. NOT REPRO  When primary stock exhausted, UI is weird.
+
+21. At game ends, score shows briefly and then game ends. Use synchronous notification (infinite duration?) to at least keep it while the score animates. Ideally, require a click to dismiss it.
 
 Deferred
 ========
