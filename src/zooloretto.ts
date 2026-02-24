@@ -150,6 +150,8 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
           },
         ],
         scores: gamedatas.endScores,
+        // FIXME: this isn't required, but works around a minor bug
+        //   on the final situation page where a reload erases the scores.
         onScoreDisplayed: (property: string, playerId: number, score: number) => {
           if (property === 'total') {
             this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
@@ -157,10 +159,21 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
         },
       }
     );
+    this.scoreControl(gamedatas.endScores);
+  }
+
+  private scoreControl(scores: any) {
+    let visible: boolean = scores;
+    if (visible) {
+      $(IDS.GAME).onclick = (e) => { visible = !visible; this.scoreSheet.setVisible(visible); }
+    }
+
   }
 
   private async notif_ShowFinalScores(args: { endScores: any, }): Promise<void> {
-    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id, } );
+    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id } );
+    // TODO: should we hook this in before displaying them?
+    this.scoreControl(args.endScores);
     return this.bga.gameui.wait(this.bga.userPreferences.get(102));
   }
 

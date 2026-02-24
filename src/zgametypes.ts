@@ -58,7 +58,7 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
   trucks: Truck[];
   // keyed by player_id
   enclosures: EnclosureContents[][];
-  endScores: any;
+  endScores?: any;
 
   // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
