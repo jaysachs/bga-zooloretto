@@ -310,7 +310,8 @@ class PlayerTurn extends AbstractState
 				'DeliverCoins',
 				clienttranslate('${player_name} received ${coins} from ${truck}'), [
 					'player_id' => $active_player_id,
-					'coins' => $this->serializeArray($cointiles),
+					'coins' => $coins,
+					'coin_tiles' => $this->serializeArray($cointiles),
 					'truck_id' => $truck_id,
 					'truck' => Truck::translated($truck_id),
 					'i18n' => [

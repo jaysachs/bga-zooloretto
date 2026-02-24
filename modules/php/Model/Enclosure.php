@@ -274,7 +274,7 @@ class Enclosure {
         }
         if ($tile->type->isAnimal()) {
             $pos = $this->doPlaceTile($tile, $pos, 1, $this->animal_capacity);
-            return new PlacedTile($tile, new Space($this->id, $pos), $this->allAnimalPositionsFilled() ? $this->coin_bonus : 0);
+            return new PlacedTile($tile, new Space($this->id, $pos), $this->allAnimalPositionsFilled() ? $this->coin_bonus : null);
         }
         if ($tile->type->isStall()) {
             // stalls do not complete

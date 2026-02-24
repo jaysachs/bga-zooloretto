@@ -344,8 +344,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     // no need to update anything?
   }
 
-  async notif_DeliverCoins(args: { player_id: number, truck_id: number, coins: Tile[] }) {
-    const anims = args.coins.map(c =>
+  async notif_DeliverCoins(args: { player_id: number, truck_id: number, coin_tiles: Tile[] }) {
+    const anims = args.coin_tiles.map(c =>
       () => this.view.moreAnimations.slideOutAndDestroy(Elements.tile(c),
         this.bga.playerPanels.getElement(args.player_id)));
     await this.view.animationManager.playSequentially(anims);
