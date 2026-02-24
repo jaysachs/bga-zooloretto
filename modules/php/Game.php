@@ -253,20 +253,18 @@ class Game extends Table
 		new DefaultDb()->execute("UPDATE player SET money = $amount WHERE player_id=$player_id");
 	}
 
-	#[Debug(reload: true)]
+	#[Debug]
 	public function debug_fillTrucks(int $player_id): void {
-		$model = new Model($player_id);
-		$trucks = array_filter($model->getTrucks(), fn ($t) => $t->taken_by == 0);
-		while (array_sum(array_map(fn (Truck $t) => $t->freeSpaces(), $trucks)) > 0) {
-			$drawn = $model->drawTile()->drawn;
-			foreach ($trucks as $truck) {
-				$p = $truck->firstFreePosition();
-				if ($p > 0) {
-					$model->placeDrawnTileOnTruck($truck->id, $p);
-					break;
+		$trucksFilled = function(int $count) use (&$player_id) {
+			$model = new Model($player_id);
+			foreach ($model->getTrucks() as $truck) {
+				if (!$truck->taken_by && $truck->freeSpaces() > 0) {
+					return false;
 				}
 			}
-		}
+			return true;
+		};
+		$this->debug->playUntil($trucksFilled);
 	}
 
 	#[Debug(reload: true)]
