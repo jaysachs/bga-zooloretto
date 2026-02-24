@@ -65,7 +65,6 @@ export class MoreAnimations {
     }
 
     async slideToObject(el: HTMLElement, target: HTMLElement, duration: number = 500): Promise<any> {
-        console.debug("slidetoObject", el.id, target.id);
         const targetRect = target.getBoundingClientRect();
         const parRect = el.parentElement!.getBoundingClientRect();
         const newX = targetRect.left - parRect.left;
@@ -114,7 +113,6 @@ export class MoreAnimations {
     }
 
     async fadeOutIn(element: HTMLElement, iterations: number = 1, durationSeconds: number = 0.7) : Promise<any> {
-        console.log("fadeOutIn", element);
         if (!this.animationManager.animationsActive()) {
             return Promise.resolve(null);
         }

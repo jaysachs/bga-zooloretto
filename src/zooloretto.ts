@@ -61,8 +61,6 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     if (gamedatas.lastround) {
       this.view.showLastTurnBanner();
     }
-
-    console.log('Game setup done');
   }
 
   private setupNotifications(): void {

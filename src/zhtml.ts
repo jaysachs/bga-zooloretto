@@ -213,8 +213,6 @@ export class ZoolorettoHtml {
 
   playerPanel(player: ZPlayer): HTMLElement[] {
     const playerId = player.player_id;
-    console.log('Setting up panel for player ' + player.player_id);
-
     const summaryDivs : HTMLElement[] = [];
     if (this.twoPlayer) {
       summaryDivs.push(

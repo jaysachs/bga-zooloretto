@@ -13,7 +13,6 @@ export abstract class BaseGame<P extends Player, T extends Gamedatas> {
   private readonly special_log_args: SpecialLogArgs;
 
   constructor(bga: Bga<P, T>, special_log_args: SpecialLogArgs) {
-    console.log('game constructor');
     this.bga = bga;
     this.special_log_args = special_log_args;
     this.animationManager = new BgaAnimations.Manager({
@@ -52,9 +51,4 @@ export abstract class BaseGame<P extends Player, T extends Gamedatas> {
   protected indexInParent(el: Element): number {
     return Array.from(el.parentElement?.children ?? []).findIndex(e => e == el);
   }
-
-  protected async notif_debug(args: any) {
-    console.log("debug", args);
-  }
-
 }

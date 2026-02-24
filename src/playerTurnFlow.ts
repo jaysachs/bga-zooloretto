@@ -420,7 +420,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           truck_pos: d.truck_pos,
           enclosure_id: encOf(d.placed_tile.space),
           enclosure_pos: posOf(d.placed_tile.space)} });
-      console.log("will send", deliveries);
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,

@@ -46,7 +46,6 @@ export abstract class PlayFlow<T> {
   }
 
   public onLeavingState(args: T, isCurrentPlayerActive: boolean) {
-    console.log("onLeavingState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
       this.clear();
       this.clearMarked();
@@ -54,10 +53,8 @@ export abstract class PlayFlow<T> {
   }
 
   public onEnteringState(args: T, isCurrentPlayerActive: boolean) {
-    console.log("onEnteringState", (this as any).constructor?.name, args, isCurrentPlayerActive);
     if (isCurrentPlayerActive) {
       // this.clear();
-      console.log("start:", (this as any).constructor?.name);
       this.player_id = this.bga.gameui.player_id;
       const desc = "Start " + (this as any).constructor?.name;
       this.callUndoably(desc, () => this.start(args));
@@ -80,13 +77,10 @@ export abstract class PlayFlow<T> {
 
   // FIXME: consider whether this should await. Probably not ...
   protected async callUndoably(desc: string, thing: Op) {
-    console.debug("flowState callUndoably", desc);
     if (this.current !== undefined) {
-      console.debug("flowState pushing", this.current);
       this.continuations.push(this.current);
     }
     this.current = {op: { desc: desc, op: thing }, mark: this.ops.length};
-    console.debug("flowState new current: ", this.current);
     await thing();
   }
 
@@ -180,7 +174,6 @@ export abstract class PlayFlow<T> {
     elem.addEventListener(
       "click",
       async (ev: MouseEvent) => {
-        console.debug(`clicked on ${strElem(elem)}`);
         this.resetController();
         this.clearMarked();
         this.markSelected(elem);
@@ -191,7 +184,6 @@ export abstract class PlayFlow<T> {
   }
 
   private clear() {
-    console.debug("flowState clear");
     this.current = undefined;
     this.continuations = [];
     this.ops = [];
@@ -207,7 +199,6 @@ export abstract class PlayFlow<T> {
   }
 
   private resetController() {
-    console.debug("flowState resetController");
     this.onClickAbortController.abort();
     this.onClickAbortController = new AbortController();
   }
@@ -249,14 +240,11 @@ export abstract class PlayFlow<T> {
     if (!elem) {
       return;
     }
-    console.debug("setMarked", elem, mark);
     this.marked.push(elem);
     this.pushUndoOp(`unmark:${mark} ${strElem(elem)}`, this.mark(elem, mark));
   }
 
   private async rollback() {
-    console.debug("***");
-    console.debug("   rollback");
     this.inUndo = true;
     this.resetController();
     await this.undoTo(0);
@@ -266,18 +254,15 @@ export abstract class PlayFlow<T> {
   }
 
   private clearMarked() {
-    console.debug("clearMarked");
     while (this.marked.length > 0) {
       const elem = this.marked.pop()!;
       const undoMark = this.mark(elem, 'none');
       if (!this.inUndo) {
-        console.debug("clearMarked **AS UNDOABLE OP**", elem);
         this.pushOp({
           desc: `clearMarkedNotUndo:${strElem(elem)}`,
           op: undoMark,
         })
       }
-      console.debug("cleared marked", elem);
       elem.title = '';
     }
   }
