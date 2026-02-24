@@ -626,7 +626,8 @@ class Model {
         }
         $src_positions = $se->filledAnimalPositions();
 
-        $animalType = $se->tileAt($src_positions[0])->type->canonicalType();
+        $srcType = $se->tileAt($src_positions[0])->type->canonicalType();
+        $destType = $de->tileAt($dest_positions[0])->type->canonicalType();
 
         /** @var list<PlacedTile> */
         $placedTiles = [];
@@ -655,7 +656,7 @@ class Model {
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $encs[0]]);
 
-        return new CompletedExchange($src_enclosure_id, $animalType, $dest_enclosure_id, $placedTiles);
+        return new CompletedExchange($src_enclosure_id, $srcType, $dest_enclosure_id, $destType, $placedTiles);
     }
 
     private function chargePlayer(Player $player, Cost $cost) : void {

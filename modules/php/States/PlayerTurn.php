@@ -190,8 +190,7 @@ class PlayerTurn extends AbstractState
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',
-			// FIXME: need to handle barn
-            clienttranslate('${player_name} exchanged ${tile_type} between ${src_enclosure} and ${dest_enclosure}'),
+            clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
             [
                 'player_id' => $active_player_id,
                 'placed_tiles' => self::serializeArray($completedExchange->placedTiles),
@@ -200,14 +199,17 @@ class PlayerTurn extends AbstractState
                 'moneys' => $model->currentMoneys()->serialize(),
                 'dest_enclosure_id' => $completedExchange->dest_enclosure_id,
                 'dest_enclosure' => Enclosure::translated($completedExchange->dest_enclosure_id),
-                'tile_type' => $completedExchange->src_tile_type,
-                'tile_description' => $completedExchange->src_tile_type->translated(),
+                'src_tile_type' => $completedExchange->src_tile_type,
+                'src_tile_description' => $completedExchange->src_tile_type->translated(),
+                'dest_tile_type' => $completedExchange->dest_tile_type,
+                'dest_tile_description' => $completedExchange->dest_tile_type->translated(),
                 'enclosure_summaries' => [
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$src_enclosure_id])->serialize(),
                     EnclosureSummary::forEnclosure($active_player_id, $model->getEnclosuresForPlayer($active_player_id)[$dest_enclosure_id])->serialize(),
                 ],
                 'i18n' => [
-                    'tile_description',
+                    'src_tile_description',
+                    'dest_tile_description',
                     'src_enclosure',
                     'dest_enclosure',
                 ]
