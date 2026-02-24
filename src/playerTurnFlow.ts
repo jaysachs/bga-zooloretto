@@ -133,8 +133,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           Elements.enclosureSpace(this.player_id, space),
           async () => {
             this.updateMoneyDelta(possible_discards.money_delta);
-            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!, $(IDS.BOX))
-              .then(() => this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space)))
+            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!, $(IDS.BOX));
+            this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
           }, _('Discard tile'));
       }
     });
@@ -157,8 +157,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           // FIXME: should this be exposed? better way to do this? wrap addActionButton?
           this.clearOnclicks();
           this.view.updateMoneyDelta(discardMoneyDelta);
-          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!, $(IDS.BOX))
-            .then(() => this.confirmDiscard(pm.src));
+          await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!, $(IDS.BOX));
+          this.confirmDiscard(pm.src);
         });
     }
     this.addRestartAndUndoButtons();
@@ -166,11 +166,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       const elem = Elements.enclosureTile(this.player_id, pm.src);
       const destElem = Elements.enclosureSpace(this.player_id, dest.space)
       this.addSelectableOnclick(destElem,
-        async () => await this.slide(elem!, destElem)
-          .then(() => {
-            this.updateMoneyDelta(moveMoneyDelta);
-            this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
-          })
+        async () => {
+          await this.slide(elem!, destElem);
+          this.updateMoneyDelta(moveMoneyDelta);
+          this.callUndoably("confirmMove", async () => this.confirmMove(pm.src, dest));
+        }
       )
     });
   }
@@ -254,8 +254,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           }
           this.mark(s, 'none');
           this.pushUndoOp("exchange", () => this.animationManager.playParallel(anims));
-          await this.animationManager.playParallel(anims)
-            .then(() => this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid, positions)));
+          await this.animationManager.playParallel(anims);
+          this.callUndoably("confirmExchange", async () => this.confirmExchange(srcid, destid, positions));
         });
     });
   }
@@ -345,11 +345,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
   async notif_DeliverCoins(args: { player_id: number, truck_id: number, coins: Tile[] }) {
-    const anims = args.coins.map(c => () => this.view.moreAnimations.slideOutAndDestroy(
-        Elements.tile(c),
-          this.bga.playerPanels.getElement(args.player_id),
-        ).then(() => this.view.addMoney(args.player_id, 1)));
+    const anims = args.coins.map(c =>
+      () => this.view.moreAnimations.slideOutAndDestroy(Elements.tile(c),
+        this.bga.playerPanels.getElement(args.player_id)));
     await this.view.animationManager.playSequentially(anims);
+    this.view.addMoney(args.player_id, 1);
   }
 
   async notif_DeliverTruckTile(args: {
@@ -472,13 +472,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     const elem = Elements.truck(args.truck_id);
-    await this.view.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)), { bump: 1, toPlaceholder: 'off' })
-      .then(() => {
-        Elements.truck(args.truck_id).removeAttribute(Attrs.MARK);
-        this.view.updateMoneys(args.moneys);
-        this.view.updateEnclosureSummaries(args.enclosure_summaries);
-        this.bga.gameui.disablePlayerPanel(args.player_id);
-      })
+    await this.view.moreAnimations.slideAndAttach(elem, $(IDS.takenTruck(args.player_id)), { bump: 1, toPlaceholder: 'off' });
+    Elements.truck(args.truck_id).removeAttribute(Attrs.MARK);
+    this.view.updateMoneys(args.moneys);
+    this.view.updateEnclosureSummaries(args.enclosure_summaries);
+    this.bga.gameui.disablePlayerPanel(args.player_id);
   }
 
   private async notif_MoveTile(args: {
@@ -492,8 +490,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     await this.view.moreAnimations.slideAndAttach(
       Elements.tile(args.tile)!,
       Elements.enclosureSpace(args.player_id, args.dest)
-    )
-      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+    );
+    this.view.updateEnclosureSummaries(args.enclosure_summaries);
   }
 
   private async notif_DiscardTile(args: {
@@ -502,8 +500,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     enclosure_summaries: EnclosureSummary[],
   }) {
     this.view.updateMoneys(args.moneys);
-    await this.view.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.BOX))
-      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+    await this.view.moreAnimations.slideOutAndDestroy(Elements.tile(args.tile), $(IDS.BOX));
+    this.view.updateEnclosureSummaries(args.enclosure_summaries);
   }
 
   private async notif_PurchaseTile(args: {
@@ -519,8 +517,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     }
     await this.animationManager.playSequentially(
       tiles.map(pt => () => this.view.moreAnimations.slideAndAttach(Elements.tile(pt.tile)!, Elements.enclosureSpace(args.player_id, pt.space)))
-      )
-      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+      );
+    this.view.updateEnclosureSummaries(args.enclosure_summaries);
   }
 
   private async notif_ExpandZoo(args: {
@@ -552,8 +550,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         anims.push(() => this.animationManager.slideIn(elem, $(IDS.BOX), {}));
       }
     });
-    await this.animationManager.playParallel(anims)
-      .then(() => this.view.updateEnclosureSummaries(args.enclosure_summaries))
+    await this.animationManager.playParallel(anims);
+    this.view.updateEnclosureSummaries(args.enclosure_summaries);
   }
 
   private async notif_DrawTile(

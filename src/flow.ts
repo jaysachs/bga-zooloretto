@@ -78,7 +78,8 @@ export abstract class PlayFlow<T> {
     this.pushOp({ desc: desc, op: anim });
   }
 
- protected async callUndoably(desc: string, thing: Op) {
+  // FIXME: consider whether this should await. Probably not ...
+  protected async callUndoably(desc: string, thing: Op) {
     console.debug("flowState callUndoably", desc);
     if (this.current !== undefined) {
       console.debug("flowState pushing", this.current);
@@ -101,14 +102,15 @@ export abstract class PlayFlow<T> {
     return this.animationManager.slideIn(elem, this.offboard(), { });
   }
 
-  protected async slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement) {
+  protected slideOutAndDestroy(elem: HTMLElement, toElem: HTMLElement): Promise<void> {
     const backup = elem.cloneNode() as HTMLElement;
     const parent = elem.parentElement as HTMLElement;
     this.pushUndoOp(`slideOutAndDestroy:${strElem(elem)}`, async () => {
       parent.appendChild(backup);
+      // FIXME: this await is probably not needed
       await this.animationManager.slideIn(backup, toElem, {});
     });
-    await this.animationManager.slideOutAndDestroy(elem, toElem, {});
+    return this.animationManager.slideOutAndDestroy(elem, toElem, {});
   }
 
   protected initStatusBar(title: string, args?: any) {
@@ -122,28 +124,21 @@ export abstract class PlayFlow<T> {
         await this.bga.actions.performAction(bgaAction, args).then(settings?.post);
     };
     if (!this.confirmationsEnabled())  {
-      return await doAct();
+      return doAct();
     }
     const confirmButton = this.bga.statusBar.addActionButton(_('Confirm'), doAct, { autoclick: this.useAutoclick() });
     this.addRestartAndUndoButtons({ ...settings, confirm: confirmButton });
   }
 
-  protected addRestartAndUndoButtons(settings?: { confirm?: HTMLButtonElement, restart?: () => Promise<any>} ): void {
+  protected addRestartAndUndoButtons(settings?: { confirm?: HTMLButtonElement } ): void {
     this.bga.statusBar.addActionButton(_('Restart turn'),
         async () => {
           if (settings?.confirm) {
             settings.confirm.disabled = true;
             settings.confirm.remove();
           }
-          if (settings?.restart) {
-            console.debug("using setting restart", settings.restart)
-            await this.rollback().then(() => settings.restart());
-          } else {
-            console.debug("rollback then restoreServerGameState")
-            await this.rollback().then(() => {
-              this.bga.states.restoreServerGameState();
-            })
-          }
+          await this.rollback();
+          this.bga.states.restoreServerGameState();
         },
       { color: "secondary"});
 
@@ -189,6 +184,7 @@ export abstract class PlayFlow<T> {
         this.resetController();
         this.clearMarked();
         this.markSelected(elem);
+        // FIXME: is this await needed?
         await onclick(ev);
       },
       { signal: this.abortSignal() });
@@ -202,12 +198,12 @@ export abstract class PlayFlow<T> {
     this.resetController();
   }
 
-  private async undoTo(mark: number) {
+  private undoTo(mark: number): Promise<any> {
     const anims: Op[] = [];
     while (this.ops.length > mark) {
       anims.push(this.ops.pop()!.op);
     }
-    await this.consumer(anims);
+    return this.consumer(anims);
   }
 
   private resetController() {
@@ -263,11 +259,10 @@ export abstract class PlayFlow<T> {
     console.debug("   rollback");
     this.inUndo = true;
     this.resetController();
-    await this.undoTo(0).then(() => {
-      this.clearMarked();
-      this.clear();
-      this.inUndo = false;
-    });
+    await this.undoTo(0);
+    this.clearMarked();
+    this.clear();
+    this.inUndo = false;
   }
 
   private clearMarked() {
