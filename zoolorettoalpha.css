@@ -574,6 +574,7 @@ body.mobile_version {
     top: 42.5%;
     height: 18.5%;
     width: 19%;
+    z-index: 100;
 }
 
 #zoo-game.zoo-2p [zoo-extension] {
@@ -581,6 +582,10 @@ body.mobile_version {
 }
 
 #zoo-game [zoo-extension="1"] { left: 1%; }
+
+.zoo-board[zoo-extensions="1"] [zoo-extension="1"] { z-index: -100; }
+.zoo-board[zoo-extensions="2"] [zoo-extension="1"] { z-index: -100; }
+.zoo-board[zoo-extensions="2"] [zoo-extension="2"] { z-index: -100; }
 
 #zoo-game.zoo-2p [zoo-extension="1"] { left: 19.25%; }
 #zoo-game.zoo-2p [zoo-extension="2"] { left: 1.5%; }
