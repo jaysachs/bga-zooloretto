@@ -1,5 +1,5 @@
 import { Html } from './html';
-import { Tile, ZGamedatas } from './zgametypes';
+import { Tile, ZGamedatas, ZPlayer } from './zgametypes';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList } from './more-animations';
@@ -9,7 +9,7 @@ import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
 
 /** Game class */
-export class Game extends BaseGame<ZGamedatas> {
+export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
   private moneyCounter = new Map<number, Counter>();
   private primaryStockCounter: Counter = new ebg.counter();
@@ -17,7 +17,7 @@ export class Game extends BaseGame<ZGamedatas> {
   private scoreSheet: ScoreSheet;
   private readonly view: GameView;
 
-  constructor(bga: Bga<ZGamedatas>) {
+  constructor(bga: Bga<ZPlayer, ZGamedatas>) {
     super(bga, Game.special_log_args);
     this.view = new GameView(bga, this.animationManager, this.moneyCounter, this.primaryStockCounter, this.endgameStockCounter);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));

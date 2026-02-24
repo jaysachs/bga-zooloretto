@@ -6,13 +6,13 @@ import { MoreAnimations } from './more-animations';
 
 type SpecialLogArgs = Record<string, (any) => HTMLElement>;
 
-export abstract class BaseGame<T extends Gamedatas> {
+export abstract class BaseGame<P extends Player, T extends Gamedatas> {
   public readonly animationManager: AnimationManager;
   public readonly moreAnimations: MoreAnimations;
-  public readonly bga: Bga<T>;
+  public readonly bga: Bga<P, T>;
   private readonly special_log_args: SpecialLogArgs;
 
-  constructor(bga: Bga<T>, special_log_args: SpecialLogArgs) {
+  constructor(bga: Bga<P, T>, special_log_args: SpecialLogArgs) {
     console.log('game constructor');
     this.bga = bga;
     this.special_log_args = special_log_args;

@@ -59,6 +59,20 @@ declare function $(text: ElementOrId): HTMLElement;
  */
 declare function getLibUrl(name: string, version: string): string;
 
+/**
+ * Loads a versionned ESM lib.
+ * 
+ * Example of usage: `const BgaAnimations = await importEsmLib('bga-animations', '1.x');`
+ */
+declare function importEsmLib(name: string, version: string): Promise<any>;
+
+/**
+ * Loads Dojo (UMD) libs.
+ * 
+ * Example of usage: `const [Counter, Stock] = await importDojoLibs(["ebg/counter", "ebg/stock"]);`
+ */
+declare function importDojoLibs(names: string[]): Promise<any[]>;
+
 interface Gamestate {
     active_player?: string;
     args: any;
@@ -227,7 +241,7 @@ declare class UserPreferences {
   toggleVisibility(prefId: number, visible?: boolean): void;
 }
 
-declare class Players {
+declare class Players<P = Player> {
   /**
    * Return the id of the player who is looking at the game. The player may not be part of the game (i.e. spectator)
    * @returns {number} the current player id
@@ -238,9 +252,9 @@ declare class Players {
    * Return the current player data stored in gamedatas.players.
    * Can be undefined, if the player isn't at this table (spectator).
    * 
-   * @returns {Object | undefined} the player
+   * @returns {P | undefined} the player
    */
-  getCurrentPlayer(): Object | undefined;
+  getCurrentPlayer(): P | undefined;
 
   /**
    * Returns true if the player on whose browser the code is running is a spectator.
@@ -273,17 +287,17 @@ declare class Players {
   /**
    * Return the active player, or null if we are not in an ACTIVE_PLAYER type state.
    * 
-   * @returns {Object | null} the active player
+   * @returns {P | null} the active player
    */
-  getActivePlayer(): Object | null;
+  getActivePlayer(): P | null;
 
   /**
    * Return the player data stored in gamedatas.players.
    * Can be undefined, if the player isn't at this table (spectator).
    * 
-   * @returns {Object | undefined} the player
+   * @returns {P | undefined} the player
    */
-  getPlayer(playerId: number) : Object | undefined;
+  getPlayer(playerId: number) : P | undefined;
 
   /**
    * Return the HTML code for a player name, colored and with optional background.
@@ -552,13 +566,13 @@ declare class States {
     isOnClientState(): boolean;
 }
 
-interface Bga<G = Gamedatas> {
+interface Bga<P = Player, G = Gamedatas<P>> {
   gameui: GameGui<G>;
   statusBar: StatusBar;
   images: Images;
   sounds: Sounds;
   userPreferences: UserPreferences;
-  players: Players;
+  players: Players<P>;
   actions: Actions;
   notifications: Notifications;
   gameArea: GameArea;
@@ -567,7 +581,7 @@ interface Bga<G = Gamedatas> {
   states: States;
 }
 
-declare class GameGui<G = Gamedatas> {
+declare class GameGui<P = Player, G = Gamedatas> {
   /**
    * Return true if the game is in realtime. Note that having a distinct behavior in realtime and turn-based should be exceptional.
    */
@@ -609,7 +623,7 @@ declare class GameGui<G = Gamedatas> {
    */
   scoreCtrl: {[player_id: number]: Counter};
 
-  bga: Bga;
+  bga: Bga<P, G>;
 
   statusBar: StatusBar;
   sounds: Sounds;
