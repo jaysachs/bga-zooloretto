@@ -331,6 +331,7 @@ class PlayerTurn extends AbstractState
 					'player_id' => $active_player_id,
 					'delivery' => $delivery->serialize(),
 					'tile_type' => $pt->tile->type,
+					'tile_description' => $pt->tile->type->translated(),
 					'truck_id' => $truck_id,
 					'truck' => Truck::translated($truck_id),
 					'enclosure_description' => Enclosure::translated($pt->space->enclosure_id),
