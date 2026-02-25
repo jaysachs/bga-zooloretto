@@ -18,24 +18,29 @@ body {
     --zoo-truck-aspect-ratio: calc(473 / 175);
 
     /* Goal of tile size of approx 4vw ... */
-    --zoo-tile-size: calc((100vw - 240px) / 20);
+    --zoo-tile-size: calc((100vw - 240px) / 17);
 
-    /* Trucks are 473 x 175. Tile spots are 108 wide in that image. */
-    --zoo-truck-width: calc(3 * var(--zoo-tile-size) *  473/(3 * 118) );
 }
 
 body.mobile_version {
     /* right-side-width is 0px */
-    --zoo-tile-size: calc(100vw / 20);
+    --zoo-tile-size: calc(100vw / 17);
+}
+
+body.mobile_version #zoo-game.zoo-2p {
+    --zoo-tile-size: calc((100vw - 240px) / 15);
 }
 
 #zoo-game.zoo-2p {
-    --zoo-board-width: 100%; /* calc(var(--zoo-tile-size) * 10.1px); */
+    --zoo-board-width: calc(var(--zoo-tile-size) * 13.6);
+    --zoo-tile-size: calc((100vw - 240px) / 19);
 }
 
 #zoo-game {
+    /* Trucks are 473 x 175. Tile spots are 108 wide in that image. */
+    --zoo-truck-width: calc(3 * var(--zoo-tile-size) *  473/(3 * 118) );
+
     --zoo-board-width: calc(var(--zoo-tile-size) * 11.6);
-/*    width: 100%; */
     display : flex;
     align-items: flex-start;
     justify-content: space-around;
@@ -78,7 +83,7 @@ body.mobile_version {
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: 10%;
+    right: 20%;
     top: 105%;
     text-align: right;
     /* FIXME: revisit this. maybe just width */
