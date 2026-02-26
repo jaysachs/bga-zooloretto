@@ -156,8 +156,9 @@ class Game extends Table
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 			$datas['players'][$player->id]['extension_available'] = $player->extensionAvailable();
 		}
-		$isEndScore = intval($this->gamestate->getCurrentMainStateId()) >= 99;
-  		$datas['endScores'] = $isEndScore ? $model->computeScores() : null;
+		if (intval($this->gamestate->getCurrentMainStateId()) >= 99) {
+			$datas['endScores'] = $model->computeScores();
+		}
 
         return $datas;
 	}
