@@ -107,7 +107,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   // Draw tile
 
   private drawTile(lastround: boolean) {
-    this.initStatusBar(_('Draw a tile? (cannot undo)'));
+    this.initStatusBar(_('Draw a tile?'));
     this.markSelected(Elements.drawnTile(lastround));
     this.addConfirmAndRestartActionButtons('actDrawTile', {});
   }
@@ -133,8 +133,10 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           Elements.enclosureSpace(this.player_id, space),
           async () => {
             this.updateMoneyDelta(possible_discards.money_delta);
-            await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, space)!, $(IDS.BOX));
-            this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space));
+            const elem = Elements.enclosureTile(this.player_id, space)!;
+            const tt = elem.getAttribute(Attrs.TILE);
+            await this.slideOutAndDestroy(elem, $(IDS.BOX));
+            this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space, tt));
           }, _('Discard tile'));
       }
     });
@@ -142,8 +144,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   // Discard
 
-  private confirmDiscard(space: number) {
-    this.initStatusBar(_('Confirm discard'));
+  private confirmDiscard(space: number, tt: string) {
+    this.initStatusBar(_('Discard ${tile_type}?'), { tile_type: tt });
     this.addConfirmAndRestartActionButtons('actDiscardTile', { barn_pos: posOf(space) });
   }
 
@@ -158,7 +160,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           this.clearOnclicks();
           this.view.updateMoneyDelta(discardMoneyDelta);
           await this.slideOutAndDestroy(Elements.enclosureTile(this.player_id, pm.src)!, $(IDS.BOX));
-          this.confirmDiscard(pm.src);
+          this.confirmDiscard(pm.src, 'FIXME');
         });
     }
     this.addRestartAndUndoButtons();
@@ -177,7 +179,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private async confirmMove(src: number, dest: PlacedTile) {
     await this.offspringSlide(dest.offspring);
-    this.initStatusBar(_('Confirm move'));
+    this.initStatusBar(_("Move ${tile_type}?"), // to ${enclosure_description}
+      {  tile_type: dest.tile.type, tile_description: dest.tile.description });
     this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
     });
@@ -278,7 +281,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
   private confirmExchange(srcid: number, destid: number, barnPos?: number[]) {
-    this.initStatusBar(_("Confirm exchange"));
+    this.initStatusBar(_("Exchange animals?"), {});
     this.addConfirmAndRestartActionButtons("actExchangeEnclosureAnimals", {
       src_enclosure_id: srcid,
       dest_enclosure_id: destid,
@@ -317,7 +320,9 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
   private confirmPurchase(pp: PossiblePurchase, dest: PlacedTile) {
-    this.initStatusBar(_("Confirm purchase"));
+    this.initStatusBar(_("Purchase ${tile_type} from ${player_name}?"),
+      {  tile_type: dest.tile.type, tile_description: dest.tile.description,
+         player_name: this.bga.players.getFormattedPlayerName(pp.src_player_id) });
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
       barn_pos: posOf(pp.src),
@@ -414,7 +419,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private async chooseTruckTileToPlace(truck_id: number, deliveries: Delivery[], pps: PossibleDelivery[]) {
     if (!pps || pps.length == 0) {
-      this.initStatusBar(_('Confirm your truck tile placements'));
+      this.initStatusBar(_('Deliver tiles?'));
       let placements: Placement[] = deliveries.map(d => {
         return {
           truck_pos: d.truck_pos,
@@ -428,7 +433,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       );
     }
     else {
-      this.initStatusBar(_('Choose a tile to place from the selected truck'));
+      this.initStatusBar(_('Choose a tile to deliver from the selected truck'));
       pps.forEach((pp: PossibleDelivery) => {
         let elem = Elements.truckSpace(truck_id, pp.truck_pos);
         this.addSelectableOnclick(elem, async () => {
