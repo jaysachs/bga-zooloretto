@@ -7,12 +7,17 @@ Required for alpha
 
 * Improve "parent flash" animation; in particular, don't double-flash, and also the "moved" blue border is weird on just one tile when offspring are produced as a result of a purchase or move (or exchange).
 
-* When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
-
 Open
 ====
 
+* Use https://github.com/thoun/bga-jump-to/?tab=readme-ov-file to facilitate navigating to different player boards.
+
+* When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
+
 * When selected an exchange destination, hover-highlight all the target tiles.
+
+* Get translations (tiles, enclosures) into the client so can do better messaging.
+
 
 Deferred
 ========
