@@ -1,52 +1,45 @@
+Required for alpha
+==================
+
+* Ensure layout works for all combinations of 2p/>2p + mobile/non-mobile
+
+* Decide on good highlight colors, and ensure they work with the background (whiteblock?) of the shared components area
+
+* Improve "parent flash" animation; in particular, don't double-flash, and also the "moved" blue border is weird on just one tile when offspring are produced as a result of a purchase or move (or exchange).
+
+* When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
+
 Open
 ====
 
-1. FIXED Restart not working properly for delivery. The issue seems to be that the undo-s go back too
-   far or something. Need to only "reset" when an actual state change happens (not a leave state / re-enter same state -- that shouldn't reset.) And depending, maybe even more general, should be explicit with undo boundaries.
-
-2. DONE Delivered trucks stay "blue" after being returned to play area from player board.
-  * This is related to (1).
-  * Consider marking truck "delivering" on StartDelivery notif, and clearing that on
-    "DeliveryCompleted". Will need a "DeliveryCanceled" notif probably.
-
-16. DONE When marking exchanged tiles, mark all the exchanged tiles; not empty spaces.
-
-17.  Also, when selected an exchange destination, hover-highlight all the target tiles.
-
-18. Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
-
-19. Ensure every enclosure completion is corretly computed in all cases. Send a separate notification for enclosure completion (so log is better/simpler).
-
-20. NOT REPRO  When primary stock exhausted, UI is weird.
-
-21. DONE At game ends, score shows briefly and then game ends. Use synchronous notification (infinite duration?) to at least keep it while the score animates. Ideally, require a click to dismiss it.
+* When selected an exchange destination, hover-highlight all the target tiles.
 
 Deferred
 ========
-3. DONE, actually put them in a private notif. Put "possibles" in private args. (Very important in Babylonia, however.)
 
-4. Handle multiple offspring (difficult but possible to arrange)
+* Handle multiple offspring (difficult but possible to arrange)
 
-5. Allow barn to have infinite size; shrink barn tiles when size goes above 9.
+* Allow barn to have infinite size; shrink barn tiles when size goes above 9.
 
 Maybe
 =====
-6. Add undo (and redo?)
-  Only granular undo if all clientside. We're moving towards that.
+*. Add undo (and redo?)
 
-8. (?) add back player aid
+* (?) add back player aid
 
-9. Update layout for mobile (trucks at top)
+* Update layout for mobile (trucks at top)
 
-10. consider clicking on enclosures as a whole (for exchange, at least)
+* Consider clicking on enclosures as a whole (for exchange, at least)
 
-11. When only one option, or all options the same, auto-do it?
+* Consider "initial selection of truck to deliver" also auto-selects the animal.
+
+* When only one option, or all options the same, auto-do it?
   * e.g. drawn tile placed into one of 4 equally sized empty trucks
   * e.g. drawn tile with only one space to go
 
-12. "auto placement" of delivered tiles
+* "auto placement" of delivered tiles?
 
-14. Generate PHP/TS classes from user preferences?
+* Generate PHP/TS classes from user preferences?
 
 Verification required
 =====================
@@ -57,3 +50,6 @@ Verification required
 * Verify offspring overflow into barn
 * Verify completion bonuses generated at right times
 * Mobile testing
+* Ensure rendering is correct when offspring are produced. Send the offspring notification after the purchase/move/exchange ... so the log is correct.
+
+* Ensure every enclosure completion is corretly computed in all cases. Send a separate notification for enclosure completion (so log is better/simpler).
