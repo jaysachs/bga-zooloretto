@@ -62,6 +62,8 @@ export interface ZGamedatas extends Gamedatas<ZPlayer> {
 
   // keyed by player_id
   enclosure_summaries: EnclosureSummary[];
+
+  tile_translations: Record<string, string>;
 }
 
 export interface PlacedTile {
