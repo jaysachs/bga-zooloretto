@@ -5,6 +5,8 @@ Required for alpha
 
 * Improve "parent flash" animation; in particular, don't double-flash, and also the "moved" blue border is weird on just one tile when offspring are produced as a result of a purchase or move (or exchange).
 
+* Layout / tilesize shrinks "too much" in 2p mobile mode as viewport shrinks. Possibly also in 3+p mobile mode.
+
 Open
 ====
 
