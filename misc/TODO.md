@@ -1,8 +1,6 @@
 Required for alpha
 ==================
 
-* Ensure layout works for all combinations of 2p/>2p + mobile/non-mobile
-
 * Decide on good highlight colors, and ensure they work with the background (whiteblock?) of the shared components area
 
 * Improve "parent flash" animation; in particular, don't double-flash, and also the "moved" blue border is weird on just one tile when offspring are produced as a result of a purchase or move (or exchange).
@@ -15,9 +13,6 @@ Open
 * When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
 
 * When selected an exchange destination, hover-highlight all the target tiles.
-
-* Get translations (tiles, enclosures) into the client so can do better messaging.
-
 
 Deferred
 ========
