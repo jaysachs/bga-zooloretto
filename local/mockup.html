@@ -702,7 +702,7 @@
 
 
 <!-- GAME STARTS HERE -->
-                    <script>
+                    <script type="text/javascript" >
 
                       let animationManager = new BgaAnimations.Manager({ animationsActive: () => true });
                       let moreAnimations = new MoreAnimations(animationManager);
@@ -807,6 +807,13 @@
                           } else {
                               s.style.display = 'none';
                           }
+                      }
+                      const params = new URL(window.location.toString()).searchParams;
+                      if (params.get('twop') != null) {
+                          toggle2p();
+                      }
+                      if (params.get('mobile') != null) {
+                          togglePlayerBoards();
                       }
                       </script>
 
