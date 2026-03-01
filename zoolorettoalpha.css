@@ -13,6 +13,15 @@
  *
  */
 
+/*
+Colors from box cover:
+Z          o   #DD9457  ("orange-y")
+ o     r       #5F9FCB  (blue)
+  o      t     #C87862  (dusty red)
+   l    e      #C173A0  (dark pink)
+    o     t    #8D9BC3  (lavender grey)
+*/
+
 body {
     /* inherent to the truck image */
     --zoo-truck-aspect-ratio: calc(473 / 175);
@@ -28,11 +37,12 @@ body.mobile_version {
 }
 
 body.mobile_version #zoo-game.zoo-2p {
-    --zoo-tile-size: calc((100vw - 240px) / 15);
+    --zoo-tile-size: calc(100vw / 19);
+    --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
 }
 
 #zoo-game.zoo-2p {
-    --zoo-board-width: calc(var(--zoo-tile-size) * 13.6);
+    --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
     --zoo-tile-size: calc((100vw - 240px) / 19);
 }
 
@@ -57,14 +67,12 @@ body.mobile_version #zoo-game.zoo-2p {
  */
 
 #zoo-shared-container {
-/*    top: 0px; */
-    /*    position: sticky; */
+/*    position: sticky; */
     padding: 0 1vw 1vw 1vw;
     flex-shrink: 1;
     flex-grow: 0;
     display: flex;
     border-radius: 8px;
-    border: solid 1px grey;
     flex-direction: column;
     height: 50%;
     width: auto;
@@ -73,7 +81,7 @@ body.mobile_version #zoo-game.zoo-2p {
 #zoo-stock {
     display: flex;
     flex-direction: row;
-    margin: 0 0 1vw 0;
+    margin: 1vw 0 1vw 0;
 }
 
 #zoo-primary-pile, #zoo-endgame-pile {
@@ -84,7 +92,7 @@ body.mobile_version #zoo-game.zoo-2p {
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: 20%;
+    right: 12%;
     top: 105%;
     text-align: right;
     /* FIXME: revisit this. maybe just width */
@@ -278,7 +286,7 @@ body.mobile_version #zoo-game.zoo-2p {
 
 [zoo-mark="selectable"]:hover {
     cursor: pointer;
-    filter: contrast(200%);
+    filter: contrast(150%);
     /*
     transition-property: filter background-image box-shadow;
     transition-duration: 2s;
@@ -714,7 +722,7 @@ body.mobile_version #zoo-game.zoo-2p {
     gap: 0px;
     width: auto;
     justify-content: right;
-    background-color: rgb(127,166,81);
+    background-color: #408741;
 }
 
 .zoo-player-panel-board-summary > div {
