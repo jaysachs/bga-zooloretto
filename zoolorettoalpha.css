@@ -31,19 +31,19 @@ body {
 
 }
 
-body.mobile_version {
+body.mobile_version #zoo-game {
     /* right-side-width is 0px */
-    --zoo-tile-size: calc(100vw / 17);
+    --zoo-tile-size: calc(100vw / 17 / var(--bga-game-zoom));
 }
 
 body.mobile_version #zoo-game.zoo-2p {
-    --zoo-tile-size: calc(100vw / 19);
+    --zoo-tile-size: calc(100vw / 18.6 / var(--bga-game-zoom));
     --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
 }
 
 #zoo-game.zoo-2p {
     --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
-    --zoo-tile-size: calc((100vw - 240px) / 19);
+    --zoo-tile-size: calc((100vw - 240px) / 18.6);
 }
 
 #zoo-game {
