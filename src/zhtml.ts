@@ -185,7 +185,7 @@ export class ZoolorettoHtml {
           this.playerBoardDiv(currentPlayer),
           ... otherplayers.map((p) => this.playerBoardDiv(p))
         ),
-        Html.div({ id: 'zoo-shared-container', classes: 'whiteblock' },
+        Html.div({ id: 'zoo-shared-container' },
           Html.div({ id: 'zoo-stock' },
             Html.div({ id: 'zoo-primary-pile' },
               Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
