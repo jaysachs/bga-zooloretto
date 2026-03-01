@@ -180,7 +180,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private async confirmMove(src: number, dest: PlacedTile) {
     await this.offspringSlide(dest.offspring);
     this.initStatusBar(_("Move ${tile_type}?"), // to ${enclosure_description}
-      {  tile_type: dest.tile.type, tile_description: dest.tile.description });
+      {  tile_type: dest.tile.type });
     this.addConfirmAndRestartActionButtons('actMoveTile', {
       src_id: encOf(src), src_pos: posOf(src), dest_id: encOf(dest.space), dest_pos: posOf(dest.space)
     });
@@ -321,8 +321,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private confirmPurchase(pp: PossiblePurchase, dest: PlacedTile) {
     this.initStatusBar(_("Purchase ${tile_type} from ${player_name}?"),
-      {  tile_type: dest.tile.type, tile_description: dest.tile.description,
-         player_name: this.bga.players.getFormattedPlayerName(pp.src_player_id) });
+      {  tile_type: dest.tile.type, player_name: this.bga.players.getFormattedPlayerName(pp.src_player_id) });
     this.addConfirmAndRestartActionButtons('actPurchaseTile', {
       from_player_id: pp.src_player_id,
       barn_pos: posOf(pp.src),

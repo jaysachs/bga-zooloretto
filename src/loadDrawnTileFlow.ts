@@ -15,9 +15,7 @@ export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   constructor(gameView: GameView) { super(gameView); }
 
   protected override start(args: LoadDrawnTileArgs) {
-    this.initStatusBar(_('Place ${tile_type} in an available truck'),
-        { tile_type: args.tile.type,
-          tile_description: _(args.tile.description) });
+    this.initStatusBar(_('Place ${tile_type} in an available truck'), { tile_type: args.tile.type });
     const elem = Elements.tile(args.tile)!; // was: Elements.drawnTile(args.drawn_from_endgame_pile);
     this.markSelected(elem);
     args.available_spaces.forEach((truckLoc: TruckLocation) =>
@@ -34,7 +32,6 @@ export class LoadDrawnTileFlow extends ZooFlow<LoadDrawnTileArgs> {
   private confirmLoadDrawnTile(tile: Tile, tl: TruckLocation) {
     this.initStatusBar(_('Place ${tile_type} in truck ${truck_id}?'),
         { tile_type: tile.type,
-          tile_description: _(tile.description),
           truck_id: tl.truck_id });
     // FIXME: restart doesn't re-highlight the truck spaces.
     this.addConfirmAndRestartActionButtons('actLoadDrawnTile', tl);
