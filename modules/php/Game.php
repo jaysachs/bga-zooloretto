@@ -35,6 +35,7 @@ use Bga\Games\zoolorettoalpha\Model\Model;
 use Bga\Games\zoolorettoalpha\Model\PersistentStore;
 use Bga\Games\zoolorettoalpha\Model\Player;
 use Bga\Games\zoolorettoalpha\Model\Space;
+use Bga\Games\zoolorettoalpha\Model\TileType;
 use Bga\Games\zoolorettoalpha\Model\Truck;
 use Bga\Games\zoolorettoalpha\States\ComputeScores;
 use Bga\Games\zoolorettoalpha\States\PlayerTurn;
@@ -140,6 +141,10 @@ class Game extends Table
 				$encs[$player->id] = $contents;
 			}
 		}
+		$translated = [];
+		foreach (TileType::cases() as $tiletype) {
+			$translated[$tiletype->value] = $tiletype->translated();
+		}
 		$datas = [
 			'enclosure_shapes' => $encshapes,
             'trucks' => array_map(fn ($t) => $t->serialize(), array_values($model->getTrucks())),
@@ -149,6 +154,7 @@ class Game extends Table
             'drawntile' => ($stock->drawn == null) ? null : $stock->drawn->serialize(),
             'lastround' => $stock->inLastRound(),
 			'enclosure_summaries' => array_map(fn ($s) => $s->serialize(), $esumms),
+			'tile_translations' => $translated,
 		];
 		foreach ($model->getAllPlayers() as $player) {
 			$datas['players'][$player->id]['player_id'] = $player->id;
