@@ -191,7 +191,7 @@
 <style type="text/css">:root{--bga-animations_z-index:999}.bga-animations_animation-surface{left:0;overflow:visible;pointer-events:none;position:absolute;top:0;user-select:none;z-index:var(--bga-animations_z-index)}.bga-animations_placeholder{display:inline-block}.bga-animations_animation-wrapper{display:inline-block;position:absolute}.bga-animations_floating-message{--color:#000;color:var(--color);font-size:3em;font-weight:700;position:absolute;text-shadow:1px 0 1px #fff,0 -1px 1px #fff,0 1px 1px #fff,-1px 0 1px #fff;white-space:nowrap}.bga-animations_discussion-bubble{background:#fff;border-radius:10px;color:#000;font-weight:400;left:0;min-width:20px;padding:5px 15px;position:absolute}.bga-animations_discussion-bubble:after{border-color:#fff transparent;border-style:solid;content:"";left:calc(50% - 15px);position:absolute;width:0}.bga-animations_discussion-bubble[data-vertical-base=top]{bottom:calc(100% + 10px)}.bga-animations_discussion-bubble[data-vertical-base=top]:after{border-width:15px 15px 0;bottom:-10px}.bga-animations_discussion-bubble[data-vertical-base=bottom]{top:calc(100% + 10px)}.bga-animations_discussion-bubble[data-vertical-base=bottom]:after{border-width:0 15px 15px;top:-10px}</style><style id="svelte-111wiz9">.bga-toast-holder.svelte-111wiz9{position:fixed;display:flex;flex-direction:column;align-items:center;bottom:2rem;right:0;left:0;z-index:2000}@media(min-width: 900px){.bga-toast-holder.svelte-111wiz9{left:unset;right:5px}}</style><style></style></head>
 <body id="ebd-body" class="tundra  game_interface playmode_turnbased notouch-device current_player_is_active"><span style="display: none;"><!--<span--></span><div role="dialog" aria-live="polite" aria-label="cookieconsent" aria-describedby="cookieconsent:desc" class="cc-window cc-banner cc-type-opt-out cc-theme-classic cc-bottom cc-color-override--1263406702 cc-invisible" style="display: none;"><!--googleoff: all--><span id="cookieconsent:desc" class="cc-message">We are using cookies on this website (sorry you cannot eat them 🙂 )<br><span style="font-size:0.8em;line-height:1.1em;"> Board Game Arena (AD2G) and its partners use cookies that are strictly necessary for the operation of its website, the security of your card payments, or the storage of your preferences, as well as other cookies and tracking tools to measure the performance of its website. You can click on "Allow all cookies" to consent to the uses mentioned above, or click on the "Reject all" button to refuse all optional cookies. You can change your preferences, and in particular withdraw your consent, at any time. You can find more information in</span> <a aria-label="learn more about cookies" role="button" tabindex="0" class="cc-link" href="/legal?section=cook" target="_blank"><span style="font-size:0.8em;line-height:1.1em;">our cookie policy.</span></a></span><div class="cc-compliance cc-highlight"><a aria-label="deny cookies" role="button" tabindex="0" class="cc-btn cc-deny">Reject all</a><a aria-label="dismiss cookie message" role="button" tabindex="0" class="cc-btn cc-dismiss">Allow all cookies</a></div><!--googleon: all--></div>
 
-    <div id="overall-content" style="" class="gamestate_PlaceTile">
+    <div id="overall-content" style="--bga-game-zoom: 1;" class="gamestate_PlaceTile">
 
 
     <div id="loader_mask" class="justify-center" style="display: none; opacity: 0;">
@@ -686,21 +686,6 @@
                          <div id="game_play_area_background"></div>
 
 
-
-
-                    <div id="replay_mask">
-                    </div>
-                    <div id="hotseat_mask">
-                        <div id="hotseat_msg">
-                            <p><span class="" style="color:#ff0000">vagabond1</span>: It is your turn!</p><p>
-                            </p><p>
-                                <a class="bgabutton bgabutton_big bgabutton_blue" id="hotseat_play_button">Play</a>
-                            </p>
-                        </div>
-                    </div>
-
-
-
 <!-- GAME STARTS HERE -->
                     <script type="text/javascript" >
 
@@ -817,7 +802,7 @@
                       }
                       </script>
 
-<div id="zoo-game" class="xzoo-debug">
+<div id="zoo-game" class="xzoo-debug zoo-indicators">
   <div id="zoo-boards">
     <div id="zoo-playerboard-0" class="zoo-playerboard">
       <div id="zoo-playername-0"><span class="zoo-playername whiteblock player-name" style="color: #ff0000;">vagabond1</span></div>
@@ -981,7 +966,7 @@
     <div id="zoo-playerboard-4" class="zoo-playerboard" style="height: 1px;">
     </div>
   </div>
-  <div id="zoo-shared-container" class="whiteblock">
+  <div id="zoo-shared-container">
     <div id="zoo-stock">
       <div id="zoo-primary-pile">
         <div id="zoo-primary-pile-count">57</div>
