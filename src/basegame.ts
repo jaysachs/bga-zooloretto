@@ -10,11 +10,10 @@ export abstract class BaseGame<P extends Player, T extends Gamedatas> {
   public readonly animationManager: AnimationManager;
   public readonly moreAnimations: MoreAnimations;
   public readonly bga: Bga<P, T>;
-  private readonly special_log_args: SpecialLogArgs;
+  private readonly special_log_args = new Map<string, (any) => HTMLElement>();
 
-  constructor(bga: Bga<P, T>, special_log_args: SpecialLogArgs) {
+  constructor(bga: Bga<P, T>) {
     this.bga = bga;
-    this.special_log_args = special_log_args;
     this.animationManager = new BgaAnimations.Manager({
       animationsActive: () => this.bgaAnimationsActive(),
     });
@@ -25,19 +24,24 @@ export abstract class BaseGame<P extends Player, T extends Gamedatas> {
     return this.bga.gameui.bgaAnimationsActive();
   }
 
+  protected registerLogArg(arg: string, xform: (any) => HTMLElement): void {
+    this.special_log_args.set(arg, xform);
+  }
+
   bgaFormatText(log: string, args: any): { log: string, args: any } {
+    console.log(this.special_log_args);
     try {
       const shadowParent = document.createElement('span');
       if (log && args && !args.processed) {
         args.processed = true;
-        for (const key in this.special_log_args) {
+        this.special_log_args.forEach((xform, key) => {
           if (key in args) {
-            const e = this.special_log_args[key](args);
+            const e = xform(args);
             shadowParent.appendChild(e);
             args[key] = shadowParent.getHTML();
             e.remove();
           }
-        }
+        });
       }
     } catch (e: any) {
       console.error(log, args, 'Exception thrown', e.stack);

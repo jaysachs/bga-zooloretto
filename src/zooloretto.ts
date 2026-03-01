@@ -18,13 +18,14 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   private readonly view: GameView;
 
   constructor(bga: Bga<ZPlayer, ZGamedatas>) {
-    super(bga, Game.special_log_args);
+    super(bga);
     this.view = new GameView(bga, this.animationManager, this.moneyCounter, this.primaryStockCounter, this.endgameStockCounter);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view));
     if (window.location.host == "studio.boardgamearena.com") {
       (window as any).Zoo.game = this;
     }
+    this.registerLogArgs();
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
@@ -175,14 +176,15 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     return this.bga.gameui.wait(this.bga.userPreferences.get(102));
   }
 
-  ///////
-  private static readonly special_log_args : Record<string, (args: any) => HTMLElement> = {
-    tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.tile_type), title: _(args.tile_description)}),
-    src_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.src_tile_type), title: _(args.src_tile_description)}),
-    dest_tile_type: (args: any) => Html.span({attrs: Attrs.tile(args.dest_tile_type), title: _(args.dest_tile_description)}),
-    coins: (args: any) => Html.span({text: ""+args.coins+" "},
-        Html.span({classes: 'zoo-money-label', title: _("coins")}))
-  };
+  private registerLogArgs() {
+    const tile = (t: string, td: string) =>
+      this.registerLogArg(t, (args: any) => Html.span({attrs: Attrs.tile(args[t]), title: _(args[td])}));
+    tile('tile_type', 'tile_description');
+    tile('src_tile_type', 'src_tile_description');
+    tile('dest_tile_type', 'dest_tile_description');
+    this.registerLogArg('coins',
+      (args: any) => Html.span({text: ""+args.coins+" "}, Html.span({classes: 'zoo-money-label', title: _("coins")})));
+  }
 }
 
 if (window.location.host == "studio.boardgamearena.com") {
