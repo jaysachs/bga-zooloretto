@@ -177,11 +177,12 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   }
 
   private registerLogArgs() {
-    const tile = (t: string, td: string) =>
-      this.registerLogArg(t, (args: any) => Html.span({attrs: Attrs.tile(args[t]), title: _(args[td])}));
-    tile('tile_type', 'tile_description');
-    tile('src_tile_type', 'src_tile_description');
-    tile('dest_tile_type', 'dest_tile_description');
+
+    const tile = (t: string) =>
+      this.registerLogArg(t, (args: any) => Html.span({attrs: Attrs.tile(args[t]), title: _(this.bga.gameui.gamedatas.tile_translations[args[t]])}));
+    tile('tile_type');
+    tile('src_tile_type');
+    tile('dest_tile_type');
     this.registerLogArg('coins',
       (args: any) => Html.span({text: ""+args.coins+" "}, Html.span({classes: 'zoo-money-label', title: _("coins")})));
   }

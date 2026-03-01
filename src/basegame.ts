@@ -6,7 +6,7 @@ import { MoreAnimations } from './more-animations';
 
 type SpecialLogArgs = Record<string, (any) => HTMLElement>;
 
-export abstract class BaseGame<P extends Player, T extends Gamedatas> {
+export abstract class BaseGame<P extends Player, T extends Gamedatas<P>> {
   public readonly animationManager: AnimationManager;
   public readonly moreAnimations: MoreAnimations;
   public readonly bga: Bga<P, T>;
