@@ -84,7 +84,7 @@ interface Gamestate {
     private_state?: Gamestate;
 }
 
-interface Gamedatas<P = Player> {
+interface Gamedatas<P extends Player = Player> {
   gamestate: Gamestate;
   gamestates: { [gamestateId: number]: Gamestate };
   playerorder: (string | number)[];
@@ -241,7 +241,7 @@ declare class UserPreferences {
   toggleVisibility(prefId: number, visible?: boolean): void;
 }
 
-declare class Players<P = Player> {
+declare class Players<P extends Player = Player> {
   /**
    * Return the id of the player who is looking at the game. The player may not be part of the game (i.e. spectator)
    * @returns {number} the current player id
@@ -566,8 +566,8 @@ declare class States {
     isOnClientState(): boolean;
 }
 
-interface Bga<P = Player, G = Gamedatas<P>> {
-  gameui: GameGui<G>;
+interface Bga<P extends Player = Player, G extends Gamedatas<P> = Gamedatas<P>> {
+  gameui: GameGui<P, G>;
   statusBar: StatusBar;
   images: Images;
   sounds: Sounds;
@@ -581,7 +581,7 @@ interface Bga<P = Player, G = Gamedatas<P>> {
   states: States;
 }
 
-declare class GameGui<P = Player, G = Gamedatas> {
+declare class GameGui<P extends Player = Player, G extends Gamedatas<P> = Gamedatas<P>> {
   /**
    * Return true if the game is in realtime. Note that having a distinct behavior in realtime and turn-based should be exceptional.
    */
