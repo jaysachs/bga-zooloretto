@@ -152,9 +152,9 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   // Move
 
   private chooseMoveDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
-    this.initStatusBar(_('Select a destination space or'));
+    this.initStatusBar(_('Select a destination for ${tile_type}'), {tile_type: pm.dests[0].tile.type});
     if (discardable) {
-      this.bga.statusBar.addActionButton(_('Discard the tile'),
+      this.bga.statusBar.addActionButton(_('Discard it'),
         async () => {
           // FIXME: should this be exposed? better way to do this? wrap addActionButton?
           this.clearOnclicks();
@@ -303,7 +303,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private purchase(pp: PossiblePurchase) {
     this.updateMoneyDelta(pp.money_delta);
-    this.initStatusBar(_("Select a destination for the purchased tile"));
+    this.initStatusBar(_("Select a destination for the purchased ${tile_type}"), { tile_type: pp.dests[0].tile.type });
     pp.dests.forEach((dest: PlacedTile) =>
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
