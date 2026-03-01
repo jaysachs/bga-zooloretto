@@ -11,7 +11,6 @@ export interface ZPlayer extends Player {
 export interface Tile {
   id: number;
   type: string;
-  description: string;
 }
 
 export interface TruckSpace {
@@ -36,8 +35,7 @@ export interface EnclosureContents {
 export interface EnclosureSummary {
   player_id: number;
   enclosure_id: number;
-  animal_type: string;
-  animal_description: string;
+  tile_type: string;
   count: number;
 }
 

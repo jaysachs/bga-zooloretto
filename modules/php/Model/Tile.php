@@ -47,7 +47,6 @@ class Tile implements Serializable {
 		return [
 			"id" => $this->id,
 			"type" => $this->type->value,
-			"description" => $this->type->translated(),
 		];
 	}
 

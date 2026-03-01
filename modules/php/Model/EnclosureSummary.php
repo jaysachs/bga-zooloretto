@@ -51,8 +51,7 @@ class EnclosureSummary implements Serializable {
         return [
             'player_id' => $this->player_id,
             'enclosure_id' => $this->enclosure_id,
-            'animal_type' => $this->animal_type->canonicalType()->value,
-            'animal_description' => $this->animal_type->translated(),
+            'tile_type' => $this->animal_type->canonicalType()->value,
             'count' => $this->count,
         ];
     }

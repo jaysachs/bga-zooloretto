@@ -1,5 +1,5 @@
 import { Html } from './html';
-import { Tile, ZGamedatas, EnclosureSummary, Offspring, Moneys } from './zgametypes';
+import { Tile, ZGamedatas, EnclosureSummary, Offspring, Moneys, ZPlayer } from './zgametypes';
 import { CSS, IDS, Elements, Attrs } from './zhtml';
 import { MoreAnimations } from './more-animations';
 import { AnimationManager } from './libs';
@@ -13,9 +13,9 @@ export class GameView {
   //   Consider creating animations here for what these are used for
   readonly moreAnimations: MoreAnimations;
   readonly animationManager: AnimationManager;
-  readonly bga: Bga;
+  readonly bga: Bga<ZPlayer,ZGamedatas>;
 
-  constructor(bga: Bga,
+  constructor(bga: Bga<ZPlayer,ZGamedatas>,
               animationManager: AnimationManager,
               moneyCounter: Map<number, Counter>,
               primaryStockCounter: Counter,
@@ -155,16 +155,19 @@ export class GameView {
   updateEnclosureSummaries(summaries: EnclosureSummary[]) {
     summaries.forEach(summary => {
       const elem = $(IDS.playerPanelBoardSummary(summary.player_id, summary.enclosure_id));
-      const type = summary.animal_type;
-      elem.setAttribute(Attrs.TILE, summary.animal_type);
-      if (type) {
-        elem.title = _(summary.animal_description);
+      elem.setAttribute(Attrs.TILE, summary.tile_type);
+      if (summary.tile_type) {
+        elem.title = this.translatedTileDescription(summary.tile_type);
         elem.firstElementChild!.textContent = `${summary.count}`;
       } else {
         elem.title = '';
         elem.firstElementChild!.textContent = '';
       }
     });
+  }
+
+  translatedTileDescription(tile_type: string): string {
+    return _(this.bga.gameui.gamedatas.tile_translations[tile_type]);
   }
 
   showLastTurnBanner() {

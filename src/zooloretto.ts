@@ -179,7 +179,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   private registerLogArgs() {
 
     const tile = (t: string) =>
-      this.registerLogArg(t, (args: any) => Html.span({attrs: Attrs.tile(args[t]), title: _(this.bga.gameui.gamedatas.tile_translations[args[t]])}));
+      this.registerLogArg(t, (args: any) => Html.span({attrs: Attrs.tile(args[t]), title: this.view.translatedTileDescription(args[t])}));
     tile('tile_type');
     tile('src_tile_type');
     tile('dest_tile_type');
