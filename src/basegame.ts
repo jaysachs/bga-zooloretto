@@ -29,7 +29,6 @@ export abstract class BaseGame<P extends Player, T extends Gamedatas<P>> {
   }
 
   bgaFormatText(log: string, args: any): { log: string, args: any } {
-    console.log(this.special_log_args);
     try {
       const shadowParent = document.createElement('span');
       if (log && args && !args.processed) {
