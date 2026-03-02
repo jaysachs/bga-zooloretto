@@ -362,24 +362,21 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       delivery: Delivery,
   }) {
     const dest = args.delivery.placed_tile;
-    const anims : AnimationList = [];
-    anims.push(() => this.view.moreAnimations.slideAndAttach(
+    await this.view.moreAnimations.slideAndAttach(
       Elements.tile(args.delivery.placed_tile.tile)!,
-      Elements.enclosureSpace(args.player_id, dest.space))
-    );
+      Elements.enclosureSpace(args.player_id, dest.space));
     if (dest.offspring) {
+      // FIXME: it would be nice to move ZooFlow::offspringSlide
+      //   but it's embedded in the flow, with the pushed undo op.
       const offspring = dest.offspring!;
       if (!$(IDS.tile(offspring.placed_tile.tile))) {
-        anims.push(() => this.view.flashParents(offspring));
-        anims.push(() => {
-          const elem = this.view.tileSpan(offspring.placed_tile.tile);
-          const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
-          parent.appendChild(elem);
-          return this.animationManager.slideIn(elem, $(IDS.BOX));
-        });
+        await this.view.flashParents(offspring);
+        const elem = this.view.tileSpan(offspring.placed_tile.tile);
+        const parent = Elements.enclosureSpace(args.player_id, offspring.placed_tile.space);
+        parent.appendChild(elem);
+        await this.animationManager.slideIn(elem, $(IDS.BOX));
       }
     }
-    await this.animationManager.playSequentially(anims);
   }
 
   async notif_Offspring(args: {
@@ -453,7 +450,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       this.addSelectableOnclick(encElem, async (evt:MouseEvent) => {
         let tileElem = Elements.truckSpace(truck_id, pp.truck_pos).firstElementChild as HTMLElement;
         if (this.pipelineDeliverySlide) {
-          Promise.all([
+          await Promise.all([
             this.slide(tileElem,encElem).then(() =>
               this.offspringSlide(dest.offspring)),
             this.doDelivery(truck_id, deliveries, pp.truck_pos, dest)
