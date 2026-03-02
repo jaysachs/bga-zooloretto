@@ -157,4 +157,71 @@ final class ExchangesTest extends TestCase
 
         // error_log(Arrays::arrayToString(Exchanges::forEnclosures($encs)->serialize(), true));
     }
+
+    public function testFertilePairInBar(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 5, 1) ];
+
+        $encs[0]->placeTile(new Tile(1, TileType::ELEPHANT), $encs[0]);
+        $encs[0]->placeTile(new Tile(2, TileType::ELEPHANT_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(3, TileType::KANGAROO), $encs[0]);
+        $encs[0]->placeTile(new Tile(29, TileType::ELEPHANT_FEMALE), $encs[0]);
+
+        $encs[1]->placeTile(new Tile(4, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(5, TileType::KANGAROO_MALE), $encs[0]);
+        $encs[1]->placeTile(new Tile(6, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(7, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(8, TileType::KANGAROO_MALE), $encs[0]);
+
+        $this->assertEquals(
+            new Exchanges(
+                [0 => [1,2,3,4], 1 => [1,2,3,4,5]],
+                [],
+                [1 => [new BarnExchange(
+                    [1,2,4,5,6],
+                    new Offspring(
+                        new PlacedTile(new Tile(290002, TileType::ELEPHANT_KID),new Space(1, 4)),
+                        $encs[0]->tileAt(4)->clone()->markReproduced(),
+                        $encs[0]->tileAt(2)->clone()->markReproduced())
+                    )]
+                ]
+            ), Exchanges::forEnclosures($encs));
+    }
+
+    /*
+    public function testBug(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(1, 5, 1), Enclosure::forTest(2, 4, 2), Enclosure::forTest(3,6,1), Enclosure::forTest(4, 5, 1) ];
+
+        $encs[0]->placeTile(new Tile(1, TileType::ELEPHANT), $encs[0]);
+        $encs[0]->placeTile(new Tile(2, TileType::ELEPHANT_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(3, TileType::KANGAROO), $encs[0]);
+        $encs[0]->placeTile(new Tile(29, TileType::ELEPHANT_FEMALE), $encs[0]);
+
+        $encs[1]->placeTile(new Tile(4, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(5, TileType::KANGAROO_MALE), $encs[0]);
+        $encs[1]->placeTile(new Tile(6, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(7, TileType::KANGAROO), $encs[0]);
+        $encs[1]->placeTile(new Tile(8, TileType::KANGAROO_MALE), $encs[0]);
+
+        $encs[2]->placeTile(new Tile(9, TileType::LEOPARD_FEMALE), $encs[0]);
+
+        $t = new Tile(11, TileType::FLAMINGO_FEMALE);
+        $t->markReproduced();
+        $encs[3]->placeTile($t, $encs[0]);
+        $t = new Tile(14, TileType::FLAMINGO_MALE);
+        $t->markReproduced();
+        $encs[3]->placeTile($t, $encs[0]);
+        $encs[3]->placeTile(new Tile(11014, TileType::FLAMINGO_KID), $encs[0]);
+        $encs[3]->placeTile(new Tile(12, TileType::FLAMINGO), $encs[0]);
+        $encs[3]->placeTile(new Tile(13, TileType::FLAMINGO), $encs[0]);
+        $encs[3]->placeTile(new Tile(20, TileType::FLAMINGO_FEMALE), $encs[0]);
+
+        $encs[4]->placeTile(new Tile(15, TileType::CAMEL), $encs[0]);
+        $encs[4]->placeTile(new Tile(16, TileType::CAMEL), $encs[0]);
+        $encs[4]->placeTile(new Tile(17, TileType::CAMEL_MALE), $encs[0]);
+        $encs[4]->placeTile(new Tile(18, TileType::CAMEL), $encs[0]);
+        $encs[4]->placeTile(new Tile(19, TileType::CAMEL), $encs[0]);
+
+        $x = Exchanges::forEnclosures($encs);
+    }
+        */
 }

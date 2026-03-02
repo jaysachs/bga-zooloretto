@@ -122,8 +122,11 @@ class Exchanges implements Serializable {
 				// figure this BEFORE offspring possibly added to barn.
 				$extra_needed = count($enc->filledAnimalPositions()) - count($dest_pos);
 				$randomTile = new Tile(100000, TileType::CAMEL);
-				while ($extra_needed-- > 0) {
+				for ($i = 0; $i < $extra_needed; $i++) {
 					$dest_pos[] = $barn2->placeTile($randomTile, $barn2)->space->pos;
+				}
+				for ($i = 0; $i < $extra_needed; $i++) {
+					$barn2->takeTileAt($dest_pos[count($dest_pos) - $i - 1]);
 				}
 
 				$offspring = self::checkOffspring($enc, $barn2, $dest_pos);
@@ -150,6 +153,9 @@ class Exchanges implements Serializable {
 		}
 		$offspring = null;
 		foreach ($barn_pos as $bpos) {
+			if ($barn->tileAt($bpos)->isEmpty()) {
+				continue;
+			}
 			$tile = $barn->takeTileAt($bpos);
 			$pt = $enc->placeTile($tile, $fakeBarn);
 			if ($pt->offspring) {
