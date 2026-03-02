@@ -8,8 +8,6 @@ Required for alpha
 Open
 ====
 
-* Is accounting for --bga-game-zoom the right way to handle the mobile responsive issues?
-
 * Use https://github.com/thoun/bga-jump-to/?tab=readme-ov-file to facilitate navigating to different player boards.
 
 * When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
@@ -19,13 +17,18 @@ Open
 Deferred
 ========
 
+* Is accounting for --bga-game-zoom the right way to handle the mobile responsive issues?
+
 * Handle multiple offspring (difficult but possible to arrange)
 
 * Allow barn to have infinite size; shrink barn tiles when size goes above 9.
 
 Maybe
 =====
-*. Add undo (and redo?)
+
+* Don't mark the just-moved tile(s). (?) On the plus side, that opens up a good color for hightlight.
+
+* Add undo (and redo?)
 
 * (?) add back player aid
 
@@ -33,7 +36,7 @@ Maybe
 
 * Consider clicking on enclosures as a whole (for exchange, at least)
 
-* Consider "initial selection of truck to deliver" also auto-selects the animal.
+* Consider "initial selection of truck to deliver" also auto-selects the animal. Or, perhaps, only let tiles be clicked.
 
 * When only one option, or all options the same, auto-do it?
   * e.g. drawn tile placed into one of 4 equally sized empty trucks
