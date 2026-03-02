@@ -37,11 +37,11 @@ export class MoreAnimations {
     async flash(css: string, elems: (HTMLElement | undefined)[], iterations: number = 2): Promise<any> {
         const on = () => {
             elems.forEach(e => e?.classList.add(css));
-            return this.wait(250);
+            return this.wait(400);
         }
         const off =  () => {
             elems.forEach(e => e?.classList.remove(css));
-            return this.wait(250);
+            return this.wait(400);
         }
         const anims: AnimationList = [];
         for (let i = 0; i < iterations; ++i) {
