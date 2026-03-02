@@ -266,14 +266,13 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private selectExchangeDest(exchanges: Exchanges, srcid: number) {
     this.initStatusBar(_("Select the animals to exchange with"));
     const srcAnimalSpaces = this.animalSpaces(exchanges, srcid);
-    exchanges.enclosures[srcid].forEach(destid => {
+    exchanges.enclosures[srcid]?.forEach(destid => {
       this.wireUpExchangeDests(srcid, srcAnimalSpaces, destid, this.animalSpaces(exchanges, destid))
     });
     // Now handle barn as destination, also dealing with possible offspring in the non-barn
     // Note that there is no enclosure completion bonus for exchanges, so we don't
     //  need to apply money deltas in here.
-    const barnDests = exchanges.barn[srcid] ?? [];
-    barnDests.forEach(be => {
+    exchanges.barn[srcid]?.forEach(be => {
       const destSpaces = be.positions.map(p => Elements.enclosureSpace(this.player_id, toSpace(0, p)));
       this.wireUpExchangeDests(srcid, srcAnimalSpaces, 0, destSpaces, be.positions);
     });
