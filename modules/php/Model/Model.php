@@ -281,13 +281,16 @@ class Model {
         return $result;
     }
 
-    /** @return list<int> */
-    public function getAvailableTruckIds(): array {
+    /** @return list<array{truck_id:int,coin_tiles:list<Tile>}> */
+    public function getAvailableTrucks(): array {
 		$player = $this->getActivePlayer();
         if ($player->truck_taken) {
             return [];
         }
-        return array_values(array_map(fn ($t)=> $t->id, array_filter($this->getTrucks(), fn ($t) => $t->canBeTaken())));
+        return array_values(array_map(fn ($t)=> [
+            'truck_id' => $t->id,
+            'coin_tiles' => array_map(fn ($p) => $t->tileAt($p), $t->coinPositions()),
+        ], array_filter($this->getTrucks(), fn ($t) => $t->canBeTaken())));
     }
 
     /** @return array{truck_ids: list<int>, dumped_tiles: list<Tile>} */

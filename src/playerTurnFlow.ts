@@ -61,11 +61,16 @@ interface PossibleDelivery {
   dests: PlacedTile[];
 }
 
+interface AvailableTruck {
+  truck_id: number;
+  coin_tiles: Tile[];
+}
+
 interface PlayState {
   lastround: boolean;
   can_draw: boolean;
   extension_available: number;
-  available_trucks: number[];
+  available_trucks: AvailableTruck[];
   possible_discards: PossibleDiscards;
   possible_moves: PossibleMoves;
   possible_exchanges: PossibleExchanges;
@@ -331,11 +336,14 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   // Truck delivery
 
-  private wireUpDeliveries(available_trucks: number[]) {
+  private wireUpDeliveries(available_trucks: AvailableTruck[]) {
     available_trucks.forEach(
-      truck_id => this.addSelectableOnclick(
-        Elements.truck(truck_id),
-        () => this.doDelivery(truck_id, []),
+      at => this.addSelectableOnclick(
+        Elements.truck(at.truck_id),
+        async () => {
+          await this.notif_DeliverCoins({ player_id: this.player_id, truck_id: at.truck_id, coin_tiles: at.coin_tiles });
+          this.doDelivery(at.truck_id, [])
+        },
         _('Take truck'))
     );
   }
@@ -349,10 +357,11 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   async notif_DeliverCoins(args: { player_id: number, truck_id: number, coin_tiles: Tile[] }) {
     const anims = args.coin_tiles.map(c =>
-      () => this.view.moreAnimations.slideOutAndDestroy(Elements.tile(c),
+      () => this.view.moreAnimations.slideOutAndDestroy(
+        Elements.tile(c),
         this.bga.playerPanels.getElement(args.player_id)));
     await this.view.animationManager.playSequentially(anims);
-    this.view.addMoney(args.player_id, 1);
+    this.view.addMoney(args.player_id, args.coin_tiles.length);
   }
 
   async notif_DeliverTruckTile(args: {

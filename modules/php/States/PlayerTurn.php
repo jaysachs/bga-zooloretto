@@ -61,7 +61,10 @@ class PlayerTurn extends AbstractState
 		return [
 			'can_draw' => $model->canDraw(),
 			'truck_taken' => $model->getActivePlayer()->truck_taken,
-			'available_trucks' => $model->getAvailableTruckIds(),
+			'available_trucks' => array_map(fn ($at) => [
+				'truck_id' => $at['truck_id'],
+				'coin_tiles' => self::serializeArray($at['coin_tiles']),
+			], $model->getAvailableTrucks()),
 			'possible_moves' => [
 				'moves' => self::serializeArray($model->getPossibleMoves()),
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::MOVE)->serialize(),
