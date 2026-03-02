@@ -29,6 +29,8 @@ body {
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc((100vw - 240px) / 17);
 
+    --bga-game-zoom: 1.0;
+
 }
 
 body.mobile_version #zoo-game {
