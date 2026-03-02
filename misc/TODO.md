@@ -1,18 +1,22 @@
 Required for alpha
 ==================
 
+Open
+====
+
 * Decide on good highlight colors, and ensure they work with the background (whiteblock?) of the shared components area
 
 * Improve "parent flash" animation; in particular, don't double-flash, and also the "moved" blue border is weird on just one tile when offspring are produced as a result of a purchase or move (or exchange).
 
-Open
-====
-
-* Use https://github.com/thoun/bga-jump-to/?tab=readme-ov-file to facilitate navigating to different player boards.
+* Use https://github.com/thoun/bga-jump-to/?tab=readme-ov-file to facilitate navigating to different player boards. This requires customization of the library.
 
 * When selecting things to do, if doing an "exchange", highlight ALL the source tiles.
 
 * When selected an exchange destination, hover-highlight all the target tiles.
+
+* Don't auto-mark the just-moved tile(s). Instead, explicitly mark all moved / created tiles.
+  (Or, don't mark them at all.)
+
 
 Deferred
 ========
@@ -25,8 +29,6 @@ Deferred
 
 Maybe
 =====
-
-* Don't mark the just-moved tile(s). (?) On the plus side, that opens up a good color for hightlight.
 
 * Add undo (and redo?)
 
