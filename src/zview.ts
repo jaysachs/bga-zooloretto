@@ -48,7 +48,16 @@ export class GameView {
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
-    return this.moreAnimations.flash(CSS.FLASH, [Elements.tile(offspring.mother), Elements.tile(offspring.father)]);
+    const mp = Elements.tile(offspring.mother).parentElement;
+    const fp = Elements.tile(offspring.father).parentElement;
+    const mm = mp.getAttribute(Attrs.MARK);
+    const fm = fp.getAttribute(Attrs.MARK);
+    mp.setAttribute(Attrs.MARK, '');
+    fp.setAttribute(Attrs.MARK, '');
+    return this.moreAnimations.flash(CSS.FLASH, [mp, fp]).then(() => {
+      mp.setAttribute(Attrs.MARK, mm);
+      fp.setAttribute(Attrs.MARK, fm);
+    });
   }
 
   public updateMoneyDelta(delta: Moneys): void {
