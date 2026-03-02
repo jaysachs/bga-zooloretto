@@ -248,7 +248,7 @@ class Enclosure {
             }
         }
         if ($pos > $end) {
-            throw new ModelException("No room for {$tile->type->value} in enclosure {$this->id}");
+            throw new ModelException("No room for {$tile} in enclosure {$this}");
         }
         if (!$this->contents[$pos]->isEmpty()) {
             throw new ModelException("Cannot plae tile in non-empt position {$pos} in enclosure {$this->id}");
