@@ -44,26 +44,22 @@ class UpgradeDb {
         }
         $sql = [];
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
-                `id` INT(10) UNSIGNED NOT NULL,
+                `id` INT UNSIGNED NOT NULL,
                 `type` VARCHAR(10) NOT NULL,
                 `location` VARCHAR(1) NOT NULL,
-                `player_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-                `loc_id` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-                `loc_pos` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+                `player_id` INT UNSIGNED NOT NULL DEFAULT 0,
+                `loc_id` INT UNSIGNED NOT NULL DEFAULT 0,
+                `loc_pos` INT UNSIGNED NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`),
                 UNIQUE(`location`, `player_id`, `loc_id`, `loc_pos`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $sql[] ="CREATE TABLE DBPREFIX_zglobals (
-                `id` int(10) unsigned NOT NULL DEFAULT 0,
-                `delivering_truck` int(10) unsigned NOT NULL DEFAULT 0,
-                PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` int(10) unsigned NOT NULL DEFAULT 0";
-        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` int(10) unsigned";
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `money` INT UNSIGNED NOT NULL DEFAULT 0";
+        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` INT UNSIGNED NOT NULL DEFAULT 0";
+        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` INT UNSIGNED NOT NULL DEFAULT 0";
 
         $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
-        $currentState = intval($this->db->getSingleFieldList("SELECT global_value FROM global WHERE global_id = 1")[0]);
+        $currentState = intval($this->db->getSingleFieldList("SELECT global_value FROM DBPREFIX_global WHERE global_id = 1")[0]);
         if (!$currentState) {
             throw new \Exception("Game should have already started but in state $currentState");
         }
@@ -71,7 +67,7 @@ class UpgradeDb {
         $wagons = $this->db->getObjectList("SELECT * FROM wagons");
         $animals = $this->db->getObjectList("SELECT * FROM animals");
         // FIXME: can we use getActivePlayerId ?
-        $gs = $this->db->getSingleFieldList("SELECT global_value FROM `global` WHERE global_id = 2");
+        $gs = $this->db->getSingleFieldList("SELECT global_value FROM global WHERE global_id = 2");
         $active_player_id = intval($gs[0]);
 
         Arrays::shuffle($animals);
@@ -193,7 +189,7 @@ class UpgradeDb {
         if ($currentState == 5 || $currentState == 7 || $currentState == 8
             || $currentState == 9 || $currentState == 10) {
             // FIXME: can we use jumpToState ?
-            $sql[] = "UPDATE `global` SET `global_value` = 2 WHERE `global_id` = 1";
+            $sql[] = "UPDATE DBPREFIX_global SET `global_value` = 2 WHERE `global_id` = 1";
         }
 
         return $sql;
