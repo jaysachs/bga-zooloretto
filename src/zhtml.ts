@@ -159,7 +159,7 @@ export class ZoolorettoHtml {
     const board = Html.div({ id: IDS.boardId(player.player_id), classes: [ 'zoo-board' ], attrs: Attrs.extensions(player.purchased_extensions)});
     this.gamedatas.enclosure_shapes.forEach(es => {
       // Note cap on number of children.
-      board.append(enclosure(es.id, Math.min(20, es.animal_capacity + es.stall_capacity)));
+      board.append(enclosure(es.id, Math.min(12, es.animal_capacity + es.stall_capacity)));
     });
     this.gamedatas.enclosure_shapes.forEach(es => {
       if (es.extension) {
