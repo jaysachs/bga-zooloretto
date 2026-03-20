@@ -1,6 +1,6 @@
 <?php
 
-spl_autoload_register(function ($class) {
+spl_autoload_register(function (string $class) {
     $game = basename(getcwd());
     $prefix = "Bga\\Games\\{$game}\\";
     if (str_starts_with($class, $prefix)) {
@@ -74,7 +74,9 @@ if ($seedfile) {
 echo "Upgrading db\n";
 $u = new UpgradeDb(new MySQLDb($mysqli, $db));
 
-foreach ($u->upgradeSql($ts) as $sql) {
+/** @var array{sql:list<string>,state_id:int}|null */
+$upgrade = $u->upgradeSql($ts, 2);
+foreach ($upgrade["sql"] as $sql) {
     $s2 = str_replace("DBPREFIX_", $db . ".", fixup($sql));
     echo "\n$s2;\n";
     if (!$dryrun) {
@@ -85,3 +87,4 @@ foreach ($u->upgradeSql($ts) as $sql) {
         }
     }
 }
+echo "State change to {$upgrade['state_id']}\n";

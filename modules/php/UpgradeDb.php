@@ -34,8 +34,11 @@ class UpgradeDb {
 
     public function __construct(private Db $db) { }
 
-    /** @return list<string>|null */
-	public function upgradeSql(int $from_version): ?array {
+    /** @return array{sql:list<string>,state_id:int}|null */
+	public function upgrade(int $from_version, int $currentState): ?array {
+        if (!$currentState) {
+            throw new \Exception("Game should have already started but in state $currentState");
+        }
         if ($from_version > 2504011715) {
             return null;
         }
@@ -59,10 +62,6 @@ class UpgradeDb {
 
         $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
-        $currentState = intval($this->db->getSingleFieldList("SELECT global_value FROM DBPREFIX_global WHERE global_id = 1")[0]);
-        if (!$currentState) {
-            throw new \Exception("Game should have already started but in state $currentState");
-        }
         $players = $this->db->getObjectList("SELECT * FROM player");
         $wagons = $this->db->getObjectList("SELECT * FROM wagons");
         $animals = $this->db->getObjectList("SELECT * FROM animals");
@@ -186,12 +185,14 @@ class UpgradeDb {
                 $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid";
             }
         }
+        $result = [
+            "sql" => $sql,
+        ];
         if ($currentState == 5 || $currentState == 7 || $currentState == 8
             || $currentState == 9 || $currentState == 10) {
-            // FIXME: can we use jumpToState ?
-            $sql[] = "UPDATE DBPREFIX_global SET `global_value` = 2 WHERE `global_id` = 1";
+            $result["state_id"] = 2;
         }
 
-        return $sql;
+        return $result;
 	}
 }
