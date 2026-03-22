@@ -34,8 +34,8 @@ class UpgradeDb {
 
     public function __construct(private Db $db) { }
 
-    /** @return array{sql:list<string>,state_id:int}|null */
-	public function upgrade(int $from_version, int $currentState): ?array {
+    /** @return array{sql:list<string>,state_id:int|null}|null */
+	public function upgrade(int $from_version, ?int $currentState): ?array {
         if (!$currentState) {
             throw new \Exception("Game should have already started but in state $currentState");
         }
