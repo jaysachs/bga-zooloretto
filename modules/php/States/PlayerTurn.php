@@ -403,30 +403,34 @@ class PlayerTurn extends AbstractState
 			return $this->actDrawTile($player_id);
 		}
 
-		foreach ($model->getTrucks() as $truck) {
-			if ($truck->canBeTaken()) {
-				$placements = [];
-				$coins = 0;
-				foreach ($truck->coinPositions() as $pos) {
-					$truck->removeTileAt($pos);
-					$coins++;
+		$trucks = array_filter($model->getTrucks(), fn ($t) => $t->canBeTaken());
+		if (count($trucks) == 0) {
+			// We should never get here. If there are no tiles to draw, or places to put the tiles
+			// there should be at least one spot on one truck. That's why there are 15 tiles in
+			// the end game pile -- 3 for each possible player.
+			throw new SystemException("cannot draw, but there are no non-empty trucks available to take?!?");
+		}
+		$truck = $trucks[array_key_first($trucks)];
+		foreach ($truck->coinPositions() as $pos) {
+			$truck->removeTileAt($pos);
+		}
+		/** @var list<array{truck_pos:int, enclosure_id:int, enclosure_pos: int}> */
+		$placements = [];
+		while (!$truck->isEmpty()) {
+			$pds = $model->getPossibleDeliveries($truck->id);
+			foreach ($pds as $pos => $pt) {
+				if (count($pt) > 0) {
+					$placement = [
+						'truck_pos' => $pos,
+						'enclosure_id' => $pt[0]->space->enclosure_id,
+						'enclosure_pos' => $pt[0]->space->pos,
+					];
+					$model->deliverPendingTruckTiles($truck->id, [ $placement ]);
+					$placements[] = $placement;
+					break;
 				}
-				while (!$truck->isEmpty()) {
-					$deliveries = $model->deliverPendingTruckTiles($truck->id, $placements);
-					$placements = array_map(function (Delivery $d): array {
-						return [
-							'truck_pos' => $d->truck_pos,
-							'enclosure_id' => $d->placed_tile->space->enclosure_id,
-							'enclosure_pos' => $d->placed_tile->space->pos,
-						];
-					}, $deliveries);
-				}
-				return $this->actTakeTruckAndPlaceTiles($player_id, $truck->id, $placements);
 			}
 		}
-		// We should never get here. If there are no tiles to draw, or places to put the tiles
-		// there should be at least one spot on one truck. That's why there are 15 tiles in
-		// the end game pile -- 3 for each possible player.
-		throw new SystemException("cannot draw, but there are no non-empty trucks available to take?!?");
+		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->id, $placements);
 	}
 }
