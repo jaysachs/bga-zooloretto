@@ -290,13 +290,21 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
-	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements */
+	/**
+	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $jsonDels
+	 * @return list<Delivery>
+	 */
+	private static function jsonToDeliveries(array $jsonDels): array {
+		return array_map(fn ($j) => Delivery::deserialize($j), $jsonDels);
+	}
+
+	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $deliveries */
 	#[PossibleAction]
-	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $placements): mixed
+	public function actTakeTruckAndPlaceTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $deliveries): mixed
 	{
         $model = $this->createModel($active_player_id);
-		$res = $model->takeTruckAndDeliverTiles($truck_id, $placements);
-		$deliveries = $res['deliveries'];
+		$res = $model->takeTruckAndDeliverTiles($truck_id, self::jsonToDeliveries($deliveries));
+		$completed = $res['deliveries'];
 		$cointiles = $res['coins'];
 		$this->notify->all(
 			'TakeTruck',
@@ -326,7 +334,7 @@ class PlayerTurn extends AbstractState
 			);
 		}
 		// Notify for each tile, also send offspring and enclosure completion notifications.
-		foreach ($deliveries as $delivery) {
+		foreach ($completed as $delivery) {
 			$pt = $delivery->placed_tile;
 			$this->notify->all(
 				'DeliverTruckTile',
@@ -376,11 +384,11 @@ class PlayerTurn extends AbstractState
 		return NextPlayer::class;
 	}
 
-	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements */
+	/** @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $deliveries */
 	#[PossibleAction]
-    public function actDeliverPendingTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $placements): mixed {
+    public function actDeliverPendingTiles(int $active_player_id, int $truck_id, #[JsonParam()] array $deliveries): mixed {
         $model = $this->createModel($active_player_id, true);
-		$deliveries = $model->deliverPendingTruckTiles($truck_id, $placements);
+		$completed = $model->deliverPendingTruckTiles($truck_id, self::jsonToDeliveries($deliveries));
         $pds = [];
         foreach ($model->getPossibleDeliveries($truck_id) as $pos => $dests) {
             $pds[] = [
@@ -389,7 +397,7 @@ class PlayerTurn extends AbstractState
             ];
         }
 		$this->notify->player($active_player_id, 'DeliverPendingTruckTiles', '', [
-            'deliveries' => self::serializeArray($deliveries),
+            'deliveries' => self::serializeArray($completed),
             "truck_id" => $truck_id,
             "possible_deliveries" => $pds,
 		]);
@@ -415,22 +423,20 @@ class PlayerTurn extends AbstractState
 			$truck->removeTileAt($pos);
 		}
 		/** @var list<array{truck_pos:int, enclosure_id:int, enclosure_pos: int}> */
-		$placements = [];
+		$deliveries = [];
 		while (!$truck->isEmpty()) {
 			$pds = $model->getPossibleDeliveries($truck->id);
 			foreach ($pds as $pos => $pt) {
 				if (count($pt) > 0) {
-					$placement = [
-						'truck_pos' => $pos,
-						'enclosure_id' => $pt[0]->space->enclosure_id,
-						'enclosure_pos' => $pt[0]->space->pos,
-					];
-					$model->deliverPendingTruckTiles($truck->id, [ $placement ]);
-					$placements[] = $placement;
+					$delivery = new Delivery($pos, $pt[0]->space->enclosure_id, $pt[0]->space->pos);
+					$deliveries[] = $delivery->serialize();
+					// Since this is all stateful, either we need to clone the truck
+					//   or just deliver the most recent placement.
+					$model->deliverPendingTruckTiles($truck->id, [ $delivery ]);
 					break;
 				}
 			}
 		}
-		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->id, $placements);
+		return $this->actTakeTruckAndPlaceTiles($player_id, $truck->id, $deliveries);
 	}
 }

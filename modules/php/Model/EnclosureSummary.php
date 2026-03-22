@@ -46,7 +46,7 @@ class EnclosureSummary implements Serializable {
         return new EnclosureSummary($player_id, $enc->id, $enc->animalType(), $count);
     }
 
-    /** @return array{player_id: int, enclosure_id: int, animal_type: string, count: int} */
+    /** @return array{player_id: int, enclosure_id: int, tile_type: string, count: int} */
     public function serialize() : array {
         return [
             'player_id' => $this->player_id,

@@ -214,14 +214,14 @@ class Model {
     }
 
     /**
-	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements
-     * @return array{deliveries:list<Delivery>,coins:list<Tile>}
+	 * @param list<Delivery> $deliveries
+     * @return array{deliveries:list<CompletedDelivery>,coins:list<Tile>}
      */
-    public function takeTruckAndDeliverTiles(int $truck_id, array $placements): array {
+    public function takeTruckAndDeliverTiles(int $truck_id, array $deliveries): array {
         $player = $this->getActivePlayer();
         $truck = $this->getTruck($truck_id);
         $encs = $this->getEnclosuresForPlayer($this->player_id);
-        $result = $this->deliverPendingTruckTiles($truck_id, $placements);
+        $result = $this->deliverPendingTruckTiles($truck_id, $deliveries);
 
         $completionCoins = 0;
         foreach ($result as $delivery) {
@@ -256,26 +256,22 @@ class Model {
     }
 
     /**
-	 * @param list<array{truck_pos:int,enclosure_id:int,enclosure_pos:int}> $placements
-     * @return list<Delivery>
+	 * @param list<Delivery> $deliveries
+     * @return list<CompletedDelivery>
      */
-    public function deliverPendingTruckTiles(int $truck_id, array $placements): array {
-        $player = $this->getActivePlayer();
+    public function deliverPendingTruckTiles(int $truck_id, array $deliveries): array {
         $truck = $this->getTruck($truck_id);
         $encs = $this->getEnclosuresForPlayer($this->player_id);
         $barn = $encs[0];
         $result = [];
-        foreach ($placements as $placement) {
-            $enclosure_id = intval($placement['enclosure_id']);
-            $encl = $encs[$enclosure_id];
-            $truck_pos = intval($placement['truck_pos']);
-            $pos = intval($placement['enclosure_pos']);
-            $tile = $truck->removeTileAt($truck_pos);
-            $placement = $encl->placeTile($tile, $barn);
-            if ($placement->space->pos <> $pos) {
-                throw new ModelException("put {$truck_id}:{$truck_pos} into {$enclosure_id}:{$pos} but it went into {$placement->space->enclosure_id}:{$placement->space->pos}");
+        foreach ($deliveries as $delivery) {
+            $encl = $encs[$delivery->enclosure_id];
+            $tile = $truck->removeTileAt($delivery->truck_pos);
+            $completed = $encl->placeTile($tile, $barn);
+            if ($completed->space->pos <> $delivery->enclosure_pos) {
+                throw new ModelException("delivered {$truck_id}:{$delivery} but it went into {$completed->space}");
             }
-            $result[] = new Delivery($truck_pos, $placement);
+            $result[] = new CompletedDelivery($delivery->truck_pos, $completed);
         }
 
         return $result;

@@ -84,7 +84,7 @@ export interface TruckLocation {
   truck_pos: number
 }
 
-export interface Delivery {
+export interface CompletedDelivery {
   truck_pos: number;
   placed_tile: PlacedTile;
 }

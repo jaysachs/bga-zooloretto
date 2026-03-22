@@ -1,6 +1,6 @@
 import { AnimationList } from "./more-animations";
 import { ZooFlow } from "./zflow";
-import { Delivery, EnclosureSummary, Moneys, Offspring, PlacedTile, Tile } from "./zgametypes";
+import { CompletedDelivery, EnclosureSummary, Moneys, Offspring, PlacedTile, Tile } from "./zgametypes";
 import { Elements, encOf, IDS, CSS, posOf, toSpace, Attrs } from "./zhtml";
 import { GameView } from "./zview";
 
@@ -50,7 +50,7 @@ interface PossibleDiscards {
   money_delta: Moneys;
 }
 
-interface Placement {
+interface Delivery {
   truck_pos:number;
   enclosure_id:number;
   enclosure_pos:number;
@@ -367,7 +367,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   async notif_DeliverTruckTile(args: {
       player_id: number,
       truck_id: number,
-      delivery: Delivery,
+      delivery: CompletedDelivery,
   }) {
     const dest = args.delivery.placed_tile;
     await this.view.moreAnimations.slideAndAttach(
@@ -399,14 +399,14 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   notif_DeliverPendingTruckTiles(args: {
     truck_id: number;
-    deliveries: Delivery[];
+    deliveries: CompletedDelivery[];
     possible_deliveries: PossibleDelivery[];
   }) {
     this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
   }
 
-  doDelivery(truck_id: number, deliveries: Delivery[], truck_pos?: number, dest?:PlacedTile): Promise<any> {
-    let placements: Placement[] = deliveries.map(d => {
+  doDelivery(truck_id: number, deliveries: CompletedDelivery[], truck_pos?: number, dest?:PlacedTile): Promise<any> {
+    let placements: Delivery[] = deliveries.map(d => {
       return {
         truck_pos: d.truck_pos,
         enclosure_id: encOf(d.placed_tile.space),
@@ -418,13 +418,13 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         enclosure_pos: posOf(dest.space)
       })
     }
-    return this.bga.actions.performAction('actDeliverPendingTiles', { truck_id: truck_id, placements: JSON.stringify(placements) });
+    return this.bga.actions.performAction('actDeliverPendingTiles', { truck_id: truck_id, deliveries: JSON.stringify(placements) });
   }
 
-  private async chooseTruckTileToPlace(truck_id: number, deliveries: Delivery[], pps: PossibleDelivery[]) {
+  private async chooseTruckTileToPlace(truck_id: number, deliveries: CompletedDelivery[], pps: PossibleDelivery[]) {
     if (!pps || pps.length == 0) {
       this.initStatusBar(_('Deliver tiles?'));
-      let placements: Placement[] = deliveries.map(d => {
+      let placements: Delivery[] = deliveries.map(d => {
         return {
           truck_pos: d.truck_pos,
           enclosure_id: encOf(d.placed_tile.space),
@@ -432,7 +432,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       this.addConfirmAndRestartActionButtons(
         'actTakeTruckAndPlaceTiles', {
           truck_id: truck_id,
-          placements: JSON.stringify(placements),
+          deliveries: JSON.stringify(placements),
         }
       );
     }
@@ -450,7 +450,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private pipelineDeliverySlide = true;
 
-  private async chooseDestination(truck_id: number, pp: PossibleDelivery, deliveries: Delivery[]) {
+  private async chooseDestination(truck_id: number, pp: PossibleDelivery, deliveries: CompletedDelivery[]) {
     this.initStatusBar(_('Choose a destination for the selected tile'));
 
     pp.dests.forEach((dest: PlacedTile) => {

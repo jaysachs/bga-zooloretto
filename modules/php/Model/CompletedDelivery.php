@@ -27,31 +27,17 @@ declare(strict_types=1);
 
 namespace Bga\Games\zoolorettoalpha\Model;
 
-class Delivery implements Serializable {
+class CompletedDelivery implements Serializable {
     public function __construct(
         public int $truck_pos,
-        public int $enclosure_id,
-        public int $enclosure_pos,
+        public PlacedTile $placed_tile,
     ) {}
 
-    /** @return array{truck_pos:int,enclosure_id:int,enclosure_pos:int} */
+    /** @return array<string,mixed> */
     public function serialize(): array {
         return [
             'truck_pos' => $this->truck_pos,
-            'enclosure_id' => $this->enclosure_id,
-            'enclosure_pos' => $this->enclosure_pos,
+            'placed_tile' => $this->placed_tile->serialize(),
         ];
-    }
-
-    /**
-     * @param array{truck_pos:int, enclosure_id:int, enclosure_pos:int} $json
-     */
-    public static function deserialize(array $json): Delivery {
-        return new Delivery(intval($json['truck_pos']), intval($json['enclosure_id']), intval($json['enclosure_pos']));
-    }
-
-    public function __toString(): string
-    {
-        return "Delivery{truck_pos:{$this->truck_pos},enclosure_id:{$this->enclosure_id},enclosure_pos:{$this->enclosure_pos}}";
     }
 }
