@@ -42,7 +42,7 @@ interface Exchanges {
 
 interface PossibleExchanges {
   exchanges: Exchanges;
-  money_delta: Moneys | null;
+  money_delta: Moneys | undefined;
 }
 
 interface PossibleDiscards {
@@ -139,7 +139,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           async () => {
             this.updateMoneyDelta(possible_discards.money_delta);
             const elem = Elements.enclosureTile(this.player_id, space)!;
-            const tt = elem.getAttribute(Attrs.TILE);
+            const tt = elem.getAttribute(Attrs.TILE)!;
             await this.slideOutAndDestroy(elem, $(IDS.BOX));
             this.callUndoably("confirmDiscard", async () => this.confirmDiscard(space, tt));
           }, _('Discard tile'));
@@ -157,7 +157,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   // Move
 
   private chooseMoveDest(pm: PossibleMove, discardable: boolean, discardMoneyDelta: Moneys, moveMoneyDelta: Moneys) {
-    this.initStatusBar(_('Select a destination for ${tile_type}'), {tile_type: pm.dests[0].tile.type});
+    this.initStatusBar(_('Select a destination for ${tile_type}'), {tile_type: pm.dests[0]!.tile.type});
     if (discardable) {
       this.bga.statusBar.addActionButton(_('Discard it'),
         async () => {
@@ -215,8 +215,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   private wireUpExchanges(possible_exchanges: PossibleExchanges) {
     const exchanges = possible_exchanges.exchanges;
     const srcEncs: number[] = [];
-    Object.keys(exchanges.enclosures).forEach(e => srcEncs[e] = 1);
-    Object.keys(exchanges.barn).forEach(e => srcEncs[e] = 1);
+    Object.keys(exchanges.enclosures).forEach(e => srcEncs[Number(e)] = 1);
+    Object.keys(exchanges.barn).forEach(e => srcEncs[Number(e)] = 1);
     Object.keys(srcEncs).map(k => Number(k)).forEach((encid: number) => {
       const srcSpaceElems = this.animalSpaces(exchanges, encid);
       srcSpaceElems.forEach(spaceElem => {
@@ -234,7 +234,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   }
 
   private animalSpaces(exchanges: Exchanges, encid: number): HTMLElement[] {
-    return exchanges.animal_positions[encid].map(
+    return exchanges.animal_positions[encid]!.map(
       pos => Elements.enclosureSpace(this.player_id, toSpace(encid, Number(pos))));
   }
 
@@ -256,8 +256,8 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           let len = Math.max(srcAnimalSpaces.length, destAnimalSpaces.length);
           for (let i = 0; i < len; ++i) {
             anims.push(() => this.view.moreAnimations.swapFirstChildren(
-              srcSpaces[i],
-              destSpaces[i])
+              srcSpaces[i]!,
+              destSpaces[i]!)
             );
           }
           this.mark(s, 'none');
@@ -307,7 +307,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   private purchase(pp: PossiblePurchase) {
     this.updateMoneyDelta(pp.money_delta);
-    this.initStatusBar(_("Select a destination for the purchased ${tile_type}"), { tile_type: pp.dests[0].tile.type });
+    this.initStatusBar(_("Select a destination for the purchased ${tile_type}"), { tile_type: pp.dests[0]!.tile.type });
     pp.dests.forEach((dest: PlacedTile) =>
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, dest.space),
@@ -405,13 +405,13 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
   }
 
-  doDelivery(truck_id: number, deliveries: CompletedDelivery[], truck_pos?: number, dest?:PlacedTile): Promise<any> {
+  doDelivery(truck_id: number, deliveries: CompletedDelivery[], truck_pos = 0, dest?:PlacedTile): Promise<any> {
     let placements: Delivery[] = deliveries.map(d => {
       return {
         truck_pos: d.truck_pos,
         enclosure_id: encOf(d.placed_tile.space),
         enclosure_pos: posOf(d.placed_tile.space)} });
-    if (truck_pos) {
+    if (dest) {
       placements.push({
         truck_pos: truck_pos,
         enclosure_id: encOf(dest.space),

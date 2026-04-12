@@ -36,7 +36,7 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     this.view.updateMoneyDelta(moneyDelta);
   }
 
-  protected offspringSlide(offspring : Offspring | undefined): Promise<any> {
+  protected offspringSlide(offspring : Offspring | null): Promise<any> {
     if (offspring) {
       // if it's already on-screen, skip animation.
       if (!$(IDS.tile(offspring.placed_tile.tile))) {
@@ -50,10 +50,10 @@ export abstract class ZooFlow<T = undefined> extends PlayFlow<T> {
     return Promise.resolve();
   }
 
-  protected mark(elem: HTMLElement | undefined, mark: "selected" | "selectable" | "none"): (() => Promise<any>) | undefined {
+  protected mark(elem: HTMLElement, mark: "selected" | "selectable" | "none"): (() => Promise<any>) {
     const m = elem.getAttribute(Attrs.MARK);
     elem.setAttribute(Attrs.MARK, mark);
-    return async () => elem.setAttribute(Attrs.MARK, m);
+    return async () => { if (m) { elem.setAttribute(Attrs.MARK, m) } else { elem.removeAttribute(Attrs.MARK) } };
   }
 
 }

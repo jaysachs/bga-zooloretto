@@ -31,13 +31,13 @@ export abstract class PlayFlow<T> {
   private continuations: Continuation[] = [];
   private onClickAbortController : AbortController = new AbortController();
   private current: Continuation | undefined;
-  private readonly consumer: (OpList) => any;
+  private readonly consumer: (oplist: Op[]) => any;
   private inUndo: boolean = false;
   private readonly marked: HTMLElement[] = [];
 
   protected readonly animationManager: AnimationManager;
   protected readonly bga: Bga;
-  protected player_id: number;
+  protected player_id: number = 0;
 
   protected constructor(animationManager: AnimationManager, bga: Bga) {
     this.animationManager = animationManager;
@@ -57,13 +57,13 @@ export abstract class PlayFlow<T> {
       // this.clear();
       this.player_id = this.bga.gameui.player_id;
       const desc = "Start " + (this as any).constructor?.name;
-      this.callUndoably(desc, () => this.start(args));
+      this.callUndoably(desc, async () => this.start(args));
     }
   }
 
-  protected abstract start(args?: T);
+  protected abstract start(args?: T): void;
 
-  protected abstract mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'none'): Op | undefined;
+  protected abstract mark(elem: HTMLElement | undefined, mark: 'selected' | 'selectable' | 'none'): Op;
 
   protected abstract useAutoclick(): boolean;
 

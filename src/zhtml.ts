@@ -123,7 +123,7 @@ export class Elements {
     return this.enclosureSpace(player_id, space).firstElementChild as HTMLElement;
   }
 
-  static enclosureSpaces(player_id, encid: number) : HTMLElement[] {
+  static enclosureSpaces(player_id: number, encid: number) : HTMLElement[] {
     const elems: HTMLElement[] = [];
     const children = $(IDS.enclosure(player_id, encid)).children;
     for (let i = 0; i < children.length; ++i) {

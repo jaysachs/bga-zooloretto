@@ -48,15 +48,23 @@ export class GameView {
   }
 
   flashParents(offspring: Offspring) : Promise<any> {
-    const mp = Elements.tile(offspring.mother).parentElement;
-    const fp = Elements.tile(offspring.father).parentElement;
+    const mp = Elements.tile(offspring.mother)!.parentElement!;
+    const fp = Elements.tile(offspring.father)!.parentElement!;
     const mm = mp.getAttribute(Attrs.MARK);
     const fm = fp.getAttribute(Attrs.MARK);
     mp.setAttribute(Attrs.MARK, '');
     fp.setAttribute(Attrs.MARK, '');
     return this.moreAnimations.flash(CSS.FLASH, [mp, fp]).then(() => {
-      mp.setAttribute(Attrs.MARK, mm);
-      fp.setAttribute(Attrs.MARK, fm);
+      if (mm) {
+        mp.setAttribute(Attrs.MARK, mm);
+      } else {
+        mp.removeAttribute(Attrs.MARK);
+      }
+      if (fm) {
+        fp.setAttribute(Attrs.MARK, fm);
+      } else {
+        fp.removeAttribute(Attrs.MARK);
+      }
     });
   }
 
@@ -66,11 +74,11 @@ export class GameView {
 
   // FIXME: consider making async to permit animations
   public updateMoneys(moneys: Moneys): void {
-    Object.entries(moneys).forEach(pv => this.moneyCounter.get(Number(pv[0])).toValue(pv[1]));
+    Object.entries(moneys).forEach(pv => this.moneyCounter.get(Number(pv[0]))!.toValue(pv[1]));
   }
 
   public addMoney(player_id: number, delta: number): void {
-    this.moneyCounter.get(player_id).incValue(delta);
+    this.moneyCounter.get(player_id)!.incValue(delta);
   }
 
   // FIXME: consider making this async to allow for animation
@@ -176,7 +184,7 @@ export class GameView {
   }
 
   translatedTileDescription(tile_type: string): string {
-    return _(this.bga.gameui.gamedatas.tile_translations[tile_type]);
+    return _(this.bga.gameui.gamedatas.tile_translations[tile_type] ?? '');
   }
 
   showLastTurnBanner() {

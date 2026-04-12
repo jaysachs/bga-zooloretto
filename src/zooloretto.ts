@@ -14,7 +14,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   private moneyCounter = new Map<number, Counter>();
   private primaryStockCounter: Counter = new ebg.counter();
   private endgameStockCounter: Counter = new ebg.counter();
-  private scoreSheet: ScoreSheet;
+  private scoreSheet: ScoreSheet | undefined;
   private readonly view: GameView;
 
   constructor(bga: Bga<ZPlayer, ZGamedatas>) {
@@ -151,9 +151,9 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
         scores: gamedatas.endScores,
         // FIXME: this isn't required, but works around a minor bug
         //   on the final situation page where a reload erases the scores.
-        onScoreDisplayed: (property: string, playerId: number, score: number) => {
+        onScoreDisplayed: (property: string, playerId: number, score: string | number) => {
           if (property === 'total') {
-            this.bga.playerPanels.getScoreCounter(playerId).setValue(score);
+            this.bga.playerPanels.getScoreCounter(playerId).setValue(Number(score));
           }
         },
       }
@@ -164,13 +164,13 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   private scoreControl(scores: any) {
     let visible: boolean = scores;
     if (visible) {
-      $(IDS.GAME).onclick = (e) => { visible = !visible; this.scoreSheet.setVisible(visible); }
+      $(IDS.GAME).onclick = (e) => { visible = !visible; this.scoreSheet!.setVisible(visible); }
     }
 
   }
 
   private async notif_ShowFinalScores(args: { endScores: any, }): Promise<void> {
-    await this.scoreSheet.setScores( args.endScores, { startBy: this.bga.gameui.player_id } );
+    await this.scoreSheet!.setScores( args.endScores, { startBy: this.bga.gameui.player_id } );
     // TODO: should we hook this in before displaying them?
     this.scoreControl(args.endScores);
     return this.bga.gameui.wait(this.bga.userPreferences.get(102));
