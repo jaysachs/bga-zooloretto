@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `tiles` (
   -- but then require a unique pos to maintain uniqueness constraint.
   -- Could do this with two queries, grabbing a max
   --  X: {salt_pos}
-  `location` VARCHAR(1) NOT NULL,
+  `location` VARCHAR(3) NOT NULL,
   -- ignored unless E
   `player_id` INT UNSIGNED NOT NULL DEFAULT 0,
   -- truck_id if T, enc_id if E

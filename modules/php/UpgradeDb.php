@@ -49,7 +49,7 @@ class UpgradeDb {
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT UNSIGNED NOT NULL,
                 `type` VARCHAR(10) NOT NULL,
-                `location` VARCHAR(1) NOT NULL,
+                `location` VARCHAR(3) NOT NULL,
                 `player_id` INT UNSIGNED NOT NULL DEFAULT 0,
                 `loc_id` INT UNSIGNED NOT NULL DEFAULT 0,
                 `loc_pos` INT UNSIGNED NOT NULL DEFAULT 0,
