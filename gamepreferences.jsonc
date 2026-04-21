@@ -1,0 +1,54 @@
+{
+  "100": {
+    "name": "Confirm turns",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "No"
+      },
+      "1": {
+        "name": "Yes"
+      }
+    },
+    "default": 1
+  },
+  "101": {
+    "name": "Confirm uses timed autoclick",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "No"
+      },
+      "1": {
+        "name": "Yes"
+      }
+    },
+    "default": 1
+  },
+  "102": {
+    "name": "Pause after showing final scores",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "Off"
+      },
+      "2500": {
+        "name": "On"
+      }
+    },
+    "default": 2500
+  },
+  "104": {
+    "name": "Use animated star-indicators for selectable items",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "No"
+      },
+      "1": {
+        "name": "Yes"
+      }
+    },
+    "default": 1
+  }
+}
