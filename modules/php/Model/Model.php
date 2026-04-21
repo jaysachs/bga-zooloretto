@@ -562,10 +562,10 @@ class Model {
         return $result;
     }
 
-    public function getPossibleExchanges() : ?Exchanges {
+    public function getPossibleExchanges() : Exchanges {
         if (! $this->getActivePlayer()->canAfford(Cost::EXCHANGE)) {
             // can't afford it.
-            return null;
+            return Exchanges::empty();
         }
         return Exchanges::forEnclosures($this->getEnclosuresForPlayer($this->player_id));
     }
@@ -602,11 +602,13 @@ class Model {
             $animalType = $barn->tileAt($dest_positions[0])->type->canonicalType();
             foreach ($dest_positions as $pos) {
                 $t = $barn->tileAt($pos);
-                if (!$t->type->isAnimal()) {
-                    throw new ModelException("Non-animal tile exchange attempted");
-                }
-                if ($t->type->canonicalType() != $animalType) {
-                    throw new ModelException("More than one dest animal type found");
+                if (!$t->isEmpty()) {
+                    if (!$t->type->isAnimal()) {
+                        throw new ModelException("Non-animal tile exchange attempted");
+                    }
+                    if ($t->type->canonicalType() != $animalType) {
+                        throw new ModelException("More than one dest animal type found");
+                    }
                 }
             }
 
@@ -632,7 +634,13 @@ class Model {
         $placedTiles = [];
 
         $srcTiles = array_map(fn ($p) => $se->takeTileAt($p), $src_positions);
-        $destTiles = array_map(fn ($p) => $de->takeTileAt($p), $dest_positions);
+        $destTiles = [];
+        // need to check for empty since dest may have empty spaces
+        foreach ($dest_positions as $p) {
+            if (!$de->tileAt($p)->isEmpty()) {
+                $destTiles[] = $de->takeTileAt($p);
+            }
+        }
         // FIXME: no completion bonus here
         foreach($srcTiles as $t) {
             $placedTiles[] = $de->placeTile($t, $barn, array_shift($dest_positions) ?? 0);

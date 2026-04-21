@@ -74,7 +74,7 @@ class PlayerTurn extends AbstractState
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::DISCARD)->serialize(),
 				'spaces' => self::serializeArray($model->getDiscardables())
 			],
-			'possible_exchanges' => $pe == null ? null : [
+			'possible_exchanges' => [
 				'money_delta' => Moneys::costPlayerDelta($active_player_id, Cost::EXCHANGE)->serialize(),
 				'exchanges' => $pe->serialize(),
 			],

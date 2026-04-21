@@ -40,6 +40,10 @@ class Exchanges implements Serializable {
 		public private(set) array $enclosures,
 		public private(set) array $barn) {}
 
+	public static function empty(): Exchanges {
+		return new Exchanges([], [], []);
+	}
+
 	/** @return array<string,mixed> */
 	public function serialize(): array {
 		$barns = [];
