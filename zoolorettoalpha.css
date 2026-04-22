@@ -29,16 +29,18 @@ body {
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc((100vw - 240px) / 17);
 
-    --bga-game-zoom: 1.0;
+    --bga-game-zoom: 1.0 !important;
 
 }
 
 body.mobile_version #zoo-game {
+    --bga-game-zoom: 1.0 !important;
     /* right-side-width is 0px */
     --zoo-tile-size: calc(100vw / 17 / var(--bga-game-zoom));
 }
 
 body.mobile_version #zoo-game.zoo-2p {
+    --bga-game-zoom: 1.0 !important;
     --zoo-tile-size: calc(100vw / 18.6 / var(--bga-game-zoom));
     --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
 }
