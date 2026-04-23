@@ -111,10 +111,15 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   // Draw tile
 
-  private drawTile(lastround: boolean) {
-    this.initStatusBar(_('Draw a tile?'));
-    this.markSelected(Elements.drawnTile(lastround));
-    this.addConfirmAndRestartActionButtons('actDrawTile', {});
+  private async drawTile(lastround: boolean) {
+    if (this.bga.userPreferences.get(106) > 0) {
+      this.initStatusBar(_('Draw a tile?'));
+      this.markSelected(Elements.drawnTile(lastround));
+      this.addConfirmAndRestartActionButtons('actDrawTile', {});
+    } else {
+      this.clearMarked();
+      await this.bga.actions.performAction('actDrawTile', {});
+    }
   }
 
   // move/discard

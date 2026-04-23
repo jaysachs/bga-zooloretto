@@ -50,5 +50,18 @@
       }
     },
     "default": 1
+  },
+  "106": {
+    "name": "Confirm tile draw",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "No"
+      },
+      "1": {
+        "name": "Yes"
+      }
+    },
+    "default": 1
   }
 }

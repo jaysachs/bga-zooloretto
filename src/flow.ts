@@ -253,7 +253,7 @@ export abstract class PlayFlow<T> {
     this.inUndo = false;
   }
 
-  private clearMarked() {
+  protected clearMarked() {
     while (this.marked.length > 0) {
       const elem = this.marked.pop()!;
       const undoMark = this.mark(elem, 'none');
