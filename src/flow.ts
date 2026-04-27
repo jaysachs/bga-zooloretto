@@ -115,7 +115,10 @@ export abstract class PlayFlow<T> {
   protected async addConfirmAndRestartActionButtons(bgaAction: string, args: any, settings?: {restart?: () => Promise<any>, post?: () => Promise<any>}) {
     const doAct = async () => {
         this.clearMarked();
-        await this.bga.actions.performAction(bgaAction, args).then(settings?.post);
+        await this.bga.actions.performAction(bgaAction, args)
+        if (settings?.post) {
+          await settings.post();
+        }
     };
     if (!this.confirmationsEnabled())  {
       return doAct();
