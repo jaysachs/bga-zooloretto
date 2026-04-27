@@ -173,7 +173,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     await this.scoreSheet!.setScores( args.endScores, { startBy: this.bga.gameui.player_id } );
     // TODO: should we hook this in before displaying them?
     this.scoreControl(args.endScores);
-    return this.bga.gameui.wait(this.bga.userPreferences.get(102));
+    await this.bga.gameui.wait(this.bga.userPreferences.get(102));
   }
 
   private registerLogArgs() {
