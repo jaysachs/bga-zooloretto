@@ -18,4 +18,4 @@ Known limitations / "bugs"
 ==========================
 1. At most one offspring will be produced during an exchange action. (It's possible to set things
    up to produce 2, but it's so rare, and such poor play.)
-2. At most 20 tiles can be in the barn. (Visually right now it's only 9.)
+2. At most 12 tiles can be in the barn. (Visually right now it's only 9.)
