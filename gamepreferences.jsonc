@@ -12,6 +12,19 @@
     },
     "default": 1
   },
+  "106": {
+    "name": "Confirm tile draw",
+    "needReload": false,
+    "values": {
+      "0": {
+        "name": "No"
+      },
+      "1": {
+        "name": "Yes"
+      }
+    },
+    "default": 0
+  },
   "101": {
     "name": "Confirm uses timed autoclick",
     "needReload": false,
@@ -40,19 +53,6 @@
   },
   "104": {
     "name": "Use animated star-indicators for selectable items",
-    "needReload": false,
-    "values": {
-      "0": {
-        "name": "No"
-      },
-      "1": {
-        "name": "Yes"
-      }
-    },
-    "default": 1
-  },
-  "106": {
-    "name": "Confirm tile draw",
     "needReload": false,
     "values": {
       "0": {
