@@ -133,12 +133,14 @@ class Exchanges implements Serializable {
 					$barn2->takeTileAt($dest_pos[count($dest_pos) - $i - 1]);
 				}
 
-				$offspring = self::checkOffspring($enc, $barn2, $dest_pos);
-
+				$res = self::checkOffspring($enc, $barn2, $dest_pos);
+				if (!$res['permitted']) {
+					continue;
+				}
 				if (!isset($bx[$enc->id])) {
 					$bx[$enc->id] = [];
 				}
-				$bx[$enc->id][] = new BarnExchange($dest_pos, $offspring);
+				$bx[$enc->id][] = new BarnExchange($dest_pos, $res['offspring']);
 			}
 		}
 		return new Exchanges($animals, $ex, $bx);
@@ -146,8 +148,9 @@ class Exchanges implements Serializable {
 
 	/**
 	 * @param list<int> $barn_pos
+	 * @return array{permitted:bool,offspring:?Offspring}
 	 */
-	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): ?Offspring {
+	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): array {
 		$enc = $enc->clone();
 		$barn = $barn->clone();
 		$fakeBarn = $barn->clone();
@@ -161,6 +164,9 @@ class Exchanges implements Serializable {
 				continue;
 			}
 			$tile = $barn->takeTileAt($bpos);
+			if ($enc->availablePos($tile->type) == 0) {
+				return [ 'permitted' => false ];
+			}
 			$pt = $enc->placeTile($tile, $fakeBarn);
 			if ($pt->offspring) {
 				if ($offspring) {
@@ -172,7 +178,7 @@ class Exchanges implements Serializable {
 		foreach ($tiles as $tile) {
 			$barn->placeTile($tile, $fakeBarn);
 		}
-		return $offspring;
+		return [ 'permitted' => true, 'offspring' => $offspring ];
 	}
 }
 

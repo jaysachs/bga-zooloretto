@@ -158,7 +158,7 @@ final class ExchangesTest extends TestCase
         // error_log(Arrays::arrayToString(Exchanges::forEnclosures($encs)->serialize(), true));
     }
 
-    public function testFertilePairInBar(): void {
+    public function testFertilePairInBarn(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 5, 1) ];
 
         $encs[0]->placeTile(new Tile(1, TileType::ELEPHANT), $encs[0]);
@@ -185,6 +185,25 @@ final class ExchangesTest extends TestCase
                     )]
                 ]
             ), Exchanges::forEnclosures($encs));
+    }
+
+    public function testExceedCapacity(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(3,6,1) ];
+        $encs[0]->placeTile(new Tile(1, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(2, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(3, TileType::FLAMINGO), $encs[0]);
+        $encs[0]->placeTile(new Tile(4, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(5, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(6, TileType::CAMEL_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(7, TileType::CAMEL_MALE), $encs[0]);
+
+        $encs[1]->placeTile(new Tile(10, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(11, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(12, TileType::ELEPHANT_FEMALE), $encs[0]);
+
+        $this->assertEquals(
+            new Exchanges([0 => [1,2,3,4,5,6,7], 3 => [1,2,3]], [], [3 => [new BarnExchange([3,8,9])]]),
+            Exchanges::forEnclosures($encs));
     }
 
     /*
