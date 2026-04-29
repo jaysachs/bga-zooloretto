@@ -298,37 +298,41 @@ class Enclosure {
 
     /** @return list<Offspring> */
     public function checkForOffspring(Enclosure $barn): array {
+        $offspring = [];
         if ($this->isBarn()) {
-            return [];
+            return $offspring;
         }
-        $mp = 0;
-        $fp = 0;
-        // FIXME: this only checks for one pair
-        foreach ($this->contents as $pos => $tile) {
-            if ($tile->isFertileMale() && $fp == 0) {
-                $fp = $pos;
-            } else if ($tile->isFertileFemale() && $mp == 0) {
-                $mp = $pos;
+        while (true) {
+            $mp = 0;
+            $fp = 0;
+            // FIXME: this only checks for one pair
+            foreach ($this->contents as $pos => $tile) {
+                if ($tile->isFertileMale() && $fp == 0) {
+                    $fp = $pos;
+                } else if ($tile->isFertileFemale() && $mp == 0) {
+                    $mp = $pos;
+                }
             }
-        }
-        if ($mp == 0 || $fp == 0) {
-            return [];
-        }
+            if ($mp == 0 || $fp == 0) {
+                break;
+            }
 
-        $mother = $this->contents[$mp];
-        $father = $this->contents[$fp];
-        // this will work: baby ID is 300 more than parent ID
-        $child = new Tile($mother->id * 10000 + $father->id, $mother->type->childType());
-        $mother = $mother->clone()->markReproduced();
-        $father = $father->clone()->markReproduced();
-        $this->contents[$fp] = $father;
-        $this->contents[$mp] = $mother;
+            $mother = $this->contents[$mp];
+            $father = $this->contents[$fp];
+            // this will work: baby ID is 300 more than parent ID
+            $child = new Tile($mother->id * 10000 + $father->id, $mother->type->childType());
+            $mother = $mother->clone()->markReproduced();
+            $father = $father->clone()->markReproduced();
+            $this->contents[$fp] = $father;
+            $this->contents[$mp] = $mother;
 
-        $space = ($this->availablePos($child->type) == 0)
-            ? $barn->rawPlaceTile($child)->space
-            : $this->rawPlaceTile($child)->space;
-        $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
-        return [new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father)];
+            $space = ($this->availablePos($child->type) == 0)
+                ? $barn->rawPlaceTile($child)->space
+                : $this->rawPlaceTile($child)->space;
+            $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
+            $offspring[] = new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father);
+        };
+        return $offspring;
     }
 
     public function __toString(): string

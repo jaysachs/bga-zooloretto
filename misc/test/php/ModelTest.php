@@ -128,10 +128,20 @@ final class ModelTest extends TestCase
                 new PlacedTile(new Tile(6, TileType::CAMEL_MALE), new Space(3,5)),
                 new PlacedTile(new Tile(7, TileType::CAMEL_MALE), new Space(3,6)),
             ],
-        [new Offspring(new PlacedTile(
-            new Tile(20006, TileType::CAMEL_KID),
-            new Space(0, 5)),
-            new Tile(2, TileType::CAMEL_FEMALE, true),
-            new Tile(6, TileType::CAMEL_MALE, true))]), $ce);
+        [
+            new Offspring(
+                new PlacedTile(
+                    new Tile(20006, TileType::CAMEL_KID),
+                    new Space(0, 5)),
+                new Tile(2, TileType::CAMEL_FEMALE, true),
+                new Tile(6, TileType::CAMEL_MALE, true)),
+            new Offspring(
+                new PlacedTile(
+                    new Tile(50007, TileType::CAMEL_KID),
+                    new Space(0, 6)),
+                new Tile(5, TileType::CAMEL_FEMALE, true),
+                new Tile(7, TileType::CAMEL_MALE, true)),
+        ]
+        ), $ce);
     }
 }
