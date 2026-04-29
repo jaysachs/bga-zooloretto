@@ -283,9 +283,9 @@ class Enclosure {
         throw new ModelException("Unexpected tile type {$tile->type->value}");
     }
 
-    public function placeTile(Tile $tile, Enclosure $barn, int $pos = 0): PlacedTile {
+    public function placeTile(Tile $tile, Enclosure $barn, int $pos = 0, bool $ignore_competion_bonus = false): PlacedTile {
         $pt = $this->rawPlaceTile($tile, $pos);
-        $offspring = $this->checkForOffspring($barn);
+        $offspring = $this->checkForOffspring($barn, $ignore_competion_bonus);
         $oc = count($offspring);
         if ($oc == 0) {
             return $pt;
@@ -297,7 +297,7 @@ class Enclosure {
     }
 
     /** @return list<Offspring> */
-    public function checkForOffspring(Enclosure $barn): array {
+    public function checkForOffspring(Enclosure $barn, bool $ignore_competion_bonus = false): array {
         $offspring = [];
         if ($this->isBarn()) {
             return $offspring;
@@ -305,7 +305,6 @@ class Enclosure {
         while (true) {
             $mp = 0;
             $fp = 0;
-            // FIXME: this only checks for one pair
             foreach ($this->contents as $pos => $tile) {
                 if ($tile->isFertileMale() && $fp == 0) {
                     $fp = $pos;
@@ -329,7 +328,7 @@ class Enclosure {
             $space = ($this->availablePos($child->type) == 0)
                 ? $barn->rawPlaceTile($child)->space
                 : $this->rawPlaceTile($child)->space;
-            $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
+            $completed = !$ignore_competion_bonus && ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
             $offspring[] = new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father);
         };
         return $offspring;

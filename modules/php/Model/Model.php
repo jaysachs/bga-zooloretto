@@ -470,7 +470,10 @@ class Model {
         }
 
         if ($placement->offspring) {
-            // FIXME: then check fo completion bonus
+            $cc = $placement->offspring->child->completionCoins();
+            if ($cc) {
+                $this->payPlayer($player, $cc);
+            }
             $this->saveOffspring($placement->offspring);
         }
 
@@ -625,7 +628,6 @@ class Model {
                 $destTiles[] = $de->takeTileAt($p);
             }
         }
-        // FIXME: no completion bonus here
         foreach($srcTiles as $t) {
             $placedTiles[] = $de->rawPlaceTile($t, array_shift($dest_positions) ?? 0);
         }
@@ -633,10 +635,10 @@ class Model {
             $placedTiles[] = $se->rawPlaceTile($t, array_shift($src_positions) ?? 0);
         }
         /** @var list<Offspring> */
-        $offspring = $se->checkForOffspring($barn);
+        $offspring = $se->checkForOffspring($barn, true);
         if ($de !== $barn) {
             /** @var list<Offspring> */
-            $offspring = array_merge($de->checkForOffspring($barn));
+            $offspring = array_merge($de->checkForOffspring($barn, true));
         }
 
         return new CompletedExchange($se->id, $srcType, $de->id, $destType, $placedTiles, $offspring);
@@ -667,8 +669,6 @@ class Model {
         foreach ($ce->offspring as $os) {
             $this->saveOffspring($os);
         }
-        // FIXME need to ignore any completion bonus in enclosures
-
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $encs[0]]);
 
         return $ce;
