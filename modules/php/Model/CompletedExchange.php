@@ -46,4 +46,10 @@ class CompletedExchange {
             }
         }
     }
+
+    /** @return list<PlacedTile> */
+    public function allPlacedTiles(): array {
+        $result = $this->placedTiles;
+        return array_merge($this->placedTiles, array_map(fn (Offspring $o) => $o->child, $this->offspring));
+    }
 }

@@ -198,7 +198,7 @@ class PlayerTurn extends AbstractState
             clienttranslate('${player_name} exchanged ${src_tile_type} and ${dest_tile_type} between ${src_enclosure} and ${dest_enclosure}'),
             [
                 'player_id' => $active_player_id,
-                'placed_tiles' => self::serializeArray($completedExchange->placedTiles),
+                'placed_tiles' => self::serializeArray($completedExchange->allPlacedTiles()),
                 'src_enclosure_id' => $completedExchange->src_enclosure_id,
                 'src_enclosure' => Enclosure::translated($completedExchange->src_enclosure_id),
                 'moneys' => $model->currentMoneys()->serialize(),
