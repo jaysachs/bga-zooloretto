@@ -206,7 +206,7 @@ class Game extends Table
             foreach ($upgrade["sql"] as $s) {
                 self::applyDbUpgradeToAllDB($s);
             }
-			$newStateId = $upgrade["state_id"];
+			$newStateId = $upgrade["state_id"] ?? null;
 			if ($newStateId) {
 				$this->gamestate->jumpToState($newStateId);
 			}
