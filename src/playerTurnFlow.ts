@@ -402,12 +402,12 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
     }
   }
 
-  notif_DeliverPendingTruckTiles(args: {
+  async notif_DeliverPendingTruckTiles(args: {
     truck_id: number;
     deliveries: CompletedDelivery[];
     possible_deliveries: PossibleDelivery[];
   }) {
-    this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
+    await this.chooseTruckTileToPlace(args.truck_id, args.deliveries, args.possible_deliveries);
   }
 
   doDelivery(truck_id: number, deliveries: CompletedDelivery[], truck_pos = 0, dest?:PlacedTile): Promise<any> {

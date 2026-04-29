@@ -121,7 +121,7 @@ export abstract class PlayFlow<T> {
         }
     };
     if (!this.confirmationsEnabled())  {
-      return doAct();
+      return this.bga.gameui.wait(100).then(() => doAct());
     }
     const confirmButton = this.bga.statusBar.addActionButton(_('Confirm'), doAct, { autoclick: this.useAutoclick() });
     this.addRestartAndUndoButtons({ ...settings, confirm: confirmButton });
