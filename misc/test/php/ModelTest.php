@@ -12,14 +12,14 @@ function e(int $x, int $y, Tile $t,?Offspring $offspring = null): PlacedTile {
 
 final class ModelTest extends TestCase
 {
-    public function testEmptyTruck(): void
+    public function testPossibleDeliveries_EmptyTruck(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
         $this->assertEquals([], Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
-    public function testOne(): void
+    public function testPossibleDeliveries_One(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
@@ -30,7 +30,7 @@ final class ModelTest extends TestCase
             Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
-    public function testTwoDifferentSpecies(): void
+    public function testPossibleDeliveries_TwoDifferentSpecies(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
@@ -49,7 +49,7 @@ final class ModelTest extends TestCase
             Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
-    public function testTwoOfSameSpecies(): void
+    public function testPossibleDeliveries_TwoOfSameSpecies(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1), Enclosure::forTest(2, 4, 2) ];
         $truck = new Truck(1);
@@ -68,7 +68,7 @@ final class ModelTest extends TestCase
             Model::possibleDeliveriesFor($truck, $encs, 1));
     }
 
-    public function testFertilePair(): void
+    public function testPossibleDeliveries_FertilePair(): void
     {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 3, 1, 7), Enclosure::forTest(2, 2, 2, 5) ];
         $truck = new Truck(1);
@@ -98,5 +98,40 @@ final class ModelTest extends TestCase
         $this->assertEquals(
             $expected,
             Model::possibleDeliveriesFor($truck, $encs, 1));
+    }
+
+    public function testExchange_BarnAtCapacity(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(3,6,1) ];
+        $encs[0]->placeTile(new Tile(1, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(2, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(3, TileType::FLAMINGO), $encs[0]);
+        $encs[0]->placeTile(new Tile(4, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(5, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(6, TileType::CAMEL_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(7, TileType::CAMEL_MALE), $encs[0]);
+
+        $encs[1]->placeTile(new Tile(10, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(11, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(12, TileType::ELEPHANT_FEMALE), $encs[0]);
+
+        $ce = Model::doExchange($encs[1], $encs[0], $encs[0], [1,2,4,5,6,7]);
+        $this->assertEquals(
+            new CompletedExchange(3, TileType::ELEPHANT, 0, TileType::CAMEL,
+            [
+                new PlacedTile(new Tile(10, TileType::ELEPHANT), new Space(0,1)),
+                new PlacedTile(new Tile(11, TileType::ELEPHANT), new Space(0,2)),
+                new PlacedTile(new Tile(12, TileType::ELEPHANT_FEMALE), new Space(0,4)),
+                new PlacedTile(new Tile(1, TileType::CAMEL), new Space(3,1)),
+                new PlacedTile(new Tile(2, TileType::CAMEL_FEMALE), new Space(3,2)),
+                new PlacedTile(new Tile(4, TileType::CAMEL), new Space(3,3)),
+                new PlacedTile(new Tile(5, TileType::CAMEL_FEMALE), new Space(3,4)),
+                new PlacedTile(new Tile(6, TileType::CAMEL_MALE), new Space(3,5)),
+                new PlacedTile(new Tile(7, TileType::CAMEL_MALE), new Space(3,6)),
+            ],
+        [new Offspring(new PlacedTile(
+            new Tile(20006, TileType::CAMEL_KID),
+            new Space(0, 5)),
+            new Tile(2, TileType::CAMEL_FEMALE, true),
+            new Tile(6, TileType::CAMEL_MALE, true))]), $ce);
     }
 }

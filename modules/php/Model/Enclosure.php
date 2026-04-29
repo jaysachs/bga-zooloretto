@@ -251,7 +251,7 @@ class Enclosure {
             throw new ModelException("No room for {$tile} in enclosure {$this}");
         }
         if (!$this->contents[$pos]->isEmpty()) {
-            throw new ModelException("Cannot plae tile in non-empt position {$pos} in enclosure {$this->id}");
+            throw new ModelException("Cannot place tile {$tile} in non-empty position {$pos} in enclosure {$this}");
         }
         $this->contents[$pos] = $tile;
         return $pos;

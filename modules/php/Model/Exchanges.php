@@ -132,73 +132,27 @@ class Exchanges implements Serializable {
 				for ($i = 0; $i < $extra_needed; $i++) {
 					$barn2->takeTileAt($dest_pos[count($dest_pos) - $i - 1]);
 				}
-
-				$res = self::checkOffspring($enc, $barn2, $dest_pos);
-				if (!$res['permitted']) {
-					continue;
-				}
 				if (!isset($bx[$enc->id])) {
 					$bx[$enc->id] = [];
 				}
-				$bx[$enc->id][] = new BarnExchange($dest_pos, $res['offspring']);
+				$bx[$enc->id][] = new BarnExchange($dest_pos);
 			}
 		}
 		return new Exchanges($animals, $ex, $bx);
-	}
-
-	/**
-	 * @param list<int> $barn_pos
-	 * @return array{permitted:bool,offspring:list<Offspring>}
-	 */
-	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): array {
-		$enc = $enc->clone();
-		$barn = $barn->clone();
-		$fakeBarn = $barn->clone();
-		$tiles = [];
-		foreach ($enc->filledAnimalPositions() as $apos) {
-			$tiles[] = $enc->takeTileAt($apos);
-		}
-		$offspring = null;
-		foreach ($barn_pos as $bpos) {
-			if ($barn->tileAt($bpos)->isEmpty()) {
-				continue;
-			}
-			$tile = $barn->takeTileAt($bpos);
-			if ($enc->availablePos($tile->type) == 0) {
-				return [ 'permitted' => false, 'offspring' => [] ];
-			}
-			$pt = $enc->placeTile($tile, $fakeBarn);
-			if ($pt->offspring) {
-				if ($offspring) {
-					throw new ModelException("Got a second offspring during a barn exchange");
-				}
-				$offspring = $pt->offspring;
-			}
-		}
-		foreach ($tiles as $tile) {
-			$barn->rawPlaceTile($tile);
-		}
-		return [ 'permitted' => true, 'offspring' => $offspring ? [ $offspring ] : [] ];
 	}
 }
 
 class BarnExchange implements Serializable{
 	/**
 	 * @param list<int> $positions set of barn positions getting exchanged
-	 * @param list<Offspring> $offspring potential offspring from the exchange
 	 */
 	public function __construct(
-		public private(set) array $positions,
-		public private(set) array $offspring = []) { }
+		public private(set) array $positions) { }
 
 	/** @return array<string,mixed> */
 	public function serialize(): array {
-		$result = [
+		return  [
 			'positions' => $this->positions,
 		];
-		if ($this->offspring) {
-			$result['offspring'] = array_map(fn ($os) => $os->serialize(), $this->offspring);
-		}
-		return $result;
 	}
 }

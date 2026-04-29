@@ -112,10 +112,10 @@ final class ExchangesTest extends TestCase
                 [1 => [new BarnExchange([3,4,6]), new BarnExchange([7,8,4])],
                  2 => [
                     new BarnExchange([1,5],
-                        new Offspring(
+                        [new Offspring(
                             new PlacedTile(new Tile(40001, TileType::CAMEL_KID),new Space(2, 3)),
                             new Tile(4, TileType::CAMEL_FEMALE, true),
-                            new Tile(1, TileType::CAMEL_MALE, true))),
+                            new Tile(1, TileType::CAMEL_MALE, true))]),
                     new BarnExchange([3]),
                     new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
@@ -146,10 +146,10 @@ final class ExchangesTest extends TestCase
                 [1 => [new BarnExchange([3,4,6]), new BarnExchange([7,8,4])],
                  2 => [
                     new BarnExchange([1,5],
-                        new Offspring(
+                        [new Offspring(
                             new PlacedTile(new Tile(40001, TileType::CAMEL_KID),new Space(0, 4)),
                             new Tile(4, TileType::CAMEL_FEMALE, true),
-                            new Tile(1, TileType::CAMEL_MALE, true))),
+                            new Tile(1, TileType::CAMEL_MALE, true))]),
                     new BarnExchange([3]),
                     new BarnExchange([7,8])],
                  3 => [new BarnExchange([3])]]),
@@ -176,18 +176,13 @@ final class ExchangesTest extends TestCase
             new Exchanges(
                 [0 => [1,2,3,4], 1 => [1,2,3,4,5]],
                 [],
-                [1 => [new BarnExchange(
-                    [1,2,4,5,6],
-                    new Offspring(
-                        new PlacedTile(new Tile(290002, TileType::ELEPHANT_KID),new Space(1, 4)),
-                        $encs[0]->tileAt(4)->clone()->markReproduced(),
-                        $encs[0]->tileAt(2)->clone()->markReproduced())
-                    )]
+                [
+                    1 => [new BarnExchange([1,2,4,5,6])]
                 ]
             ), Exchanges::forEnclosures($encs));
     }
 
-    public function testExceedCapacity(): void {
+    public function testBarnAtCapacity(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(3,6,1) ];
         $encs[0]->placeTile(new Tile(1, TileType::CAMEL), $encs[0]);
         $encs[0]->placeTile(new Tile(2, TileType::CAMEL_FEMALE), $encs[0]);
@@ -202,10 +197,33 @@ final class ExchangesTest extends TestCase
         $encs[1]->placeTile(new Tile(12, TileType::ELEPHANT_FEMALE), $encs[0]);
 
         $this->assertEquals(
-            new Exchanges([0 => [1,2,3,4,5,6,7], 3 => [1,2,3]], [], [3 => [new BarnExchange([3,8,9])]]),
+            new Exchanges(
+                [0 => [1,2,3,4,5,6,7], 3 => [1,2,3]],
+                [],
+                [3 => [new BarnExchange([1,2,4,5,6,7]), new BarnExchange([3,8,9])]]
+            ),
             Exchanges::forEnclosures($encs));
     }
 
+    public function testExceedCapacity(): void {
+        $encs = [ Enclosure::barn(), Enclosure::forTest(3,6,1) ];
+        $encs[0]->placeTile(new Tile(1, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(2, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(3, TileType::FLAMINGO), $encs[0]);
+        $encs[0]->placeTile(new Tile(4, TileType::CAMEL), $encs[0]);
+        $encs[0]->placeTile(new Tile(5, TileType::CAMEL_FEMALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(6, TileType::CAMEL_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(7, TileType::CAMEL_MALE), $encs[0]);
+        $encs[0]->placeTile(new Tile(8, TileType::CAMEL), $encs[0]);
+
+        $encs[1]->placeTile(new Tile(10, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(11, TileType::ELEPHANT), $encs[0]);
+        $encs[1]->placeTile(new Tile(12, TileType::ELEPHANT_FEMALE), $encs[0]);
+
+        $this->assertEquals(
+            new Exchanges([0 => [1,2,3,4,5,6,7,8], 3 => [1,2,3]], [], [3 => [new BarnExchange([3,9,10])]]),
+            Exchanges::forEnclosures($encs));
+    }
     /*
     public function testBug(): void {
         $encs = [ Enclosure::barn(), Enclosure::forTest(1, 5, 1), Enclosure::forTest(2, 4, 2), Enclosure::forTest(3,6,1), Enclosure::forTest(4, 5, 1) ];

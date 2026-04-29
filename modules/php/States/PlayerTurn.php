@@ -189,7 +189,9 @@ class PlayerTurn extends AbstractState
 	{
         $model = $this->createModel($active_player_id);
 		$completedExchange = $model->exchange($src_enclosure_id, $dest_enclosure_id, $dest_positions);
-		$this->notifyOffspring($active_player_id, $completedExchange->offspring());
+		foreach ($completedExchange->offspring as $offspring) {
+			$this->notifyOffspring($active_player_id, $offspring);
+		}
 
 		$this->notify->all(
             'ExchangeEnclosureAnimals',

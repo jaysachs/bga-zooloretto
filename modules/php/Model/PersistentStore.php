@@ -81,7 +81,6 @@ class PersistentStore {
                 $reproduced[$id % 10000] = true;
             }
         }
-        $someBarn = Enclosure::barn();
         foreach ($rows as $row) {
             $id = intval($row['id']);
             $tile = new Tile($id, TileType::from($row['type']), isset($reproduced[$id]));
@@ -97,7 +96,7 @@ class PersistentStore {
                 $trucks[intval($row['loc_id'])]->placeTileAt($tile, intval($row['loc_pos']));
                 break;
             case 'E':
-                $pencs[intval($row['player_id'])][intval($row['loc_id'])]->placeTile($tile, $someBarn, intval($row['loc_pos']));
+                $pencs[intval($row['player_id'])][intval($row['loc_id'])]->rawPlaceTile($tile, intval($row['loc_pos']));
                 break;
             default:
                 throw new ModelException("Unknown location type {$loc}");

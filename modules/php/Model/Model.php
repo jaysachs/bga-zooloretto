@@ -578,24 +578,8 @@ class Model {
     /**
      * @param list<int> $dest_positions
      */
-    public function exchange(int $src_enclosure_id, int $dest_enclosure_id, ?array $dest_positions): CompletedExchange {
-        $player = $this->getActivePlayer();
-        if (!$player->canAfford(Cost::EXCHANGE)) {
-            throw new ModelException("player cannot afford exchange");
-        }
-        $this->chargePlayer($player, Cost::EXCHANGE);
-        if ($src_enclosure_id == 0) {
-            throw new ModelException("Exchange source must not be barn.");
-        }
-        if ($src_enclosure_id == $dest_enclosure_id) {
-            throw new ModelException("Source and destination exchange enclosures must be different");
-        }
-        $encs = $this->getEnclosuresForPlayer();
-        $se = $encs[$src_enclosure_id];
-        $de = $encs[$dest_enclosure_id];
-        $barn = $encs[0];
-
-        if ($dest_enclosure_id == 0) {
+    public static function doExchange(Enclosure $se, Enclosure $de, Enclosure $barn, ?array $dest_positions): CompletedExchange {
+        if ($de === $barn) {
             if ($dest_positions === null || count($dest_positions) == 0) {
                 throw new ModelException("Exchange into barn requires positions to be specified");
             }
@@ -643,27 +627,51 @@ class Model {
         }
         // FIXME: no completion bonus here
         foreach($srcTiles as $t) {
-            $placedTiles[] = $de->placeTile($t, $barn, array_shift($dest_positions) ?? 0);
+            $placedTiles[] = $de->rawPlaceTile($t, array_shift($dest_positions) ?? 0);
         }
         foreach($destTiles as $t) {
-            $placedTiles[] = $se->placeTile($t, $barn, array_shift($src_positions) ?? 0);
+            $placedTiles[] = $se->rawPlaceTile($t, array_shift($src_positions) ?? 0);
+        }
+        /** @var list<Offspring> */
+        $offspring = $se->checkForOffspring($barn);
+        if ($de !== $barn) {
+            /** @var list<Offspring> */
+            $offspring = array_merge($de->checkForOffspring($barn));
         }
 
-        foreach ($placedTiles as $pt) {
-            if ($pt->offspring) {
-                $this->saveOffspring($pt->offspring);
-            }
-        }
-        // not possible to generate offspring in the destination:
-        //   barn simply not done
-        //   if another enclosure, the offspring would have already been generated in the src
-        // The only possible way to generate offspringin the source is if the dest is the barn
+        return new CompletedExchange($se->id, $srcType, $de->id, $destType, $placedTiles, $offspring);
+    }
 
+    /**
+     * @param list<int> $dest_positions
+     */
+    public function exchange(int $src_enclosure_id, int $dest_enclosure_id, ?array $dest_positions): CompletedExchange {
+        $player = $this->getActivePlayer();
+        if (!$player->canAfford(Cost::EXCHANGE)) {
+            throw new ModelException("player cannot afford exchange");
+        }
+        $this->chargePlayer($player, Cost::EXCHANGE);
+        if ($src_enclosure_id == 0) {
+            throw new ModelException("Exchange source must not be barn.");
+        }
+        if ($src_enclosure_id == $dest_enclosure_id) {
+            throw new ModelException("Source and destination exchange enclosures must be different");
+        }
+        $encs = $this->getEnclosuresForPlayer();
+        $se = $encs[$src_enclosure_id];
+        $de = $encs[$dest_enclosure_id];
+        $barn = $encs[0];
+
+        $ce = self::doExchange($se, $de, $barn, $dest_positions);
+
+        foreach ($ce->offspring as $os) {
+            $this->saveOffspring($os);
+        }
         // FIXME need to ignore any completion bonus in enclosures
 
         $this->ps->updateEnclosures($this->player_id, [$se, $de, $encs[0]]);
 
-        return new CompletedExchange($src_enclosure_id, $srcType, $dest_enclosure_id, $destType, $placedTiles);
+        return $ce;
     }
 
     private function chargePlayer(Player $player, Cost $cost) : void {

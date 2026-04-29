@@ -30,27 +30,20 @@ namespace Bga\Games\zoolorettoalpha\Model;
 class CompletedExchange {
     /**
      * @param list<PlacedTile> $placedTiles
+     * @param list<Offspring> $offspring
      */
     public function __construct(
         public readonly int $src_enclosure_id,
         public readonly TileType $src_tile_type,
         public readonly int $dest_enclosure_id,
         public readonly TileType $dest_tile_type,
-        public readonly array $placedTiles
-    ) {}
-
-    public function offspring(): ?Offspring {
-        $offspring = null;
-        foreach ($this->placedTiles as $pt) {
+        public readonly array $placedTiles,
+        public readonly array $offspring
+    ) {
+        foreach ($placedTiles as $pt) {
             if ($pt->offspring) {
-                if ($offspring) {
-                    // FIXME: not quite true; two sets of fertile parents of the same specieis
-                    //  in a barn will produce two offspring.
-                    throw new ModelException("CompletedExchange should not generate multiple offspring");
-                }
-                $offspring = $pt->offspring;
+                throw new ModelException("PlacedTiles in a CompletedExchange should not have offspring");
             }
         }
-        return $offspring;
     }
 }
