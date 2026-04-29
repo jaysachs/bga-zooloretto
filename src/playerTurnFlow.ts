@@ -27,7 +27,7 @@ interface PossibleMove {
 interface BarnExchange {
   // the positions in the barn
   positions: number[];
-  offspring: Offspring | null;
+  // offspring: Offspring[];
 }
 
 interface Exchanges {

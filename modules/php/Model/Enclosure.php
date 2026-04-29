@@ -286,12 +286,20 @@ class Enclosure {
     public function placeTile(Tile $tile, Enclosure $barn, int $pos = 0): PlacedTile {
         $pt = $this->rawPlaceTile($tile, $pos);
         $offspring = $this->checkForOffspring($barn);
-        return $pt->withOffspring($offspring);
+        $oc = count($offspring);
+        if ($oc == 0) {
+            return $pt;
+        }
+        if ($oc == 1) {
+            return $pt->withOffspring($offspring[0]);
+        }
+        throw new ModelException("Checking offspring after placing a single tile should produce at most one offspring but produced {$oc}");
     }
 
-    private function checkForOffspring(Enclosure $barn): ?Offspring {
+    /** @return list<Offspring> */
+    public function checkForOffspring(Enclosure $barn): array {
         if ($this->isBarn()) {
-            return null;
+            return [];
         }
         $mp = 0;
         $fp = 0;
@@ -304,7 +312,7 @@ class Enclosure {
             }
         }
         if ($mp == 0 || $fp == 0) {
-            return null;
+            return [];
         }
 
         $mother = $this->contents[$mp];
@@ -320,7 +328,7 @@ class Enclosure {
             ? $barn->rawPlaceTile($child)->space
             : $this->rawPlaceTile($child)->space;
         $completed = ($space->enclosure_id == $this->id) && $this->allAnimalPositionsFilled();
-        return new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father);
+        return [new Offspring(new PlacedTile($child, $space, $completed ? $this->coin_bonus : 0), $mother, $father)];
     }
 
     public function __toString(): string

@@ -127,7 +127,7 @@ class Exchanges implements Serializable {
 				$extra_needed = count($enc->filledAnimalPositions()) - count($dest_pos);
 				$randomTile = new Tile(100000, TileType::CAMEL);
 				for ($i = 0; $i < $extra_needed; $i++) {
-					$dest_pos[] = $barn2->placeTile($randomTile, $barn2)->space->pos;
+					$dest_pos[] = $barn2->rawPlaceTile($randomTile)->space->pos;
 				}
 				for ($i = 0; $i < $extra_needed; $i++) {
 					$barn2->takeTileAt($dest_pos[count($dest_pos) - $i - 1]);
@@ -148,7 +148,7 @@ class Exchanges implements Serializable {
 
 	/**
 	 * @param list<int> $barn_pos
-	 * @return array{permitted:bool,offspring:?Offspring}
+	 * @return array{permitted:bool,offspring:list<Offspring>}
 	 */
 	private static function checkOffspring(Enclosure $enc, Enclosure $barn, array $barn_pos): array {
 		$enc = $enc->clone();
@@ -165,7 +165,7 @@ class Exchanges implements Serializable {
 			}
 			$tile = $barn->takeTileAt($bpos);
 			if ($enc->availablePos($tile->type) == 0) {
-				return [ 'permitted' => false ];
+				return [ 'permitted' => false, 'offspring' => [] ];
 			}
 			$pt = $enc->placeTile($tile, $fakeBarn);
 			if ($pt->offspring) {
@@ -176,20 +176,20 @@ class Exchanges implements Serializable {
 			}
 		}
 		foreach ($tiles as $tile) {
-			$barn->placeTile($tile, $fakeBarn);
+			$barn->rawPlaceTile($tile);
 		}
-		return [ 'permitted' => true, 'offspring' => $offspring ];
+		return [ 'permitted' => true, 'offspring' => $offspring ? [ $offspring ] : [] ];
 	}
 }
 
 class BarnExchange implements Serializable{
 	/**
 	 * @param list<int> $positions set of barn positions getting exchanged
-	 * @param Offspring $offspring potential offspring from the exchange
+	 * @param list<Offspring> $offspring potential offspring from the exchange
 	 */
 	public function __construct(
 		public private(set) array $positions,
-		public private(set) ?Offspring $offspring = null) { }
+		public private(set) array $offspring = []) { }
 
 	/** @return array<string,mixed> */
 	public function serialize(): array {
@@ -197,7 +197,7 @@ class BarnExchange implements Serializable{
 			'positions' => $this->positions,
 		];
 		if ($this->offspring) {
-			$result['offspring'] = $this->offspring->serialize();
+			$result['offspring'] = array_map(fn ($os) => $os->serialize(), $this->offspring);
 		}
 		return $result;
 	}
