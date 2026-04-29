@@ -63,5 +63,27 @@
       }
     },
     "default": 1
+  },
+  "105": {
+    "name": "Maximum tile size",
+    "needReload": false,
+    "values": {
+      "78": {
+        "name": "Max"
+      },
+      "66": {
+        "name": "Large"
+      },
+      "54": {
+        "name": "Medium"
+      },
+      "42": {
+        "name": "Small"
+      },
+      "30": {
+        "name": "Min"
+      }
+    },
+    "default": 78
   }
 }

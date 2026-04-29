@@ -20,12 +20,29 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   constructor(bga: Bga<ZPlayer, ZGamedatas>) {
     super(bga);
     this.view = new GameView(bga, this.animationManager, this.moneyCounter, this.primaryStockCounter, this.endgameStockCounter);
+    this.bga.userPreferences.onChange = this.handlePreferencesChange.bind(this);
     this.bga.states.register('PlayerTurn', new PlayerTurnFlow(this.view));
     this.bga.states.register('LoadDrawnTile', new LoadDrawnTileFlow(this.view));
     if (window.location.host == "studio.boardgamearena.com") {
       (window as any).Zoo.game = this;
     }
     this.registerLogArgs();
+  }
+
+  private handlePreferencesChange(pref_id: number, pref_value: number): void {
+    switch (pref_id) {
+      case 104:
+        if (pref_value) {
+          $(IDS.GAME).classList.add('zoo-indicators');
+        } else {
+          $(IDS.GAME).classList.remove('zoo-indicators');
+        }
+        break;
+      case 105:
+        const body = document.getElementsByTagName('body').item(0)!;
+        body.setAttribute('zoo-max-tile-size', `${pref_value}`);
+        break;
+    }
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
@@ -43,20 +60,12 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     this.view.renderTrucks(gamedatas);
     this.view.renderEnclosures(gamedatas);
     this.view.updateEnclosureSummaries(gamedatas.enclosure_summaries);
-    this.bga.userPreferences.onChange = (prefId: number, value: number) => {
-      switch (prefId) {
-        case 104:
-          if (value) {
-            $(IDS.GAME).classList.add('zoo-indicators');
-          } else {
-            $(IDS.GAME).classList.remove('zoo-indicators');
-          }
-      }
-    }
   }
 
   setup(gamedatas: ZGamedatas) {
     this.setupHtml(gamedatas);
+    this.bga.userPreferences.onChange = this.handlePreferencesChange.bind(this);
+    this.handlePreferencesChange(105, this.bga.userPreferences.get(105));
     this.setupNotifications();
     this.setupScoreSheet(gamedatas);
     if (gamedatas.lastround) {
