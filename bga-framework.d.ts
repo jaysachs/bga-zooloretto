@@ -25,6 +25,8 @@ declare const g_replayFrom: number | undefined;
 
 /**
  * The URL to the root of the game files, for example to access dynamically to an image.
+ * 
+ * @deprecated use this.bga.images.getImgUrl()
  */
 declare const g_gamethemeurl: string;
 
@@ -203,11 +205,21 @@ declare class Images {
    * @param {string[]} images the filenames
    */
   preloadImages(images: string[]): void;
+
+  /**
+   * Returns the img root url, or the image url if a file name is provided.
+   * 
+   * @param {string | undefined} filename 
+   * @returns string
+   */
+  getImgUrl(filename?: string): string;
 }
 
 declare class Sounds {
   /**
-   * Load a sound file to be used with play.
+   * Load a sound file (from img folder) to be used with play.
+   * 
+   * @deprecated move the sounds in the `sounds` folder to benefit from autoloading, then remove this call.
    * 
    * @param {string} id the id to be used by play
    * @param {string} fileName the file name, without extension (there should be a .ogg and a .mp3 with that file name in the img folder). If unset, it will try with the id as file name.
@@ -215,11 +227,25 @@ declare class Sounds {
   load(id: string, fileName: string): void;
 
   /**
-   * Play the sound with the given id.
+   * Play the sound with the given id (or filename without extension for preloaded sounds in the `sounds` folder).
    * 
    * @param {string} id the sound id
    */
   play(id: string): void;
+
+  /**
+   * Tell the interface to not preload specific sounds in your sound root directory.
+   * 
+   * @param {string[]} sounds the filenames (without extension)
+   */
+  dontPreloadSounds(sounds: string[]): void;
+
+  /**
+   * Tell the interface to preload specific sounds in your sound directory.
+   * 
+   * @param {string[]} sounds the filenames (without extension)
+   */
+  preloadSounds(sounds: string[]): void;
 }
 
 declare class UserPreferences {
@@ -247,6 +273,12 @@ declare class Players<P extends Player = Player> {
    * @returns {number} the current player id
    */
   getCurrentPlayerId(): number;
+
+  /**
+   * Return the no of the player who is looking at the game. The player may not be part of the game (i.e. spectator)
+   * @returns {number | null} the current player no
+   */
+  getCurrentPlayerNo(): number | null;
 
   /**
    * Return the current player data stored in gamedatas.players.
@@ -285,6 +317,12 @@ declare class Players<P extends Player = Player> {
   getActivePlayerId(): number | null;
 
   /**
+   * Return the no of the active player, or null if we are not in an ACTIVE_PLAYER type state.
+   * @returns {number | null} the active player no
+   */
+  getActivePlayerNo(): number | null;
+
+  /**
    * Return the active player, or null if we are not in an ACTIVE_PLAYER type state.
    * 
    * @returns {P | null} the active player
@@ -292,12 +330,25 @@ declare class Players<P extends Player = Player> {
   getActivePlayer(): P | null;
 
   /**
+   * @deprecated use getPlayerById.
+   */
+  getPlayer(playerId: number) : P | undefined;
+
+  /**
    * Return the player data stored in gamedatas.players.
    * Can be undefined, if the player isn't at this table (spectator).
    * 
-   * @returns {P | undefined} the player
+   * @returns {Object | undefined} the player
    */
-  getPlayer(playerId: number) : P | undefined;
+  getPlayerById(playerId: number) : P | undefined;
+
+  /**
+   * Return the player data stored in gamedatas.players.
+   * Can be undefined, if the player isn't at this table (spectator).
+   * 
+   * @returns {Object | undefined} the player
+   */
+  getPlayerByNo(playerNo: number) : P | undefined;
 
   /**
    * Return the HTML code for a player name, colored and with optional background.
@@ -325,6 +376,18 @@ declare class Players<P extends Player = Player> {
    * @returns the avatar url
    */
   getPlayerAvatarUrl(playerId: number, size?: number): string;
+
+  /**
+   * Return the no of the player, by id
+   * @returns {number | null} the player no, or null if the player id is not a player on this table
+   */
+  getPlayerNoById(playerId: number): number | null;
+
+  /**
+   * Return the id of the player, by no
+   * @returns {number} the player id
+   */
+  getPlayerIdByNo(playerNo: number): number;
 }
 
 declare class Actions {
