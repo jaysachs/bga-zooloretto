@@ -177,7 +177,13 @@ export class ZoolorettoHtml {
 
   baseStructure(): HTMLElement {
     const currentPlayer = this.gamedatas.players[this.player_id];
-    const otherplayers = Object.values(this.gamedatas.players).filter((p) => p != currentPlayer);
+    const otherplayers: ZPlayer[] = [];
+    for (const playerId of this.gamedatas.playerorder) {
+      const npid = Number(playerId);
+      if (npid != this.player_id) {
+        otherplayers.push(this.gamedatas.players[npid]!);
+      }
+    }
 
     return Html
       .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
