@@ -25,9 +25,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Model;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 class Moneys implements Serializable {
     /** @param int[] $players keyed by player_id */

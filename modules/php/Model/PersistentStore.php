@@ -25,10 +25,10 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Model;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zoolorettoalpha\Utils\Db;
-use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
+use Bga\Games\zooloretto\Utils\Db;
+use Bga\Games\zooloretto\Utils\DefaultDb;
 
 /*
   Basic guideline: all mutations are done through Model public methods. While it may return modeled objects with mutable fields,

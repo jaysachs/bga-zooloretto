@@ -25,10 +25,10 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\States;
+namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
-use Bga\Games\zoolorettoalpha\Game;
+use Bga\Games\zooloretto\Game;
 
 class ComputeScores extends AbstractState
 {

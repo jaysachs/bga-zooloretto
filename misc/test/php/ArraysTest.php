@@ -3,8 +3,8 @@
 declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
-use Bga\Games\zoolorettoalpha\Utils;
-use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zooloretto\Utils;
+use Bga\Games\zooloretto\Utils\Arrays;
 
 final class ArraysTest extends TestCase
 {

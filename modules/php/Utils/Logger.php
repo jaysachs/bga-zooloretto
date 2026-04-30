@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Utils;
+namespace Bga\Games\zooloretto\Utils;
 
 interface Logger {
     function debug(string $msg): void;

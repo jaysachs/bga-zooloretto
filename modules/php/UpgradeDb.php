@@ -25,10 +25,10 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha;
+namespace Bga\Games\zooloretto;
 
-use Bga\Games\zoolorettoalpha\Utils\Arrays;
-use Bga\Games\zoolorettoalpha\Utils\Db;
+use Bga\Games\zooloretto\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\Db;
 
 class UpgradeDb {
 

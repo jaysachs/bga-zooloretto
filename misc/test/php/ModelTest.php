@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Model;
+namespace Bga\Games\zooloretto\Model;
 
 use PHPUnit\Framework\TestCase;
 

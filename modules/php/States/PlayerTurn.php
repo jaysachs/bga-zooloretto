@@ -25,20 +25,20 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\States;
+namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\SystemException;
-use Bga\Games\zoolorettoalpha\Game;
-use Bga\Games\zoolorettoalpha\Model\Cost;
-use Bga\Games\zoolorettoalpha\Model\Delivery;
-use Bga\Games\zoolorettoalpha\Model\Enclosure;
-use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
-use Bga\Games\zoolorettoalpha\Model\Moneys;
-use Bga\Games\zoolorettoalpha\Model\Space;
-use Bga\Games\zoolorettoalpha\Model\Truck;
+use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Cost;
+use Bga\Games\zooloretto\Model\Delivery;
+use Bga\Games\zooloretto\Model\Enclosure;
+use Bga\Games\zooloretto\Model\EnclosureSummary;
+use Bga\Games\zooloretto\Model\Moneys;
+use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\Truck;
 
 class PlayerTurn extends AbstractState
 {

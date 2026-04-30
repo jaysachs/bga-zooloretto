@@ -1,7 +1,7 @@
 
 #
 ROOT=$(HOME)/projects/bga
-GAME=zoolorettoalpha
+GAME=zooloretto
 SFTP=sftp://vagabond:@1.studio.boardgamearena.com:2022
 
 STATS=modules/php/Stats.php

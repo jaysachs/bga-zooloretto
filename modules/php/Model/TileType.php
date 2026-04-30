@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Model;
+namespace Bga\Games\zooloretto\Model;
 
 // FIXME: do I want an EMPTY type? then won't need null checks ....
 

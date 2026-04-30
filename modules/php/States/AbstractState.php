@@ -25,16 +25,16 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\States;
+namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
-use Bga\Games\zoolorettoalpha\Game;
-use Bga\Games\zoolorettoalpha\Model\Enclosure;
-use Bga\Games\zoolorettoalpha\Model\Model;
-use Bga\Games\zoolorettoalpha\Model\Offspring;
-use Bga\Games\zoolorettoalpha\Model\Serializable;
-use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
+use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Enclosure;
+use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\Offspring;
+use Bga\Games\zooloretto\Model\Serializable;
+use Bga\Games\zooloretto\Utils\DefaultDb;
 
 abstract class AbstractState extends GameState
 {

@@ -25,13 +25,13 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\States;
+namespace Bga\Games\zooloretto\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\VisibleSystemException;
-use Bga\Games\zoolorettoalpha\Game;
-use Bga\Games\zoolorettoalpha\Model\Truck;
+use Bga\Games\zooloretto\Game;
+use Bga\Games\zooloretto\Model\Truck;
 
 class LoadDrawnTile extends AbstractState
 {

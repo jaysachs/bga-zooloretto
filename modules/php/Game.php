@@ -25,24 +25,24 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha;
+namespace Bga\Games\zooloretto;
 
 use Bga\GameFramework\Actions\Debug;
 use Bga\GameFramework\Table;
-use Bga\Games\zoolorettoalpha\Model\Enclosure;
-use Bga\Games\zoolorettoalpha\Model\EnclosureSummary;
-use Bga\Games\zoolorettoalpha\Model\Model;
-use Bga\Games\zoolorettoalpha\Model\PersistentStore;
-use Bga\Games\zoolorettoalpha\Model\Player;
-use Bga\Games\zoolorettoalpha\Model\Space;
-use Bga\Games\zoolorettoalpha\Model\TileType;
-use Bga\Games\zoolorettoalpha\Model\Truck;
-use Bga\Games\zoolorettoalpha\States\ComputeScores;
-use Bga\Games\zoolorettoalpha\States\PlayerTurn;
-use Bga\Games\zoolorettoalpha\Utils\Arrays;
-use Bga\Games\zoolorettoalpha\Utils\DefaultDb;
-use Bga\Games\zoolorettoalpha\Utils\Log;
-use Bga\Games\zoolorettoalpha\Utils\Logger;
+use Bga\Games\zooloretto\Model\Enclosure;
+use Bga\Games\zooloretto\Model\EnclosureSummary;
+use Bga\Games\zooloretto\Model\Model;
+use Bga\Games\zooloretto\Model\PersistentStore;
+use Bga\Games\zooloretto\Model\Player;
+use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\TileType;
+use Bga\Games\zooloretto\Model\Truck;
+use Bga\Games\zooloretto\States\ComputeScores;
+use Bga\Games\zooloretto\States\PlayerTurn;
+use Bga\Games\zooloretto\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\DefaultDb;
+use Bga\Games\zooloretto\Utils\Log;
+use Bga\Games\zooloretto\Utils\Logger;
 
 class GameLogger implements Logger {
 	function __construct(private Table $table) { }

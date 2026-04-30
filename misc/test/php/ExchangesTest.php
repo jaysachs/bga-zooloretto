@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\zoolorettoalpha\Model;
+namespace Bga\Games\zooloretto\Model;
 
-use Bga\Games\zoolorettoalpha\Utils\Arrays;
+use Bga\Games\zooloretto\Utils\Arrays;
 use PHPUnit\Framework\TestCase;
 
 final class ExchangesTest extends TestCase
