@@ -207,7 +207,11 @@ body.mobile_version #zoo-game.zoo-2p {
     width: auto;
     flex-grow: 0;
     display : flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    padding-right: 1em;
     row-gap: 2em;
     column-gap: 2em;
 }
