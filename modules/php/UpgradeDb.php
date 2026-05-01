@@ -42,9 +42,6 @@ class UpgradeDb {
         if ($from_version > 2504011715) {
             return null;
         }
-        if ($from_version >= 0) {
-            return null;
-        }
         $sql = [];
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT UNSIGNED NOT NULL,
@@ -56,13 +53,13 @@ class UpgradeDb {
                 PRIMARY KEY (`id`),
                 UNIQUE(`location`, `player_id`, `loc_id`, `loc_pos`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `money` INT UNSIGNED NOT NULL DEFAULT 0";
         $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `purchased_extensions` INT UNSIGNED NOT NULL DEFAULT 0";
         $sql[] = "ALTER TABLE DBPREFIX_player ADD COLUMN `truck_taken` INT UNSIGNED NOT NULL DEFAULT 0";
 
         $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
         $players = $this->db->getObjectList("SELECT * FROM player");
+        $stallId = count($players) == 2 ? 6 : 5;
         $wagons = $this->db->getObjectList("SELECT * FROM wagons");
         $animals = $this->db->getObjectList("SELECT * FROM animals");
         // FIXME: can we use getActivePlayerId ?
@@ -74,7 +71,7 @@ class UpgradeDb {
         $stockpos = 1;
         $barnpos = [];
         foreach ($players as $p) {
-            $barnpos[$p["player_id"]] = 0;
+            $barnpos[intval($p["player_id"])] = 1;
         }
 
         $pending_truck = 0;
@@ -140,9 +137,20 @@ class UpgradeDb {
                 $loc_id = intval($a["x"]);
                 $loc_pos = intval($a["y"]);
                 // Fix up stall locs; original has enclosure 6 for stalls
-                if ($loc_id == 6) {
+                //  with positions:
+                //   1: enc1 / pos6
+                //   2: enc2 / pos5
+                //   3: enc2 / pos6
+                //   4: enc3 / pos7
+                //   5: enc4 / pos6
+                //   6: enc5 / pos6
+                if ($loc_id == $stallId) {
                     $loc_id = $loc_pos > 2 ? $loc_pos - 1 : $loc_pos;
-                    $loc_pos = $loc_pos == 2 ? 5 : 6;
+                    $loc_pos = match ($loc_pos) {
+                        2 => 5,
+                        4 => 7,
+                        default => 6
+                    };
                 }
                 break;
             case "STALL": // means barn
