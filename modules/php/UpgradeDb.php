@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Utils\Arrays;
 use Bga\Games\zooloretto\Utils\Db;
 
@@ -59,7 +60,8 @@ class UpgradeDb {
         $sql[] = "UPDATE DBPREFIX_player SET purchased_extensions = unblockedzoo";
 
         $players = $this->db->getObjectList("SELECT * FROM player");
-        $stallId = count($players) == 2 ? 6 : 5;
+        $is2p = count($players) == 2;
+        $barnId = $is2p ? 6 : 5;
         $wagons = $this->db->getObjectList("SELECT * FROM wagons");
         $animals = $this->db->getObjectList("SELECT * FROM animals");
         // FIXME: can we use getActivePlayerId ?
@@ -97,7 +99,20 @@ class UpgradeDb {
                 $available_truck_pos = $a;
             }
         }
-        $values = [];
+        if ($is2p) {
+            // Need to add "blocks" into 2p trucks.
+            $values = [];
+            $blockid = 1000;
+            $type = TileType::BLOCK->value;
+            $values[] = "($blockid, '$type', 'T', 0, 2, 3)";
+            $blockid++;
+            $values[] = "($blockid, '$type', 'T', 0, 3, 2)";
+            $blockid++;
+            $values[] = "($blockid, '$type', 'T', 0, 3, 3)";
+            $sql[] = "INSERT INTO DBPREFIX_tiles
+                      (id, type, location, player_id, loc_id, loc_pos)
+                      VALUES " . implode(",", $values);
+        }
         foreach ($animals as $a) {
             $location = "";
             $player_id = 0;
@@ -144,7 +159,7 @@ class UpgradeDb {
                 //   4: enc3 / pos7
                 //   5: enc4 / pos6
                 //   6: enc5 / pos6
-                if ($loc_id == $stallId) {
+                if ($loc_id == $barnId) {
                     $loc_id = $loc_pos > 2 ? $loc_pos - 1 : $loc_pos;
                     $loc_pos = match ($loc_pos) {
                         2 => 5,
@@ -174,10 +189,11 @@ class UpgradeDb {
                 throw new \Exception("Unknown status $status");
                 // log error / throw exception
             }
-            $values[] = "($id, '$type', '$location', $player_id, $loc_id, $loc_pos)";
+            $sql[] = "INSERT INTO DBPREFIX_tiles
+                      (id, type, location, player_id, loc_id, loc_pos)
+                      VALUES ($id, '$type', '$location', $player_id, $loc_id, $loc_pos)";
         }
 
-        $sql[] = "INSERT INTO DBPREFIX_tiles (id, type, location, player_id, loc_id, loc_pos) VALUES " . implode(",", $values);
         // Now set truck_taken on player as needed. We don't know which one
         //  each player took, but we know if they took one.
         $taken = [];
