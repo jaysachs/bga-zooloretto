@@ -1,0 +1,21 @@
+VERIFIED 1. Tile drawn but not placed on truck
+VERIFIED 2. Partial delivery from truck to enclosures
+VERIFIED 3. Truck confirmed taken
+
+NEEDED? 4. Partial delivery from truck to enclosures with offspring generated
+
+VERIFIED 5. Exchange source chosen
+VERIFIED 6. Exchange completed but not confirmed
+VERIFIED 7. Exchange completed but not confirmed with offspring
+
+VERIFIED 8. Purchase started
+
+NEEDED? 9. Purchase completed but not confirmed
+
+NOT NEEDED -- Move is broken. 10. Move started
+
+NOT NEEDED 11. Move completed but not confirmed
+
+NOT NEEDED 12. Expansion started
+
+VERIFIED 13. Discard started
