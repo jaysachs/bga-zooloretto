@@ -198,7 +198,7 @@ class UpgradeDb {
         //  each player took, but we know if they took one.
         $taken = [];
         foreach ($wagons as $w) {
-            if ($w["status"] == "TAKEN") {
+            if ($w["status"] == "PLAYED") { // "TAKEN"
                 $taken[] = intval($w["id"]);
             }
         }
@@ -215,6 +215,8 @@ class UpgradeDb {
         if ($currentState == 5 || $currentState == 7 || $currentState == 8
             || $currentState == 9 || $currentState == 10) {
             $result["state_id"] = 2;
+        } else if ($currentState == 3) {
+            $result["state_id"] = 23;
         }
 
         return $result;
