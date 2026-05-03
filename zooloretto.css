@@ -208,7 +208,7 @@ body.mobile_version #zoo-game.zoo-2p {
     justify-content: space-around;
 /*    padding-right: 0.5em; */
     row-gap: 2em;
-/*    column-gap: 2em; */
+    column-gap: 2em;
 }
 
 .zoo-board {
