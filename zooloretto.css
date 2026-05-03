@@ -30,10 +30,12 @@ body {
 
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 240px) / 17));
-
-    --bga-game-zoom: 1.0 !important;
-
 }
+
+#page-content.bga-game-zoom {
+    zoom: unset !important;
+}
+
 
 body[zoo-max-tile-size="78"] {
     --zoo-max-tile-size: 78px;
