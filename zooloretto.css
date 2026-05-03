@@ -76,7 +76,7 @@ body.mobile_version #zoo-game.zoo-2p {
     align-items: flex-start;
     justify-content: space-around;
     flex-direction: row;
-    margin: 0.8vw;
+    /* margin: 0.8vw; */
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
 /*    overflow: scroll;
@@ -206,9 +206,9 @@ body.mobile_version #zoo-game.zoo-2p {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-around;
-    padding-right: 0.5em;
+/*    padding-right: 0.5em; */
     row-gap: 2em;
-    column-gap: 2em;
+/*    column-gap: 2em; */
 }
 
 .zoo-board {
