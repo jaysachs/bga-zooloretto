@@ -586,18 +586,18 @@ body.mobile_version #zoo-game.zoo-2p {
 
 #zoo-game .zoo-board [zoo-enclosure="0"] {
     position: absolute;
-    height: 50%;
-    top: 50%;
+    height: 53%;
+    top: 47%;
 
     display : grid;
-    column-gap: calc(var(--zoo-highlight-width) * 4);
-    row-gap: calc(var(--zoo-highlight-width) * 4);
-    grid-template-columns: 1fr 1fr 1fr;
+    /* column-gap: calc(var(--zoo-highlight-width) * 4);
+    row-gap: calc(var(--zoo-highlight-width) * 4); */
+    grid-template-columns: 1fr 1fr 1fr 1fr;
 
     /* these differ for 2p boards */
-    width: 35%;
-    margin: 0.5vw;
-    left: 23.5%;
+    width: 38%;
+    /* margin: 0.5vw; */
+    left: 22%;
 }
 
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure="0"] {

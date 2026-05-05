@@ -36,7 +36,7 @@ class Enclosure {
     private const int BARN_ID = 0;
 
     public static function barn(): Enclosure {
-        return new Enclosure(self::BARN_ID, 20, 20, 20, 0, 0, 0);
+        return new Enclosure(self::BARN_ID, 24, 24, 24, 0, 0, 0);
     }
 
     public static function extension(int $extension_number): Enclosure {
