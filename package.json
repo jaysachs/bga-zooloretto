@@ -1,8 +1,8 @@
 {
-  "name": "bga.zooloretto",
+  "name": "bga.zoolorettoalpha",
   "version": "1.0.0",
   "description": "",
-  "main": "zooloretto.js",
+  "main": "zoolorettoalpha.js",
   "scripts": {
     "build:ts": "rollup -c --failAfterWarnings",
     "watch:ts": "rollup -c -w --failAfterWarnings",

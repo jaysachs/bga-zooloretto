@@ -2,8 +2,8 @@
 
 require_once('work/module/table/table.game.php');
 
-spl_autoload_register(function ($class) {
-    $prefix = 'Bga\\Games\\zooloretto\\';
+spl_autoload_register(function (string $class) {
+    $prefix = 'Bga\\Games\\zoolorettoalpha\\';
     if (str_starts_with($class, $prefix)) {
         $file = 'modules/php/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
         if (file_exists($file)) {
