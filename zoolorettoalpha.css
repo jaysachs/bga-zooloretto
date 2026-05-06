@@ -819,8 +819,7 @@ body.mobile_version #zoo-game.zoo-2p {
     width: 50%;
 }
 
-.zoo-score-sheet tr :nth-child(2),
-.zoo-score-sheet tr :nth-child(3)
+.zoo-score-sheet tr :not(:first-child)
 {
     text-align: right;
     width: 25%;
