@@ -602,8 +602,8 @@ body.mobile_version #zoo-game.zoo-2p {
 
 #zoo-game.zoo-2p .zoo-board [zoo-enclosure="0"] {
     margin: 0.4vw;
-    width: 28%;
-    left: 38%;
+    width: 31%;
+    left: 35.8%;
 }
 
 [zoo-enclosure="0"] .zoo-cell {
