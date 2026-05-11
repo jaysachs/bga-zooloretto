@@ -148,6 +148,7 @@ class Game extends Table
 			$translated[$tiletype->value] = $tiletype->translated();
 		}
 		$datas = [
+			'players' => [],
 			'enclosure_shapes' => $encshapes,
             'trucks' => array_map(fn ($t) => $t->serialize(), array_values($model->getTrucks())),
             'enclosures' => $encs,
