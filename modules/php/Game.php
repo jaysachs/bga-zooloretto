@@ -35,6 +35,8 @@ use Bga\Games\zooloretto\Model\Model;
 use Bga\Games\zooloretto\Model\PersistentStore;
 use Bga\Games\zooloretto\Model\Player;
 use Bga\Games\zooloretto\Model\Space;
+use Bga\Games\zooloretto\Model\Stock;
+use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Model\Truck;
 use Bga\Games\zooloretto\States\ComputeScores;
@@ -183,8 +185,13 @@ class Game extends Table
 	{
 		$model = new Model(0);
 		$stock = $model->getStock();
+		$trucksTaken = count(array_filter($model->getTrucks(), fn (Truck $t) => $t->taken_by > 0));
         $numPlayers = count($model->getAllPlayers());
-		return intval(100 * $stock->percentComplete($numPlayers));
+		$totalTiles = Tile::totalTilesForPlayerCount($numPlayers);
+		$tilesToTriggerEnd = $totalTiles - Stock::LASTSET_SIZE + 1;
+		$tilesTaken = $totalTiles - ($stock->primaryCount() + $stock->endgameCount());
+		$basePct = intval(min(100 - $numPlayers, 100.0 * $tilesTaken / $tilesToTriggerEnd));
+		return $basePct + ($stock->inLastRound() ? $trucksTaken : 0);
 	}
 
 	/*

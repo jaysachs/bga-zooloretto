@@ -74,7 +74,7 @@ class Stock {
         return $tile;
     }
 
-    private const int LASTSET_SIZE = 15;
+    public const int LASTSET_SIZE = 15;
 
     public function waslastRoundTriggered(): bool {
         return !$this->drawn->isEmpty() && count($this->endgame) == self::LASTSET_SIZE - 1;
@@ -82,11 +82,5 @@ class Stock {
 
     public function inLastRound(): bool {
         return count($this->endgame) < self::LASTSET_SIZE;
-    }
-
-    public function percentComplete(int $player_count): float {
-        return 1.0 -
-            (floatval($this->primaryCount())
-             / floatval(Tile::totalTilesForPlayerCount($player_count) - self::LASTSET_SIZE));
     }
 }
