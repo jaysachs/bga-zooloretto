@@ -158,7 +158,7 @@ div.zoo-pile {
     border-radius: 5% 5%;
 }
 
-div.zoo-pile:not(span) {
+div.zoo-pile:not(:has(span)) {
     border-width: 1px;
 }
 
