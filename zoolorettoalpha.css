@@ -848,28 +848,30 @@ div.zoo-pile:not(span) {
 .zoo-score-sheet {
     position: absolute;
     top: 10%;
-    left: 25%;
-    width: 50%;
+    left: 15%;
+    width: 70%;
     height: auto;
     margin: 10px;
     padding: 10px;
     background-color: #dddddd;
     border: 3px solid black;
     border-radius: 10px 10px;
+    font-size: 1.5vw;
 }
 
 th.bga-score-sheet_player-name {
     padding-right: 0.6em;
+    font-size: 2vw;
 }
 
 .zoo-score-sheet [data-entry="total"] {
-    font-size: 16pt;
+    font-size: 2vw;
     padding: 0.6em;
     text-align: right;
 }
 
 .zoo-score-entries-label {
-    font-size: 12pt;
+    font-size: 1.5vw;
 }
 
 .bga-score-sheet_entry-label, .bga-score-sheet_player-score-entry {
