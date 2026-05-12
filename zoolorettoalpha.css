@@ -848,8 +848,8 @@ div.zoo-pile:not(:has(span)) {
 .zoo-score-sheet {
     position: absolute;
     top: 0%;
-    left: 15%;
-    width: 70%;
+    left: 10%;
+    width: 80%;
     height: auto;
     margin: 10px;
     padding: 10px;
