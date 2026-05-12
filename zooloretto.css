@@ -104,26 +104,41 @@ body.mobile_version #zoo-game.zoo-2p {
 #zoo-stock {
     display: flex;
     flex-direction: row;
+    justify-content: space-around;
     margin: 1vw 0 1vw 0;
 }
 
 #zoo-primary-pile, #zoo-endgame-pile {
-    flex: 2;
     padding: 0 1vw 1vw 1vw;
     position: relative;
 }
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: 12%;
+    right: -15%;
     top: 105%;
     text-align: right;
     /* FIXME: revisit this. maybe just width */
     font-size: calc(min(2.5vh,1.0vw));
 }
 
+/* This mimics [zoo-tile="back"] (plus the basic [zoo-tile]),
+   allowing "slideOffAndDestroy" to work properly. */
+.zoo-disk {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Disk.png');
+    position: relative;
+    left: -17.5%;
+    top: 20%;
+}
+
 .zoo-pile {
     position: relative;
+    /* these are for animation of tile draw */
     display: inline-block;
     aspect-ratio: 1.0;
     width: calc(var(--zoo-tile-size));
@@ -133,17 +148,25 @@ body.mobile_version #zoo-game.zoo-2p {
 .zoo-pile > span {
     position: absolute;
     aspect-ratio: 1.0;
-    /** 1.644 is in between what 2p and 2+p needs */
     width: calc(var(--zoo-tile-size));
     height: auto;
-    left: 5%;
-    top: 20%;
 }
 
-.zoo-pile > span:nth-child(1) { left: 25%; top: 0; }
-.zoo-pile > span:nth-child(2) { left: 20%; top: 5%; }
-.zoo-pile > span:nth-child(3) { left: 15%; top: 10%; }
-.zoo-pile > span:nth-child(4) { left: 10%; top: 15%; }
+div.zoo-pile {
+    /* padding: -1px; */
+    border: 0px black dashed;
+    border-radius: 5% 5%;
+}
+
+div.zoo-pile:not(:has(span)) {
+    border-width: 1px;
+}
+
+.zoo-pile > span:nth-child(1) { left: 0%; top: 0; }
+.zoo-pile > span:nth-child(2) { left: -5%; top: 5%; }
+.zoo-pile > span:nth-child(3) { left: -10%; top: 10%; }
+.zoo-pile > span:nth-child(4) { left: -15%; top: 15%; }
+.zoo-pile > span:nth-child(5) { left: -20%; top: 20%; }
 
 /*
  * Trucks
@@ -350,17 +373,6 @@ body.mobile_version #zoo-game.zoo-2p {
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Back.png');
-}
-
-/* This mimics [zoo-tile="back"] (plus the basic [zoo-tile]),
-   allowing "slideOffAndDestroy" to work properly. */
-.zoo-disk {
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-image: url('img/Disk.png');
 }
 
 /* offspring tiles are actually round */
@@ -835,29 +847,31 @@ body.mobile_version #zoo-game.zoo-2p {
 
 .zoo-score-sheet {
     position: absolute;
-    top: 10%;
-    left: 25%;
-    width: 50%;
+    top: 0%;
+    left: 10%;
+    width: 80%;
     height: auto;
     margin: 10px;
     padding: 10px;
     background-color: #dddddd;
     border: 3px solid black;
     border-radius: 10px 10px;
+    font-size: 1.2vw;
 }
 
 th.bga-score-sheet_player-name {
     padding-right: 0.6em;
+    font-size: 1.5vw;
 }
 
 .zoo-score-sheet [data-entry="total"] {
-    font-size: 16pt;
+    font-size: 1.5vw;
     padding: 0.6em;
     text-align: right;
 }
 
 .zoo-score-entries-label {
-    font-size: 12pt;
+    font-size: 1.2vw;
 }
 
 .bga-score-sheet_entry-label, .bga-score-sheet_player-score-entry {
