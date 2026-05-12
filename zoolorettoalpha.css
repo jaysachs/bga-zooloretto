@@ -115,7 +115,7 @@ body.mobile_version #zoo-game.zoo-2p {
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: -5%;
+    right: -15%;
     top: 105%;
     text-align: right;
     /* FIXME: revisit this. maybe just width */
@@ -132,11 +132,13 @@ body.mobile_version #zoo-game.zoo-2p {
     background-repeat: no-repeat;
     background-image: url('img/Disk.png');
     position: relative;
-
+    left: -17.5%;
+    top: 20%;
 }
 
 .zoo-pile {
     position: relative;
+    /* these are for animation of tile draw */
     display: inline-block;
     aspect-ratio: 1.0;
     width: calc(var(--zoo-tile-size));
@@ -145,8 +147,9 @@ body.mobile_version #zoo-game.zoo-2p {
 
 .zoo-pile > span {
     position: absolute;
-    left: -17.5%;
-    top: 20%;
+    aspect-ratio: 1.0;
+    width: calc(var(--zoo-tile-size));
+    height: auto;
 }
 
 div.zoo-pile {
