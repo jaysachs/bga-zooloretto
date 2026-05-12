@@ -104,22 +104,35 @@ body.mobile_version #zoo-game.zoo-2p {
 #zoo-stock {
     display: flex;
     flex-direction: row;
+    justify-content: space-around;
     margin: 1vw 0 1vw 0;
 }
 
 #zoo-primary-pile, #zoo-endgame-pile {
-    flex: 2;
     padding: 0 1vw 1vw 1vw;
     position: relative;
 }
 
 #zoo-primary-pile-count,#zoo-endgame-pile-count {
     position: relative;
-    right: 12%;
+    right: -5%;
     top: 105%;
     text-align: right;
     /* FIXME: revisit this. maybe just width */
     font-size: calc(min(2.5vh,1.0vw));
+}
+
+/* This mimics [zoo-tile="back"] (plus the basic [zoo-tile]),
+   allowing "slideOffAndDestroy" to work properly. */
+.zoo-disk {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('img/Disk.png');
+    position: relative;
+
 }
 
 .zoo-pile {
@@ -132,18 +145,25 @@ body.mobile_version #zoo-game.zoo-2p {
 
 .zoo-pile > span {
     position: absolute;
-    aspect-ratio: 1.0;
-    /** 1.644 is in between what 2p and 2+p needs */
-    width: calc(var(--zoo-tile-size));
-    height: auto;
-    left: 5%;
+    left: -17.5%;
     top: 20%;
 }
 
-.zoo-pile > span:nth-child(1) { left: 25%; top: 0; }
-.zoo-pile > span:nth-child(2) { left: 20%; top: 5%; }
-.zoo-pile > span:nth-child(3) { left: 15%; top: 10%; }
-.zoo-pile > span:nth-child(4) { left: 10%; top: 15%; }
+div.zoo-pile {
+    /* padding: -1px; */
+    border: 0px black dashed;
+    border-radius: 5% 5%;
+}
+
+div.zoo-pile:not(span) {
+    border-width: 1px;
+}
+
+.zoo-pile > span:nth-child(1) { left: 0%; top: 0; }
+.zoo-pile > span:nth-child(2) { left: -5%; top: 5%; }
+.zoo-pile > span:nth-child(3) { left: -10%; top: 10%; }
+.zoo-pile > span:nth-child(4) { left: -15%; top: 15%; }
+.zoo-pile > span:nth-child(5) { left: -20%; top: 20%; }
 
 /*
  * Trucks
@@ -350,17 +370,6 @@ body.mobile_version #zoo-game.zoo-2p {
     background-size: contain;
     background-repeat: no-repeat;
     background-image: url('img/Back.png');
-}
-
-/* This mimics [zoo-tile="back"] (plus the basic [zoo-tile]),
-   allowing "slideOffAndDestroy" to work properly. */
-.zoo-disk {
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-image: url('img/Disk.png');
 }
 
 /* offspring tiles are actually round */
