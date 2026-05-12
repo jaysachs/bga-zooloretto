@@ -847,7 +847,7 @@ div.zoo-pile:not(:has(span)) {
 
 .zoo-score-sheet {
     position: absolute;
-    top: 10%;
+    top: 0%;
     left: 15%;
     width: 70%;
     height: auto;
@@ -856,22 +856,22 @@ div.zoo-pile:not(:has(span)) {
     background-color: #dddddd;
     border: 3px solid black;
     border-radius: 10px 10px;
-    font-size: 1.5vw;
+    font-size: 1.2vw;
 }
 
 th.bga-score-sheet_player-name {
     padding-right: 0.6em;
-    font-size: 2vw;
+    font-size: 1.5vw;
 }
 
 .zoo-score-sheet [data-entry="total"] {
-    font-size: 2vw;
+    font-size: 1.5vw;
     padding: 0.6em;
     text-align: right;
 }
 
 .zoo-score-entries-label {
-    font-size: 1.5vw;
+    font-size: 1.2vw;
 }
 
 .bga-score-sheet_entry-label, .bga-score-sheet_player-score-entry {
