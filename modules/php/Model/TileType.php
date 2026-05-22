@@ -165,6 +165,20 @@ enum TileType: string {
         };
     }
 
+    public function isOffspring(): bool {
+        return match ($this) {
+            TileType::CAMEL_KID,
+            TileType::ELEPHANT_KID,
+            TileType::FLAMINGO_KID,
+            TileType::KANGAROO_KID,
+            TileType::LEOPARD_KID,
+            TileType::MONKEY_KID,
+            TileType::PANDA_KID,
+            TileType::ZEBRA_KID => true,
+            default => false
+        };
+    }
+
     public function isMale(): bool {
         return match ($this) {
             TileType::CAMEL_MALE,

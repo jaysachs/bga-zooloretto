@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\Games\zooloretto\Model\Enclosure;
+use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
 use Bga\Games\zooloretto\Utils\Arrays;
 use Bga\Games\zooloretto\Utils\Db;
@@ -40,10 +42,96 @@ class UpgradeDb {
         if (!$currentState) {
             throw new \Exception("Game should have already started but in state $currentState");
         }
-        if ($from_version > 2504011715) {
+        if ($from_version > 2605162253) {
             return null;
         }
-        $sql = [];
+        if ($from_version > 2504011715) {
+            return $this->upgrade_2605162253([], $currentState);
+        }
+        return $this->upgrade_2504011715([], $currentState);
+    }
+
+    /**
+     * @param list<string> $sql
+     * @return array{sql:list<string>,state_id?:int}|null
+     */
+    private function upgrade_2605162253(array $sql, ?int $currentState): ?array {
+        // Look for all offspring with IDs < 10000.
+        // Pick two fertile adults in current tile to be parents.
+        // Update ID for each of those.
+        // Do not re-use parents.
+
+        $reproduced = [];
+        $ids = [];
+        $rows = $this->db->getObjectList("SELECT * FROM DBPREFIX_tiles WHERE location = 'E' ORDER BY player_id, loc_id");
+        foreach ($rows as $row) {
+            $id = intval($row['id']);
+            $ids[] = $id;
+            if ($id > 10000) {
+                $reproduced[intval($id / 10000)] = true;
+                $reproduced[$id % 10000] = true;
+            }
+        }
+
+        $updateEnc = function(Enclosure $enc) use(&$reproduced, $ids, $sql): void {
+            foreach ($enc->nonEmptyContents() as $tile) {
+                if ($tile->type->isOffspring() && $tile->id < 10000) {
+                    // ok it's a child that is pre-new-db.
+                    // search for potential mother and father in current enclosure
+                    $mother = null;
+                    $father = null;
+                    foreach ($enc->nonEmptyContents() as $partile) {
+                        if ($partile->isFertileFemale() && !$reproduced[$partile->id]) {
+                            $mother = $partile;
+                        }
+                        if ($partile->isFertileFemale() && !$reproduced[$partile->id]) {
+                            $father = $partile;
+                        }
+                    }
+                    if ($mother != null && $father != null) {
+                        $newId = $mother->id * 10000 + $father->id;
+                        // handle the unfortunate case if those parents have already been used
+                        //  very rare but possible.
+                        if (array_search($newId, $ids) === false) {
+                            $sql[] = "UPDATE DBPREFIX_tiles SET id = {$newId} WHERE id = {$tile->id}";
+                            $reproduced[$mother->id] = 1;
+                            $reproduced[$father->id] = 1;
+                            $ids[] = $newId;
+                        }
+                    }
+                    // if couldn't find both then one was moved, that shouldn't happen
+                    //   but we're not going to error out based on that.
+                }
+            }
+        };
+
+        $enc = Enclosure::forTest(100, 100, 100);
+        $currPid = 0;
+        foreach ($rows as $row) {
+            $pid = intval($row['player_id']);
+            $enc_id = intval($row['loc_id']);
+            if ($pid <> $currPid || $enc_id <> $enc->id) {
+                if ($enc != null) {
+                    $updateEnc($enc);
+                }
+                $enc = Enclosure::forTest($enc_id, 100, 100);
+                $currPid = $pid;
+            }
+            $newTile = new Tile(intval($row['id']), TileType::from($row['type']));
+            $enc->rawPlaceTile($newTile, intval($row['loc_pos']));
+        }
+
+        return [
+            "sql" => $sql,
+            "state_id" => $currentState,
+        ];
+    }
+
+    /**
+     * @param list<string> $sql
+     * @return array{sql:list<string>,state_id?:int}|null
+     */
+	private function upgrade_2504011715(array $sql, ?int $currentState): ?array {
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT UNSIGNED NOT NULL,
                 `type` VARCHAR(10) NOT NULL,
@@ -209,16 +297,14 @@ class UpgradeDb {
                 $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid";
             }
         }
-        $result = [
-            "sql" => $sql,
-        ];
+        $newStateId = null;
         if ($currentState == 5 || $currentState == 7 || $currentState == 8
             || $currentState == 9 || $currentState == 10) {
-            $result["state_id"] = 2;
+            $newStateId = 2;
         } else if ($currentState == 3) {
-            $result["state_id"] = 23;
+            $newStateId = 23;
         }
 
-        return $result;
+        return $this->upgrade_2605162253($sql, $newStateId);
 	}
 }
