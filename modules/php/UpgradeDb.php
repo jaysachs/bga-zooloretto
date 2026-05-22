@@ -27,6 +27,8 @@ declare(strict_types=1);
 
 namespace Bga\Games\zooloretto;
 
+use Bga\GameFramework\GamestateMachine;
+use Bga\GameFramework\Table;
 use Bga\Games\zooloretto\Model\Enclosure;
 use Bga\Games\zooloretto\Model\Tile;
 use Bga\Games\zooloretto\Model\TileType;
@@ -35,35 +37,34 @@ use Bga\Games\zooloretto\Utils\Db;
 
 class UpgradeDb {
 
-    public function __construct(private Db $db) { }
+    public function __construct(private Db $db, private GamestateMachine $gsm, private Table $table) { }
 
-    /** @return array{sql:list<string>,state_id?:int}|null */
-	public function upgrade(int $from_version, ?int $currentState): ?array {
-        if (!$currentState) {
-            throw new \Exception("Game should have already started but in state $currentState");
+    public function upgrade(int $from_version): void {
+        if ($from_version <= 2504011715) {
+            $this->upgrade_2504011715();
         }
-        if ($from_version > 2605162253) {
-            return null;
+        if ($from_version <= 2605162253) {
+            $this->upgrade_2605162253();
         }
-        if ($from_version > 2504011715) {
-            return $this->upgrade_2605162253([], $currentState);
-        }
-        return $this->upgrade_2504011715([], $currentState);
     }
 
-    /**
-     * @param list<string> $sql
-     * @return array{sql:list<string>,state_id?:int}|null
-     */
-    private function upgrade_2605162253(array $sql, ?int $currentState): ?array {
+    /** @param list<string> $sql */
+    private function applySql(array $sql): void {
+        foreach ($sql as $s) {
+            $this->table->applyDbUpgradeToAllDB($s);
+        }
+    }
+
+    private function upgrade_2605162253(): void {
         // Look for all offspring with IDs < 10000.
         // Pick two fertile adults in current tile to be parents.
         // Update ID for each of those.
         // Do not re-use parents.
 
+        $sql = [];
         $reproduced = [];
         $ids = [];
-        $rows = $this->db->getObjectList("SELECT * FROM DBPREFIX_tiles WHERE location = 'E' ORDER BY player_id, loc_id");
+        $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location = 'E' ORDER BY player_id, loc_id");
         foreach ($rows as $row) {
             $id = intval($row['id']);
             $ids[] = $id;
@@ -81,10 +82,10 @@ class UpgradeDb {
                     $mother = null;
                     $father = null;
                     foreach ($enc->nonEmptyContents() as $partile) {
-                        if ($partile->isFertileFemale() && !$reproduced[$partile->id]) {
+                        if ($partile->isFertileFemale() && !isset($reproduced[$partile->id])) {
                             $mother = $partile;
                         }
-                        if ($partile->isFertileFemale() && !$reproduced[$partile->id]) {
+                        if ($partile->isFertileFemale() && !isset($reproduced[$partile->id])) {
                             $father = $partile;
                         }
                     }
@@ -105,7 +106,7 @@ class UpgradeDb {
             }
         };
 
-        $enc = Enclosure::forTest(100, 100, 100);
+        $enc = Enclosure::forTest(9, 100, 100);
         $currPid = 0;
         foreach ($rows as $row) {
             $pid = intval($row['player_id']);
@@ -121,17 +122,11 @@ class UpgradeDb {
             $enc->rawPlaceTile($newTile, intval($row['loc_pos']));
         }
 
-        return [
-            "sql" => $sql,
-            "state_id" => $currentState,
-        ];
+        $this->applySql($sql);
     }
 
-    /**
-     * @param list<string> $sql
-     * @return array{sql:list<string>,state_id?:int}|null
-     */
-	private function upgrade_2504011715(array $sql, ?int $currentState): ?array {
+	private function upgrade_2504011715(): void {
+        $sql = [];
         $sql[] = "CREATE TABLE DBPREFIX_tiles (
                 `id` INT UNSIGNED NOT NULL,
                 `type` VARCHAR(10) NOT NULL,
@@ -297,14 +292,15 @@ class UpgradeDb {
                 $sql[] = "UPDATE DBPREFIX_player SET truck_taken = $t WHERE player_id = $pid";
             }
         }
-        $newStateId = null;
+
+        $this->applySql($sql);
+
+        $currentState = $this->gsm->getCurrentMainStateId();
         if ($currentState == 5 || $currentState == 7 || $currentState == 8
             || $currentState == 9 || $currentState == 10) {
-            $newStateId = 2;
+            $this->gsm->jumpToState(2);
         } else if ($currentState == 3) {
-            $newStateId = 23;
+            $this->gsm->jumpToState(23);
         }
-
-        return $this->upgrade_2605162253($sql, $newStateId);
 	}
 }

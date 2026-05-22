@@ -208,17 +208,8 @@ class Game extends Table
 
 	function upgradeTableDb(mixed $from_version): void
 	{
-		$currentStateId = $this->gamestate->getCurrentMainStateId();
-        $upgrade = new UpgradeDb(new DefaultDb())->upgrade(intval($from_version), $currentStateId);
-        if ($upgrade) {
-            foreach ($upgrade["sql"] as $s) {
-                self::applyDbUpgradeToAllDB($s);
-            }
-			$newStateId = $upgrade["state_id"] ?? null;
-			if ($newStateId) {
-				$this->gamestate->jumpToState($newStateId);
-			}
-        }
+		$from_version = intval($from_version);
+		new UpgradeDb(new DefaultDb(), $this->gamestate, $this)->upgrade($from_version);
 	}
 
 	/** @param array<mixed> $options */
