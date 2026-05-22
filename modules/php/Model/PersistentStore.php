@@ -79,6 +79,9 @@ class PersistentStore {
             if ($id > 10000) {
                 $reproduced[intval($id / 10000)] = true;
                 $reproduced[$id % 10000] = true;
+            } else if ($id > 300 && $id < 500) {
+                // legacy migrated parents
+                $reproduced[$id] = true;
             }
         }
         foreach ($rows as $row) {
