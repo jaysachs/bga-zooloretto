@@ -319,4 +319,9 @@ class Game extends Table
 			$ps->deleteTile($drawn);
 		}
 	}
+
+	#[Debug(reload: true)]
+	public function debug_upgrade(int $from_version): void {
+		$this->upgradeTableDb($from_version);
+	}
 }
