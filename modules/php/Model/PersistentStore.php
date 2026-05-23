@@ -73,7 +73,9 @@ class PersistentStore {
         $stocktiles = [];
         $drawn = Tile::Empty();
         $reproduced = [];
-        $rows = $this->db->getObjectList("SELECT * FROM tiles WHERE location <> 'X'");
+        // select all tiles including discards, as discarded offspring
+        //   are required to identify parent that have reproduced.
+        $rows = $this->db->getObjectList("SELECT * FROM tiles");
         foreach ($rows as $row) {
             $id = intval($row['id']);
             if ($id > 10000) {
@@ -89,6 +91,9 @@ class PersistentStore {
             $tile = new Tile($id, TileType::from($row['type']), isset($reproduced[$id]));
             $loc = $row['location'];
             switch ($loc) {
+            case 'X':
+                // discard, ignore
+                break;
             case 'S':
                 $stocktiles[intval($row['loc_pos'])] = $tile;
                 break;
