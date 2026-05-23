@@ -41,6 +41,9 @@ class UpgradeDb {
         if ($from_version <= 2504011715) {
             $this->upgrade_2504011715();
         }
+        if ($from_version <= 2605222008) {
+            $this->upgrade_2605222008();
+        }
     }
 
     /** @param list<string> $sql */
@@ -48,6 +51,28 @@ class UpgradeDb {
         foreach ($sql as $s) {
             $this->table->applyDbUpgradeToAllDB($s);
         }
+    }
+
+    private function upgrade_2605222008(): void {
+        // This just attempts a surgical fix to table 848677595
+        //   which got an extra offspring (bugid:221919)
+        // There is no way to match table IDs, though, so we do this
+        //   heuristically looking for characteristics of the problem:
+        //   1. player ID 86043869
+        //   2. enclosure 3 has 4 elephants:
+        //      female 321, male 320, offspring 113 and offspring 3210320
+        //  If it matches this, we just delete tile 3210320
+
+        $tgtPlayer = 86043869;
+        $players = $this->db->getSingleFieldList("SELECT player_id FROM player ORDER BY player_id");
+        if ($players != ["84921464", "86043119", "86043869"]) {
+            return;
+        }
+        $rows = $this->db->getSingleFieldList("SELECT id FROM tiles WHERE location = 'E' and loc_id = 3 and player_id = {$tgtPlayer} ORDER BY loc_pos");
+        if ($rows <> ["321", "320", "113", "3210320"]) {
+            return;
+        }
+        $this->applySql(['DELETE FROM DBPREFIX_tiles WHERE id = 3210320']);
     }
 
 	private function upgrade_2504011715(): void {
