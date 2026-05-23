@@ -185,6 +185,8 @@ class Truck {
             1 => clienttranslate("truck 1"),
             2 => clienttranslate("truck 2"),
             3 => clienttranslate("truck 3"),
+            4 => clienttranslate("truck 4"),
+            5 => clienttranslate("truck 5"),
             default => "unknown truck"
         };
     }
