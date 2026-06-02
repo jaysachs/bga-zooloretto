@@ -104,7 +104,54 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(gameView: GameView) { super(gameView); }
 
   protected override start(playState: PlayState) {
-    this.initStatusBar(_("You must click on a tile to take an action"));
+    const offerButtons = this.bga.userPreferences.get(107);
+
+    this.initStatusBar(offerButtons ? _("You may click on a tile to take an action, or") : _("You must click on a tile to take an action"));
+
+    const reset = (title: string) => {
+      this.initStatusBar(title);
+      this.clearMarked();
+      this.clearOnclicks();
+      this.addRestartAndUndoButtons();
+    };
+    if (offerButtons) {
+      if (playState.can_draw) {
+        this.bga.statusBar.addActionButton(
+          _("Draw"),
+          () => { reset(''); this.drawTile(playState.lastround) })
+      }
+      if (playState.available_trucks.length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Take truck"),
+          () => { reset(_('Select a truck to deliver')); this.wireUpDeliveries(playState.available_trucks) })
+      }
+      if (playState.extension_available) {
+        this.bga.statusBar.addActionButton(
+          _("Expand"),
+          () => { reset(''); this.expandZoo() })
+      }
+      if (playState.possible_purchases.length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Purchase"),
+          () => { reset(_('Select a tile to purchase')); this.wireUpPurchases(playState.possible_purchases) })
+      }
+      if (Object.keys(playState.possible_exchanges.exchanges.enclosures).length > 0
+          || Object.keys(playState.possible_exchanges.exchanges.barn).length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Exchange"),
+          () => { reset(_('Select an enclosure to exchange')); this.wireUpExchanges(playState.possible_exchanges) })
+      }
+      if (playState.possible_moves.moves.length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Move"),
+          () => { reset(_('Select a tile to move')); this.wireUpMovesOrDiscards(playState.possible_moves) })
+      }
+      if (playState.possible_discards.spaces.length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Discard"),
+          () => { reset(_('Select a tile to discard')); this.wireUpMovesOrDiscards(undefined, playState.possible_discards) })
+      }
+    }
 
     // All actions are independent to other actions, in terms of what to click on to
     // initiate that action ...
@@ -147,20 +194,22 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
 
   // move/discard
 
-  private wireUpMovesOrDiscards(possible_moves: PossibleMoves, possible_discards: PossibleDiscards) {
-    const isMoveable = (s: number) => possible_moves.moves.findIndex((m: PossibleMove) => m.src == s) >= 0;
-    const isDiscardable = (m: PossibleMove) => possible_discards.spaces.indexOf(m.src) >= 0;
+  private wireUpMovesOrDiscards(possible_moves?: PossibleMoves, possible_discards?: PossibleDiscards) {
+    const isMoveable = (s: number) => possible_moves && (possible_moves.moves.findIndex((m: PossibleMove) => m.src == s) >= 0);
+    const isDiscardable = (m: PossibleMove) => possible_discards ? (possible_discards.spaces.indexOf(m.src) >= 0) : false
 
-    possible_moves.moves.forEach((m: PossibleMove) => {
+    possible_moves?.moves.forEach((m: PossibleMove) => {
       const alsoDiscardable = isDiscardable(m);
       this.addSelectableOnclick(
         Elements.enclosureSpace(this.player_id, m.src),
-        () => this.callUndoably("chooseMoveDest" + m.src, async () =>
-          this.chooseMoveDest(m, alsoDiscardable, possible_discards.money_delta, possible_moves.money_delta),
-        ), alsoDiscardable ? _('Discard or move tile') : _('Move tile')
+        () => this.callUndoably(
+          "chooseMoveDest" + m.src,
+          async () =>
+            this.chooseMoveDest(m, alsoDiscardable, possible_discards?.money_delta || {}, possible_moves.money_delta)),
+        alsoDiscardable ? _('Discard or move tile') : _('Move tile')
       )
     });
-    possible_discards.spaces.forEach((space: number) => {
+    possible_discards?.spaces.forEach((space: number) => {
       if (!isMoveable(space)) {
         this.addSelectableOnclick(
           Elements.enclosureSpace(this.player_id, space),
