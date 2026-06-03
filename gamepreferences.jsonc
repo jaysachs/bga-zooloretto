@@ -85,8 +85,9 @@
       }
     },
     "default": 66
-  },
-  "107": {
+  }
+  /*
+  ,"107": {
     "name": "Always show action buttons",
     "needReload": false,
     "values": {
@@ -99,4 +100,5 @@
     },
     "default": 0
   }
+    */
 }

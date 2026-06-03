@@ -104,7 +104,7 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
   constructor(gameView: GameView) { super(gameView); }
 
   protected override start(playState: PlayState) {
-    const offerButtons = this.bga.userPreferences.get(107);
+    const offerButtons = false; // this.bga.userPreferences.get(107);
 
     this.initStatusBar(offerButtons ? _("You may click on a tile to take an action, or") : _("You must click on a tile to take an action"));
 
