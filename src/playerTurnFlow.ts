@@ -125,16 +125,6 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
           _("Take truck"),
           () => { reset(_('Select a truck to deliver')); this.wireUpDeliveries(playState.available_trucks) })
       }
-      if (playState.extension_available) {
-        this.bga.statusBar.addActionButton(
-          _("Expand"),
-          () => { reset(''); this.expandZoo() })
-      }
-      if (playState.possible_purchases.length > 0) {
-        this.bga.statusBar.addActionButton(
-          _("Purchase"),
-          () => { reset(_('Select a tile to purchase')); this.wireUpPurchases(playState.possible_purchases) })
-      }
       if (Object.keys(playState.possible_exchanges.exchanges.enclosures).length > 0
           || Object.keys(playState.possible_exchanges.exchanges.barn).length > 0) {
         this.bga.statusBar.addActionButton(
@@ -150,6 +140,16 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
         this.bga.statusBar.addActionButton(
           _("Discard"),
           () => { reset(_('Select a tile to discard')); this.wireUpMovesOrDiscards(undefined, playState.possible_discards) })
+      }
+      if (playState.possible_purchases.length > 0) {
+        this.bga.statusBar.addActionButton(
+          _("Purchase"),
+          () => { reset(_('Select a tile to purchase')); this.wireUpPurchases(playState.possible_purchases) })
+      }
+      if (playState.extension_available) {
+        this.bga.statusBar.addActionButton(
+          _("Expand zoo"),
+          () => { reset(''); this.expandZoo() })
       }
     }
 
