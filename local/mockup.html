@@ -15,7 +15,7 @@
 
     <title>zooloretto Mockup</title>
   </head>
-  <body id="ebd-body" class="tundra game_interface training_mode no_time_limit playmode_realtime desktop_version ">
+  <body id="ebd-body" class="tundra game_interface training_mode no_time_limit playmode_realtime desktop_version " zoo-max-tile-size="54">
     <div id="overall-content" style="--bga-game-zoom: 0.982421875;" class="gamestate_client_noPlaysLeft">
 
       <div id="topbar" class="ingame  topbar_new_version hide-alpha-banner">
@@ -119,14 +119,49 @@
             <div id="page-content" class="game-content bga-game-zoom">
               <div id="pagesection_gameview" style="overflow: visible; display: block;">
                 <div id="game_play_area_wrap">
-                      <div id="game_play_area" style="min-width: 0px;">
-                         <div id="game_play_area_background"></div>
+                  <div id="game_play_area" style="min-width: 0px;">
+                    <div id="game_play_area_background"></div>
 
 <!-- GAME STARTS HERE -->
                     <script type="text/javascript" >
 
                       let animationManager = new BgaAnimations.Manager({ animationsActive: () => true });
                       let moreAnimations = new MoreAnimations(animationManager);
+
+                      function zoomIn() {
+                          let b = document.getElementsByTagName('body')[0];
+                          var z = b.getAttribute('zoo-max-tile-size');
+                          z = Number(z);
+                          if (!z) {
+                              z = 78;
+                          }
+                          switch (z) {
+                              case 78: break;
+                              case 66: z = 78; break;
+                              case 54: z = 66; break;
+                              case 42: z = 54; break;
+                              case 30: z = 42; break;
+                          }
+                          b.setAttribute('zoo-max-tile-size', z + "");
+                      }
+
+                      function zoomOut() {
+                          let b = document.getElementsByTagName('body')[0];
+                          let z = b.getAttribute('zoo-max-tile-size');
+                          z = Number(z);
+                          if (!z) {
+                              z = 78;
+                          }
+                          switch (z) {
+                              case 78: z = 66; break;
+                              case 66: z = 54; break;
+                              case 54: z = 42; break;
+                              case 42: z = 30; break;
+                              case 30: break;
+                              default: break;
+                          }
+                          b.setAttribute('zoo-max-tile-size', z);
+                      }
 
                       function doSelect(e) {
                           let t = e.target;
@@ -236,268 +271,526 @@
                       if (params.get('mobile') != null) {
                           togglePlayerBoards();
                       }
-                      </script>
+                    </script>
 
-<div id="zoo-game" class="xzoo-debug zoo-indicators">
-  <div id="zoo-boards">
-    <div id="zoo-playerboard-0" class="zoo-playerboard">
-      <div id="zoo-playername-0"><span class="zoo-playername whiteblock player-name" style="color: #ff0000;">vagabond1</span></div>
-      <div id="zoo-board-1" class="zoo-board zoo-main-board" zoo-extensions="0">
-        <div id="enclosure_1_0" zoo-enclosure="0">
-          <div id="enclosure_1_0_1" class="zoo-cell" zoo-mark="selectable"><span zoo-tile="C"></span></div>
-          <div id="enclosure_1_0_2" class="zoo-cell" zoo-mark="selecttable"></div>
-          <div id="enclosure_1_0_3" class="zoo-cell" zoo-mark="selected"></div>
-          <div id="enclosure_1_0_4" class="zoo-cell" zoo-mark="moved"></div>
 
-          <div id="enclosure_1_0_1" class="zoo-cell"></div>
-          <div id="enclosure_1_0_2" class="zoo-cell"></div>
-          <div id="enclosure_1_0_3" class="zoo-cell"></div>
-          <div id="enclosure_1_0_4" class="zoo-cell"></div>
-          <div id="enclosure_1_0_1" class="zoo-cell"></div>
-          <div id="enclosure_1_0_2" class="zoo-cell"></div>
-          <div id="enclosure_1_0_3" class="zoo-cell"></div>
-          <div id="enclosure_1_0_4" class="zoo-cell"></div>
-          <div id="enclosure_1_0_5" class="zoo-cell"></div>
-          <div id="enclosure_1_0_6" class="zoo-cell"></div>
-          <div id="enclosure_1_0_1" class="zoo-cell"></div>
-          <div id="enclosure_1_0_2" class="zoo-cell"></div>
-          <div id="enclosure_1_0_5" class="zoo-cell"></div>
-          <div id="enclosure_1_0_6" class="zoo-cell"></div>
-          <div id="enclosure_1_0_1" class="zoo-cell"></div>
-          <div id="enclosure_1_0_2" class="zoo-cell"></div>
-          <div id="enclosure_1_0_3" class="zoo-cell"></div>
-          <div id="enclosure_1_0_4" class="zoo-cell"></div>
-          <div id="enclosure_1_0_5" class="zoo-cell"></div>
-          <div id="enclosure_1_0_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_1_1" zoo-enclosure="1">
-          <div id="enclosure_1_1_1" class="zoo-cell" zoo-mark="selectable"></div>
-          <div id="enclosure_1_1_2" class="zoo-cell"><span zoo-tile="LK"></span></div>
-          <div id="enclosure_1_1_3" class="zoo-cell" zoo-mark="selected"></div>
-          <div id="enclosure_1_1_4" class="zoo-cell"></div>
-          <div id="enclosure_1_1_5" class="zoo-cell"></div>
-          <div id="enclosure_1_1_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_1_2" zoo-enclosure="2">
-          <div id="enclosure_1_2_1" class="zoo-cell"></div>
-          <div id="enclosure_1_2_2" class="zoo-cell"></div>
-          <div id="enclosure_1_2_3" class="zoo-cell" zoo-mark="moved"></div>
-          <div id="enclosure_1_2_4" class="zoo-cell"></div>
-          <div id="enclosure_1_2_5" class="zoo-cell"></div>
-          <div id="enclosure_1_2_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_1_3" zoo-enclosure="3">
-          <div id="enclosure_1_3_1" class="zoo-cell"></div>
-          <div id="enclosure_1_3_2" class="zoo-cell"></div>
-          <div id="enclosure_1_3_3" class="zoo-cell"></div>
-          <div id="enclosure_1_3_4" class="zoo-cell"></div>
-          <div id="enclosure_1_3_5" class="zoo-cell"></div>
-          <div id="enclosure_1_3_6" class="zoo-cell"></div>
-          <div id="enclosure_1_3_7" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_1_4" zoo-enclosure="4">
-          <div id="enclosure_1_4_1" class="zoo-cell"></div>
-          <div id="enclosure_1_4_2" class="zoo-cell"></div>
-          <div id="enclosure_1_4_3" class="zoo-cell"></div>
-          <div id="enclosure_1_4_4" class="zoo-cell"></div>
-          <div id="enclosure_1_4_5" class="zoo-cell"></div>
-          <div id="enclosure_1_4_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_1_5" zoo-enclosure="5">
-          <div id="enclosure_1_5_1" class="zoo-cell"></div>
-          <div id="enclosure_1_5_2" class="zoo-cell"></div>
-          <div id="enclosure_1_5_3" class="zoo-cell"></div>
-          <div id="enclosure_1_5_4" class="zoo-cell"></div>
-          <div id="enclosure_1_5_5" class="zoo-cell"></div>
-          <div id="enclosure_1_5_6" class="zoo-cell"></div>
-        </div>
-        <div id="zoo-extension-1-1" zoo-extension="2" zoo-mark="selectable"></div>
-        <div id="zoo-extension-1-2" zoo-extension="1" zoo-mark="selected" ></div>
-      </div>
-    </div>
-    <div id="zoo-playerboard-2" class="zoo-playerboard">
-      <div id="zoo-playername-2"><span class="player-name whiteblock zoo-playername" style="color: #773300">vagabond0</span></div>
-      <div id="zoo-board-2" class="zoo-board" zoo-extensions="2">
-        <div id="enclosure_1_0" zoo-enclosure="0">
-          <div id="enclosure_1_0_1" class="zoo-cell"><span zoo-tile="Z"></span></div>
-          <div id="enclosure_1_0_2" class="zoo-cell"></div>
-          <div id="enclosure_1_0_3" class="zoo-cell"></div>
-          <div id="enclosure_1_0_4" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_2_1" zoo-enclosure="1">
-          <div id="enclosure_2_1_1" class="zoo-cell"></div>
-          <div id="enclosure_2_1_2" class="zoo-cell"></div>
-          <div id="enclosure_2_1_3" class="zoo-cell"></div>
-          <div id="enclosure_2_1_4" class="zoo-cell"></div>
-          <div id="enclosure_2_1_5" class="zoo-cell"></div>
-          <div id="enclosure_2_1_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_2_2" zoo-enclosure="2">
-          <div id="enclosure_2_2_1" class="zoo-cell"></div>
-          <div id="enclosure_2_2_2" class="zoo-cell"></div>
-          <div id="enclosure_2_2_3" class="zoo-cell"></div>
-          <div id="enclosure_2_2_4" class="zoo-cell"></div>
-          <div id="enclosure_2_2_5" class="zoo-cell"></div>
-          <div id="enclosure_2_2_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_2_3" zoo-enclosure="3">
-          <div id="enclosure_2_3_1" class="zoo-cell"></div>
-          <div id="enclosure_2_3_2" class="zoo-cell"></div>
-          <div id="enclosure_2_3_3" class="zoo-cell"></div>
-          <div id="enclosure_2_3_4" class="zoo-cell"></div>
-          <div id="enclosure_2_3_5" class="zoo-cell"></div>
-          <div id="enclosure_2_3_6" class="zoo-cell"></div>
-          <div id="enclosure_2_3_7" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_2_4" zoo-enclosure="4">
-          <div id="enclosure_2_4_1" class="zoo-cell"></div>
-          <div id="enclosure_2_4_2" class="zoo-cell"></div>
-          <div id="enclosure_2_4_3" class="zoo-cell"></div>
-          <div id="enclosure_2_4_4" class="zoo-cell"></div>
-          <div id="enclosure_2_4_5" class="zoo-cell"></div>
-          <div id="enclosure_2_4_6" class="zoo-cell"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="zoo-playerboard-3" class="zoo-playerboard">
-      <div id="zoo-playername-3"><span class="zoo-playername whiteblock player-name">vagabond2</span></div>
-      <div id="zoo-board-3" class="zoo-board" zoo-extensions="1">
-        <div id="zoo-barn-3" class="zoo-barn"></div>
-        <div id="enclosure_3_1" zoo-enclosure="1">
-          <div id="enclosure_3_1_1" class="zoo-cell"></div>
-          <div id="enclosure_3_1_3" class="zoo-cell"></div>
-          <div id="enclosure_3_1_3" class="zoo-cell"></div>
-          <div id="enclosure_3_1_4" class="zoo-cell"></div>
-          <div id="enclosure_3_1_5" class="zoo-cell"></div>
-          <div id="enclosure_3_1_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_3_3" zoo-enclosure="2">
-          <div id="enclosure_3_3_1" class="zoo-cell"></div>
-          <div id="enclosure_3_3_3" class="zoo-cell"></div>
-          <div id="enclosure_3_3_3" class="zoo-cell"></div>
-          <div id="enclosure_3_3_4" class="zoo-cell"></div>
-          <div id="enclosure_3_3_5" class="zoo-cell"></div>
-          <div id="enclosure_3_3_6" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_3_3" zoo-enclosure="3">
-          <div id="enclosure_3_3_1" class="zoo-cell"></div>
-          <div id="enclosure_3_3_3" class="zoo-cell"></div>
-          <div id="enclosure_3_3_3" class="zoo-cell"></div>
-          <div id="enclosure_3_3_4" class="zoo-cell"></div>
-          <div id="enclosure_3_3_5" class="zoo-cell"></div>
-          <div id="enclosure_3_3_6" class="zoo-cell"></div>
-          <div id="enclosure_3_3_7" class="zoo-cell"></div>
-        </div>
-        <div id="enclosure_3_4" zoo-enclosure="4">
-          <div id="enclosure_3_4_1" class="zoo-cell"></div>
-          <div id="enclosure_3_4_3" class="zoo-cell"></div>
-          <div id="enclosure_3_4_3" class="zoo-cell"></div>
-          <div id="enclosure_3_4_4" class="zoo-cell"></div>
-          <div id="enclosure_3_4_5" class="zoo-cell"></div>
-          <div id="enclosure_3_4_6" class="zoo-cell"></div>
-        </div>
-      </div>
-    </div>
-    <div id="zoo-playerboard-4" class="zoo-playerboard" style="height: 1px;">
-    </div>
-  </div>
-  <div id="zoo-shared-container">
-    <div id="zoo-stock">
-      <div id="zoo-primary-pile">
-        <div id="zoo-primary-pile-count">57</div>
-        <div id="zoo-primary-pile-tiles" class="zoo-pile">
-          <span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span>
-        </div>
-      </div>
-      <div id="zoo-endgame-pile">
-        <div id="zoo-endgame-pile-count">15</div>
-        <div id="zoo-endgame-pile-tiles" class="zoo-pile"><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span zoo-tile="back"></span><span id="zoo-disk" class="zoo-disk"></span></div>
-      </div>
-    </div>
-    <div id="zoo-depot-space-1" class="zoo-depot-space">
-      <div id="truck_1" class="zoo-truck" zoo-mark="selectable" onclick="doSelect(event)">
-        <div id="truckspace_1_1"></div>
-        <div id="truckspace_1_2"><span zoo-tile="CK"></span></div>
-        <div id="truckspace_1_3"></div>
-      </div>
-    </div>
-    <div id="zoo-depot-space-2" class="zoo-depot-space">
-    </div>
-    <div id="zoo-depot-space-3" class="zoo-depot-space">
-      <div id="truck_3" class="zoo-truck" onclick="doSelect(event)">
-        <div id="truckspace_1_1"><span zoo-tile="EM"></span></div>
-        <div id="truckspace_1_2" zoo-mark="selectable"><span zoo-tile="CF"></span></div>
-        <div id="truckspace_1_3"></div>
-      </div>
-    </div>
-    <div id="zoo-depot-space-4" class="zoo-depot-space">
-      <div id="truck_4" onclick="doMove(event);" class="zoo-truck">
-        <div id="truckspace_4_1"></div>
-        <div id="truckspace_4_2"></div>
-        <div id="truckspace_4_3">
-          <div zoo-tile="block"></div>
-        </div>
-      </div>
-    </div>
-    <div id="zoo-depot-space-5" class="zoo-depot-space">
-      <div id="truck_5" class="zoo-truck">
-        <div id="truckspace_5_1"><span zoo-tile="Coin"></span></div>
-        <div id="truckspace_5_2"><div zoo-tile="block"></div></div>
-        <div id="truckspace_5_3"><div zoo-tile="block"></div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="zoo-score-sheet" class="bga-score-sheet_sheet zoo-score-sheet" style="--bga-score-sheet_left: 0px; --bga-score-sheet_top: 0px; --bga-score-sheet_skip-button-display: none; display: none;" data-visible="true">
-  <table>
-    <tr>
-      <td class="bga-score-sheet_corner"></td>
-      <th class="bga-score-sheet_player-name" style="--player-color: #773300;">vagabond0</th>
-      <th class="bga-score-sheet_player-name" style="--player-color: #ffa500;">vagabond1</th>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="full_enclosure_points" title="Amount specified on the enclosure tile, granted if all spaces in enclosure are occupie">Points for full enclosures</th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405406">22</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405407">14</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="near_full_enclosure_points" title="Amount specified on the enclosure tile, granted if all but one space in enclosure are occupie">Points for nearly full enclosures
-      </th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405406">0</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405407">6</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="other_enclosure_points" title="One point per animal in a non(-near)-full enclosure that has at least one stall">Other enclosure points (with stalls)</th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405406">4</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405407">2</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="stall_points" title="Two points for each type of stall in any enclosure">Points for types of stalls in enclosures</th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="stall_points" data-player-id="2405406">4</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="stall_points" data-player-id="2405407">2</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_stall_points" title="Two point penalty for each stall type left in barn">Penalty for stall types left in barn</th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405406">0</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405407">0</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_animal_points" title="Two point penalty for each animal type left in barn">Penalty for animal types left in barn</th>
-      <td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405406">-2</td>
-      <td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405407">-4</td>
-    </tr>
-    <tr>
-      <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="total" title="Total points">Total</th>
-      <td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405406" style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">28</td>
-      <td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405407" style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">20</td>
-    </tr>
-  </table>
-</div>
+                    <div id="zoo-game" class="xzoo-debug zoo-indicators">
+                      <div id="zoo-boards">
+                        <div class="zoo-playerboard">
+                          <div><span class="player-name whiteblock zoo-playername" style="color: rgb(0, 128, 0);">vagabond1</span></div>
+                          <div id="zoo-board-2405407" class="zoo-board" zoo-extensions="0">
+                            <div id="zoo-enc-2405407-0" zoo-enclosure="0">
+                              <div id="zoo-space-2405407-1" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-2" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-3" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-4" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-5" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-6" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-7" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-8" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-9" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-10" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-11" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-12" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-13" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-14" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-15" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-16" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-17" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-18" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-19" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-20" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-21" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-22" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-23" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-24" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405407-1" zoo-enclosure="1">
+                              <div id="zoo-space-2405407-101" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-102" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-103" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-104" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-105" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-106" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405407-2" zoo-enclosure="2">
+                              <div id="zoo-space-2405407-201" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-202" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-203" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-204" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-205" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-206" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405407-3" zoo-enclosure="3">
+                              <div id="zoo-space-2405407-301" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-302" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-303" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-304" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-305" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-306" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-307" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405407-4" zoo-enclosure="4">
+                              <div id="zoo-space-2405407-401" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-402" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-403" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-404" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-405" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405407-406" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-ext-2405407-1" zoo-extension="1">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="zoo-playerboard">
+                          <div>
+                            <span class="player-name whiteblock zoo-playername" style="color: rgb(119, 51, 0);">vagabond2</span>
+                          </div>
+                          <div id="zoo-board-2405408" class="zoo-board" zoo-extensions="0">
+                            <div id="zoo-enc-2405408-0" zoo-enclosure="0">
+                              <div id="zoo-space-2405408-1" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-2" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-3" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-4" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-5" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-6" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-7" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-8" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-9" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-10" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-11" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-12" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-13" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-14" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-15" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-16" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-17" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-18" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-19" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-20" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-21" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-22" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-23" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-24" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405408-1" zoo-enclosure="1">
+                              <div id="zoo-space-2405408-101" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-102" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-103" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-104" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-105" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-106" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405408-2" zoo-enclosure="2">
+                              <div id="zoo-space-2405408-201" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-202" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-203" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-204" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-205" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-206" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405408-3" zoo-enclosure="3">
+                              <div id="zoo-space-2405408-301" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-302" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-303" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-304" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-305" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-306" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-307" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405408-4" zoo-enclosure="4">
+                              <div id="zoo-space-2405408-401" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-402" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-403" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-404" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-405" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405408-406" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-ext-2405408-1" zoo-extension="1">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="zoo-playerboard">
+                          <div>
+                            <span class="player-name whiteblock zoo-playername" style="color: rgb(255, 0, 0);">vagabond0</span>
+                          </div>
+                          <div id="zoo-board-2405406" class="zoo-board" zoo-extensions="0">
+                            <div id="zoo-enc-2405406-0" zoo-enclosure="0">
+                              <div id="zoo-space-2405406-1" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-2" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-3" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-4" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-5" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-6" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-7" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-8" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-9" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-10" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-11" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-12" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-13" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-14" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-15" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-16" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-17" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-18" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-19" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-20" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-21" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-22" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-23" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-24" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405406-1" zoo-enclosure="1">
+                              <div id="zoo-space-2405406-101" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-102" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-103" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-104" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-105" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-106" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405406-2" zoo-enclosure="2">
+                              <div id="zoo-space-2405406-201" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-202" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-203" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-204" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-205" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-206" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405406-3" zoo-enclosure="3">
+                              <div id="zoo-space-2405406-301" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-302" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-303" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-304" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-305" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-306" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-307" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-enc-2405406-4" zoo-enclosure="4">
+                              <div id="zoo-space-2405406-401" class="zoo-cell"></div>
+                              <div id="zoo-space-2405406-402" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-403" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-404" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-405" class="zoo-cell">
+                              </div>
+                              <div id="zoo-space-2405406-406" class="zoo-cell">
+                              </div>
+                            </div>
+                            <div id="zoo-ext-2405406-1" zoo-extension="1">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div id="zoo-shared-container">
+                        <div id="zoo-stock">
+                          <div id="zoo-primary-pile">
+                            <div id="zoo-primary-pile-count">74</div>
+                            <div id="zoo-primary-pile-tiles" class="zoo-pile">
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back" zoo-mark="selectable" title="Draw tile">
+                              </span>
+                            </div>
+                          </div>
+                          <div id="zoo-endgame-pile">
+                            <div id="zoo-endgame-pile-count">15</div>
+                            <div id="zoo-endgame-pile-tiles" class="zoo-pile">
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span zoo-tile="back">
+                              </span>
+                              <span id="zoo-disk" class="zoo-disk">
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div id="zoo-depot-space-1" class="zoo-depot-space">
+                          <div id="zoo-truck-1" class="zoo-truck" zoo-mark="selectable" title="Take truck">
+                            <div id="zoo-truck-1-1">
+                              <span id="zoo-tile-66" zoo-tile="MF">
+                              </span>
+                            </div>
+                            <div id="zoo-truck-1-2">
+                            </div>
+                            <div id="zoo-truck-1-3">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="zoo-depot-space-2" class="zoo-depot-space">
+                          <div id="zoo-truck-2" class="zoo-truck">
+                            <div id="zoo-truck-2-1">
+                            </div>
+                            <div id="zoo-truck-2-2">
+                            </div>
+                            <div id="zoo-truck-2-3">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="zoo-depot-space-3" class="zoo-depot-space">
+                          <div id="zoo-truck-3" class="zoo-truck">
+                            <div id="zoo-truck-3-1">
+                            </div>
+                            <div id="zoo-truck-3-2">
+                            </div>
+                            <div id="zoo-truck-3-3">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div id="zoo-zoom-control">
+                        <button id="zoo-zoom-in" class="zoo-zoom-button" onclick="zoomIn()">⊕</button>
+                        <br>
+                        </br>
+                        <button id="zoo-zoom-out" class="zoo-zoom-button" onclick="zoomOut()">⊖</button>
+                      </div>
+                      <div id="zoo-score-sheet" class="bga-score-sheet_sheet zoo-score-sheet"
+                        style="display:none; --bga-score-sheet_left: 0px; --bga-score-sheet_top: 0px;" data-visible="false">
+                        <table>
+                          <tr>
+                            <td class="bga-score-sheet_corner">
+                            </td>
+                            <th class="bga-score-sheet_player-name" style="--player-color: #ff0000;">vagabond0</th>
+                            <th class="bga-score-sheet_player-name" style="--player-color: #008000;">vagabond1</th>
+                            <th class="bga-score-sheet_player-name" style="--player-color: #773300;">vagabond2</th>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="full_enclosure_points"
+                              title="Amount specified on the enclosure tile, granted if all spaces in enclosure are occupie">Points for full
+                              enclosures</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="full_enclosure_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="near_full_enclosure_points"
+                              title="Amount specified on the enclosure tile, granted if all but one space in enclosure are occupie">Points
+                              for nearly full enclosures</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="near_full_enclosure_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="other_enclosure_points"
+                              title="One point per animal in a non(-near)-full enclosure that has at least one stall">Other enclosure points
+                              (with stalls)</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="other_enclosure_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="stall_points"
+                              title="Two points for each type of stall in any enclosure">Points for types of stalls in enclosures</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="stall_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="stall_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="stall_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_stall_points"
+                              title="Two point penalty for each stall type left in barn">Penalty for stall types left in barn</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_stall_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="barn_animal_points"
+                              title="Two point penalty for each animal type left in barn">Penalty for animal types left in barn</th>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405406">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405407">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry" data-entry="barn_animal_points" data-player-id="2405408">
+                            </td>
+                          </tr>
+                          <tr>
+                            <th class="bga-score-sheet_entry-label zoo-score-entries-label" data-entry="total" title="Total points">Total
+                            </th>
+                            <td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405406"
+                              style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405407"
+                              style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">
+                            </td>
+                            <td class="bga-score-sheet_player-score-entry zoo-score-total" data-entry="total" data-player-id="2405408"
+                              style="--bga-score-sheet_entry-label-width: 80px; --bga-score-sheet_entry-label-height: 40px;">
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                    <div id="zoo-box"></div>
 
 <!-- GAME ENDS HERE -->
-
 
 
 

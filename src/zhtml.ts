@@ -157,13 +157,9 @@ export class Elements {
 }
 
 export class ZoolorettoHtml {
-  constructor(gamedatas: ZGamedatas, player_id: number) {
-    this.gamedatas = gamedatas;
-    this.player_id = player_id;
+  constructor(private readonly bga: Bga, private readonly gamedatas: ZGamedatas, private readonly player_id: number) {
     this.twoPlayer = Object.keys(gamedatas.players).length == 2;
   }
-  private readonly gamedatas: ZGamedatas;
-  private readonly player_id: number;
   private readonly twoPlayer: boolean;
 
   public static range(start: number, end: number) {
@@ -235,6 +231,7 @@ export class ZoolorettoHtml {
             )
           )
         ),
+        new ZoomController(this.bga).makeHtml(),
         // Html.div({id: 'zoo-playeraid' }),
         Html.div({id: IDS.SCORE_SHEET})
     );
@@ -282,4 +279,69 @@ export class ZoolorettoHtml {
         .div({ classes: 'zoo-player-panel-board-summary' }, ...summaryDivs)
       ];
   }
+}
+
+class ZoomController {
+  constructor(private bga: Bga) {}
+
+  makeHtml() {
+    return Html.div({ id: 'zoo-zoom-control' },
+      this.makeZoomInButton(),
+      Html.br(),
+      this.makeZoomOutButton(),
+    )
+  }
+
+  private makeZoomInButton() {
+    const zoomIn = Html.button({ id: 'zoo-zoom-in', text: '⊕', classes: 'zoo-zoom-button'});
+    zoomIn.onclick = (e) => this.zoomIn();
+    return zoomIn;
+  }
+
+  private makeZoomOutButton() {
+    const zoomOut = Html.button({ id: 'zoo-zoom-out', text: '⊖', classes: 'zoo-zoom-button'});
+    zoomOut.onclick = (e) => this.zoomOut();
+    return zoomOut;
+  }
+
+  private static readonly zoomLevels = [
+    78,
+    66,
+    54,
+    42,
+    30
+  ];
+
+  private currentZoomIndex() {
+    const body = document.getElementsByTagName('body')[0]!;
+    let ms = Number(body.getAttribute('zoo-max-tile-size'));
+    if (ms) {
+      const i = ZoomController.zoomLevels.indexOf(ms);
+      if (i >= 0) { return i; }
+    }
+    return 0;
+  }
+
+  private zoomIn() {
+    const i = this.currentZoomIndex();
+    if (i > 0) {
+      this.setZoomIndex(i-1);
+    }
+  }
+
+  private zoomOut() {
+    const i = this.currentZoomIndex();
+    if (i < ZoomController.zoomLevels.length - 1) {
+      this.setZoomIndex(i+1);
+    }
+  }
+
+  private setZoomIndex(i : number) {
+    console.log("setZI", i);
+    const body = document.getElementsByTagName('body')[0]!;
+    const z = ZoomController.zoomLevels[i]!;
+    body.setAttribute('zoo-max-tile-size', String(z));
+    this.bga.userPreferences.set(105, z);
+  }
+
 }

@@ -64,6 +64,14 @@ export class Html {
     return this.makeElem('span', args, ...children);
   }
 
+  public static button(args: {id?: string, text?: string, title?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+    return this.makeElem('button', args, ...children);
+  }
+
+  public static br(args?: {id?: string, text?: string, title?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
+    return this.makeElem('br', args ?? {});
+  }
+
   public static p(args: {id?: string, text?: string, title?: string, attrs?: Record<string, string> | AttrLike, classes?: (string | string[]), style?: (string | string[])}, ...children: (HTMLElement | undefined) []) {
       return this.makeElem('p', args, ...children);
   }

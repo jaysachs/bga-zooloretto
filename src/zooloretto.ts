@@ -69,7 +69,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
-    const zhtml = new ZoolorettoHtml(gamedatas, this.bga.gameui.player_id);
+    const zhtml = new ZoolorettoHtml(this.bga, gamedatas, this.bga.gameui.player_id);
     this.bga.gameArea.getElement().append(zhtml.baseStructure(),Html.div({id: IDS.BOX}));
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));

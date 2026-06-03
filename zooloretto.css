@@ -73,8 +73,9 @@ body.mobile_version #zoo-game.zoo-2p {
 
     --zoo-board-width: calc(var(--zoo-tile-size) * 11.6);
     display : flex;
+    gap: 4px;
     align-items: flex-start;
-    justify-content: space-around;
+    justify-content: space-between;
     flex-direction: row;
     /* margin: 0.8vw; */
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
@@ -907,4 +908,23 @@ th.bga-score-sheet_player-name {
     background-image: url('img/Money.png');
     background-size: contain;
     background-repeat: no-repeat;
+}
+
+/*
+ * zoom buttons
+ */
+.zoo-zoom-button {
+    font-size: 3vh;
+    font-weight: bold;
+}
+
+#zoo-zoom-control {
+    background-color: #dddddd;
+    border: 1px solid black;
+    padding: 4px;
+    flex-grow: 0;
+    font-size: 0.5vh;
+    right: 0px;
+    top: 0px;
+    margin: 3px;
 }
