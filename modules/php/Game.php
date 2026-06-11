@@ -294,7 +294,6 @@ class Game extends Table
 
 	#[Debug(reload: false)]
 	public function debug_endGame(int $active_player_id): void {
-		/** @phpstan-ignore argument.type */
 		$this->gamestate->jumpToState(ComputeScores::class);
 	}
 
