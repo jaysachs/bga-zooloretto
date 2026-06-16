@@ -418,7 +418,14 @@ export class PlayerTurnFlow extends ZooFlow<PlayState> {
       at => this.addSelectableOnclick(
         Elements.truck(at.truck_id),
         async () => {
-          await this.notif_DeliverCoins({ player_id: this.player_id, truck_id: at.truck_id, coin_tiles: at.coin_tiles });
+          const anims = at.coin_tiles.map(c =>
+            () => this.slideOutAndDestroy(
+              Elements.tile(c)!,
+              this.bga.playerPanels.getElement(this.player_id)));
+          await this.view.animationManager.playSequentially(anims);
+          const md: Moneys = {};
+          md[this.player_id] = at.coin_tiles.length;
+          this.updateMoneyDelta(md);
           this.doDelivery(at.truck_id, [])
         },
         _('Take truck'))
