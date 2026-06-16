@@ -231,7 +231,7 @@ export class ZoolorettoHtml {
             )
           )
         ),
-        new ZoomController(this.bga).makeHtml(),
+        // new ZoomController(this.bga).makeHtml(),
         // Html.div({id: 'zoo-playeraid' }),
         Html.div({id: IDS.SCORE_SHEET})
     );
