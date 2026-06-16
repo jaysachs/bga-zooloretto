@@ -90,6 +90,8 @@ body.mobile_version #zoo-game.zoo-2p {
 
 #zoo-shared-container {
 /*    position: sticky; */
+    position: relative;
+    top: 42pt;
     padding: 0 1vw 1vw 1vw;
     flex-shrink: 1;
     flex-grow: 0;
@@ -914,17 +916,24 @@ th.bga-score-sheet_player-name {
  * zoom buttons
  */
 .zoo-zoom-button {
-    font-size: 3vh;
+    font-size: 20pt;
     font-weight: bold;
+    width: min-content;
 }
 
 #zoo-zoom-control {
+    position: absolute;
     background-color: #dddddd;
     border: 1px solid black;
     padding: 4px;
-    flex-grow: 0;
     font-size: 0.5vh;
     right: 0px;
     top: 0px;
     margin: 3px;
+}
+
+@media only screen and (max-width: 768px) {
+    #zoo-zoom-control {
+        display:none;
+    }
 }

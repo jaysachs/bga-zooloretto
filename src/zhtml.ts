@@ -231,7 +231,7 @@ export class ZoolorettoHtml {
             )
           )
         ),
-        // new ZoomController(this.bga).makeHtml(),
+        new ZoomController(this.bga).makeHtml(),
         // Html.div({id: 'zoo-playeraid' }),
         Html.div({id: IDS.SCORE_SHEET})
     );
@@ -287,7 +287,6 @@ class ZoomController {
   makeHtml() {
     return Html.div({ id: 'zoo-zoom-control' },
       this.makeZoomInButton(),
-      Html.br(),
       this.makeZoomOutButton(),
     )
   }
@@ -337,7 +336,6 @@ class ZoomController {
   }
 
   private setZoomIndex(i : number) {
-    console.log("setZI", i);
     const body = document.getElementsByTagName('body')[0]!;
     const z = ZoomController.zoomLevels[i]!;
     body.setAttribute('zoo-max-tile-size', String(z));
