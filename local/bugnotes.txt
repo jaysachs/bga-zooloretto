@@ -1,2 +1,0 @@
-* Exchanges don't show offspring until after commit. Thread this through "possible exchanges"?
-* Display issue on Edge? limit tile size?
