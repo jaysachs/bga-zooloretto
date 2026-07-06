@@ -890,20 +890,3 @@ th.bga-score-sheet_player-name {
     font-weight: bold;
     width: min-content;
 }
-
-#zoo-zoom-control {
-    position: absolute;
-    background-color: #dddddd;
-    border: 1px solid black;
-    padding: 4px;
-    font-size: 0.5vh;
-    right: 0px;
-    top: 0px;
-    margin: 3px;
-}
-
-@media only screen and (max-width: 768px) {
-    #zoo-zoom-control {
-        display:none;
-    }
-}
