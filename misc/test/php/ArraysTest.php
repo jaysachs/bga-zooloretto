@@ -1,10 +1,9 @@
 <?php
 
 declare(strict_types=1);
-use PHPUnit\Framework\TestCase;
+namespace Bga\Games\zooloretto\Utils;
 
-use Bga\Games\zooloretto\Utils;
-use Bga\Games\zooloretto\Utils\Arrays;
+use PHPUnit\Framework\TestCase;
 
 final class ArraysTest extends TestCase
 {
