@@ -68,12 +68,14 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
   private setupHtml(gamedatas: ZGamedatas): void {
     const zhtml = new ZoolorettoHtml(this.bga, gamedatas, this.bga.gameui.player_id);
-    this.bga.gameArea.getElement().append(zhtml.baseStructure(),Html.div({id: IDS.BOX}));
-
+    this.bga.gameArea.getElement().append(
+      zhtml.baseStructure(),Html.div({id: IDS.BOX}),
+      Html.div({id: IDS.SCORE_SHEET}));
     this.zoomManager = new ZoomManager({
             element: document.getElementById(IDS.GAME)!,
             localStorageZoomKey: 'zooloretto-zoom',
             smooth: false,
+            zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
             onZoomChange: (zoom: number) => { document.getElementById(IDS.SHARED_CONTAINER)!.style.top = (45 / zoom) + 'px' }
         });
 

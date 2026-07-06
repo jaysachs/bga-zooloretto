@@ -231,9 +231,7 @@ export class ZoolorettoHtml {
               )
             )
           )
-        ),
-        // Html.div({id: 'zoo-playeraid' }),
-        Html.div({id: IDS.SCORE_SHEET})
+        )
     );
   }
 
