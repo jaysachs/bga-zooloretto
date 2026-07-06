@@ -89,6 +89,7 @@ export class IDS {
   static readonly BOX = 'zoo-box';
   static readonly DISK = 'zoo-disk';
   static readonly SCORE_SHEET = 'zoo-score-sheet';
+  static readonly SHARED_CONTAINER = 'zoo-shared-container';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(truck_id : number) { return `zoo-truck-${truck_id}`; }
@@ -210,7 +211,7 @@ export class ZoolorettoHtml {
           this.playerBoardDiv(currentPlayer),
           ... otherplayers.map((p) => this.playerBoardDiv(p))
         ),
-        Html.div({ id: 'zoo-shared-container' },
+        Html.div({ id: IDS.SHARED_CONTAINER },
           Html.div({ id: 'zoo-stock' },
             Html.div({ id: 'zoo-primary-pile' },
               Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
@@ -231,7 +232,6 @@ export class ZoolorettoHtml {
             )
           )
         ),
-        new ZoomController(this.bga).makeHtml(),
         // Html.div({id: 'zoo-playeraid' }),
         Html.div({id: IDS.SCORE_SHEET})
     );
@@ -279,67 +279,4 @@ export class ZoolorettoHtml {
         .div({ classes: 'zoo-player-panel-board-summary' }, ...summaryDivs)
       ];
   }
-}
-
-class ZoomController {
-  constructor(private bga: Bga) {}
-
-  makeHtml() {
-    return Html.div({ id: 'zoo-zoom-control' },
-      this.makeZoomInButton(),
-      this.makeZoomOutButton(),
-    )
-  }
-
-  private makeZoomInButton() {
-    const zoomIn = Html.button({ id: 'zoo-zoom-in', text: '⊕', classes: 'zoo-zoom-button'});
-    zoomIn.onclick = (e) => this.zoomIn();
-    return zoomIn;
-  }
-
-  private makeZoomOutButton() {
-    const zoomOut = Html.button({ id: 'zoo-zoom-out', text: '⊖', classes: 'zoo-zoom-button'});
-    zoomOut.onclick = (e) => this.zoomOut();
-    return zoomOut;
-  }
-
-  private static readonly zoomLevels = [
-    78,
-    66,
-    54,
-    42,
-    30
-  ];
-
-  private currentZoomIndex() {
-    const body = document.getElementsByTagName('body')[0]!;
-    let ms = Number(body.getAttribute('zoo-max-tile-size'));
-    if (ms) {
-      const i = ZoomController.zoomLevels.indexOf(ms);
-      if (i >= 0) { return i; }
-    }
-    return 0;
-  }
-
-  private zoomIn() {
-    const i = this.currentZoomIndex();
-    if (i > 0) {
-      this.setZoomIndex(i-1);
-    }
-  }
-
-  private zoomOut() {
-    const i = this.currentZoomIndex();
-    if (i < ZoomController.zoomLevels.length - 1) {
-      this.setZoomIndex(i+1);
-    }
-  }
-
-  private setZoomIndex(i : number) {
-    const body = document.getElementsByTagName('body')[0]!;
-    const z = ZoomController.zoomLevels[i]!;
-    body.setAttribute('zoo-max-tile-size', String(z));
-    this.bga.userPreferences.set(105, z);
-  }
-
 }

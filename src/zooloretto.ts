@@ -30,6 +30,7 @@ import { BgaScoreSheet, ScoreSheet } from './libs';
 import { GameView } from './zview';
 import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
+import { ZoomManager } from './zoom-manager';
 
 /** Game class */
 export class Game extends BaseGame<ZPlayer, ZGamedatas> {
@@ -39,6 +40,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   private endgameStockCounter: Counter = new ebg.counter();
   private scoreSheet: ScoreSheet | undefined;
   private readonly view: GameView;
+  private zoomManager: ZoomManager | undefined;
 
   constructor(bga: Bga<ZPlayer, ZGamedatas>) {
     super(bga);
@@ -61,16 +63,20 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
           $(IDS.GAME).classList.remove('zoo-indicators');
         }
         break;
-      case 105:
-        const body = document.getElementsByTagName('body').item(0)!;
-        body.setAttribute('zoo-max-tile-size', `${pref_value}`);
-        break;
     }
   }
 
   private setupHtml(gamedatas: ZGamedatas): void {
     const zhtml = new ZoolorettoHtml(this.bga, gamedatas, this.bga.gameui.player_id);
     this.bga.gameArea.getElement().append(zhtml.baseStructure(),Html.div({id: IDS.BOX}));
+
+    this.zoomManager = new ZoomManager({
+            element: document.getElementById(IDS.GAME)!,
+            localStorageZoomKey: 'zooloretto-zoom',
+            smooth: false,
+            onZoomChange: (zoom: number) => { document.getElementById(IDS.SHARED_CONTAINER)!.style.top = (45 / zoom) + 'px' }
+        });
+
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       const counter = new ebg.counter();

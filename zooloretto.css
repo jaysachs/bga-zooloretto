@@ -22,6 +22,8 @@ Z          o   #DD9457  ("orange-y")
     o     t    #8D9BC3  (lavender grey)
 */
 
+@import url(modules/bga-zoom.css);
+
 body {
     --zoo-max-tile-size: 78px;
 
@@ -30,26 +32,6 @@ body {
 
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 240px) / 17));
-}
-
-body[zoo-max-tile-size="78"] {
-    --zoo-max-tile-size: 78px;
-}
-
-body[zoo-max-tile-size="66"] {
-    --zoo-max-tile-size: 66px;
-}
-
-body[zoo-max-tile-size="54"] {
-    --zoo-max-tile-size: 54px;
-}
-
-body[zoo-max-tile-size="42"] {
-    --zoo-max-tile-size: 42px;
-}
-
-body[zoo-max-tile-size="30"] {
-    --zoo-max-tile-size: 30px;
 }
 
 body.mobile_version #zoo-game {
@@ -74,14 +56,10 @@ body.mobile_version #zoo-game.zoo-2p {
     --zoo-board-width: calc(var(--zoo-tile-size) * 11.6);
     display : flex;
     gap: 4px;
-    align-items: flex-start;
-    justify-content: space-between;
     flex-direction: row;
-    /* margin: 0.8vw; */
+    justify-content: space-evenly;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
-/*    overflow: scroll;
-    height: 100vh; */
 }
 
 /*
@@ -89,9 +67,9 @@ body.mobile_version #zoo-game.zoo-2p {
  */
 
 #zoo-shared-container {
-/*    position: sticky; */
     position: relative;
-    top: 42pt;
+    /* to account for zoom controls */
+    top: 45px;
     padding: 0 1vw 1vw 1vw;
     flex-shrink: 1;
     flex-grow: 0;
@@ -108,7 +86,6 @@ body.mobile_version #zoo-game.zoo-2p {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    margin: 1vw 0 1vw 0;
 }
 
 #zoo-primary-pile, #zoo-endgame-pile {
@@ -224,15 +201,13 @@ div.zoo-pile:not(:has(span)) {
  * Player boards
  */
 #zoo-boards {
-    flex-shrink: 1.0;
+    flex-grow: 1.0;
     width: auto;
-    flex-grow: 0;
     display : flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-around;
-/*    padding-right: 0.5em; */
     row-gap: 2em;
     column-gap: 2em;
 }
@@ -255,7 +230,6 @@ div.zoo-pile:not(:has(span)) {
 #zoo-game.zoo-2p .zoo-board {
     aspect-ratio: 1097 / 899 !important;
     width: calc(var(--zoo-board-width));
-    /* width: 100%; */
 }
 
 #zoo-game.zoo-2p .zoo-board[zoo-extensions="0"] {
@@ -280,10 +254,7 @@ div.zoo-pile:not(:has(span)) {
 }
 
 .zoo-playername {
-    /*
-    padding-top: 0%;
-    padding-bottom: 0%;
-*/
+    font-size: 12pt;
     text-align: left;
     padding: 5px;
     margin: 0.25em;
