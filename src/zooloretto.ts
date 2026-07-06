@@ -73,11 +73,25 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
       Html.div({id: IDS.SCORE_SHEET}));
     this.zoomManager = new ZoomManager({
             element: document.getElementById(IDS.GAME)!,
-            localStorageZoomKey: 'zooloretto-zoom',
+            localStorageZoomKey: 'zooloretto-zoom-' + Object.keys(gamedatas.players).length,
             smooth: false,
             zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
             onZoomChange: (zoom: number) => { document.getElementById(IDS.SHARED_CONTAINER)!.style.top = (45 / zoom) + 'px' }
         });
+    try {
+      if (this.zoomManager.zoom != 1) {
+        const oldzoomTileSize = this.bga.userPreferences.get(104);
+        switch (oldzoomTileSize) {
+          case 78: break;
+          case 66: this.zoomManager.setZoom(0.875); break;
+          case 54: this.zoomManager.setZoom(0.75); break;
+          case 42: this.zoomManager.setZoom(0.625); break;
+          case 30: this.zoomManager.setZoom(0.5); break;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
 
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
