@@ -116,7 +116,6 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
   setup(gamedatas: ZGamedatas) {
     this.setupHtml(gamedatas);
     this.bga.userPreferences.onChange = this.handlePreferencesChange.bind(this);
-    this.handlePreferencesChange(105, this.bga.userPreferences.get(105));
     this.setupNotifications();
     this.setupScoreSheet(gamedatas);
     if (gamedatas.lastround) {
