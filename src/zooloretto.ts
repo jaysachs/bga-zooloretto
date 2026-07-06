@@ -76,7 +76,13 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
             localStorageZoomKey: 'zooloretto-zoom-' + Object.keys(gamedatas.players).length,
             smooth: false,
             zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
-            onZoomChange: (zoom: number) => { document.getElementById(IDS.SHARED_CONTAINER)!.style.top = (45 / zoom) + 'px' }
+            onZoomChange: (zoom: number) => {
+              const unzoom = 1 / zoom;
+              document.getElementById(IDS.SHARED_CONTAINER)!.style.marginTop = (unzoom * 45) + 'px';
+              document.querySelectorAll('.zoo-playername').forEach(
+                e => (e as HTMLElement).style.zoom = String(unzoom)
+              );
+            }
         });
     try {
       if (this.zoomManager.zoom != 1) {

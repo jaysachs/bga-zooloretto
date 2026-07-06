@@ -67,9 +67,8 @@ body.mobile_version #zoo-game.zoo-2p {
  */
 
 #zoo-shared-container {
-    position: relative;
     /* to account for zoom controls */
-    top: 45px;
+    margin-top: 45px;
     padding: 0 1vw 1vw 1vw;
     flex-shrink: 1;
     flex-grow: 0;
