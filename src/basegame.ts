@@ -21,7 +21,7 @@
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  */
 
- import { BgaAnimations, AnimationManager } from './libs';
+import { BgaAnimations, AnimationManager } from './libs';
 import { MoreAnimations } from './more-animations';
 
 /** Class that extends default bga core game class with more functionality
