@@ -30,8 +30,10 @@ body {
     /* inherent to the truck image */
     --zoo-truck-aspect-ratio: calc(473 / 175);
 
+    --zoo-page-width: calc(100vw - 240px);
+
     /* Goal of tile size of approx 4vw ... */
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 240px) / 17));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), var(--zoo-page-width) / 17));
 }
 
 body.mobile_version #zoo-game {
@@ -41,12 +43,11 @@ body.mobile_version #zoo-game {
 
 body.mobile_version #zoo-game.zoo-2p {
     --zoo-tile-size: calc(min(var(--zoo-max-tile-size), 100vw / 18.6));
-    --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
 }
 
 #zoo-game.zoo-2p {
     --zoo-board-width: calc(var(--zoo-tile-size) * 13.3);
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 240px) / 18.6));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), var(--zoo-page-width) / 18.6));
 }
 
 #zoo-game {

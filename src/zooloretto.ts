@@ -121,6 +121,14 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     if (gamedatas.lastround) {
       this.view.showLastTurnBanner();
     }
+    this.bga.gameui.onScreenWidthChange = () => this.handleScreenWidthChange();
+  }
+
+  handleScreenWidthChange() {
+    const pageEl = document.getElementById('page-content');
+    const pageRect = pageEl!.getBoundingClientRect();
+
+    document.getElementsByTagName("body").item(0)!.style.setProperty("--zoo-page-width",`${pageRect.width}px`);
   }
 
   private setupNotifications(): void {
