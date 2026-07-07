@@ -128,7 +128,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     const pageEl = document.getElementById('page-content');
     const pageRect = pageEl!.getBoundingClientRect();
 
-    document.getElementsByTagName("body").item(0)!.style.setProperty("--zoo-page-width",`${pageRect.width}px`);
+    document.body.style.setProperty("--zoo-page-width",`${pageRect.width}px`);
   }
 
   private setupNotifications(): void {
