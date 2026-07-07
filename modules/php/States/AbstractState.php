@@ -98,6 +98,9 @@ abstract class AbstractState extends GameState
 	protected function notifyOffspring(int $active_player_id, ?Offspring $offspring): void {
 		if ($offspring !== null) {
 			$this->game->stats->PLAYER_OFFSPRINGPRODUCED->inc($active_player_id);
+            if ($offspring->child->space->enclosure_id == 0) {
+                $this->game->stats->PLAYER_OFFSPRINGPRODUCEDINBARN->inc($active_player_id);
+            }
 			$this->notify->all(
                 'Offspring',
                 clienttranslate('${player_name} produced an offspring ${tile_type}'),

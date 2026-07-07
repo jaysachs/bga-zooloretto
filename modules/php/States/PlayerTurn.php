@@ -308,6 +308,7 @@ class PlayerTurn extends AbstractState
 		$res = $model->takeTruckAndDeliverTiles($truck_id, self::jsonToDeliveries($deliveries));
 		$completed = $res['deliveries'];
 		$cointiles = $res['coins'];
+		$this->game->stats->PLAYER_TILESTAKENFROMTRUCKS->inc($active_player_id, count($completed));
 		$this->notify->all(
 			'TakeTruck',
 			clienttranslate('${player_name} took ${truck}'), [
@@ -321,6 +322,7 @@ class PlayerTurn extends AbstractState
 
 		if (count($cointiles) > 0) {
 			$coins = count($cointiles);
+			$this->game->stats->PLAYER_COINTILESACQUIRED->inc($active_player_id);
 			$this->notify->all(
 				'DeliverCoins',
 				clienttranslate('${player_name} received ${coins} from ${truck}'), [
@@ -338,6 +340,9 @@ class PlayerTurn extends AbstractState
 		// Notify for each tile, also send offspring and enclosure completion notifications.
 		foreach ($completed as $delivery) {
 			$pt = $delivery->placed_tile;
+			if ($pt->space->enclosure_id == 0) {
+                $this->game->stats->PLAYER_TILESTAKEFROMTRUCKSINTOBARN->inc($active_player_id);
+			}
 			$this->notify->all(
 				'DeliverTruckTile',
 				clienttranslate('${player_name} delivered ${tile_type} to ${enclosure_description} from ${truck}'), [
