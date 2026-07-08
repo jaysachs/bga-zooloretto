@@ -22,8 +22,6 @@ Z          o   #DD9457  ("orange-y")
     o     t    #8D9BC3  (lavender grey)
 */
 
-@import url(modules/bga-zoom.css);
-
 body {
     --zoo-max-tile-size: 78px;
 

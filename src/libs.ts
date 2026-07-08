@@ -23,8 +23,10 @@
 
 import type { BgaAnimations as BgaAnimationsType, AnimationManager } from "./bga-animations";
 import type { BgaScoreSheet as BgaScoreSheetType, ScoreSheet } from './bga-score-sheet';
+import type { BgaZoom as BgaZoomType, Manager as ZoomManager } from './bga-zoom';
 
 const BgaAnimations: typeof BgaAnimationsType = await globalThis.importEsmLib('bga-animations', '1.x');
 const BgaScoreSheet: typeof BgaScoreSheetType = await globalThis.importEsmLib('bga-score-sheet', '1.x');
+const BgaZoom: typeof BgaZoomType = await globalThis.importEsmLib('bga-zoom', '1.x');
 
-export { BgaAnimations, BgaScoreSheet, AnimationManager, ScoreSheet };
+export { BgaAnimations, BgaScoreSheet, BgaZoom, AnimationManager, ScoreSheet, ZoomManager };

@@ -26,11 +26,10 @@ import { Tile, ZGamedatas, ZPlayer } from './zgametypes';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList } from './more-animations';
-import { BgaScoreSheet, ScoreSheet } from './libs';
+import { BgaScoreSheet, BgaZoom, ScoreSheet, ZoomManager } from './libs';
 import { GameView } from './zview';
 import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
-import { ZoomManager } from './zoom-manager';
 
 /** Game class */
 export class Game extends BaseGame<ZPlayer, ZGamedatas> {
@@ -71,10 +70,9 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     this.bga.gameArea.getElement().append(
       zhtml.baseStructure(),Html.div({id: IDS.BOX}),
       Html.div({id: IDS.SCORE_SHEET}));
-    this.zoomManager = new ZoomManager({
+    this.zoomManager = new BgaZoom.Manager({
             element: document.getElementById(IDS.GAME)!,
             localStorageZoomKey: 'zooloretto-zoom-' + Object.keys(gamedatas.players).length,
-            smooth: false,
             zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
             onZoomChange: (zoom: number) => {
               const unzoom = 1 / zoom;
