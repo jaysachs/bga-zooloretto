@@ -818,6 +818,7 @@ div.zoo-pile:not(:has(span)) {
 
 
 .zoo-score-sheet {
+    color: black; /* needed to override dark mode */
     position: absolute;
     top: 0%;
     left: 10%;
