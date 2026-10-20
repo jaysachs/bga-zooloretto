@@ -10,7 +10,7 @@ TS_STUBS=src/bga-framework.d.ts
 JS=modules/js/Game.js
 PHPSTAN_LEVEL=10
 
-.PHONY: build test phpstan deploy clean pull-boilerplate
+.PHONY: build test phpstan deploy clean pull-boilerplate quick-deploy
 
 $(JS): src/**/*.ts src/*.ts tsconfig.json $(TS_STUBS)
 	npm run build:ts
@@ -38,6 +38,9 @@ phpstan: build
 
 deploy: test
 	lftp -e 'cd $(GAME); mirror -e -R --exclude .vscode/ --exclude .git/ --exclude work/ --exclude local/ --exclude bga-framework.d.ts --exclude .phpunit* --exclude node_modules*/ --exclude _ide_helper.php; exit' $(SFTP)
+
+quick-deploy: test
+	lftp -e 'cd $(GAME); put -O modules/js modules/js/Game.js; put zooloretto.css; exit' $(SFTP)
 
 pull-boilerplate:
 	lftp -e 'cd $(GAME); set xfer:clobber true; get _ide_helper.php; get bga-framework.d.ts' $(SFTP)
