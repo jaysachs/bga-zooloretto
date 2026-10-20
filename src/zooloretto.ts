@@ -26,7 +26,7 @@ import { Tile, ZGamedatas, ZPlayer } from './zgametypes';
 import { BaseGame } from './basegame';
 import { CSS, IDS, Elements, ZoolorettoHtml, Attrs } from './zhtml';
 import { AnimationList } from './more-animations';
-import { BgaScoreSheet, BgaZoom, ScoreSheet, ZoomManager } from './libs';
+import { BgaJumpTo, BgaScoreSheet, BgaZoom, ScoreSheet, ZoomManager } from './libs';
 import { GameView } from './zview';
 import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
@@ -70,33 +70,6 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     this.bga.gameArea.getElement().append(
       zhtml.baseStructure(),Html.div({id: IDS.BOX}),
       Html.div({id: IDS.SCORE_SHEET}));
-    this.zoomManager = new BgaZoom.Manager({
-            element: document.getElementById(IDS.GAME)!,
-            localStorageZoomKey: 'zooloretto-zoom-' + Object.keys(gamedatas.players).length,
-            zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
-            onZoomChange: (zoom: number) => {
-              const unzoom = 1 / zoom;
-              document.getElementById(IDS.SHARED_CONTAINER)!.style.marginTop = (unzoom * 45) + 'px';
-              document.querySelectorAll('.zoo-playername').forEach(
-                e => (e as HTMLElement).style.zoom = String(unzoom)
-              );
-            }
-        });
-    try {
-      if (this.zoomManager.zoom != 1) {
-        const oldzoomTileSize = this.bga.userPreferences.get(104);
-        switch (oldzoomTileSize) {
-          case 78: break;
-          case 66: this.zoomManager.setZoom(0.875); break;
-          case 54: this.zoomManager.setZoom(0.75); break;
-          case 42: this.zoomManager.setZoom(0.625); break;
-          case 30: this.zoomManager.setZoom(0.5); break;
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
-
     for (const player of Object.values(gamedatas.players)) {
       this.bga.playerPanels.getElement(player.player_id).append(...zhtml.playerPanel(player));
       const counter = new ebg.counter();
@@ -109,7 +82,42 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     this.view.renderTrucks(gamedatas);
     this.view.renderEnclosures(gamedatas);
     this.view.updateEnclosureSummaries(gamedatas.enclosure_summaries);
+
+    const onZoomChange = (zoom: number) => {
+        const unzoom = 1 / zoom;
+        document.getElementById(IDS.SHARED_CONTAINER)!.style.marginTop = (unzoom * 45) + 'px';
+        document.querySelectorAll('.zoo-playername').forEach(
+            e => (e as HTMLElement).style.zoom = String(unzoom)
+        );
+    }
+
+    var initialDone = false;
+    this.zoomManager = new BgaZoom.Manager({
+            element: this.bga.gameArea.getElement(),
+            localStorageZoomKey: 'zooloretto-zoom-' + Object.keys(gamedatas.players).length,
+            zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
+            onZoomChange: onZoomChange,
+            onDimensionsChange: (zoom: number) => {
+                if (!initialDone) {
+                    onZoomChange(zoom);
+                    initialDone = true;
+                }
+            }
+        });
+
+    // onZoomChange(1.0);
+
+    const entries = BgaJumpTo.BgaPlayerEntries(this.bga, {
+        entryTarget: (playerId: any, player: ZPlayer) => IDS.boardId(Number(player.id)),
+    });
+
+    new BgaJumpTo.Manager({
+        localStorageFoldedKey: Game.LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
+        entries,
+    });
   }
+
+  static readonly LOCAL_STORAGE_JUMP_TO_FOLDED_KEY = '<yourgamename>-folded';
 
   setup(gamedatas: ZGamedatas) {
     this.setupHtml(gamedatas);

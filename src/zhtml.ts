@@ -100,6 +100,7 @@ export class IDS {
   static takenTruck(player_id: number): string { return `zoo-taken-truck-${player_id}`; }
   static money(player_id: number): string { return `zoo-money-counter-${player_id}` };
   static boardId(player_id: number): string { return `zoo-board-${player_id}`; }
+  static playerLabel(player_id: number): string { return `zoo-player-label-${player_id}`}
   static tile(t : Tile): string { return `zoo-tile-${t.id}`; }
   static playerPanelBoardSummary(player_id: number, enclosure_id: number): string {
     return `zoo-player-panel-board-summary-${player_id}-${enclosure_id}`;
@@ -189,7 +190,7 @@ export class ZoolorettoHtml {
     return Html
       .div({ classes: [ "zoo-playerboard"] },
         Html.div({},
-          Html.span({ text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
+          Html.span({ id: IDS.playerLabel(player.player_id), text: player.name, style: `color: #${player.color}`, classes: ["player-name","whiteblock","zoo-playername"]})
         ),
         board,
       );
@@ -205,33 +206,33 @@ export class ZoolorettoHtml {
       }
     }
 
-    return Html
-      .div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
-        Html.div({id: 'zoo-boards' },
-          this.playerBoardDiv(currentPlayer),
-          ... otherplayers.map((p) => this.playerBoardDiv(p))
+    return Html.div({id: 'zoo-game-wrapper'},
+        Html.div({id: IDS.GAME, classes: this.twoPlayer ? 'zoo-2p' : ''},
+            Html.div({id: 'zoo-boards' },
+                this.playerBoardDiv(currentPlayer),
+                ... otherplayers.map((p) => this.playerBoardDiv(p))
+                ),
+            Html.div({ id: IDS.SHARED_CONTAINER },
+                Html.div({ id: 'zoo-stock' },
+                    Html.div({ id: 'zoo-primary-pile' },
+                    Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
+                    Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
+                    ),
+                    Html.div({ id: 'zoo-endgame-pile' },
+                    Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
+                    Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
+                    )
+                ),
+                ... this.gamedatas.trucks.map(truck =>
+                    Html.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
+                    Html.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
+                        ... truck.contents.map((contents, i) =>
+                        Html.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) })
+                        )
+                    )
+                ))
+            )
         ),
-        Html.div({ id: IDS.SHARED_CONTAINER },
-          Html.div({ id: 'zoo-stock' },
-            Html.div({ id: 'zoo-primary-pile' },
-              Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
-              Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
-            ),
-            Html.div({ id: 'zoo-endgame-pile' },
-              Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
-              Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
-            )
-          ),
-          ... this.gamedatas.trucks.map(truck =>
-            Html.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
-              Html.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
-                ... truck.contents.map((contents, i) =>
-                Html.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) })
-                )
-              )
-            )
-          )
-        )
     );
   }
 

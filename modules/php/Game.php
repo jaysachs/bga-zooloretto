@@ -161,6 +161,7 @@ class Game extends Table
 		];
 		foreach ($model->getAllPlayers() as $player) {
 			$datas['players'][$player->id]['player_id'] = $player->id;
+			$datas['players'][$player->id]['id'] = $player->id;
 			$datas['players'][$player->id]['money'] = $player->money;
 			$datas['players'][$player->id]['purchased_extensions'] = $player->purchased_extensions;
 			$datas['players'][$player->id]['extension_available'] = $player->extensionAvailable();

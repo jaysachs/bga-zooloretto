@@ -28,7 +28,8 @@ body {
     /* inherent to the truck image */
     --zoo-truck-aspect-ratio: calc(473 / 175);
 
-    --zoo-page-width: calc(100vw - 240px);
+    --zoo-page-width: calc(100vw - 240px - 46px);
+    --xzoo-page-width: calc(100vw - 240px);
 
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc(min(var(--zoo-max-tile-size), var(--zoo-page-width) / 17));
@@ -36,11 +37,11 @@ body {
 
 body.mobile_version #zoo-game {
     /* right-side-width is 0px */
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), 100vw / 17));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 46px) / 17));
 }
 
 body.mobile_version #zoo-game.zoo-2p {
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), 100vw / 18.6));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 46px) / 18.6));
 }
 
 #zoo-game.zoo-2p {
@@ -54,9 +55,8 @@ body.mobile_version #zoo-game.zoo-2p {
 
     --zoo-board-width: calc(var(--zoo-tile-size) * 11.6);
     display : flex;
-    gap: 4px;
     flex-direction: row;
-    justify-content: space-evenly;
+    justify-content: space-between;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
 }
@@ -194,6 +194,15 @@ div.zoo-pile:not(:has(span)) {
 }
 
 
+#zoo-game-wrapper {
+    display: flex;
+    gap: 40px;
+}
+
+#bga-zoom_wrapper {
+    margin-left: 46px;
+    padding-top: 1em;
+}
 
 /*
  * Player boards
@@ -247,8 +256,6 @@ div.zoo-pile:not(:has(span)) {
     display: flex;
     flex-direction: column;
     width: auto;
-    padding-top: 10px;
-    align-items: left;
 }
 
 .zoo-playername {
