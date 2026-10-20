@@ -199,7 +199,7 @@ div.zoo-pile:not(:has(span)) {
     gap: 40px;
 }
 
-#bga-zoom_wrapper {
+#game_play_area_wrap {
     margin-left: 46px;
     padding-top: 1em;
 }
