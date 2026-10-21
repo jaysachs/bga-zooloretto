@@ -102,6 +102,9 @@
 
                       <button class="action-button bgabutton bgabutton_blue action-button" type="button" onClick="zoomIn()">zoomIn</button>
                       <button class="action-button bgabutton bgabutton_blue action-button" type="button" onClick="zoomOut()">zoomOut</button>
+                      <button class="action-button bgabutton bgabutton_blue action-button" type="button" onClick="toggle2p()">toggle2p</button>
+                      <button class="action-button bgabutton bgabutton_blue action-button" type="button" onClick="toggleMobile()">toggleMobile</button>
+                      <button class="action-button bgabutton bgabutton_blue action-button" type="button" onClick="changeExtensions()">extensions</button>
 
                     <span id="gotonexttable_wrap">&nbsp;
                       <a id="go_to_next_table_inactive_player" class="bgabutton bgabutton_red" href="https://studio.boardgamearena.com/play?from=779594"><span id="go_to_next_player_label">Go to next table</span> <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
@@ -258,7 +261,7 @@
                         });
                     }
 
-                    function togglePlayerBoards() {
+                    function toggleMobile() {
                       let s = document.getElementById('ebd-body').classList;
                       if (s.contains('mobile_version')) {
                         s.remove('mobile_version');
@@ -269,7 +272,7 @@
                       }
                     }
                     function changeExtensions() {
-                      let s = document.getElementById('zoo-board-1');
+                      let s = document.getElementById('zoo-board-2405406');
                       let x = Number(s.getAttribute('zoo-extensions'));
                       x++;
                       if (x > 2) { x = 0; }
