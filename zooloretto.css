@@ -22,26 +22,33 @@ Z          o   #DD9457  ("orange-y")
     o     t    #8D9BC3  (lavender grey)
 */
 
+html {
+    --zoo-jump-to-space: 0px;
+}
+
 body {
     --zoo-max-tile-size: 78px;
 
     /* inherent to the truck image */
     --zoo-truck-aspect-ratio: calc(473 / 175);
 
-    --zoo-page-width: calc(100vw - 240px - 46px);
-    --xzoo-page-width: calc(100vw - 240px);
+    --zoo-page-width: calc(100vw - 240px - var(--zoo-jump-to-space));
 
     /* Goal of tile size of approx 4vw ... */
     --zoo-tile-size: calc(min(var(--zoo-max-tile-size), var(--zoo-page-width) / 17));
 }
 
+html.zoo-jump-to-enabled {
+    --zoo-jump-to-space: 46px;
+}
+
 body.mobile_version #zoo-game {
     /* right-side-width is 0px */
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 46px) / 17));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - var(--zoo-jump-to-space)) / 17));
 }
 
 body.mobile_version #zoo-game.zoo-2p {
-    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - 46px) / 18.6));
+    --zoo-tile-size: calc(min(var(--zoo-max-tile-size), (100vw - var(--zoo-jump-to-space)) / 18.6));
 }
 
 #zoo-game.zoo-2p {
@@ -65,15 +72,15 @@ body.mobile_version #zoo-game.zoo-2p {
  * Shared components -- draw pile, stock, trucks
  */
 
-#zoo-shared-container {
-    /* to account for zoom controls */
-    margin-top: 45px;
-    padding: 0 1vw 1vw 1vw;
+#zoo-shared-container-wrapper {
     flex-shrink: 1;
     flex-grow: 0;
+}
+
+#zoo-shared-container {
+    padding: 0 1vw 1vw 1vw;
     display: flex;
     flex-direction: column;
-    height: 50%;
     width: auto;
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.2);
@@ -200,7 +207,7 @@ div.zoo-pile:not(:has(span)) {
 }
 
 #game_play_area_wrap {
-    margin-left: 46px;
+    margin-left: var(--zoo-jump-to-space);
     padding-top: 1em;
 }
 

@@ -38,6 +38,20 @@
     },
     "default": 1
   },
+  "108": {
+    "name": "Show 'jump-to-player-board' navigation tool",
+    "needReload": true,
+    "values": {
+      "0": {
+        "name": "Disabled"
+      },
+      "1": {
+        "name": "Enabled",
+        "cssPref": "zoo-jump-to-enabled"
+      }
+    },
+    "default": 0
+  },
   "102": {
     "name": "Pause after showing final scores",
     "needReload": false,

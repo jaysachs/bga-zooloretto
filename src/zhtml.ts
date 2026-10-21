@@ -90,6 +90,7 @@ export class IDS {
   static readonly DISK = 'zoo-disk';
   static readonly SCORE_SHEET = 'zoo-score-sheet';
   static readonly SHARED_CONTAINER = 'zoo-shared-container';
+  static readonly SHARED_CONTAINER_WRAPPER = 'zoo-shared-container-wrapper';
 
   static depotSpace(truck_id: number) { return `zoo-depot-space-${truck_id}`}
   static truck(truck_id : number) { return `zoo-truck-${truck_id}`; }
@@ -212,25 +213,27 @@ export class ZoolorettoHtml {
                 this.playerBoardDiv(currentPlayer),
                 ... otherplayers.map((p) => this.playerBoardDiv(p))
                 ),
-            Html.div({ id: IDS.SHARED_CONTAINER },
-                Html.div({ id: 'zoo-stock' },
-                    Html.div({ id: 'zoo-primary-pile' },
-                    Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
-                    Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
-                    ),
-                    Html.div({ id: 'zoo-endgame-pile' },
-                    Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
-                    Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
-                    )
-                ),
-                ... this.gamedatas.trucks.map(truck =>
-                    Html.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
-                    Html.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
-                        ... truck.contents.map((contents, i) =>
-                        Html.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) })
+            Html.div({ id: IDS.SHARED_CONTAINER_WRAPPER },
+                Html.div({ id: IDS.SHARED_CONTAINER },
+                    Html.div({ id: 'zoo-stock' },
+                        Html.div({ id: 'zoo-primary-pile' },
+                        Html.div({ id: IDS.PRIMARY_PILE_COUNT, text: "??" }),
+                        Html.div({ id: IDS.PRIMARY_PILE_TILES, classes: CSS.PILE }),
+                        ),
+                        Html.div({ id: 'zoo-endgame-pile' },
+                        Html.div({ id: IDS.ENDGAME_PILE_COUNT }),
+                        Html.div({ id: IDS.ENDGAME_PILE_TILES, classes: CSS.PILE }),
                         )
-                    )
-                ))
+                    ),
+                    ... this.gamedatas.trucks.map(truck =>
+                        Html.div({id: IDS.depotSpace(truck.truck_id), classes: CSS.DEPOT_SPACE },
+                        Html.div({ id: IDS.truck(truck.truck_id), classes: CSS.TRUCK },
+                            ... truck.contents.map((contents, i) =>
+                            Html.div({ id: IDS.truckSpace(truck.truck_id, contents.pos) })
+                            )
+                        )
+                    ))
+                )
             )
         ),
     );

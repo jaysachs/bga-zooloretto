@@ -85,7 +85,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
     const onZoomChange = (zoom: number) => {
         const unzoom = 1 / zoom;
-        document.getElementById(IDS.SHARED_CONTAINER)!.style.marginTop = (unzoom * 45) + 'px';
+        document.getElementById(IDS.SHARED_CONTAINER_WRAPPER)!.style.marginTop = (unzoom * 45) + 'px';
         document.querySelectorAll('.zoo-playername').forEach(
             e => (e as HTMLElement).style.zoom = String(unzoom)
         );
@@ -107,14 +107,16 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
     // onZoomChange(1.0);
 
-    const entries = BgaJumpTo.BgaPlayerEntries(this.bga, {
-        entryTarget: (playerId: any, player: ZPlayer) => IDS.boardId(Number(player.id)),
-    });
+    if (this.bga.userPreferences.get(108) == 1) {
+        const entries = BgaJumpTo.BgaPlayerEntries(this.bga, {
+            entryTarget: (playerId: any, player: ZPlayer) => IDS.boardId(Number(player.id)),
+        });
 
-    new BgaJumpTo.Manager({
-        localStorageFoldedKey: Game.LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
-        entries,
-    });
+        new BgaJumpTo.Manager({
+            localStorageFoldedKey: Game.LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
+            entries,
+        });
+    }
   }
 
   static readonly LOCAL_STORAGE_JUMP_TO_FOLDED_KEY = '<yourgamename>-folded';
