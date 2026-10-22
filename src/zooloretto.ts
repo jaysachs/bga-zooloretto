@@ -86,6 +86,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     const onZoomChange = (zoom: number) => {
         const unzoom = 1 / zoom;
         document.getElementById(IDS.SHARED_CONTAINER_WRAPPER)!.style.marginTop = (unzoom * 45) + 'px';
+        document.querySelectorAll('.zoo-playername').forEach(e => (e as HTMLElement).style.zoom = String(unzoom));
     }
 
     var initialDone = false;
@@ -106,7 +107,7 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
     if (this.bga.userPreferences.get(108) == 1) {
         const entries = BgaJumpTo.BgaPlayerEntries(this.bga, {
-            entryTarget: (playerId: any, player: ZPlayer) => IDS.boardId(Number(player.id)),
+            entryTarget: (playerId: any, player: ZPlayer) => IDS.enclosureSpace(Number(player.id), 104),
         });
 
         const jm = new BgaJumpTo.Manager({

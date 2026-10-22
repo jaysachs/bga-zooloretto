@@ -267,11 +267,8 @@ div.zoo-pile:not(:has(span)) {
 }
 
 .zoo-playername {
-    font-size: 16pt;
-    position: absolute;
-    bottom: -5px;
+    font-size: 10pt;
     padding: 5px;
-    z-index: 1;
     background-color: #fffa;
     margin: 0.25em;
     vertical-align: top;
