@@ -66,6 +66,7 @@ body.mobile_version #zoo-game.zoo-2p {
     justify-content: space-between;
     --zoo-highlight-width: calc(var(--zoo-tile-size) * 0.1);
     --zoo-drop-shadow-width: calc(var(--zoo-tile-size) * 0.03);
+    width: 100%;
 }
 
 /*
@@ -221,7 +222,7 @@ div.zoo-pile:not(:has(span)) {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-evenly;
     row-gap: 2em;
     column-gap: 2em;
 }
