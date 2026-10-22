@@ -114,16 +114,16 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
             entries,
         });
 
-        // HACK ALERT:
-        jm.jumpTo = (target: string | HTMLElement) => {
-            const targetElement = typeof target === 'string' ? document.getElementById(target) : target;
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
-            }
-            else {
-                console.error(`BgaJumpTo target doesn't exists:`, target);
-            }
-        }
+        // if needed, can hack things:
+        // jm.jumpTo = (target: string | HTMLElement) => {
+        //     const targetElement = typeof target === 'string' ? document.getElementById(target) : target;
+        //     if (targetElement) {
+        //         targetElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
+        //     }
+        //     else {
+        //         console.error(`BgaJumpTo target doesn't exists:`, target);
+        //     }
+        // }
     }
   }
 
