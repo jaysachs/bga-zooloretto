@@ -141,7 +141,10 @@
                                     <button class="action-button bgabutton bgabutton_blue action-button" type="button"
                                         onClick="zoomOut()">zoomOut</button>
                                     <button class="action-button bgabutton bgabutton_blue action-button" type="button"
-                                        onClick="toggle2p()">toggle2p</button>
+                                            onClick="numplayers(2)">2p</button>
+                                    <button class="action-button bgabutton bgabutton_blue" type="button" onClick="numplayers(3)">3p</button>
+                                    <button class="action-button bgabutton bgabutton_blue" type="button" onclick="numplayers(4)">4p</button>
+                                    <button class="action-button bgabutton bgabutton_blue" type="button" onclick="numplayers(5)">5p</button>
                                     <button class="action-button bgabutton bgabutton_blue action-button" type="button"
                                         onClick="toggleMobile()">toggleMobile</button>
                                     <button class="action-button bgabutton bgabutton_blue action-button" type="button"
@@ -252,6 +255,7 @@
                                                 }
                                                 t.setAttribute('zoo-mark', a);
                                             }
+
                                             function doMove(e) {
                                                 var t = e.target;
                                                 while (!t.classList.contains('zoo-truck')) {
@@ -259,6 +263,31 @@
                                                 }
                                                 t.classList.toggle('zoo-selected');
                                             }
+
+                                            function numplayers(p) {
+                                            let cl = document.getElementById('zoo-game').classList;
+                                            if (p == 2) {
+                                                cl.add('zoo-2p')
+                                            } else {
+                                                cl.remove('zoo-2p')
+                                            }
+                                                ids = [
+                                                    2405406,
+                                                    2405409,
+                                                    2405410,
+                                                    2405408,
+                                                    2405407,
+                                                ];
+                                                for (i = 3; i <= 5; i++) {
+                                                    let e = document.getElementById(`zoo-board-${ids[i-1]}`).parentElement;
+                                                    if (i <= p) {
+                                                        e.style.display = 'initial';
+                                                    } else {
+                                                        e.style.display = 'none';
+                                                    }
+                                                            }
+                                            }
+
                                             function toggle2p() {
                                                 let cl = document.getElementById('zoo-game').classList;
                                                 cl.toggle('zoo-2p')
