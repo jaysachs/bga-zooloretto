@@ -39,7 +39,7 @@
     "default": 1
   },
   "108": {
-    "name": "Show 'jump-to-player-board' navigation tool",
+    "name": "Player board navigation control",
     "needReload": true,
     "values": {
       "0": {
@@ -50,7 +50,7 @@
         "cssPref": "zoo-jump-to-enabled"
       }
     },
-    "default": 0
+    "default": 1
   },
   "102": {
     "name": "Pause after showing final scores",
