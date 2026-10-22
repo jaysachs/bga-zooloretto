@@ -39,18 +39,26 @@
     "default": 1
   },
   "108": {
-    "name": "Player board navigation control",
+    "name": "Show board navigation control",
     "needReload": true,
     "values": {
-      "0": {
-        "name": "Disabled"
+      "10": {
+        "name": "Never"
       },
-      "1": {
-        "name": "Enabled",
-        "cssPref": "zoo-jump-to-enabled"
+      "2": {
+        "name": "Always"
+      },
+      "3": {
+        "name": "3 or more players"
+      },
+      "4": {
+        "name": "4 or more players"
+      },
+      "5": {
+        "name": "5 players"
       }
     },
-    "default": 1
+    "default": 2
   },
   "102": {
     "name": "Pause after showing final scores",

@@ -105,15 +105,17 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
     // onZoomChange(1.0);
 
-    if (this.bga.userPreferences.get(108) == 1) {
+    if (gamedatas.playerorder.length >= this.bga.userPreferences.get(108)) {
         const entries = BgaJumpTo.BgaPlayerEntries(this.bga, {
-            entryTarget: (playerId: any, player: ZPlayer) => IDS.enclosureSpace(Number(player.id), 104),
+            entryTarget: (playerId: number) => IDS.enclosureSpace(Number(playerId), 104),
         });
 
         const jm = new BgaJumpTo.Manager({
+            defaultFolded: false,
             localStorageFoldedKey: Game.LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
             entries,
         });
+        document.documentElement.classList.add('zoo-jump-to-enabled');
 
         // if needed, can hack things:
         // jm.jumpTo = (target: string | HTMLElement) => {
