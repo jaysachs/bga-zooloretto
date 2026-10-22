@@ -86,9 +86,6 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
     const onZoomChange = (zoom: number) => {
         const unzoom = 1 / zoom;
         document.getElementById(IDS.SHARED_CONTAINER_WRAPPER)!.style.marginTop = (unzoom * 45) + 'px';
-        document.querySelectorAll('.zoo-playername').forEach(
-            e => (e as HTMLElement).style.zoom = String(unzoom)
-        );
     }
 
     var initialDone = false;
@@ -112,10 +109,21 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
             entryTarget: (playerId: any, player: ZPlayer) => IDS.boardId(Number(player.id)),
         });
 
-        new BgaJumpTo.Manager({
+        const jm = new BgaJumpTo.Manager({
             localStorageFoldedKey: Game.LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
             entries,
         });
+
+        // HACK ALERT:
+        jm.jumpTo = (target: string | HTMLElement) => {
+            const targetElement = typeof target === 'string' ? document.getElementById(target) : target;
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
+            }
+            else {
+                console.error(`BgaJumpTo target doesn't exists:`, target);
+            }
+        }
     }
   }
 
