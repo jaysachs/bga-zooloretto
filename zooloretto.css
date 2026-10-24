@@ -906,3 +906,19 @@ th.bga-score-sheet_player-name {
     font-weight: bold;
     width: min-content;
 }
+
+/*
+    We can media query all landscape because we use
+        scrollIntoView({ behavior: 'auto', ... })
+    only in iOS; other platforms we call
+        scrollIntoView({ behavior: 'smooth', ... });
+*/
+:root {
+    scroll-behavior: smooth;
+}
+
+@media (orientation: landscape) {
+  :root {
+    scroll-behavior: auto;
+  }
+}

@@ -31,6 +31,11 @@ import { GameView } from './zview';
 import { LoadDrawnTileFlow } from './loadDrawnTileFlow';
 import { PlayerTurnFlow } from './playerTurnFlow';
 
+function isIOS(): boolean {
+    return (/iPad|iPhone|iPod/.test(navigator.platform) ||
+            (/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream));
+}
+
 /** Game class */
 export class Game extends BaseGame<ZPlayer, ZGamedatas> {
 
@@ -117,16 +122,21 @@ export class Game extends BaseGame<ZPlayer, ZGamedatas> {
         });
         document.documentElement.classList.add('zoo-jump-to-enabled');
 
-        // if needed, can hack things:
-        // jm.jumpTo = (target: string | HTMLElement) => {
-        //     const targetElement = typeof target === 'string' ? document.getElementById(target) : target;
-        //     if (targetElement) {
-        //         targetElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
-        //     }
-        //     else {
-        //         console.error(`BgaJumpTo target doesn't exists:`, target);
-        //     }
-        // }
+        if (isIOS()) {
+            // work around iOS bug with smooth scrolling in landscape orientation
+            // we change scroll behavior to 'auto', and in CSS we set the
+            // `scroll-behavior` to be `smooth` except for a media query
+            // in landscape mode.
+            (jm as any).jumpTo = (target: string | HTMLElement) => {
+                const targetElement = typeof target === 'string' ? document.getElementById(target) : target;
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+                }
+                else {
+                    console.error(`BgaJumpTo target doesn't exists:`, target);
+                }
+            }
+        }
     }
   }
 
